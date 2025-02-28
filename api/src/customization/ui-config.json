@@ -1,7 +1,7 @@
 {
     "header": {
         "link": {
-            "enabled": true,
+            "enabled": false,
             "linkProps": {
                 "href": "https://code.gouv.fr"
             },
@@ -15,75 +15,73 @@
                 "enabled": true
             },
             "addSoftware": {
-                "enabled": true
+                "enabled": false
             },
             "about": {
                 "enabled": true
             },
             "contribute": {
                 "enabled": true,
-                "href": "mailto:floss@numerique.gouv.fr?subject=Demande d'accompagnement"
+                "href": "mailto:contact-logiciels-catalogue-esr@groupes.renater.fr?subject=Contact"
             },
             "login": {
-                "enabled": true
+                "enabled": false
             }
         }
     },
     "home": {
         "softwareSelection": {
-            "enabled": true
-        },
-        "theSillInAFewWordsParagraphLinks": [
-            "https://fr.wikipedia.org/wiki/Logiciel_libre",
-            "https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000033203039",
-            "https://code.gouv.fr/sill/readme",
-            "https://code.gouv.fr/fr/doc/licences-libres-dinum"
-        ],
-        "searchBar": {
             "enabled": false
         },
+        "theSillInAFewWordsParagraphLinks": [
+            "https://www.ouvrirlascience.fr/college-codes-sources-et-logiciels/",
+            "https://www.ouvrirlascience.fr/deuxieme-plan-national-pour-la-science-ouverte/"
+        ],
+        "searchBar": {
+            "enabled": true
+        },
         "statistics": {
-            "categories": ["softwareCount", "registeredUserCount", "agentReferentCount", "organizationCount"]
+            "categories": ["softwareCount"]
         },
         "usecases": {
             "declareReferent": {
-                "enabled": true,
+                "enabled": false,
                 "labelLinks": [],
                 "buttonEnabled": true,
                 "buttonLink": ""
             },
             "editSoftware": {
                 "enabled": true,
-                "labelLinks": [],
+                "labelLinks": ["https://hal.science/"],
                 "buttonEnabled": true,
-                "buttonLink": ""
+                "buttonLink": "https://cas.ccsd.cnrs.fr/cas/login?service=https%3A%2F%2Fhal.science%2Fuser%2Flogin%3Furl%3Dhttps%253A%252F%252Fhal.science%252F"
             },
             "addSoftwareOrService": {
                 "enabled": true,
-                "labelLinks": [],
+                "labelLinks": ["https://hal.science/"],
                 "buttonEnabled": true,
-                "buttonLink": ""
+                "buttonLink": "https://doc.hal.science/en/deposer/deposer-le-code-source"
             }
         },
         "quickAccess": {
-            "enabled": false
+            "enabled": true
         }
     },
     "softwareDetails": {
-        "authorCard": false,
-        "defaultLogo": true,
+        "authorCard": true,
+        "defaultLogo": false,
         "details": {
             "enabled": true,
             "fields": {
                 "registerDate": true,
-                "minimalVersionRequired": true,
-                "softwareCurrentVersion": true,
+                "minimalVersionRequired": false,
+                "softwareCurrentVersion": false,
                 "softwareCurrentVersionDate": true,
                 "license": true
             }
         },
         "customAttributes": {
-            "enabled": true
+            "enabled": false
         },
         "metadata": {
             "enabled": true,
@@ -91,7 +89,7 @@
                 "keywords": true,
                 "programmingLanguages": true,
                 "applicationCategories": true,
-                "softwareType": true
+                "softwareType": false
             }
         },
         "repoMetadata": {
@@ -101,35 +99,35 @@
             "enabled": true
         },
         "userActions": {
-            "enabled": true
+            "enabled": false
         }
     },
     "catalog": {
-        "defaultLogo": true,
+        "defaultLogo": false,
         "search": {
             "options": {
-                "organisation": true,
+                "organisation": false,
                 "applicationCategories": true,
                 "softwareType": true,
-                "customAttributes": true,
-                "programmingLanguages": false
+                "customAttributes": false,
+                "programmingLanguages": true
             }
         },
         "sortOptions": {
-            "referent_count": true,
-            "user_count": true,
+            "referent_count": false,
+            "user_count": false,
             "added_time": true,
             "update_time": true,
             "latest_version_publication_date": true,
-            "user_count_ASC": true,
-            "referent_count_ASC": true
+            "user_count_ASC": false,
+            "referent_count_ASC": false
         },
         "cardOptions": {
-            "referentCount": true,
-            "userCase": true
+            "referentCount": false,
+            "userCase": false
         }
     },
     "footer": {
-        "domains": ["info.gouv.fr", "service-public.fr", "legifrance.gouv.fr", "data.gouv.fr"]
+        "domains": ["hal.science", "recherche.data.gouv.fr", "code.gouv.fr/sill", "softwareheritage.org"]
     }
 }
