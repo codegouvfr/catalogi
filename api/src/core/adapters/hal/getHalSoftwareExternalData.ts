@@ -15,6 +15,7 @@ import { identifersUtils } from "../../../tools/identifiersTools";
 import { populateFromDOIIdentifiers } from "../doiResolver";
 import { repoAnalyser, RepoType } from "../../../tools/repoAnalyser";
 import { projectGitLabApiMaker } from "../GitLab/api/project";
+import { repoGitHubEndpointMaker } from "../GitHub/api/repo";
 
 const buildParentOrganizationTree = async (
     structureIdArray: number[] | string[] | undefined
@@ -228,7 +229,30 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                         }
                     };
                 case "GitHub":
-                    return undefined;
+                    const gitHubApi = repoGitHubEndpointMaker(halRawSoftware?.softCodeRepository_s?.[0]);
+                    if (!gitHubApi) {
+                        console.error("Bad URL string");
+                        return undefined;
+                    }
+
+                    const lastGHCommit = await gitHubApi.commits.getLastCommit();
+                    const lastGHCloseIssue = await gitHubApi.issues.getLastClosedIssue();
+                    const lastGHClosedPull = await gitHubApi.mergeRequests.getLast();
+
+                    return {
+                        healthCheck: {
+                            lastCommit: lastGHCommit?.commit?.author?.date
+                                ? new Date(lastGHCommit.commit.author.date).valueOf()
+                                : undefined,
+                            lastClosedIssue: lastGHCloseIssue?.closed_at
+                                ? new Date(lastGHCloseIssue.closed_at).valueOf()
+                                : undefined,
+                            lastClosedIssuePullRequest: lastGHClosedPull?.closed_at
+                                ? new Date(lastGHClosedPull.closed_at).valueOf()
+                                : undefined
+                        }
+                    };
+
                 case undefined:
                     return undefined;
                 default:
