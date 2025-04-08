@@ -1,6 +1,7 @@
 {
     "header": {
         "link": {
+            "enabled": true,
             "linkProps": {
                 "href": "https://code.gouv.fr"
             },
@@ -22,6 +23,9 @@
             "contribute": {
                 "enabled": true,
                 "href": "mailto:floss@numerique.gouv.fr?subject=Demande d'accompagnement"
+            },
+            "login": {
+                "enabled": true
             }
         }
     },

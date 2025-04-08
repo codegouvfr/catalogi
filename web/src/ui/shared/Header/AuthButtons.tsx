@@ -6,6 +6,7 @@ import { HeaderQuickAccessItem } from "@codegouvfr/react-dsfr/Header";
 import { useTranslation } from "react-i18next";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
+import { useCoreState } from "../../../core";
 import { routes } from "ui/routes";
 
 export type UserAuthenticationApi =
@@ -30,6 +31,14 @@ export function AuthButtons(props: Props) {
     const { t } = useTranslation();
 
     const { classes, cx } = useStyles({ isOnPageMyAccount });
+
+    const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
+
+    console.log("auth button", uiConfig?.header.menu.login.enabled);
+
+    if (!uiConfig?.header.menu.login.enabled) {
+        return;
+    }
 
     if (!userAuthenticationApi.isUserLoggedIn) {
         return (

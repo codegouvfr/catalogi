@@ -80,13 +80,14 @@ export const Header = memo(
             });
         }
 
-        const link: HeaderProps.QuickAccessItem | null = uiConfig?.header.link
-            ? {
-                  iconId: "fr-icon-bank-fill",
-                  linkProps: uiConfig.header.link.linkProps,
-                  text: uiConfig.header.link.text
-              }
-            : null;
+        const link: HeaderProps.QuickAccessItem | null =
+            uiConfig?.header.link && uiConfig.header.link.enabled
+                ? {
+                      iconId: "fr-icon-bank-fill",
+                      linkProps: uiConfig.header.link.linkProps,
+                      text: uiConfig.header.link.text
+                  }
+                : null;
 
         const quickAccess: Array<JSX.Element | HeaderProps.QuickAccessItem> = [
             <LanguageSelect />,

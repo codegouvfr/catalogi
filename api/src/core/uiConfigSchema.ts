@@ -6,6 +6,7 @@ import { z } from "zod";
 
 const headerSchema = z.object({
     link: z.object({
+        enabled: z.boolean(),
         linkProps: z.object({
             href: z.string().url()
         }),
@@ -27,6 +28,9 @@ const headerSchema = z.object({
         contribute: z.object({
             enabled: z.boolean(),
             href: z.string()
+        }),
+        login: z.object({
+            enabled: z.boolean()
         })
     })
 });
