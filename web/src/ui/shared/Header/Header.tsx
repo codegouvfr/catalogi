@@ -7,6 +7,7 @@ import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import { Trans, useTranslation } from "react-i18next";
 import { Header as HeaderDsfr, HeaderProps } from "@codegouvfr/react-dsfr/Header";
+import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { routes } from "ui/routes";
 import { useCoreState } from "../../../core";
 import { LanguageSelect } from "./LanguageSelect";
@@ -103,7 +104,14 @@ export const Header = memo(
                 ref={ref}
                 className={className}
                 brandTop={<Trans i18nKey={"header.siteTitle"} />}
-                serviceTitle={t("header.title")}
+                serviceTitle={
+                    <>
+                        {t("header.title")}{" "}
+                        <Badge as="span" noIcon severity="error">
+                            Beta
+                        </Badge>
+                    </>
+                }
                 homeLinkProps={{
                     ...routes.home().link,
                     title: t("header.home title")
