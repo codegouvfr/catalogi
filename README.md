@@ -21,10 +21,10 @@ Documentation is available [here](https://codegouvfr.github.io/catalogi/)
 
 This monorepo is made of several directories:
 
-- `api/`: Application API (also includes jobs, that can be run periodically)
-- `web/`: Web frontend
-- `docs/`: Documentation, as deployed [here](https://codegouvfr.github.io/catalogi/)
-- `deploy-examples/`: Deployment examples. For now only a Docker Compose example.
+- api: Application API (also includes jobs, that can be run periodically)
+- web: Web frontend
+- docs: Documentation, as deployed [here](https://codegouvfr.github.io/catalogi/)
+- deploy-examples: Examples of deployment, including [Docker Compose](deploy-examples/docker-compose) and [Kubernetes with Helm](docs/5-deploying-with-kubernetes.md).
 
 ## Governance and contributions
 

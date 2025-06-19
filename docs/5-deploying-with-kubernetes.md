@@ -10,10 +10,9 @@ This guide provides comprehensive instructions for deploying Catalogi on Kuberne
 ## Table of Contents
 
 - [Prerequisites](#prerequisites)
-- [Quick Start](#quick-start)
-- [Configuration](#configuration)
+- [Local Development Deployment](#local-development-deployment)
 - [Production Deployment](#production-deployment)
-- [Development Setup](#development-setup)
+- [Configuration](#configuration)
 - [Customization](#customization)
 - [Troubleshooting](#troubleshooting)
 - [Migration from Docker Compose](#migration-from-docker-compose)
@@ -22,87 +21,104 @@ This guide provides comprehensive instructions for deploying Catalogi on Kuberne
 
 Before deploying Catalogi on Kubernetes, ensure you have:
 
-- **Kubernetes cluster** (version 1.19 or later)
-- **Helm 3.x** installed and configured
-- **kubectl** configured to access your cluster
-- **Ingress controller** (nginx, traefik, etc.)
-- **Cert-manager** (optional, for automatic TLS certificates)
+- A running **Kubernetes cluster** (v1.19+). For local testing, you can enable Kubernetes in Docker Desktop.
+- **kubectl** configured to access your cluster.
+- **Helm 3.x** installed.
+- An **Ingress controller**, such as NGINX or Traefik, installed in your cluster.
 
 ### Installing Prerequisites
 
-#### Helm 3.x
+#### kubectl (on macOS)
+
 ```bash
-curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+brew install kubectl
 ```
 
-#### Ingress Controller (NGINX example)
+#### Helm (on macOS)
+
+```bash
+brew install helm
+```
+
+After installing Helm, you'll need to add the required repositories:
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+```
+
+#### NGINX Ingress Controller
+
+If you don't have an ingress controller, you can install the NGINX one:
+
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
-helm install ingress-nginx ingress-nginx/ingress-nginx \
-  --create-namespace \
-  --namespace ingress-nginx
+helm install ingress-nginx ingress-nginx/ingress-nginx --create-namespace --namespace ingress-nginx
 ```
 
-#### Cert-Manager (optional)
-```bash
-helm repo add jetstack https://charts.jetstack.io
-helm repo update
-helm install cert-manager jetstack/cert-manager \
-  --namespace cert-manager \
-  --create-namespace \
-  --set installCRDs=true
-```
+---
 
-## Quick Start
+## Local Development Deployment
 
-### 1. Create a namespace
+This section will guide you through deploying Catalogi on a local Kubernetes cluster for development and testing purposes.
+
+### 1. Create a Namespace
+
 ```bash
 kubectl create namespace catalogi
 ```
 
-### 2. Deploy with default values
-```bash
-# From the root of this repository
-helm install catalogi ./helm-charts/catalogi \
-  --namespace catalogi \
-  --set ingress.hosts[0].host=catalogi.yourdomain.com \
-  --set database.password=your-secure-password
-```
+### 2. Add Required Helm Repositories
 
-### 3. Check deployment status
-```bash
-kubectl get pods -n catalogi
-kubectl get ingress -n catalogi
-```
-
-## Configuration
-
-Catalogi can be configured using Helm values. See the example configurations in [`deployment-examples/helm/`](../deployment-examples/helm/).
-
-### Basic Configuration
-
-For a simple production deployment:
+Add the Bitnami repository which contains the PostgreSQL dependency:
 
 ```bash
-helm install catalogi ./helm-charts/catalogi \
-  --namespace catalogi \
-  --values deployment-examples/helm/values-basic.yaml
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
 ```
 
-### Important Configuration Values
+### 3. Build Chart Dependencies
 
-| Parameter | Description | Default |
-|-----------|-------------|---------|
-| `ingress.hosts[0].host` | Your domain name | `catalogi.local` |
-| `database.password` | Database password | `change-this-in-production` |
-| `postgresql.enabled` | Enable built-in PostgreSQL | `true` |
-| `database.externalHost` | External database host | `""` |
-| `customization.enabled` | Enable UI customization | `true` |
+From the root of the repository, run the following command to fetch the PostgreSQL dependency:
+
+```bash
+helm dependency build ./helm-charts/catalogi
+```
+
+### 4. Deploy Catalogi
+
+We provide an example values file that is pre-configured for local development. It uses the `latest` image tags and sets up a functional ingress configuration.
+
+Deploy the chart using this file:
+
+```bash
+helm install catalogi ./helm-charts/catalogi --namespace catalogi --values ./deployment-examples/helm/values-local-dev.yaml
+```
+
+### 5. Check Deployment Status
+
+It may take a few minutes for all the pods to become ready. You can monitor the status with:
+
+```bash
+kubectl get pods -n catalogi -w
+```
+
+Once all pods show `1/1` in the `READY` column, the deployment is complete.
+
+The `catalogi-api` pod includes an `initContainer` that waits for the database to be ready before starting the application, which should prevent most startup issues.
+
+### 6. Accessing the Application
+
+The local development values configure the ingress to be accessible at `http://catalogi.127.0.0.1.nip.io`. You should be able to open this URL in your browser to see the Catalogi frontend.
+
+---
 
 ## Production Deployment
 
-For production environments, use the production values file:
+For production environments, it is crucial to use a dedicated values file with hardened security and resource configurations.
+
+Start with the provided production example:
 
 ```bash
 helm install catalogi ./helm-charts/catalogi \
@@ -112,209 +128,75 @@ helm install catalogi ./helm-charts/catalogi \
 
 ### Production Checklist
 
-- [ ] **Change default passwords** in `values-production.yaml`
-- [ ] **Configure external database** (recommended)
-- [ ] **Set up TLS certificates** (cert-manager or manual)
-- [ ] **Configure proper resource limits**
-- [ ] **Enable security contexts**
-- [ ] **Set up monitoring and logging**
-- [ ] **Configure backups**
+- [ ] **Change default passwords** in your values file.
+- [ ] **Configure an external database** for reliability and data persistence.
+- [ ] **Set up TLS certificates** for secure HTTPS communication.
+- [ ] **Configure resource requests and limits** to ensure stable performance.
+- [ ] **Enable security contexts** as shown in the security section.
+- [ ] **Configure backups** for your database and persistent volumes.
 
-### External Database Configuration
+---
 
-For production, it's recommended to use an external PostgreSQL database:
+## Configuration
 
-```yaml
-# In your values file
-database:
-  externalHost: "postgres.yourdomain.com"
-  user: "catalogi_user"
-  db: "catalogi_db"
-  password: "your-secure-password"
-  existingSecret: "catalogi-db-secret"  # Optional: use existing secret
+Catalogi is configured using Helm values. You can find examples in `deployment-examples/helm/`. Always create a copy of an example file and modify it for your environment rather than editing the examples directly.
 
-postgresql:
-  enabled: false  # Disable built-in PostgreSQL
-```
+### Important Parameters
 
-Create the database secret:
-```bash
-kubectl create secret generic catalogi-db-secret \
-  --namespace catalogi \
-  --from-literal=database-url="postgresql://user:password@host:5432/database" \
-  --from-literal=database-password="your-secure-password"
-```
+| Parameter                 | Description                       | Default                     |
+| ------------------------- | --------------------------------- | --------------------------- |
+| `ingress.hosts[0].host`   | Your application's domain name    | `catalogi.local`            |
+| `api.env.OIDC_ISSUER_URI` | **Required** OIDC provider URL    | `""`                        |
+| `api.env.OIDC_CLIENT_ID`  | **Required** OIDC client ID       | `""`                        |
+| `database.password`       | Database password                 | `change-this-in-production` |
+| `postgresql.enabled`      | Use the built-in PostgreSQL chart | `true`                      |
 
-## Development Setup
+**Note:** The `OIDC_ISSUER_URI` and `OIDC_CLIENT_ID` environment variables for the API are mandatory. The application will not start without them.
 
-For development and testing:
-
-```bash
-helm install catalogi ./helm-charts/catalogi \
-  --namespace catalogi \
-  --values deployment-examples/helm/values-development.yaml
-```
-
-This configuration includes:
-- **Adminer** for database management
-- **Lower resource requirements**
-- **Latest image tags** with frequent updates
-- **Simplified ingress** without TLS
-
-## Customization
-
-### UI Customization
-
-Customize the appearance and behavior through the `customization` section:
-
-```yaml
-customization:
-  enabled: true
-  uiConfig: |-
-    {
-      "organizationFullName": "Your Organization",
-      "organizationShortName": "YourOrg",
-      "websiteUrl": "https://yourorg.com",
-      "logoUrl": "https://yourorg.com/logo.png",
-      "termsOfServiceUrl": "https://yourorg.com/terms"
-    }
-  translations:
-    en: |-
-      {
-        "welcome": "Welcome to our software catalog",
-        "description": "Discover and evaluate open source software"
-      }
-    fr: |-
-      {
-        "welcome": "Bienvenue dans notre catalogue logiciel",
-        "description": "Découvrez et évaluez les logiciels open source"
-      }
-```
-
-### Environment Variables
-
-Configure the API through environment variables:
-
-```yaml
-api:
-  env:
-    EXTERNAL_SOFTWARE_DATA_ORIGIN: "wikidata"
-    TERMS_OF_SERVICE_URL: "https://yourorg.com/terms"
-    OIDC_ISSUER_URI: "https://auth.yourorg.com/realms/yourrealm"
-    OIDC_CLIENT_ID: "catalogi"
-```
-
-### Authentication Setup
-
-For OIDC authentication (Keycloak, etc.):
-
-```yaml
-api:
-  env:
-    OIDC_ISSUER_URI: "https://auth.yourorg.com/realms/yourrealm"
-    OIDC_CLIENT_ID: "catalogi"
-    # Additional OIDC configuration...
-```
-
-## Upgrading
-
-To upgrade an existing deployment:
-
-```bash
-# Update to new chart version
-helm upgrade catalogi ./helm-charts/catalogi \
-  --namespace catalogi \
-  --values your-values.yaml
-
-# Check rollout status
-kubectl rollout status deployment/catalogi-web -n catalogi
-kubectl rollout status deployment/catalogi-api -n catalogi
-```
-
-## Monitoring and Maintenance
-
-### Health Checks
-
-Monitor the health of your deployment:
-
-```bash
-# Check pod status
-kubectl get pods -n catalogi
-
-# Check logs
-kubectl logs -f deployment/catalogi-api -n catalogi
-kubectl logs -f deployment/catalogi-web -n catalogi
-
-# Check ingress
-kubectl get ingress -n catalogi
-```
-
-### Scaling
-
-Scale components as needed:
-
-```bash
-# Scale web frontend
-kubectl scale deployment catalogi-web --replicas=3 -n catalogi
-
-# Scale API backend
-kubectl scale deployment catalogi-api --replicas=2 -n catalogi
-```
-
-### Backup and Restore
-
-#### Database Backup
-
-If using the built-in PostgreSQL:
-
-```bash
-# Create backup
-kubectl exec -n catalogi catalogi-postgresql-0 -- \
-  pg_dump -U catalogi_user catalogi_db > backup.sql
-
-# Restore backup
-kubectl exec -i -n catalogi catalogi-postgresql-0 -- \
-  psql -U catalogi_user catalogi_db < backup.sql
-```
+---
 
 ## Troubleshooting
 
 ### Common Issues
 
-#### Pods stuck in Pending state
+#### Pods are stuck in `ErrImagePull` or `ImagePullBackOff`
+
+This usually means the image tag specified in your values file does not exist. The default chart now uses the `latest` tag, which is generally available. If you specify a version, ensure it exists on Docker Hub.
+
+**For Apple Silicon (ARM64) users:** If you encounter errors like `no matching manifest for linux/arm64/v8`, you need to manually pull the AMD64 images:
+
 ```bash
-kubectl describe pod <pod-name> -n catalogi
-# Check for resource constraints or node selector issues
+docker pull --platform linux/amd64 codegouvfr/catalogi-web:latest
+docker pull --platform linux/amd64 codegouvfr/catalogi-api:latest
 ```
 
-#### Database connection errors
-```bash
-kubectl logs deployment/catalogi-api -n catalogi
-# Check DATABASE_URL and database connectivity
-```
+The local development values file has been configured with `pullPolicy: IfNotPresent` to use local images once pulled.
 
-#### Ingress not working
-```bash
-kubectl describe ingress catalogi -n catalogi
-# Check DNS resolution and ingress controller logs
-```
+#### Database Connection Errors (`ECONNREFUSED`)
+
+The logs for the `catalogi-api` pod show `Error: connect ECONNREFUSED`. This means the API could not connect to the database. The chart includes an `initContainer` to prevent the API from starting before the database is ready, but if this issue occurs, check your database service's status and network policies.
+
+#### Readiness Probe Failing
+
+If `kubectl describe pod catalogi-api...` shows readiness probe failures (often with a 404 status code), it means the health check endpoint is not responding correctly.
+
+- The correct health check path for the API is `/public/healthcheck`.
+- This is configured in the `livenessProbe` and `readinessProbe` sections of the `api-deployment.yaml` template.
 
 ### Debugging Commands
 
 ```bash
-# Get all resources
+# Get all resources in the namespace
 kubectl get all -n catalogi
 
-# Describe deployments
-kubectl describe deployment catalogi-web -n catalogi
-kubectl describe deployment catalogi-api -n catalogi
+# Describe a pod to see its configuration and events
+kubectl describe pod <pod-name> -n catalogi
 
-# Check events
+# View the logs of a pod
+kubectl logs <pod-name> -n catalogi
+
+# Check events in the namespace for errors
 kubectl get events -n catalogi --sort-by='.lastTimestamp'
-
-# Port forward for local access
-kubectl port-forward service/catalogi-web 8080:80 -n catalogi
-kubectl port-forward service/catalogi-api 3000:3000 -n catalogi
 ```
 
 ## Migration from Docker Compose

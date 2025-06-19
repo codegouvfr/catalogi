@@ -24,7 +24,7 @@ web:
   replicaCount: 1
   image:
     repository: codegouvfr/catalogi-web
-    tag: "" # Defaults to .Chart.AppVersion
+    tag: "latest" # Defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
   # -- Pod security context (runs commands as a non-root user)
   podSecurityContext: {}
@@ -55,7 +55,7 @@ api:
   replicaCount: 1
   image:
     repository: codegouvfr/catalogi-api
-    tag: "" # Defaults to .Chart.AppVersion
+    tag: "latest" # Defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
   podSecurityContext: {}
   securityContext: {}
@@ -63,13 +63,16 @@ api:
   nodeSelector: {}
   tolerations: []
   affinity: {}
+  env:
+    OIDC_ISSUER_URI: https://auth.code.gouv.fr/auth/realms/codegouv
+    OIDC_CLIENT_ID: sill
 
 # -- Configuration for the 'update' background job
 update:
   schedule: "0 */4 * * *"
   image:
     repository: codegouvfr/catalogi-api
-    tag: "" # Defaults to .Chart.AppVersion
+    tag: "latest" # Defaults to .Chart.AppVersion
     pullPolicy: IfNotPresent
   podSecurityContext: {}
   securityContext: {}
@@ -123,12 +126,149 @@ postgresql:
 customization:
   enabled: true
   uiConfig: |-
-    { "key": "value" }
+    {
+      "header": {
+          "link": {
+              "linkProps": {
+                  "href": "https://code.gouv.fr"
+              },
+              "text": "Code Gouv"
+          },
+          "menu": {
+              "welcome": {
+                  "enabled": true
+              },
+              "catalog": {
+                  "enabled": true
+              },
+              "addSoftware": {
+                  "enabled": true
+              },
+              "about": {
+                  "enabled": true
+              },
+              "contribute": {
+                  "enabled": true,
+                  "href": "mailto:floss@numerique.gouv.fr?subject=Demande d'accompagnement"
+              }
+          }
+      },
+      "home": {
+          "softwareSelection": {
+              "enabled": true
+          },
+          "theSillInAFewWordsParagraphLinks": [
+              "https://fr.wikipedia.org/wiki/Logiciel_libre",
+              "https://www.legifrance.gouv.fr/jorf/article_jo/JORFARTI000033203039",
+              "https://code.gouv.fr/sill/readme",
+              "https://code.gouv.fr/fr/doc/licences-libres-dinum"
+          ],
+          "searchBar": {
+              "enabled": false
+          },
+          "statistics": {
+              "categories": ["softwareCount", "registeredUserCount", "agentReferentCount", "organizationCount"]
+          },
+          "usecases": {
+              "declareReferent": {
+                  "enabled": true,
+                  "labelLinks": [],
+                  "buttonEnabled": true,
+                  "buttonLink": ""
+              },
+              "editSoftware": {
+                  "enabled": true,
+                  "labelLinks": [],
+                  "buttonEnabled": true,
+                  "buttonLink": ""
+              },
+              "addSoftwareOrService": {
+                  "enabled": true,
+                  "labelLinks": [],
+                  "buttonEnabled": true,
+                  "buttonLink": ""
+              }
+          },
+          "quickAccess": {
+              "enabled": false
+          }
+      },
+      "softwareDetails": {
+          "authorCard": false,
+          "defaultLogo": true,
+          "details": {
+              "enabled": true,
+              "fields": {
+                  "registerDate": true,
+                  "minimalVersionRequired": true,
+                  "softwareCurrentVersion": true,
+                  "softwareCurrentVersionDate": true,
+                  "license": true
+              }
+          },
+          "prerogatives": {
+              "enabled": true
+          },
+          "metadata": {
+              "enabled": true,
+              "fields": {
+                  "keywords": true,
+                  "programmingLanguages": true,
+                  "applicationCategories": true,
+                  "softwareType": true
+              }
+          },
+          "links": {
+              "enabled": true
+          },
+          "userActions": {
+              "enabled": true
+          }
+      },
+      "catalog": {
+          "defaultLogo": true,
+          "search": {
+              "options": {
+                  "organisation": true,
+                  "applicationCategories": true,
+                  "softwareType": true,
+                  "prerogatives": true,
+                  "programmingLanguages": false
+              }
+          },
+          "sortOptions": {
+              "referent_count": true,
+              "user_count": true,
+              "added_time": true,
+              "update_time": true,
+              "latest_version_publication_date": true,
+              "user_count_ASC": true,
+              "referent_count_ASC": true
+          },
+          "cardOptions": {
+              "referentCount": true,
+              "userCase": true
+          }
+      },
+      "footer": {
+          "domains": ["info.gouv.fr", "service-public.fr", "legifrance.gouv.fr", "data.gouv.fr"]
+      }
+    }
   translations:
     en: |-
-      { "key": "hello" }
+      {
+        "$schema": "https://raw.githubusercontent.com/codegouvfr/sill/refs/heads/main/api/src/rpc/translations/schema.json",
+        "home": {
+          "title": "Software Catalog configured with Helm"
+        }
+      }
     fr: |-
-      { "key": "bonjour" }
+      {
+        "$schema": "https://raw.githubusercontent.com/codegouvfr/sill/refs/heads/main/api/src/rpc/translations/schema.json",
+        "home": {
+          "title": "Catalogue de Logiciels configuré avec Helm"
+        }
+      }
 
 # -- Configuration for Adminer (optional database UI)
 adminer:

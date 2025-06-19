@@ -5,6 +5,7 @@
 const fs = require("fs");
 const path = require("path");
 const yaml = require("js-yaml");
+const { execSync } = require("child_process");
 
 const rootDir = path.join(__dirname, "..");
 
@@ -44,6 +45,14 @@ try {
   const newChartYamlContent = yaml.dump(chartYaml);
   fs.writeFileSync(chartYamlPath, newChartYamlContent, "utf8");
   console.log("✅ Helm chart version bumped.");
+  
+  // Stage the changes to Chart.yaml
+  try {
+    execSync(`git add ${chartYamlPath}`, { stdio: 'inherit' });
+    console.log("✅ Chart.yaml changes staged.");
+  } catch (error) {
+    console.warn("⚠️  Could not stage Chart.yaml changes:", error.message);
+  }
 } catch (error) {
   console.error("❌ Error bumping Helm chart version:", error.message);
   process.exit(1);

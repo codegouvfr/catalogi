@@ -10,7 +10,7 @@ data:
     {{- .Values.customization.uiConfig | nindent 4 }}
   {{- if .Values.customization.translations }}
   {{- range $lang, $content := .Values.customization.translations }}
-  {{ $lang }}.json: |
+  translations_{{ $lang }}.json: |
     {{- $content | nindent 4 }}
   {{- end }}
   {{- end }}

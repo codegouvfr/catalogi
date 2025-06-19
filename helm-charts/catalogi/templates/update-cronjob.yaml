@@ -20,16 +20,21 @@ spec:
           serviceAccountName: {{ include "catalogi.serviceAccountName" . }}
           securityContext:
             {{- toYaml .Values.update.podSecurityContext | nindent 12 }}
+          initContainers:
+            - name: wait-for-postgres
+              image: busybox:1.36
+              command: ['sh', '-c', 'until nc -z -w 2 {{ include "catalogi.fullname" . }}-postgresql 5432; do echo "waiting for postgres..."; sleep 2; done;']
           containers:
             - name: update
               securityContext:
                 {{- toYaml .Values.update.securityContext | nindent 16 }}
-              image: "{{ .Values.update.image.repository }}:{{ include "catalogi.imageTag" .Values.update.image }}"
+              image: "{{ .Values.update.image.repository }}:{{ include "catalogi.imageTag" (dict "image" .Values.update.image "root" .) }}"
               imagePullPolicy: {{ .Values.update.image.pullPolicy }}
               command: ["yarn", "update"]
               resources:
                 {{- toYaml .Values.update.resources | nindent 16 }}
               env:
+                {{- include "catalogi.apiEnvs" . | nindent 16 }}
                 - name: DATABASE_URL
                   valueFrom:
                     secretKeyRef:
@@ -40,8 +45,17 @@ spec:
               {{- if .Values.customization.enabled }}
               volumeMounts:
                 - name: customization
-                  mountPath: /app/api/dist/src/customization
+                  mountPath: /app/api/dist/src/customization/ui-config.json
+                  subPath: ui-config.json
                   readOnly: true
+                {{- if .Values.customization.translations }}
+                {{- range $lang, $content := .Values.customization.translations }}
+                - name: customization
+                  mountPath: /app/api/dist/src/customization/translations/{{ $lang }}.json
+                  subPath: translations_{{ $lang }}.json
+                  readOnly: true
+                {{- end }}
+                {{- end }}
               {{- end }}
           {{- if .Values.customization.enabled }}
           volumes:

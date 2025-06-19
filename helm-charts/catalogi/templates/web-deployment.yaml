@@ -25,7 +25,7 @@ spec:
         - name: web
           securityContext:
             {{- toYaml .Values.web.securityContext | nindent 12 }}
-          image: "{{ .Values.web.image.repository }}:{{ include "catalogi.imageTag" .Values.web.image }}"
+          image: "{{ .Values.web.image.repository }}:{{ include "catalogi.imageTag" (dict "image" .Values.web.image "root" .) }}"
           imagePullPolicy: {{ .Values.web.image.pullPolicy }}
           ports:
             - name: http
@@ -48,6 +48,20 @@ spec:
           env:
             - name: API_URL
               value: "/api"
+            - name: CSP_SCRIPT_SRC
+              value: "'self' 'unsafe-eval' 'unsafe-inline'"
+          {{- if .Values.web.customNginxConfig }}
+          volumeMounts:
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          {{- end }}
+      {{- if .Values.web.customNginxConfig }}
+      volumes:
+        - name: nginx-config
+          configMap:
+            name: {{ include "catalogi.fullname" . }}-web-nginx-config
+      {{- end }}
       {{- with .Values.web.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

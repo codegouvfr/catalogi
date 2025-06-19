@@ -1,0 +1,98 @@
+# Temporary local development configuration for testing
+web:
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+api:
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  env:
+    OIDC_ISSUER_URI: "https://auth.code.gouv.fr/auth/realms/codegouv"
+    OIDC_CLIENT_ID: "sill"
+update:
+  image:
+    tag: "latest"
+    pullPolicy: IfNotPresent
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/enable-modsecurity: "false"
+    nginx.ingress.kubernetes.io/enable-owasp-core-rules: "false"
+  hosts:
+    - host: catalogi-test.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: web
+            port: 80
+        - path: /api/(.*)
+          pathType: ImplementationSpecific
+          service:
+            name: api
+            port: 3000
+
+database:
+  password: "change-this-in-production"
+
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "postgres"
+    password: "catalogi123"
+
+customization:
+  enabled: false
+
+# Custom nginx configuration for web container
+web:
+  replicaCount: 1
+  image:
+    repository: codegouvfr/catalogi-web
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  customNginxConfig: |
+    server {
+        listen 8080;
+        
+        gzip on; 
+        gzip_vary on; 
+        gzip_min_length 1024; 
+        gzip_proxied expired no-cache no-store private auth; 
+        gzip_types text/plain text/css text/xml text/javascript application/x-javascript application/javascript application/xml; 
+        gzip_disable "MSIE [1-6]\.";
+
+        add_header Content-Security-Policy "script-src 'self' 'unsafe-eval' 'unsafe-inline'; object-src 'none'; base-uri 'self';" always;
+
+        root /usr/share/nginx/html;
+        index index.html;      
+
+        try_files $uri $uri/ /index.html;
+
+        location ~ ^.+\..+$ {
+          try_files $uri =404;
+
+          location ~* \.(?:html|json|txt)$ {
+            expires -1;
+          }
+
+          location ~* \.(?:css|js|woff2?|eot|ttf|xml|md)$ {
+            expires 1y;
+            access_log off;
+            add_header Cache-Control "public";
+
+            location ~* \.(?:woff2?|eot|ttf|xml|md)$ {
+              add_header Access-Control-Allow-Origin *;
+            }
+          }
+        }
+    }
+
+# Override OIDC settings for local development
+oidc:
+  issuerUri: "https://auth.code.gouv.fr/auth/realms/codegouv"
+  clientId: "sill" 

@@ -118,5 +118,24 @@ postgresql://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ incl
 Get image tag
 */}}
 {{- define "catalogi.imageTag" -}}
-{{- .tag | default .Chart.AppVersion -}}
+{{- .image.tag | default .root.Chart.AppVersion -}}
+{{- end }}
+
+{{/*
+API Environment variables
+*/}}
+{{- define "catalogi.apiEnvs" -}}
+- name: DATABASE_URL
+  valueFrom:
+    secretKeyRef:
+      name: {{ .Values.database.existingSecret | default (printf "%s-database" (include "catalogi.fullname" .)) }}
+      key: database-url
+- name: API_PORT
+  value: "3000"
+- name: EXTERNAL_SOFTWARE_DATA_ORIGIN
+  value: "wikidata"
+{{- range $key, $value := .Values.api.env }}
+- name: {{ $key }}
+  value: {{ $value | quote }}
+{{- end }}
 {{- end }}

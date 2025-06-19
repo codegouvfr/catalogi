@@ -1,0 +1,11 @@
+{{- if .Values.web.customNginxConfig }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "catalogi.fullname" . }}-web-nginx-config
+  labels:
+    {{- include "catalogi.web.labels" . | nindent 4 }}
+data:
+  default.conf: |
+{{ .Values.web.customNginxConfig | indent 4 }}
+{{- end }} 
