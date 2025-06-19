@@ -12,13 +12,13 @@ pre-commit:
       run: yarn sync-helm-charts
       stage_fixed: true
 
-    bump-chart-version:
+    bump-helm-chart-version:
       glob: "helm-charts/catalogi/**/*"
       # This exclude is critical to prevent an infinite loop.
       exclude: "helm-charts/catalogi/Chart.yaml"
-      run: yarn bump-chart-version
+      run: yarn bump-helm-chart-version
       stage_fixed: true
-    
+
     lint:
       run: yarn turbo lint
 

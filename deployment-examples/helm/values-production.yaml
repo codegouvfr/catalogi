@@ -1,0 +1,154 @@
+# Production configuration for Catalogi
+# This example includes security hardening, external database, and monitoring
+
+# High availability
+web:
+  replicaCount: 3
+  image:
+    tag: "1.50.3"  # Pin to specific version
+    pullPolicy: IfNotPresent
+  
+  # Security hardening
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    fsGroup: 1001
+    seccompProfile:
+      type: RuntimeDefault
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: true
+    capabilities:
+      drop:
+        - ALL
+  
+  # Resource limits
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+  
+  # Pod disruption budget
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+
+api:
+  replicaCount: 2
+  image:
+    tag: "1.50.3"  # Pin to specific version
+    pullPolicy: IfNotPresent
+  
+  # Security hardening
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1001
+    fsGroup: 1001
+    seccompProfile:
+      type: RuntimeDefault
+  
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false  # API needs to write logs
+    capabilities:
+      drop:
+        - ALL
+  
+  # Resource limits
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+# External database (recommended for production)
+database:
+  user: "catalogi_user"
+  db: "catalogi_db"
+  password: "your-secure-password-here"  # Use a secret in production
+  existingSecret: "catalogi-db-secret"  # Reference to existing secret
+  externalHost: "postgres.yourdomain.com"  # External PostgreSQL host
+
+# Disable built-in PostgreSQL when using external database
+postgresql:
+  enabled: false
+
+# Production ingress with TLS
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+    nginx.ingress.kubernetes.io/rate-limit: "100"
+    nginx.ingress.kubernetes.io/rate-limit-window: "1m"
+  hosts:
+    - host: catalogi.yourdomain.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          service:
+            name: web
+            port: 80
+        - path: /api
+          pathType: ImplementationSpecific
+          service:
+            name: api
+            port: 3000
+  tls:
+    - secretName: catalogi-tls
+      hosts:
+        - catalogi.yourdomain.com
+
+# Update job runs less frequently in production
+update:
+  schedule: "0 2 * * *"  # Run at 2 AM daily
+  image:
+    tag: "1.50.3"
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+# Production customization
+customization:
+  enabled: true
+  uiConfig: |-
+    {
+      "organizationFullName": "Your Organization",
+      "organizationShortName": "YourOrg",
+      "websiteUrl": "https://yourorg.com",
+      "logoUrl": "https://yourorg.com/logo.png",
+      "termsOfServiceUrl": "https://yourorg.com/terms",
+      "privacyPolicyUrl": "https://yourorg.com/privacy"
+    }
+  translations:
+    en: |-
+      {
+        "welcome": "Welcome to our software catalog",
+        "description": "Discover and evaluate open source software"
+      }
+    fr: |-
+      {
+        "welcome": "Bienvenue dans notre catalogue logiciel",
+        "description": "Découvrez et évaluez les logiciels open source"
+      }
+
+# Disable adminer in production
+adminer:
+  enabled: false
+
+# Use image pull secrets if images are in private registry
+imagePullSecrets:
+  - name: "docker-registry-secret"

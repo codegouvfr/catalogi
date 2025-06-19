@@ -1,0 +1,17 @@
+{{- if .Values.customization.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "catalogi.fullname" . }}-customization
+  labels:
+    {{- include "catalogi.labels" . | nindent 4 }}
+data:
+  ui-config.json: |
+    {{- .Values.customization.uiConfig | nindent 4 }}
+  {{- if .Values.customization.translations }}
+  {{- range $lang, $content := .Values.customization.translations }}
+  {{ $lang }}.json: |
+    {{- $content | nindent 4 }}
+  {{- end }}
+  {{- end }}
+{{- end }}

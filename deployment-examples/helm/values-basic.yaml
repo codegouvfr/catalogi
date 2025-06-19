@@ -1,0 +1,73 @@
+# Basic production-ready configuration for Catalogi
+# This example shows minimal required changes for production
+
+# Configure your domain
+ingress:
+  enabled: true
+  className: "nginx"  # Change to your ingress class
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # If using cert-manager
+  hosts:
+    - host: catalogi.yourdomain.com  # CHANGE THIS
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          service:
+            name: web
+            port: 80
+        - path: /api
+          pathType: ImplementationSpecific
+          service:
+            name: api
+            port: 3000
+  tls:
+    - secretName: catalogi-tls
+      hosts:
+        - catalogi.yourdomain.com  # CHANGE THIS
+
+# Database configuration - CHANGE THESE PASSWORDS
+database:
+  user: "catalogi_user"
+  db: "catalogi_db"
+  password: "your-secure-password-here"  # CHANGE THIS
+
+postgresql:
+  enabled: true
+  auth:
+    username: "catalogi_user"
+    database: "catalogi_db"
+    password: "your-secure-password-here"  # CHANGE THIS
+  primary:
+    persistence:
+      enabled: true
+      size: 20Gi
+
+# Basic resource limits
+web:
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+api:
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+    requests:
+      cpu: 200m
+      memory: 512Mi
+
+# Basic customization
+customization:
+  enabled: true
+  uiConfig: |-
+    {
+      "organizationFullName": "Your Organization",
+      "organizationShortName": "YourOrg",
+      "websiteUrl": "https://yourorg.com",
+      "logoUrl": "https://yourorg.com/logo.png"
+    }

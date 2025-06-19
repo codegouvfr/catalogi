@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "catalogi.fullname" . }}-update
+  labels:
+    {{- include "catalogi.update.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.update.schedule | quote }}
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            {{- include "catalogi.update.labels" . | nindent 12 }}
+        spec:
+          {{- with .Values.imagePullSecrets }}
+          imagePullSecrets:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          serviceAccountName: {{ include "catalogi.serviceAccountName" . }}
+          securityContext:
+            {{- toYaml .Values.update.podSecurityContext | nindent 12 }}
+          containers:
+            - name: update
+              securityContext:
+                {{- toYaml .Values.update.securityContext | nindent 16 }}
+              image: "{{ .Values.update.image.repository }}:{{ include "catalogi.imageTag" .Values.update.image }}"
+              imagePullPolicy: {{ .Values.update.image.pullPolicy }}
+              command: ["yarn", "update"]
+              resources:
+                {{- toYaml .Values.update.resources | nindent 16 }}
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ .Values.database.existingSecret | default (printf "%s-database" (include "catalogi.fullname" .)) }}
+                      key: database-url
+                - name: EXTERNAL_SOFTWARE_DATA_ORIGIN
+                  value: "wikidata"
+              {{- if .Values.customization.enabled }}
+              volumeMounts:
+                - name: customization
+                  mountPath: /app/api/dist/src/customization
+                  readOnly: true
+              {{- end }}
+          {{- if .Values.customization.enabled }}
+          volumes:
+            - name: customization
+              configMap:
+                name: {{ include "catalogi.fullname" . }}-customization
+          {{- end }}
+          restartPolicy: OnFailure

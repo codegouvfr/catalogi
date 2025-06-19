@@ -20,7 +20,8 @@
     "format:check": "turbo format:check",
     "fullcheck": "turbo typecheck format:check lint test",
     "turbo": "turbo",
-    "sync-helm-charts": "node scripts/sync-helm-app-version.js"
+    "sync-helm-charts": "node scripts/sync-helm-app-version.js",
+    "bump-helm-chart-version": "node scripts/bump-helm-chart-version.js"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

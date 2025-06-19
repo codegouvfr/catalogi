@@ -108,12 +108,12 @@ database:
   externalHost: ""
 
 # -- PostgreSQL sub-chart configuration.
-postgresql:g
+postgresql:
   enabled: true
   auth:
-    username: ""
-    database: ""
-    password: ""
+    username: "catalogi_user"
+    database: "catalogi_db"
+    password: "change-this-in-production"
   primary:
     persistence:
       enabled: true

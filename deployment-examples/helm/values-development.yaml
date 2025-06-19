@@ -1,0 +1,107 @@
+# Development configuration for Catalogi
+# This example is optimized for local development and testing
+
+# Single replica for development
+web:
+  replicaCount: 1
+  image:
+    tag: "latest"
+    pullPolicy: Always
+  
+  # Lower resource requirements
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+api:
+  replicaCount: 1
+  image:
+    tag: "latest"
+    pullPolicy: Always
+  
+  # Lower resource requirements
+  resources:
+    limits:
+      cpu: 500m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+
+# Local database with small storage
+database:
+  user: "catalogi_dev"
+  db: "catalogi_dev"
+  password: "dev_password"
+
+postgresql:
+  enabled: true
+  auth:
+    username: "catalogi_dev"
+    database: "catalogi_dev"
+    password: "dev_password"
+  primary:
+    persistence:
+      enabled: true
+      size: 1Gi
+
+# Development ingress (no TLS)
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  hosts:
+    - host: catalogi.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+          service:
+            name: web
+            port: 80
+        - path: /api
+          pathType: ImplementationSpecific
+          service:
+            name: api
+            port: 3000
+  tls: []
+
+# More frequent updates for development
+update:
+  schedule: "*/30 * * * *"  # Every 30 minutes
+  image:
+    tag: "latest"
+  resources:
+    limits:
+      cpu: 200m
+      memory: 256Mi
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+# Enable adminer for database inspection
+adminer:
+  enabled: true
+  image:
+    repository: adminer
+    tag: "latest"
+
+# Development customization
+customization:
+  enabled: true
+  uiConfig: |-
+    {
+      "organizationFullName": "Development Instance",
+      "organizationShortName": "DEV",
+      "websiteUrl": "http://catalogi.local",
+      "logoUrl": "/logo.png"
+    }
+  translations:
+    en: |-
+      {
+        "welcome": "Development Environment",
+        "description": "This is a development instance"
+      }
