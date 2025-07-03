@@ -2,33 +2,31 @@
 
 ## A Software Catalog application
 
-This repository contains the catalogi software, a web application to manage
-a catalog of software.
+This repository contains Catalogi, a web application to manage software catalogs.
 
-## Full documentation
+## Documentation
 
-The full documentation is available [here](https://codegouvfr.github.io/catalogi/)
+Documentation is available [here](https://codegouvfr.github.io/catalogi/)
 
-## It is deployed on several places
+## Catalogi deployments
 
-1. [https://code.gouv.fr/sill](https://code.gouv.fr/sill/) for the
-list of recommanded Free Software for French administrations.
-2. [https://logiciels.catalogue-esr.fr/](https://logiciels.catalogue-esr.fr/) for the French Research Minister, listing mostly HAL softwares.
+1. [https://code.gouv.fr/sill](https://code.gouv.fr/sill/) is the list of recommanded Free Software for French administrations.
+2. [https://logiciels.catalogue-esr.fr/](https://logiciels.catalogue-esr.fr/) list [HAL](https://hal.science/) for the French Ministry of Research.
 
 ## Code organization
 
-This "monorepo" is made of several directories:
+This monorepo is made of several directories:
 
-- api: Application API (also includes jobs, that can be run periodically)
-- web: Web frontend
-- docs: Documentation, as deployed [here](https://codegouvfr.github.io/catalogi/)
-- deploy-examples: Examples of deployment. For now, there is only a Docker Compose example.
+- `api/`: Application API (also includes jobs, that can be run periodically)
+- `web/`: Web frontend
+- `docs/`: Documentation, as deployed [here](https://codegouvfr.github.io/catalogi/)
+- `deploy-examples/`: Deployment examples. For now only a Docker Compose example.
 
 ## Governance and contributions
 
 [![img](https://img.shields.io/badge/code.gouv.fr-contributif-blue.svg)](https://code.gouv.fr/documentation/#quels-degres-douverture-pour-les-codes-sources)
 
-See [GOVERNANCE.md](GOVERNANCE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
+See [GOVERNANCE](GOVERNANCE.md) and [CONTRIBUTING](CONTRIBUTING.md).
 
 ## License
 
@@ -36,4 +34,4 @@ See [GOVERNANCE.md](GOVERNANCE.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
 
 The code in this repository is published under [licence MIT](LICENSES/MIT.txt).
 
-The documentation is published under [licence Ouverte 2.0](LICENSES/Etalab-2.0.md) and CC-BY-4.0.
+The documentation is published under [licence Ouverte 2.0](LICENSES/Etalab-2.0.md) and [CC-BY-4.0](LICENSES/CC-BY-4.0.txt).
