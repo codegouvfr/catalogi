@@ -6,6 +6,8 @@
 
 This repository contains Catalogi, a web application to manage software catalogs.
 
+![A screenshot of Catalogi for the SILL](catalogi.png)
+
 ## Documentation
 
 Documentation is available [here](https://codegouvfr.github.io/catalogi/)
