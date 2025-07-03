@@ -32,6 +32,10 @@ This monorepo is made of several directories:
 
 See [GOVERNANCE](GOVERNANCE.md) and [CONTRIBUTING](CONTRIBUTING.md).
 
+## Discuss with us
+
+You are welcome to join the [Catalogi Matrix channel](https://matrix.to/#/#catalogi:matrix.org).
+
 ## License
 
 2021-2025 Direction interministérielle du numérique, mission logiciels libres.
