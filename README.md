@@ -1,3 +1,5 @@
+[![img](https://img.shields.io/badge/We%20support-BlueHats-blue.svg)](https://bluehats.world)
+
 # Catalogi
 
 ## A Software Catalog application
