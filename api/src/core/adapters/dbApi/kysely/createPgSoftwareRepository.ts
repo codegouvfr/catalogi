@@ -23,7 +23,7 @@ const dateParser = (str: string | Date | undefined | null) => {
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     const getBySoftwareId = makeGetSoftwareById(db);
     return {
-        create: async ({ formData, agentId }) => {
+        create: async ({ formData, userId }) => {
             const {
                 softwareName,
                 softwareDescription,
@@ -69,7 +69,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         workshopUrls: JSON.stringify([]),
                         categories: JSON.stringify([]),
                         generalInfoMd: undefined,
-                        addedByUserId: agentId,
+                        addedByUserId: userId,
                         keywords: JSON.stringify(softwareKeywords)
                     })
                     .returning("id as softwareId")
@@ -109,7 +109,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();
         },
-        update: async ({ formData, softwareSillId, agentId }) => {
+        update: async ({ formData, softwareSillId, userId }) => {
             const {
                 softwareName,
                 softwareDescription,
@@ -151,7 +151,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     workshopUrls: JSON.stringify([]),
                     categories: JSON.stringify([]),
                     generalInfoMd: undefined,
-                    addedByUserId: agentId,
+                    addedByUserId: userId,
                     keywords: JSON.stringify(softwareKeywords)
                 })
                 .where("id", "=", softwareSillId)
@@ -321,11 +321,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .execute()
                 .then(rows => rows.map(row => row.externalIdForSource!)),
 
-        countAddedByAgent: async ({ agentId }) => {
+        countAddedByUser: async ({ userId }) => {
             const { count } = await db
                 .selectFrom("softwares")
                 .select(qb => qb.fn.countAll<string>().as("count"))
-                .where("addedByUserId", "=", agentId)
+                .where("addedByUserId", "=", userId)
                 .executeTakeFirstOrThrow();
             return +count;
         },

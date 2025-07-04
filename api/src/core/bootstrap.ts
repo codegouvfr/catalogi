@@ -17,7 +17,7 @@ import type { ExternalDataOrigin, GetSoftwareExternalData } from "./ports/GetSof
 import type { GetSoftwareExternalDataOptions } from "./ports/GetSoftwareExternalDataOptions";
 import { UiConfig, uiConfigSchema } from "./uiConfigSchema";
 import { UseCases } from "./usecases";
-import { makeGetAgent } from "./usecases/getAgent";
+import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import rawUiConfig from "../customization/ui-config.json";
 
@@ -78,7 +78,7 @@ export async function bootstrapCore(
             dbApi,
             wikidataSource
         }),
-        getAgent: makeGetAgent({ agentRepository: dbApi.agent })
+        getUser: makeGetUser({ userRepository: dbApi.user })
     };
 
     return { dbApi, context, useCases, uiConfig };

@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-export type User = {
-    id: string;
+export type WithUserSubAndEmail = {
+    sub: string;
     email: string;
 };

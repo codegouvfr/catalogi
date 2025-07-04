@@ -4,10 +4,10 @@
 
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { createDecodeAccessToken, OidcParams } from "../tools/oidc";
-import { type User } from "./user";
+import { type WithUserSubAndEmail } from "./user";
 
 export type Context = {
-    user?: User;
+    user?: WithUserSubAndEmail;
 };
 
 export async function createContextFactory(params: { oidcParams: Pick<OidcParams, "issuerUri"> }) {
@@ -24,7 +24,7 @@ export async function createContextFactory(params: { oidcParams: Pick<OidcParams
 
         const { sub, email } = decodeAccessToken({ authorizationHeaderValue: authorization });
 
-        return { user: { id: sub, email } };
+        return { user: { sub: sub, email } };
     }
 
     return { createContext };

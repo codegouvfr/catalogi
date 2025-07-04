@@ -3,12 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
-import { AgentRepository } from "../../../ports/DbApiV2";
+import { UserRepository } from "../../../ports/DbApiV2";
 import { Os } from "../../../usecases/readWriteSillData";
 import type { Database } from "./kysely.database";
 import { jsonBuildObject, jsonStripNulls } from "./kysely.utils";
 
-export const createPgAgentRepository = (db: Kysely<Database>): AgentRepository => ({
+export const createPgAgentRepository = (db: Kysely<Database>): UserRepository => ({
     add: async agent => {
         const { id } = await db.insertInto("users").values(agent).returning("id").executeTakeFirstOrThrow();
         return id;

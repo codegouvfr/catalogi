@@ -5,7 +5,7 @@
 import { Kysely } from "kysely";
 import { beforeEach, describe, expect, it, afterEach } from "vitest";
 import { expectPromiseToFailWith, expectToEqual, testPgUrl } from "../../../../tools/test.helpers";
-import { DbAgent, DbApiV2 } from "../../../ports/DbApiV2";
+import { DbUser, DbApiV2 } from "../../../ports/DbApiV2";
 import { ExternalDataOrigin, SoftwareExternalData } from "../../../ports/GetSoftwareExternalData";
 import { DeclarationFormData, SoftwareFormData, Source } from "../../../usecases/readWriteSillData";
 import { createKyselyPgDbApi } from "./createPgDbApi";
@@ -98,7 +98,7 @@ const similarSoftwareExternalData: SoftwareExternalData = {
     publicationTime: new Date(1561566581000)
 };
 
-const insertedAgent = {
+const insertedUser = {
     email: "test@test.com",
     organization: "test-organization",
     isPublic: true,
@@ -159,10 +159,10 @@ describe("pgDbApi", () => {
     describe("software", () => {
         it("creates a software, than gets it with getAll, than updates adding a parent", async () => {
             console.log("------ software scenario ------");
-            const { softwareId, agentId } = await insertSoftwareExternalDataAndSoftwareAndAgent();
+            const { softwareId, userId } = await insertSoftwareExternalDataAndSoftwareAndUser();
 
             await dbApi.softwareUser.add({
-                userId: agentId,
+                userId,
                 softwareId,
                 useCaseDescription: "des trucs de user",
                 os: "windows",
@@ -230,7 +230,7 @@ describe("pgDbApi", () => {
                     type: "desktop/mobile"
                 },
                 userAndReferentCountByOrganization: {
-                    [insertedAgent.organization]: {
+                    [insertedUser.organization]: {
                         userCount: 1,
                         referentCount: 0
                     }
@@ -247,12 +247,12 @@ describe("pgDbApi", () => {
     describe("instance", () => {
         it("creates an instance, than gets it with getAll", async () => {
             console.log("------ instance scenario ------");
-            const { agentId } = await insertSoftwareExternalDataAndSoftwareAndAgent();
+            const { userId } = await insertSoftwareExternalDataAndSoftwareAndUser();
             const softwares = await dbApi.software.getAll();
             const softwareId = softwares[0].softwareId;
             console.log("saving instance");
             await dbApi.instance.create({
-                agentId,
+                userId,
                 formData: {
                     mainSoftwareSillId: softwareId,
                     organization: "test-orga",
@@ -277,19 +277,19 @@ describe("pgDbApi", () => {
     });
 
     describe("users", () => {
-        it("adds an agent, get it by email, updates it, getAll", async () => {
-            console.log("------ agent scenario------");
-            console.log("inserting agent");
-            const agentId = await dbApi.agent.add(insertedAgent);
+        it("adds a user, get it by email, updates it, getAll", async () => {
+            console.log("------ user scenario------");
+            console.log("inserting user");
+            const userId = await dbApi.user.add(insertedUser);
             const softwareId = await dbApi.software.create({
                 formData: softwareFormData,
-                agentId
+                userId
             });
 
             await db
                 .insertInto("software_users")
                 .values({
-                    userId: agentId,
+                    userId,
                     softwareId,
                     os: "mac",
                     useCaseDescription: "des trucs de user",
@@ -300,11 +300,11 @@ describe("pgDbApi", () => {
 
             await db
                 .insertInto("software_referents")
-                .values({ userId: agentId, softwareId, useCaseDescription: "des trucs de référent", isExpert: true })
+                .values({ userId, softwareId, useCaseDescription: "des trucs de référent", isExpert: true })
                 .execute();
 
-            console.log("getting agent by email");
-            const agent = await dbApi.agent.getByEmail(insertedAgent.email);
+            console.log("getting user by email");
+            const user = await dbApi.user.getByEmail(insertedUser.email);
             const expectedDeclarations: (DeclarationFormData & { softwareName: string })[] = [
                 {
                     declarationType: "user",
@@ -323,57 +323,57 @@ describe("pgDbApi", () => {
                 }
             ];
 
-            expectToEqual(agent, {
+            expectToEqual(user, {
                 id: expect.any(Number),
-                email: insertedAgent.email,
-                organization: insertedAgent.organization,
-                about: insertedAgent.about,
-                isPublic: insertedAgent.isPublic,
+                email: insertedUser.email,
+                organization: insertedUser.organization,
+                about: insertedUser.about,
+                isPublic: insertedUser.isPublic,
                 declarations: expectedDeclarations
             });
 
-            const updatedAgent: DbAgent = {
-                id: agent!.id,
+            const updatedUser: DbUser = {
+                id: user!.id,
                 organization: "updated-test-organization",
                 about: "updated about",
                 email: "updated@test.com",
-                isPublic: !insertedAgent.isPublic
+                isPublic: !insertedUser.isPublic
             };
 
-            console.log("updating agent");
-            await dbApi.agent.update(updatedAgent);
+            console.log("updating user");
+            await dbApi.user.update(updatedUser);
 
-            console.log("getting all agents");
-            const allAgents = await dbApi.agent.getAll();
-            expectToEqual(allAgents, [{ ...updatedAgent, declarations: expectedDeclarations }]);
+            console.log("getting all users");
+            const allUsers = await dbApi.user.getAll();
+            expectToEqual(allUsers, [{ ...updatedUser, declarations: expectedDeclarations }]);
 
-            await db.deleteFrom("softwares").where("addedByUserId", "=", updatedAgent.id).execute();
+            await db.deleteFrom("softwares").where("addedByUserId", "=", updatedUser.id).execute();
 
-            console.log("removing agent");
-            await dbApi.agent.remove(updatedAgent.id);
+            console.log("removing user");
+            await dbApi.user.remove(updatedUser.id);
 
-            console.log("getting all agents after delete");
-            const allAgentsAfterDelete = await dbApi.agent.getAll();
-            expectToEqual(allAgentsAfterDelete, []);
+            console.log("getting all users after delete");
+            const allUsersAfterDelete = await dbApi.user.getAll();
+            expectToEqual(allUsersAfterDelete, []);
         });
     });
 
     describe("users and referents", () => {
         let softwareId: number;
-        let agentId: number;
+        let userId: number;
         beforeEach(async () => {
-            console.log("before -- setting up test with software and agent");
-            await insertSoftwareExternalDataAndSoftwareAndAgent();
+            console.log("before -- setting up test with software and user");
+            await insertSoftwareExternalDataAndSoftwareAndUser();
 
             softwareId = (await dbApi.software.getAll())[0].softwareId;
-            agentId = (await dbApi.agent.getAll())[0].id;
+            userId = (await dbApi.user.getAll())[0].id;
         });
 
-        it("cannot add a user or referent if the software or agent is missing in db", async () => {
+        it("cannot add a user or referent if the software or user is missing in db", async () => {
             console.log("------ wrong path for user or referent ------");
             await expectPromiseToFailWith(
                 dbApi.softwareReferent.add({
-                    userId: agentId,
+                    userId,
                     softwareId: 404,
                     isExpert: true,
                     serviceUrl: "https://example.com",
@@ -398,7 +398,7 @@ describe("pgDbApi", () => {
         it("adds the user or referent correctly, than removes them", async () => {
             console.log("------ user or referent scenario ------");
             const user = {
-                userId: agentId,
+                userId,
                 softwareId,
                 serviceUrl: "https://example.com",
                 useCaseDescription: "my use case description",
@@ -408,7 +408,7 @@ describe("pgDbApi", () => {
             await dbApi.softwareUser.add(user);
 
             const referent = {
-                userId: agentId,
+                userId,
                 softwareId,
                 serviceUrl: "https://example.com",
                 useCaseDescription: "my use case description",
@@ -422,17 +422,17 @@ describe("pgDbApi", () => {
             expectToEqual(referents, [referent]);
             expectToEqual(users, [user]);
 
-            await dbApi.softwareUser.remove({ softwareId, agentId });
+            await dbApi.softwareUser.remove({ softwareId, userId });
             const usersAfterDelete = await db.selectFrom("software_users").selectAll().execute();
             expectToEqual(usersAfterDelete, []);
 
-            await dbApi.softwareReferent.remove({ softwareId, agentId });
+            await dbApi.softwareReferent.remove({ softwareId, userId });
             const referentsAfterDelete = await db.selectFrom("software_referents").selectAll().execute();
             expectToEqual(referentsAfterDelete, []);
         });
     });
 
-    const insertSoftwareExternalDataAndSoftwareAndAgent = async () => {
+    const insertSoftwareExternalDataAndSoftwareAndUser = async () => {
         await db
             .insertInto("software_external_datas")
             .values(
@@ -451,16 +451,16 @@ describe("pgDbApi", () => {
             )
             .execute();
 
-        const agentId = await dbApi.agent.add(insertedAgent);
+        const userId = await dbApi.user.add(insertedUser);
 
         const softwareId = await dbApi.software.create({
             formData: softwareFormData,
-            agentId
+            userId
         });
 
         return {
             softwareId,
-            agentId
+            userId
         };
     };
 });

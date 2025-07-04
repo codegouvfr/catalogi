@@ -93,8 +93,8 @@ export namespace Software {
     }
 }
 
-export type Agent = {
-    //NOTE: Undefined if the agent isn't referent of at least one software
+export type CreateUserParams = {
+    //NOTE: Undefined if the user isn't referent of at least one software
     // If it's the user the email is never undefined.
     email: string;
     organization: string | null;

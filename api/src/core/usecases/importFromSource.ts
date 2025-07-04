@@ -7,15 +7,15 @@ import { halAPIGateway } from "../adapters/hal/HalAPI";
 import { halRawSoftwareToSoftwareForm } from "../adapters/hal/getSoftwareForm";
 import { getWikidataForm } from "../adapters/wikidata/getSoftwareForm";
 
-export const importFromHALSource: (dbApi: DbApiV2) => (agentEmail: string) => Promise<Promise<number | undefined>[]> = (
+export const importFromHALSource: (dbApi: DbApiV2) => (userEmail: string) => Promise<Promise<number | undefined>[]> = (
     dbApi: DbApiV2
 ) => {
-    return async (agentEmail: string) => {
-        const agent = await dbApi.agent.getByEmail(agentEmail);
-        const agentId = agent
-            ? agent.id
-            : await dbApi.agent.add({
-                  email: agentEmail,
+    return async (userEmail: string) => {
+        const user = await dbApi.user.getByEmail(userEmail);
+        const userId = user
+            ? user.id
+            : await dbApi.user.add({
+                  email: userEmail,
                   "isPublic": false,
                   organization: "",
                   about: "This is a bot user created to import data."
@@ -40,14 +40,14 @@ export const importFromHALSource: (dbApi: DbApiV2) => (agentEmail: string) => Pr
                 await dbApi.software.update({
                     softwareSillId: dbSoftwares[index].softwareId,
                     formData: newHALSoftwareForm,
-                    agentId: agentId
+                    userId: userId
                 });
 
                 return dbSoftwares[index].softwareId;
             } else {
                 console.info("Importing HAL : ", rawHALSoftwareItem.docid);
                 const newSoft = await halRawSoftwareToSoftwareForm(rawHALSoftwareItem);
-                return dbApi.software.create({ formData: newSoft, agentId: agentId });
+                return dbApi.software.create({ formData: newSoft, userId });
             }
         });
     };
@@ -55,13 +55,13 @@ export const importFromHALSource: (dbApi: DbApiV2) => (agentEmail: string) => Pr
 
 export const importFromWikidataSource: (
     dbApi: DbApiV2
-) => (agentEmail: string, softwareIds: string[]) => Promise<Promise<number | undefined>[]> = (dbApi: DbApiV2) => {
-    return async (agentEmail: string, softwareIds: string[]) => {
-        const agent = await dbApi.agent.getByEmail(agentEmail);
-        const agentId = agent
-            ? agent.id
-            : await dbApi.agent.add({
-                  email: agentEmail,
+) => (userEmail: string, softwareIds: string[]) => Promise<Promise<number | undefined>[]> = (dbApi: DbApiV2) => {
+    return async (userEmail: string, softwareIds: string[]) => {
+        const user = await dbApi.user.getByEmail(userEmail);
+        const userId = user
+            ? user.id
+            : await dbApi.user.add({
+                  email: userEmail,
                   "isPublic": false,
                   organization: "",
                   about: "This is a bot user created to import data."
@@ -84,7 +84,7 @@ export const importFromWikidataSource: (
                 return dbSoftwares[index].softwareId;
             } else {
                 console.log("Importing wikidata : ", softwareId);
-                return dbApi.software.create({ formData: newSoft, agentId: agentId });
+                return dbApi.software.create({ formData: newSoft, userId });
             }
         });
     };

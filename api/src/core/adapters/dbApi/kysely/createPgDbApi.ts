@@ -21,7 +21,7 @@ export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
         softwareExternalData: createPgSoftwareExternalDataRepository(db),
         otherSoftwareExtraData: createPgOtherSoftwareExtraDataRepository(db),
         instance: createPgInstanceRepository(db),
-        agent: createPgAgentRepository(db),
+        user: createPgAgentRepository(db),
         softwareReferent: createPgReferentRepository(db),
         softwareUser: createPgUserRepository(db),
         getCompiledDataPrivate: createGetCompiledData(db)

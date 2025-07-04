@@ -38,7 +38,7 @@ const craSoftwareFormData = {
 
 const apacheSoftwareId = 6;
 
-const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) => {
+const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) => {
     await db
         .insertInto("softwares")
         .values({
@@ -63,7 +63,7 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) 
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify([]),
             generalInfoMd: null,
-            addedByUserId: agentId,
+            addedByUserId: userId,
             dereferencing: null,
             referencedSinceTime: 1728462232094,
             updateTime: 1728462232094
@@ -72,7 +72,7 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) 
 };
 
 const acceleroId = 2;
-const insertAcceleroWithCorrectId = async (db: Kysely<Database>, agentId: number) => {
+const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number) => {
     await db
         .insertInto("softwares")
         .values({
@@ -94,7 +94,7 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, agentId: number
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify(["Other Development Tools"]),
             generalInfoMd: null,
-            addedByUserId: agentId,
+            addedByUserId: userId,
             dereferencing: null,
             referencedSinceTime: 1514764800000,
             updateTime: 1514764800000
@@ -139,7 +139,7 @@ describe("fetches software extra data (from different providers)", () => {
 
         dbApi = createKyselyPgDbApi(db);
 
-        const agentId = await dbApi.agent.add({
+        const userId = await dbApi.user.add({
             email: "myuser@example.com",
             organization: "myorg",
             about: "my about",
@@ -148,11 +148,11 @@ describe("fetches software extra data (from different providers)", () => {
 
         craSoftwareId = await dbApi.software.create({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
-        await insertApacheWithCorrectId(db, agentId);
-        await insertAcceleroWithCorrectId(db, agentId);
+        await insertApacheWithCorrectId(db, userId);
+        await insertAcceleroWithCorrectId(db, userId);
 
         fetchAndSaveSoftwareExtraData = await makeFetchAndSaveSoftwareExtraData({
             dbApi,

@@ -3,26 +3,26 @@
 // SPDX-License-Identifier: MIT
 
 import { TRPCError } from "@trpc/server";
-import { User } from "../../rpc/user";
-import { AgentRepository, AgentWithId } from "../ports/DbApiV2";
+import { WithUserSubAndEmail } from "../../rpc/user";
+import { UserRepository, UserWithId } from "../ports/DbApiV2";
 
-type GetAgentDependencies = {
-    agentRepository: AgentRepository;
+type GetUserDependencies = {
+    userRepository: UserRepository;
 };
 
-type GetAgentParams = {
+type GetUserParams = {
     email: string;
-    currentUser: User | undefined;
+    currentUser: WithUserSubAndEmail | undefined;
 };
 
-export type GetAgent = ReturnType<typeof makeGetAgent>;
-export const makeGetAgent =
-    ({ agentRepository }: GetAgentDependencies) =>
-    async ({ email, currentUser }: GetAgentParams): Promise<{ agent: AgentWithId }> => {
-        const agent = await agentRepository.getByEmail(email);
+export type GetUser = ReturnType<typeof makeGetUser>;
+export const makeGetUser =
+    ({ userRepository }: GetUserDependencies) =>
+    async ({ email, currentUser }: GetUserParams): Promise<{ user: UserWithId }> => {
+        const user = await userRepository.getByEmail(email);
 
         if (currentUser) {
-            if (agent) return { agent };
+            if (user) return { user };
             if (currentUser.email === email) {
                 const agentWithoutId = {
                     email: currentUser.email,
@@ -30,9 +30,9 @@ export const makeGetAgent =
                     about: "",
                     isPublic: false
                 };
-                const agentId = await agentRepository.add(agentWithoutId);
+                const agentId = await userRepository.add(agentWithoutId);
                 return {
-                    agent: {
+                    user: {
                         id: agentId,
                         ...agentWithoutId,
                         declarations: []
@@ -46,13 +46,13 @@ export const makeGetAgent =
             });
         }
 
-        if (!agent)
+        if (!user)
             throw new TRPCError({
                 "code": "NOT_FOUND",
                 message: "Agent not found"
             });
 
-        if (!agent?.isPublic) throw new TRPCError({ "code": "UNAUTHORIZED" });
+        if (!user?.isPublic) throw new TRPCError({ "code": "UNAUTHORIZED" });
 
-        return { agent };
+        return { user };
     };
