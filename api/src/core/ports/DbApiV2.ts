@@ -127,6 +127,36 @@ export interface SourceRepository {
     getWikidataSource: () => Promise<Source | undefined>;
 }
 
+export type Session = {
+    id: string;
+    state: string;
+    redirectUrl: string | null;
+    userId: string | null;
+    email: string | null;
+    sub: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    expiresAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+};
+
+export interface SessionRepository {
+    create: (params: { id: string; state: string; redirectUrl: string | null }) => Promise<void>;
+    findByState: (state: string) => Promise<Session | null>;
+    findById: (id: string) => Promise<Session | null>;
+    updateWithUserInfo: (params: {
+        sessionId: string;
+        userId: string;
+        email: string;
+        sub: string;
+        accessToken: string;
+        refreshToken?: string;
+        expiresAt?: Date;
+    }) => Promise<Session | null>;
+    delete: (sessionId: string) => Promise<void>;
+}
+
 export type DbApiV2 = {
     source: SourceRepository;
     software: SoftwareRepository;
@@ -136,5 +166,6 @@ export type DbApiV2 = {
     user: UserRepository;
     softwareReferent: SoftwareReferentRepository;
     softwareUser: SoftwareUserRepository;
+    session: SessionRepository;
     getCompiledDataPrivate: () => Promise<CompiledData<"private">>;
 };

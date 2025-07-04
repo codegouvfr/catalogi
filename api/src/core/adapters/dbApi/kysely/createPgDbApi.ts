@@ -8,6 +8,7 @@ import { createGetCompiledData } from "./createGetCompiledData";
 import { createPgAgentRepository } from "./createPgUserRepository";
 import { createPgInstanceRepository } from "./createPgInstanceRepository";
 import { createPgOtherSoftwareExtraDataRepository } from "./createPgOtherSoftwareExtraDataRepositiory";
+import { createPgSessionRepository } from "./createPgSessionRepository";
 import { createPgSoftwareExternalDataRepository } from "./createPgSoftwareExternalDataRepository";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 import { createPgSourceRepository } from "./createPgSourceRepository";
@@ -24,6 +25,7 @@ export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
         user: createPgAgentRepository(db),
         softwareReferent: createPgReferentRepository(db),
         softwareUser: createPgUserRepository(db),
+        session: createPgSessionRepository({ kyselyDb: db }),
         getCompiledDataPrivate: createGetCompiledData(db)
     };
 };

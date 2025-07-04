@@ -30,13 +30,14 @@ export const createTestCaller = async ({ user }: TestCallerConfig = { user: defa
 
     const { dbApi, useCases, uiConfig } = await bootstrapCore({
         "dbConfig": { dbKind: "kysely", kyselyDb },
-        "externalSoftwareDataOrigin": externalSoftwareDataOrigin
+        "externalSoftwareDataOrigin": externalSoftwareDataOrigin,
+        "oidcParams": { issuerUri: "http://fake.url", clientId: "fake-client-id", clientSecret: "fake-client-secret" }
     });
 
     const { router } = createRouter({
         useCases,
         dbApi,
-        oidcParams: { issuerUri: "http://fake.url", clientId: "fake-client-id" },
+        oidcParams: { issuerUri: "http://fake.url", clientId: "fake-client-id", clientSecret: "fake-client-secret" },
         redirectUrl: undefined,
         externalSoftwareDataOrigin,
         getSoftwareExternalDataOptions: getWikidataSoftwareOptions,

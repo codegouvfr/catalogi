@@ -24,6 +24,7 @@ export type Database = {
     softwares__similar_software_external_datas: SimilarExternalSoftwareExternalDataTable;
     compiled_softwares: CompiledSoftwaresTable;
     sources: SourcesTable;
+    sessions: SessionsTable;
 };
 
 type UsersTable = {
@@ -150,6 +151,20 @@ type SoftwaresTable = {
     addedByUserId: number;
     logoUrl: string | null;
     keywords: JSONColumnType<string[]>;
+};
+
+type SessionsTable = {
+    id: string;
+    state: string;
+    redirectUrl: string | null;
+    userId: string | null;
+    email: string | null;
+    sub: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    expiresAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 // ---------- compiled data ----------

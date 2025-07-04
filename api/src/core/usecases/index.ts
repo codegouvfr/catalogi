@@ -5,9 +5,15 @@
 import type { FetchAndSaveExternalDataForAllSoftwares } from "../adapters/fetchExternalData";
 import { GetUser } from "./getUser";
 import type { GetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./getSoftwareFormAutoFillDataFromExternalAndOtherSources";
+import type { InitiateAuth, HandleAuthCallback, Logout } from "./auth";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;
     fetchAndSaveExternalDataForAllSoftwares: FetchAndSaveExternalDataForAllSoftwares;
     getUser: GetUser;
+    auth: {
+        initiateAuth: InitiateAuth;
+        handleAuthCallback: HandleAuthCallback;
+        logout: Logout;
+    };
 };

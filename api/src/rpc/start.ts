@@ -6,6 +6,7 @@ import * as trpcExpress from "@trpc/server/adapters/express";
 import compression from "compression";
 import cors from "cors";
 import express, { Handler } from "express";
+import cookieParser from "cookie-parser";
 import { Kysely } from "kysely";
 import { basename as pathBasename } from "path";
 import type { Equals } from "tsafe";
@@ -72,20 +73,18 @@ export async function startRpcService(params: {
 
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
 
-    const [{ dbApi, useCases, uiConfig }, { createContext }] = await Promise.all([
-        bootstrapCore({
-            "dbConfig": {
-                "dbKind": "kysely",
-                "kyselyDb": kyselyDb
-            },
-            "externalSoftwareDataOrigin": externalSoftwareDataOrigin
-        }),
-        createContextFactory({
-            "oidcParams": {
-                "issuerUri": oidcParams.issuerUri
-            }
-        })
-    ]);
+    const { dbApi, useCases, uiConfig } = await bootstrapCore({
+        "dbConfig": {
+            "dbKind": "kysely",
+            "kyselyDb": kyselyDb
+        },
+        "externalSoftwareDataOrigin": externalSoftwareDataOrigin,
+        oidcParams
+    });
+
+    const { createContext } = await createContextFactory({
+        sessionRepository: dbApi.session
+    });
 
     const { getSoftwareExternalDataOptions, getSoftwareExternalData } =
         getSoftwareExternalDataFunctions(externalSoftwareDataOrigin);
@@ -104,8 +103,77 @@ export async function startRpcService(params: {
     express()
         .use(cors())
         .use(compression() as any)
+        .use(cookieParser())
         .use((req, _res, next) => (console.log("⬅", req.method, req.path, req.body ?? req.query), next()))
         .use("/public/healthcheck", (...[, res]) => res.sendStatus(200))
+        .get("/auth/login", async (req, res) => {
+            try {
+                const redirectUrl = req.query.redirectUrl as string | undefined;
+                const { sessionId, authUrl } = await useCases.auth.initiateAuth({
+                    redirectUrl
+                });
+
+                // Set session cookie
+                res.cookie("sessionId", sessionId, {
+                    httpOnly: true,
+                    secure: !isDevEnvironnement,
+                    sameSite: "lax",
+                    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                });
+
+                res.redirect(authUrl);
+            } catch (error) {
+                console.error("Login error:", error);
+                res.status(500).json({ error: "Authentication failed" });
+            }
+        })
+        .get("/auth/callback", async (req, res) => {
+            try {
+                const { code, state } = req.query;
+
+                if (!code || !state) {
+                    return res.status(400).json({ error: "Missing code or state parameter" });
+                }
+
+                const session = await useCases.auth.handleAuthCallback({
+                    code: code as string,
+                    state: state as string
+                });
+
+                if (!session) {
+                    return res.status(400).json({ error: "Invalid authentication callback" });
+                }
+
+                // Update session cookie
+                res.cookie("sessionId", session.id, {
+                    httpOnly: true,
+                    secure: !isDevEnvironnement,
+                    sameSite: "lax",
+                    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                });
+
+                // Redirect to original URL or default
+                const redirectUrl = session.redirectUrl || "/";
+                res.redirect(redirectUrl);
+            } catch (error) {
+                console.error("Callback error:", error);
+                res.status(500).json({ error: "Authentication callback failed" });
+            }
+        })
+        .get("/auth/logout", async (req, res) => {
+            try {
+                const sessionId = req.cookies.sessionId;
+                if (sessionId) {
+                    await useCases.auth.logout({ sessionId });
+                }
+
+                res.clearCookie("sessionId");
+                res.redirect("/");
+            } catch (error) {
+                console.error("Logout error:", error);
+                res.status(500).json({ error: "Logout failed" });
+            }
+        })
         .get("/:lang/translations.json", async (req, res) => {
             const lang = req.params.lang as Language;
             try {
