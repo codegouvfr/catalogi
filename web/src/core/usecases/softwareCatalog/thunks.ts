@@ -97,10 +97,10 @@ export const protectedThunks = {
                     oidc.isUserLoggedIn ? sillApi.getCurrentUser() : { email: undefined }
                 ] as const);
 
-                const { agents } =
+                const { users: users } =
                     userEmail === undefined
-                        ? { agents: undefined }
-                        : await sillApi.getAgents();
+                        ? { users: undefined }
+                        : await sillApi.getUsers();
 
                 const softwares = apiSoftwares
                     .filter(({ dereferencing }) => dereferencing === undefined)
@@ -112,12 +112,12 @@ export const protectedThunks = {
                                 softwareName
                             },
                             userDeclaration:
-                                agents === undefined
+                                users === undefined
                                     ? undefined
                                     : (():
                                           | { isReferent: boolean; isUser: boolean }
                                           | undefined => {
-                                          const agent = agents.find(
+                                          const agent = users.find(
                                               agent => agent.email === userEmail
                                           );
 

@@ -76,14 +76,14 @@ export const thunks = {
                         return undefined;
                     }
 
-                    const [{ agents }, user] = await Promise.all([
-                        sillApi.getAgents(),
+                    const [{ users }, currentUser] = await Promise.all([
+                        sillApi.getUsers(),
                         sillApi.getCurrentUser()
                     ]);
 
-                    const agent = agents.find(agent => agent.email === user.email);
+                    const user = users.find(user => user.email === currentUser.email);
 
-                    if (agent === undefined) {
+                    if (user === undefined) {
                         return {
                             isReferent: false,
                             isUser: false
@@ -92,13 +92,13 @@ export const thunks = {
 
                     return {
                         isReferent:
-                            agent.declarations.find(
+                            user.declarations.find(
                                 d =>
                                     d.softwareName === softwareName &&
                                     d.declarationType === "referent"
                             ) !== undefined,
                         isUser:
-                            agent.declarations.find(
+                            user.declarations.find(
                                 d =>
                                     d.softwareName === softwareName &&
                                     d.declarationType === "user"

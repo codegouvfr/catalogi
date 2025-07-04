@@ -8,12 +8,12 @@ import { encodeJwt } from "core/tools/jwt";
 import { addParamToUrl, retrieveParamFromUrl } from "powerhooks/tools/urlSearchParams";
 import { objectKeys } from "tsafe/objectKeys";
 import type { Oidc } from "../ports/Oidc";
-import type { User } from "../ports/GetUser";
+import { ApiTypes } from "api";
 
 export function createOidc(params: {
     isUserInitiallyLoggedIn: boolean;
-    jwtClaimByUserKey: Record<keyof User, string>;
-    user: User;
+    jwtClaimByUserKey: Record<keyof ApiTypes.UserWithId, string>;
+    user: ApiTypes.UserWithId;
 }): Oidc {
     const isUserLoggedIn = (() => {
         const result = retrieveParamFromUrl({

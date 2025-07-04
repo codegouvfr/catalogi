@@ -9,6 +9,7 @@ export type { Catalogi } from "../types/Catalogi";
 
 export type {
     CreateUserParams,
+    UserWithId,
     Instance,
     Os,
     Prerogative,

@@ -100,7 +100,7 @@ export function createSillApi(params: {
                 .catch(errorHandler);
 
             sillApi.getTotalReferentCount.clear();
-            sillApi.getAgents.clear();
+            sillApi.getUsers.clear();
             sillApi.getSoftwares.clear();
 
             return out;
@@ -111,7 +111,7 @@ export function createSillApi(params: {
                 .catch(errorHandler);
 
             sillApi.getTotalReferentCount.clear();
-            sillApi.getAgents.clear();
+            sillApi.getUsers.clear();
             sillApi.getSoftwares.clear();
 
             return out;
@@ -134,11 +134,11 @@ export function createSillApi(params: {
 
             return out;
         },
-        getAgents: memoize(() => trpcClient.getAgents.query(), { promise: true }),
+        getUsers: memoize(() => trpcClient.getUsers.query(), { promise: true }),
         updateEmail: async params => {
             const out = await trpcClient.updateEmail.mutate(params).catch(errorHandler);
 
-            sillApi.getAgents.clear();
+            sillApi.getUsers.clear();
 
             return out;
         },
@@ -151,12 +151,11 @@ export function createSillApi(params: {
         getRegisteredUserCount: memoize(() => trpcClient.getRegisteredUserCount.query(), {
             promise: true
         }),
-        getAgent: params => trpcClient.getAgent.query(params),
-        getIsAgentProfilePublic: params =>
-            trpcClient.getIsAgentProfilePublic.query(params),
-        updateAgentProfile: async params => {
-            await trpcClient.updateAgentProfile.mutate(params).catch(errorHandler);
-            sillApi.getAgents.clear();
+        getUser: params => trpcClient.getUser.query(params),
+        getIsUserProfilePublic: params => trpcClient.getIsUserProfilePublic.query(params),
+        updateUserProfile: async params => {
+            await trpcClient.updateUserProfile.mutate(params).catch(errorHandler);
+            sillApi.getUsers.clear();
         },
         unreferenceSoftware: async params => {
             await trpcClient.unreferenceSoftware.mutate(params).catch(errorHandler);

@@ -2,11 +2,11 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Agent } from "api/dist/src/lib/ApiTypes";
 import { createUsecaseActions } from "redux-clean-architecture";
 import { assert } from "tsafe/assert";
 import { id } from "tsafe/id";
 import { actions as usersAccountManagementActions } from "../userAccountManagement";
+import { ApiTypes } from "api";
 
 export const name = "userAuthentication";
 
@@ -16,12 +16,12 @@ export namespace State {
     export type NotInitialized = {
         stateDescription: "not initialized";
         isInitializing: boolean;
-        currentAgent: null;
+        currentUser: null;
     };
 
     export type Ready = {
         stateDescription: "ready";
-        currentAgent: Agent | null;
+        currentUser: ApiTypes.UserWithId | null;
     };
 }
 
@@ -29,28 +29,28 @@ export const { reducer, actions } = createUsecaseActions({
     name,
     initialState: id<State>({
         stateDescription: "not initialized",
-        currentAgent: null,
+        currentUser: null,
         isInitializing: false
     }),
     reducers: {
         initializationStarted: state => {
             assert(state.stateDescription === "not initialized");
         },
-        initialized: (_, action: { payload: { agent: Agent | null } }) => ({
+        initialized: (_, action: { payload: { user: ApiTypes.UserWithId | null } }) => ({
             stateDescription: "ready",
-            currentAgent: action.payload.agent
+            currentUser: action.payload.user
         })
     },
     extraReducers: builder => {
         builder.addCase(
             usersAccountManagementActions.updateFieldCompleted,
             (state, action) => {
-                if (!state.currentAgent) return state;
+                if (!state.currentUser) return state;
                 if (action.payload.fieldName === "organization") {
                     return {
                         ...state,
-                        currentAgent: {
-                            ...state.currentAgent,
+                        currentUser: {
+                            ...state.currentUser,
                             organization: action.payload.value
                         }
                     };
@@ -58,8 +58,8 @@ export const { reducer, actions } = createUsecaseActions({
 
                 return {
                     ...state,
-                    currentAgent: {
-                        ...state.currentAgent,
+                    currentUser: {
+                        ...state.currentUser,
                         about: action.payload.about,
                         isPublic: action.payload.isPublic
                     }

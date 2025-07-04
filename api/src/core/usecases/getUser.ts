@@ -4,7 +4,8 @@
 
 import { TRPCError } from "@trpc/server";
 import { WithUserSubAndEmail } from "../../rpc/user";
-import { UserRepository, UserWithId } from "../ports/DbApiV2";
+import { UserRepository } from "../ports/DbApiV2";
+import { UserWithId } from "./readWriteSillData";
 
 type GetUserDependencies = {
     userRepository: UserRepository;

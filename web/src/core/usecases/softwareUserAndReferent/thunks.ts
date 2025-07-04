@@ -25,12 +25,12 @@ export const thunks = {
 
             dispatch(actions.initializationStarted());
 
-            const { agents } = await sillApi.getAgents();
+            const { users } = await sillApi.getUsers();
 
-            const users: State.SoftwareUser[] = [];
-            const referents: State.SoftwareReferent[] = [];
+            const softwareUsers: State.SoftwareUser[] = [];
+            const softwareReferents: State.SoftwareReferent[] = [];
 
-            for (const agent of agents) {
+            for (const agent of users) {
                 user: {
                     const declaration = agent.declarations
                         .map(declaration =>
@@ -45,7 +45,7 @@ export const thunks = {
                         break user;
                     }
 
-                    users.push({
+                    softwareUsers.push({
                         organization: agent.organization,
                         os: declaration.os,
                         serviceUrl: declaration.serviceUrl,
@@ -72,7 +72,7 @@ export const thunks = {
 
                     assert(email !== undefined);
 
-                    referents.push({
+                    softwareReferents.push({
                         email,
                         organization: agent.organization,
                         isTechnicalExpert: declaration.isTechnicalExpert,
@@ -92,8 +92,8 @@ export const thunks = {
                 actions.initializationCompleted({
                     softwareName,
                     logoUrl: software.logoUrl,
-                    users,
-                    referents
+                    users: softwareUsers,
+                    referents: softwareReferents
                 })
             );
         },

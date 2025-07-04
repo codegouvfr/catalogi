@@ -9,7 +9,7 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 export type TrpcRouterInput = inferRouterInputs<TrpcRouter>;
 export type TrpcRouterOutput = inferRouterOutputs<TrpcRouter>;
 
-export { type WithUserSubAndEmail as User } from "../rpc/user";
+export { type WithUserSubAndEmail } from "../rpc/user";
 export { type Language, type LocalizedString, languages } from "../core/ports/GetSoftwareExternalData";
 export type { ExternalDataOrigin } from "../core/ports/GetSoftwareExternalData";
 

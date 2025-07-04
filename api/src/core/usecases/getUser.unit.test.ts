@@ -9,8 +9,9 @@ import {
     UserRepositoryHelpers,
     createInMemoryUserRepository
 } from "../adapters/dbApi/in-memory/createInMemoryUserRepository";
-import { UserRepository, UserWithId } from "../ports/DbApiV2";
+import { UserRepository } from "../ports/DbApiV2";
 import { GetUser, makeGetUser } from "./getUser";
+import { UserWithId } from "./readWriteSillData/types";
 
 describe("getAgent", () => {
     const privateUser: UserWithId = {

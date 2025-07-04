@@ -31,7 +31,7 @@ export const thunks = {
 
             if (
                 !oidc.isUserLoggedIn &&
-                !(await sillApi.getIsAgentProfilePublic({ email }))
+                !(await sillApi.getIsUserProfilePublic({ email }))
             ) {
                 await oidc.login({
                     doesCurrentHrefRequiresAuth: true
@@ -39,9 +39,9 @@ export const thunks = {
                 assert(false, "never");
             }
 
-            const { agent } = await sillApi.getAgent({ email });
+            const { user } = await sillApi.getUser({ email });
 
-            assert(agent !== undefined);
+            assert(user !== undefined);
 
             const isHimself = !oidc.isUserLoggedIn
                 ? false
@@ -50,9 +50,9 @@ export const thunks = {
             dispatch(
                 actions.initializationCompleted({
                     email,
-                    about: agent.about,
-                    organization: agent.organization,
-                    declarations: agent.declarations,
+                    about: user.about,
+                    organization: user.organization,
+                    declarations: user.declarations,
                     isHimself
                 })
             );

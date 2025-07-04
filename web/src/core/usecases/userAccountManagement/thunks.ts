@@ -25,19 +25,19 @@ export const thunks = {
 
             assert(oidc.isUserLoggedIn);
 
-            const user = await sillApi.getCurrentUser();
+            const currentUser = await sillApi.getCurrentUser();
 
-            const [oidcParams, allOrganizations, { agent }] = await Promise.all([
+            const [oidcParams, allOrganizations, { user }] = await Promise.all([
                 sillApi.getOidcParams(),
                 sillApi.getAllOrganizations(),
-                sillApi.getAgent({ email: user.email })
+                sillApi.getUser({ email: currentUser.email })
             ]);
 
-            const { about = "", isPublic, organization } = agent;
+            const { about = "", isPublic, organization } = user;
 
             dispatch(
                 actions.initialized({
-                    email: user.email,
+                    email: currentUser.email,
                     organization: organization,
                     accountManagementUrl: addParamToUrl({
                         url: [oidcParams.issuerUri, "account"].join("/"),
@@ -76,13 +76,13 @@ export const thunks = {
 
             switch (params.fieldName) {
                 case "organization": {
-                    await sillApi.updateAgentProfile({
+                    await sillApi.updateUserProfile({
                         newOrganization: params.value
                     });
                     break;
                 }
                 case "aboutAndIsPublic": {
-                    await sillApi.updateAgentProfile({
+                    await sillApi.updateUserProfile({
                         about: params.about || undefined,
                         isPublic: params.isPublic
                     });

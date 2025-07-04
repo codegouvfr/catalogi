@@ -103,6 +103,8 @@ export type CreateUserParams = {
     about: string | undefined;
 };
 
+export type UserWithId = CreateUserParams & { id: number };
+
 export type Instance = {
     id: number;
     mainSoftwareSillId: number;

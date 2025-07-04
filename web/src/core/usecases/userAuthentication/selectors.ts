@@ -7,7 +7,7 @@ import { name } from "./state";
 
 const currentAgent = (rootState: RootState) => {
     const state = rootState[name];
-    return { currentAgent: state.currentAgent };
+    return { currentAgent: state.currentUser };
 };
 
 export const selectors = { currentAgent };

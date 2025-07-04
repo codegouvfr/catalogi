@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { User } from "api";
+import { ApiTypes } from "api";
 
-export type GetUser = () => Promise<User>;
-export type { User };
+export type GetUser = () => Promise<ApiTypes.UserWithId>;

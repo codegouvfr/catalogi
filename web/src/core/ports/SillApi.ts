@@ -81,8 +81,8 @@ export type SillApi = {
     updateInstance: (
         params: TrpcRouterInput["updateInstance"]
     ) => Promise<TrpcRouterOutput["updateInstance"]>;
-    getAgents: {
-        (params: TrpcRouterInput["getAgents"]): Promise<TrpcRouterOutput["getAgents"]>;
+    getUsers: {
+        (params: TrpcRouterInput["getUsers"]): Promise<TrpcRouterOutput["getUsers"]>;
         clear: () => void;
     };
     updateEmail: (
@@ -107,15 +107,13 @@ export type SillApi = {
         ): Promise<TrpcRouterOutput["getRegisteredUserCount"]>;
         clear: () => void;
     };
-    getIsAgentProfilePublic: (
-        params: TrpcRouterInput["getIsAgentProfilePublic"]
-    ) => Promise<TrpcRouterOutput["getIsAgentProfilePublic"]>;
-    getAgent: (
-        params: TrpcRouterInput["getAgent"]
-    ) => Promise<TrpcRouterOutput["getAgent"]>;
-    updateAgentProfile: (
-        params: TrpcRouterInput["updateAgentProfile"]
-    ) => Promise<TrpcRouterOutput["updateAgentProfile"]>;
+    getIsUserProfilePublic: (
+        params: TrpcRouterInput["getIsUserProfilePublic"]
+    ) => Promise<TrpcRouterOutput["getIsUserProfilePublic"]>;
+    getUser: (params: TrpcRouterInput["getUser"]) => Promise<TrpcRouterOutput["getUser"]>;
+    updateUserProfile: (
+        params: TrpcRouterInput["updateUserProfile"]
+    ) => Promise<TrpcRouterOutput["updateUserProfile"]>;
     unreferenceSoftware: (
         params: TrpcRouterInput["unreferenceSoftware"]
     ) => Promise<TrpcRouterOutput["unreferenceSoftware"]>;

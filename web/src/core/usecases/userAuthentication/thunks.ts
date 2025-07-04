@@ -15,9 +15,9 @@ export const protectedThunks = {
             const state = getState()[name];
             if (state.stateDescription === "ready" || state.isInitializing) return;
             dispatch(actions.initializationStarted());
-            const user = await sillApi.getCurrentUser();
-            const { agent } = await sillApi.getAgent({ email: user.email });
-            dispatch(actions.initialized({ agent }));
+            const currentUser = await sillApi.getCurrentUser();
+            const { user } = await sillApi.getUser({ email: currentUser.email });
+            dispatch(actions.initialized({ user }));
         }
 } satisfies Thunks;
 

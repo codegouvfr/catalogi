@@ -10,7 +10,8 @@ import type {
     ServiceProvider,
     Software,
     SoftwareFormData,
-    Source
+    Source,
+    UserWithId
 } from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
@@ -97,8 +98,6 @@ export type DbUser = {
     about: string | undefined;
     isPublic: boolean;
 };
-
-export type UserWithId = CreateUserParams & Pick<DbUser, "id">;
 
 export interface UserRepository {
     add: (user: OmitFromExisting<DbUser, "id">) => Promise<number>;
