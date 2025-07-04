@@ -18,7 +18,7 @@ export const createPgInstanceRepository = (db: Kysely<Database>): InstanceReposi
         const { instanceId } = await db
             .insertInto("instances")
             .values({
-                addedByAgentId: agentId,
+                addedByUserId: agentId,
                 updateTime: now,
                 referencedSinceTime: now,
                 mainSoftwareSillId,
@@ -53,7 +53,7 @@ export const createPgInstanceRepository = (db: Kysely<Database>): InstanceReposi
         const { count } = await db
             .selectFrom("instances")
             .select(qb => qb.fn.countAll<string>().as("count"))
-            .where("addedByAgentId", "=", agentId)
+            .where("addedByUserId", "=", agentId)
             .executeTakeFirstOrThrow();
         return parseInt(count);
     },

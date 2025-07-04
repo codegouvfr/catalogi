@@ -152,7 +152,7 @@ describe("RPC e2e tests", () => {
                 "categories": [],
                 "isStillInObservation": false,
                 "id": expect.any(Number),
-                "addedByAgentId": agent.id
+                "addedByUserId": agent.id
             });
 
             const similarSoftsInDb = await kyselyDb
@@ -201,7 +201,7 @@ describe("RPC e2e tests", () => {
             expect(softwareUserRows).toHaveLength(1);
 
             expectToEqual(softwareUserRows[0], {
-                "agentId": expect.any(Number),
+                "userId": expect.any(Number),
                 "softwareId": expect.any(Number),
                 "os": declarationFormData.os ?? null,
                 "serviceUrl": declarationFormData.serviceUrl ?? null,
@@ -221,7 +221,7 @@ describe("RPC e2e tests", () => {
             expect(instanceRows).toHaveLength(1);
             expectToMatchObject(instanceRows[0], {
                 "id": expect.any(Number),
-                "addedByAgentId": agent.id,
+                "addedByUserId": agent.id,
                 "mainSoftwareSillId": actualSoftwareId,
                 "organization": instanceFormData.organization,
                 "instanceUrl": instanceFormData.instanceUrl,

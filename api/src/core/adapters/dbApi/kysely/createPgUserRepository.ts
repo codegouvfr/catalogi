@@ -21,7 +21,7 @@ export const createPgAgentRepository = (db: Kysely<Database>): AgentRepository =
         await db.deleteFrom("users").where("id", "=", agentId).execute();
     },
     getByEmail: async email => {
-        const dbAgent = await makeGetUserBuilder(db).where("email", "=", email).executeTakeFirst();
+        const dbAgent = await makeGetAgentBuilder(db).where("email", "=", email).executeTakeFirst();
         if (!dbAgent) return;
 
         const { usersDeclarations, referentsDeclarations, ...rest } = dbAgent;
@@ -33,7 +33,7 @@ export const createPgAgentRepository = (db: Kysely<Database>): AgentRepository =
         };
     },
     getAll: () =>
-        makeGetUserBuilder(db)
+        makeGetAgentBuilder(db)
             .execute()
             .then(results =>
                 results.map(({ usersDeclarations, referentsDeclarations, about, ...rest }) => ({
@@ -59,19 +59,19 @@ export const createPgAgentRepository = (db: Kysely<Database>): AgentRepository =
             .then(results => results.map(({ organization }) => organization))
 });
 
-const makeGetUserBuilder = (db: Kysely<Database>) =>
+const makeGetAgentBuilder = (db: Kysely<Database>) =>
     db
-        .selectFrom("users")
-        .leftJoin("software_users", "users.id", "software_users.agentId")
-        .leftJoin("softwares as us", "software_users.softwareId", "us.id")
-        .leftJoin("software_referents as r", "users.id", "r.agentId")
+        .selectFrom("users as a")
+        .leftJoin("software_users as u", "a.id", "u.userId")
+        .leftJoin("softwares as us", "u.softwareId", "us.id")
+        .leftJoin("software_referents as r", "a.id", "r.userId")
         .leftJoin("softwares as rs", "r.softwareId", "rs.id")
         .select([
-            "users.id",
-            "users.email",
-            "users.isPublic",
-            "users.about",
-            "users.organization",
+            "a.id",
+            "a.email",
+            "a.isPublic",
+            "a.about",
+            "a.organization",
             ({ ref, fn }) =>
                 fn
                     .coalesce(
@@ -80,15 +80,15 @@ const makeGetUserBuilder = (db: Kysely<Database>) =>
                                 jsonStripNulls(
                                     jsonBuildObject({
                                         declarationType: sql<"user">`'user'`,
-                                        serviceUrl: ref("software_users.serviceUrl"),
-                                        usecaseDescription: ref("software_users.useCaseDescription").$castTo<string>(),
-                                        version: ref("software_users.version").$castTo<string>(),
-                                        os: ref("software_users.os").$castTo<Os>(),
+                                        serviceUrl: ref("u.serviceUrl"),
+                                        usecaseDescription: ref("u.useCaseDescription").$castTo<string>(),
+                                        version: ref("u.version").$castTo<string>(),
+                                        os: ref("u.os").$castTo<Os>(),
                                         softwareName: ref("us.name").$castTo<string>()
                                     })
                                 )
                             )
-                            .filterWhere("software_users.agentId", "is not", null),
+                            .filterWhere("u.userId", "is not", null),
                         sql<[]>`'[]'`
                     )
                     .as("usersDeclarations"),
@@ -107,9 +107,9 @@ const makeGetUserBuilder = (db: Kysely<Database>) =>
                                     })
                                 )
                             )
-                            .filterWhere("r.agentId", "is not", null),
+                            .filterWhere("r.userId", "is not", null),
                         sql<[]>`'[]'`
                     )
                     .as("referentsDeclarations")
         ])
-        .groupBy("users.id");
+        .groupBy("a.id");

@@ -14,14 +14,14 @@ export const createPgUserRepository = (db: Kysely<Database>): SoftwareUserReposi
         await db
             .deleteFrom("software_users")
             .where("softwareId", "=", softwareId)
-            .where("agentId", "=", agentId)
+            .where("userId", "=", agentId)
             .execute();
     },
     countSoftwaresForAgent: async (params: { agentId: number }) => {
         const { count } = await db
             .selectFrom("software_users")
             .select(qb => qb.fn.countAll<string>().as("count"))
-            .where("agentId", "=", params.agentId)
+            .where("userId", "=", params.agentId)
             .executeTakeFirstOrThrow();
 
         return +count;
@@ -36,14 +36,14 @@ export const createPgReferentRepository = (db: Kysely<Database>): SoftwareRefere
         await db
             .deleteFrom("software_referents")
             .where("softwareId", "=", softwareId)
-            .where("agentId", "=", agentId)
+            .where("userId", "=", agentId)
             .execute();
     },
     countSoftwaresForAgent: async (params: { agentId: number }) => {
         const { count } = await db
             .selectFrom("software_referents")
             .select(qb => qb.fn.countAll<string>().as("count"))
-            .where("agentId", "=", params.agentId)
+            .where("userId", "=", params.agentId)
             .executeTakeFirstOrThrow();
 
         return +count;
@@ -51,7 +51,7 @@ export const createPgReferentRepository = (db: Kysely<Database>): SoftwareRefere
     getTotalCount: async () => {
         const { total_referents } = await db
             .selectFrom("software_referents")
-            .select(qb => qb.fn.count<string>("agentId").distinct().as("total_referents"))
+            .select(qb => qb.fn.count<string>("userId").distinct().as("total_referents"))
             .executeTakeFirstOrThrow();
         return parseInt(total_referents);
     }

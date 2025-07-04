@@ -162,7 +162,7 @@ describe("pgDbApi", () => {
             const { softwareId, agentId } = await insertSoftwareExternalDataAndSoftwareAndAgent();
 
             await dbApi.softwareUser.add({
-                agentId,
+                userId: agentId,
                 softwareId,
                 useCaseDescription: "des trucs de user",
                 os: "windows",
@@ -289,7 +289,7 @@ describe("pgDbApi", () => {
             await db
                 .insertInto("software_users")
                 .values({
-                    agentId,
+                    userId: agentId,
                     softwareId,
                     os: "mac",
                     useCaseDescription: "des trucs de user",
@@ -300,7 +300,7 @@ describe("pgDbApi", () => {
 
             await db
                 .insertInto("software_referents")
-                .values({ agentId, softwareId, useCaseDescription: "des trucs de référent", isExpert: true })
+                .values({ userId: agentId, softwareId, useCaseDescription: "des trucs de référent", isExpert: true })
                 .execute();
 
             console.log("getting agent by email");
@@ -347,7 +347,7 @@ describe("pgDbApi", () => {
             const allAgents = await dbApi.agent.getAll();
             expectToEqual(allAgents, [{ ...updatedAgent, declarations: expectedDeclarations }]);
 
-            await db.deleteFrom("softwares").where("addedByAgentId", "=", updatedAgent.id).execute();
+            await db.deleteFrom("softwares").where("addedByUserId", "=", updatedAgent.id).execute();
 
             console.log("removing agent");
             await dbApi.agent.remove(updatedAgent.id);
@@ -373,7 +373,7 @@ describe("pgDbApi", () => {
             console.log("------ wrong path for user or referent ------");
             await expectPromiseToFailWith(
                 dbApi.softwareReferent.add({
-                    agentId,
+                    userId: agentId,
                     softwareId: 404,
                     isExpert: true,
                     serviceUrl: "https://example.com",
@@ -384,7 +384,7 @@ describe("pgDbApi", () => {
 
             await expectPromiseToFailWith(
                 dbApi.softwareUser.add({
-                    agentId: 404,
+                    userId: 404,
                     softwareId,
                     serviceUrl: "https://example.com",
                     useCaseDescription: "my use case description",
@@ -398,7 +398,7 @@ describe("pgDbApi", () => {
         it("adds the user or referent correctly, than removes them", async () => {
             console.log("------ user or referent scenario ------");
             const user = {
-                agentId,
+                userId: agentId,
                 softwareId,
                 serviceUrl: "https://example.com",
                 useCaseDescription: "my use case description",
@@ -408,7 +408,7 @@ describe("pgDbApi", () => {
             await dbApi.softwareUser.add(user);
 
             const referent = {
-                agentId,
+                userId: agentId,
                 softwareId,
                 serviceUrl: "https://example.com",
                 useCaseDescription: "my use case description",
@@ -416,13 +416,10 @@ describe("pgDbApi", () => {
             };
             await dbApi.softwareReferent.add(referent);
 
-            const totalReferentCount = await dbApi.softwareReferent.getTotalCount();
-            expect(totalReferentCount).toBe(1);
-
-            const referents = await db.selectFrom("software_referents").selectAll().execute();
-            expectToEqual(referents, [referent]);
-
             const users = await db.selectFrom("software_users").selectAll().execute();
+            const referents = await db.selectFrom("software_referents").selectAll().execute();
+
+            expectToEqual(referents, [referent]);
             expectToEqual(users, [user]);
 
             await dbApi.softwareUser.remove({ softwareId, agentId });

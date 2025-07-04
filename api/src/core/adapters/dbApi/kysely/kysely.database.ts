@@ -38,7 +38,7 @@ type Os = "windows" | "linux" | "mac" | "android" | "ios";
 
 type SoftwareUsersTable = {
     softwareId: number;
-    agentId: number;
+    userId: number;
     useCaseDescription: string;
     os: Os | null;
     version: string;
@@ -47,7 +47,7 @@ type SoftwareUsersTable = {
 
 type SoftwareReferentsTable = {
     softwareId: number;
-    agentId: number;
+    userId: number;
     isExpert: boolean;
     useCaseDescription: string;
     serviceUrl: string | null;
@@ -60,7 +60,7 @@ type InstancesTable = {
     targetAudience: string;
     instanceUrl: string | null;
     isPublic: boolean;
-    addedByAgentId: number;
+    addedByUserId: number;
     referencedSinceTime: number;
     updateTime: number;
 };
@@ -147,7 +147,7 @@ type SoftwaresTable = {
     workshopUrls: JSONColumnType<string[]>;
     categories: JSONColumnType<string[]>;
     generalInfoMd: string | null;
-    addedByAgentId: number;
+    addedByUserId: number;
     logoUrl: string | null;
     keywords: JSONColumnType<string[]>;
 };

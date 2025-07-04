@@ -241,7 +241,7 @@ export function createRouter(params: {
                     case "user":
                         await dbApi.softwareUser.add({
                             softwareId,
-                            agentId,
+                            userId: agentId,
                             os: formData.os ?? null,
                             serviceUrl: formData.serviceUrl ?? null,
                             useCaseDescription: formData.usecaseDescription,
@@ -251,7 +251,7 @@ export function createRouter(params: {
                     case "referent":
                         await dbApi.softwareReferent.add({
                             softwareId,
-                            agentId,
+                            userId: agentId,
                             isExpert: formData.isTechnicalExpert,
                             useCaseDescription: formData.usecaseDescription,
                             serviceUrl: formData.serviceUrl ?? null

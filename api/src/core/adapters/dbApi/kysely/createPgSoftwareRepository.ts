@@ -69,7 +69,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         workshopUrls: JSON.stringify([]),
                         categories: JSON.stringify([]),
                         generalInfoMd: undefined,
-                        addedByAgentId: agentId,
+                        addedByUserId: agentId,
                         keywords: JSON.stringify(softwareKeywords)
                     })
                     .returning("id as softwareId")
@@ -151,7 +151,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     workshopUrls: JSON.stringify([]),
                     categories: JSON.stringify([]),
                     generalInfoMd: undefined,
-                    addedByAgentId: agentId,
+                    addedByUserId: agentId,
                     keywords: JSON.stringify(softwareKeywords)
                 })
                 .where("id", "=", softwareSillId)
@@ -325,7 +325,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             const { count } = await db
                 .selectFrom("softwares")
                 .select(qb => qb.fn.countAll<string>().as("count"))
-                .where("addedByAgentId", "=", agentId)
+                .where("addedByUserId", "=", agentId)
                 .executeTakeFirstOrThrow();
             return +count;
         },
@@ -478,7 +478,7 @@ const getUserAndReferentCountByOrganizationBySoftwareId = async (
 ): Promise<UserAndReferentCountByOrganizationBySoftwareId> => {
     const softwareUserCountBySoftwareId: CountForOrganisationAndSoftwareId[] = await db
         .selectFrom("software_users as u")
-        .innerJoin("users as a", "a.id", "u.agentId")
+        .innerJoin("users as a", "a.id", "u.userId")
         .select([
             "u.softwareId",
             "a.organization",
@@ -490,7 +490,7 @@ const getUserAndReferentCountByOrganizationBySoftwareId = async (
 
     const softwareReferentCountBySoftwareId: CountForOrganisationAndSoftwareId[] = await db
         .selectFrom("software_referents as r")
-        .innerJoin("users as a", "a.id", "r.agentId")
+        .innerJoin("users as a", "a.id", "r.userId")
         .select([
             "r.softwareId",
             "a.organization",

@@ -63,7 +63,7 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) 
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify([]),
             generalInfoMd: null,
-            addedByAgentId: agentId,
+            addedByUserId: agentId,
             dereferencing: null,
             referencedSinceTime: 1728462232094,
             updateTime: 1728462232094
@@ -94,7 +94,7 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, agentId: number
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify(["Other Development Tools"]),
             generalInfoMd: null,
-            addedByAgentId: agentId,
+            addedByUserId: agentId,
             dereferencing: null,
             referencedSinceTime: 1514764800000,
             updateTime: 1514764800000

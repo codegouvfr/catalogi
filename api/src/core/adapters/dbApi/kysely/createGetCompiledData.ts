@@ -39,7 +39,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .groupBy(["s.id", "csft.softwareId", "ext.externalId"])
         .select([
             "s.id",
-            "s.addedByAgentId",
+            "s.addedByUserId",
             "s.categories",
             "s.dereferencing",
             "s.description",
@@ -98,7 +98,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             console.time("software processing");
             const processedSoftwares = results.map(
                 ({
-                    addedByAgentId,
+                    addedByUserId,
                     externalDataSoftwareId,
                     annuaireCnllServiceProviders,
                     comptoirDuLibreSoftware,
@@ -117,7 +117,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                 }): CompiledData.Software<"private"> => {
                     return {
                         ...stripNullOrUndefinedValues(software),
-                        addedByAgentEmail: agentById[addedByAgentId].email,
+                        addedByAgentEmail: agentById[addedByUserId].email,
                         updateTime: new Date(+updateTime).getTime(),
                         referencedSinceTime: new Date(+referencedSinceTime).getTime(),
                         doRespectRgaa,
@@ -139,18 +139,18 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             .sort((a, b) => a.externalId.localeCompare(b.externalId)),
                         users: users.filter(isNotNull).map(user => ({
                             ...(user as any),
-                            organization: agentById[user.agentId!]?.organization
+                            organization: agentById[user.userId!]?.organization
                         })),
                         referents: referents.filter(isNotNull).map(referent => ({
                             ...(referent as any),
-                            organization: agentById[referent.agentId!]?.organization
+                            organization: agentById[referent.userId!]?.organization
                         })),
                         instances: (instances ?? []).filter(isNotNull).map(instance => ({
                             id: instance.id!,
                             organization: instance.organization!,
                             targetAudience: instance.targetAudience!,
                             publicUrl: instance.instanceUrl ?? undefined,
-                            addedByAgentEmail: agentById[instance.addedByAgentId!].email,
+                            addedByAgentEmail: agentById[instance.addedByUserId!].email,
                             otherWikidataSoftwares: []
                         }))
                     };
