@@ -4,6 +4,7 @@
 
 import crypto from "crypto";
 import { SessionRepository } from "../../ports/DbApiV2";
+import { getAuthRedirectUri } from "./auth.helpers";
 
 export type OidcParams = {
     issuerUri: string;
@@ -38,8 +39,9 @@ export const makeInitiateAuth = async ({ sessionRepository, oidcParams }: Initia
         authUrl.search = new URLSearchParams({
             response_type: "code",
             client_id: oidcParams.clientId,
-            redirect_uri: getRedirectUri(),
-            state: state
+            redirect_uri: getAuthRedirectUri(),
+            state,
+            scope: "openid email profile"
         }).toString();
 
         return { sessionId, authUrl: authUrl.toString() };
@@ -57,10 +59,4 @@ async function getOidcAuthEndpoint(issuerUri: string): Promise<string> {
     const { authorization_endpoint } = await response.json();
 
     return authorization_endpoint;
-}
-
-function getRedirectUri(): string {
-    // This should be configurable based on your deployment
-    // For now, assuming it's the same host as the API
-    return `${process.env.API_BASE_URL || "http://localhost:8080"}/auth/callback`;
 }

@@ -83,7 +83,11 @@ export async function bootstrapCore(
         getUser: makeGetUser({ userRepository: dbApi.user }),
         auth: {
             initiateAuth: await makeInitiateAuth({ sessionRepository: dbApi.session, oidcParams }),
-            handleAuthCallback: await makeHandleAuthCallback({ sessionRepository: dbApi.session, oidcParams }),
+            handleAuthCallback: await makeHandleAuthCallback({
+                sessionRepository: dbApi.session,
+                userRepository: dbApi.user,
+                oidcParams
+            }),
             logout: makeLogout({ sessionRepository: dbApi.session })
         }
     };

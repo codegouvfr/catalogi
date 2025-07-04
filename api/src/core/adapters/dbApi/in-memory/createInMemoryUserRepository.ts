@@ -32,6 +32,14 @@ export const createInMemoryUserRepository = (): {
                 if (!user) return;
                 return { ...user, declarations: [] };
             },
+            getBySub: async sub => {
+                const user = users.find(user => user.sub === sub);
+                if (!user) return;
+                return { ...user, declarations: [] };
+            },
+            getBySessionId: async () => {
+                throw new Error("Not implemented");
+            },
             getAll: () => {
                 throw new Error("Not implemented");
             },

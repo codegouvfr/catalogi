@@ -46,7 +46,8 @@ const seed = async () => {
         email: "some@user.com",
         about: "This is a fake user for seeding purposes.",
         isPublic: true,
-        organization: "Seed Organization"
+        organization: "Seed Organization",
+        sub: null
     };
 
     console.info("Adding user");

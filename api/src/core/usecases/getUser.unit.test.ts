@@ -13,14 +13,15 @@ import { UserRepository } from "../ports/DbApiV2";
 import { GetUser, makeGetUser } from "./getUser";
 import { UserWithId } from "./readWriteSillData/types";
 
-describe("getAgent", () => {
+describe("getUser", () => {
     const privateUser: UserWithId = {
         id: 1,
         email: "bob-private@mail.com",
         organization: "Truc",
         isPublic: false,
         about: "",
-        declarations: []
+        declarations: [],
+        sub: null
     };
 
     const publicUser: UserWithId = {
@@ -29,7 +30,8 @@ describe("getAgent", () => {
         organization: "Truc",
         isPublic: true,
         about: "",
-        declarations: []
+        declarations: [],
+        sub: null
     };
 
     const currentUser: WithUserSubAndEmail = {
@@ -77,7 +79,8 @@ describe("getAgent", () => {
                 organization: null,
                 isPublic: false,
                 about: "",
-                declarations: []
+                declarations: [],
+                sub: null
             };
 
             const { declarations, ...expectedAgentWithoutDeclaration } = expectedAgent;

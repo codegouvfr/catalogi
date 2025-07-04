@@ -143,7 +143,8 @@ describe("fetches software extra data (from different providers)", () => {
             email: "myuser@example.com",
             organization: "myorg",
             about: "my about",
-            isPublic: false
+            isPublic: false,
+            sub: null
         });
 
         craSoftwareId = await dbApi.software.create({

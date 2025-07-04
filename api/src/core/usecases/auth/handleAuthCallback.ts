@@ -2,10 +2,12 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Session, SessionRepository } from "../../ports/DbApiV2";
+import { Session, SessionRepository, UserRepository } from "../../ports/DbApiV2";
+import { getAuthRedirectUri } from "./auth.helpers";
 import { OidcParams } from "./initiateAuth";
 
 type HandleAuthCallbackDependencies = {
+    userRepository: UserRepository;
     sessionRepository: SessionRepository;
     oidcParams: OidcParams;
 };
@@ -23,48 +25,74 @@ export type OidcUserInfo = {
     family_name?: string;
 };
 
+type OidcConfiguration = {
+    token_endpoint: string;
+    userinfo_endpoint: string;
+};
+
 export type HandleAuthCallback = Awaited<ReturnType<typeof makeHandleAuthCallback>>;
-export const makeHandleAuthCallback = async ({ sessionRepository, oidcParams }: HandleAuthCallbackDependencies) => {
+export const makeHandleAuthCallback = async ({
+    sessionRepository,
+    userRepository,
+    oidcParams
+}: HandleAuthCallbackDependencies) => {
     // Fetch OIDC configuration once at startup
     const oidcConfig = await getOidcConfiguration(oidcParams.issuerUri);
 
-    return async ({ code, state }: HandleAuthCallbackParams): Promise<Session | null> => {
+    return async ({ code, state }: HandleAuthCallbackParams): Promise<Session> => {
         // Find session by state
-        const session = await sessionRepository.findByState(state);
+        const initialSession = await sessionRepository.findByState(state);
 
-        if (!session) {
-            console.error("Session not found for state:", state);
-            return null;
+        if (!initialSession) {
+            throw new Error(`Session not found for state : ${state}`);
         }
 
-        try {
-            // Exchange code for tokens
-            const tokens = await exchangeCodeForTokens(code, oidcParams, oidcConfig);
+        const tokens = await exchangeCodeForTokens(code, oidcParams, oidcConfig);
 
-            // Get user info
-            const userInfo = await getUserInfo(tokens.access_token, oidcConfig);
+        const userInfoFromProvider = await getUserInfoFromProvider(tokens.access_token, oidcConfig);
 
-            // Update session with user info and tokens
-            return await sessionRepository.updateWithUserInfo({
-                sessionId: session.id,
-                userId: userInfo.sub,
-                email: userInfo.email,
-                sub: userInfo.sub,
-                accessToken: tokens.access_token,
-                refreshToken: tokens.refresh_token,
-                expiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : undefined
+        let userId: number;
+        const user =
+            (await userRepository.getBySub(userInfoFromProvider.sub)) ??
+            (await userRepository.getByEmail(userInfoFromProvider.email));
+
+        if (!user) {
+            userId = await userRepository.add({
+                sub: userInfoFromProvider.sub,
+                email: userInfoFromProvider.email,
+                organization: null,
+                isPublic: false,
+                about: undefined
             });
-        } catch (error) {
-            console.error("Error during OIDC callback:", error);
-            return null;
+        } else {
+            userId = user.id;
+            await userRepository.update({
+                ...user,
+                id: userId,
+                sub: userInfoFromProvider.sub,
+                email: userInfoFromProvider.email
+            });
         }
+
+        const updatedSession: Session = {
+            ...initialSession,
+            userId,
+            email: userInfoFromProvider.email,
+            accessToken: tokens.access_token,
+            refreshToken: tokens.refresh_token ?? null,
+            expiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
+        };
+
+        await sessionRepository.updateWithUserInfo(updatedSession);
+
+        return updatedSession;
     };
 };
 
 async function exchangeCodeForTokens(
     code: string,
     oidcParams: OidcParams,
-    oidcConfig: any
+    oidcConfig: OidcConfiguration
 ): Promise<{
     access_token: string;
     refresh_token?: string;
@@ -74,7 +102,7 @@ async function exchangeCodeForTokens(
     const body = new URLSearchParams({
         grant_type: "authorization_code",
         code,
-        redirect_uri: getRedirectUri(),
+        redirect_uri: getAuthRedirectUri(),
         client_id: oidcParams.clientId,
         client_secret: oidcParams.clientSecret
     });
@@ -88,13 +116,15 @@ async function exchangeCodeForTokens(
     });
 
     if (!response.ok) {
+        console.log(response);
+        console.log(await response.text());
         throw new Error(`Token exchange failed: ${response.statusText}`);
     }
 
     return response.json();
 }
 
-async function getUserInfo(accessToken: string, oidcConfig: any): Promise<OidcUserInfo> {
+async function getUserInfoFromProvider(accessToken: string, oidcConfig: any): Promise<OidcUserInfo> {
     const response = await fetch(oidcConfig.userinfo_endpoint, {
         headers: {
             Authorization: `Bearer ${accessToken}`
@@ -108,7 +138,7 @@ async function getUserInfo(accessToken: string, oidcConfig: any): Promise<OidcUs
     return response.json();
 }
 
-async function getOidcConfiguration(issuerUri: string): Promise<any> {
+async function getOidcConfiguration(issuerUri: string): Promise<OidcConfiguration> {
     const configUrl = `${issuerUri}/.well-known/openid-configuration`;
     const response = await fetch(configUrl);
 
@@ -117,10 +147,4 @@ async function getOidcConfiguration(issuerUri: string): Promise<any> {
     }
 
     return response.json();
-}
-
-function getRedirectUri(): string {
-    // This should be configurable based on your deployment
-    // For now, assuming it's the same host as the API
-    return `${process.env.API_BASE_URL || "http://localhost:8080"}/auth/callback`;
 }

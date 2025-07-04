@@ -21,7 +21,6 @@ export function createPgSessionRepository(params: { kyselyDb: Kysely<Database> }
                     redirectUrl,
                     userId: null,
                     email: null,
-                    sub: null,
                     accessToken: null,
                     refreshToken: null,
                     expiresAt: null,
@@ -31,41 +30,32 @@ export function createPgSessionRepository(params: { kyselyDb: Kysely<Database> }
                 .execute();
         },
 
-        findByState: async state => {
-            const session = await kyselyDb
-                .selectFrom("sessions")
-                .selectAll()
-                .where("state", "=", state)
-                .executeTakeFirst();
+        findByState: async state =>
+            kyselyDb.selectFrom("sessions").selectAll().where("state", "=", state).executeTakeFirst(),
 
-            return session || null;
-        },
-
-        findById: async id => {
-            const session = await kyselyDb.selectFrom("sessions").selectAll().where("id", "=", id).executeTakeFirst();
-
-            return session || null;
-        },
+        findById: async id => kyselyDb.selectFrom("sessions").selectAll().where("id", "=", id).executeTakeFirst(),
 
         updateWithUserInfo: async params => {
-            const { sessionId, userId, email, sub, accessToken, refreshToken, expiresAt } = params;
+            const { id, userId, email, accessToken, refreshToken, expiresAt } = params;
 
-            const updatedSession = await kyselyDb
+            const result = await kyselyDb
                 .updateTable("sessions")
                 .set({
                     userId,
                     email,
-                    sub,
                     accessToken,
                     refreshToken: refreshToken || null,
                     expiresAt: expiresAt || null,
                     updatedAt: new Date()
                 })
-                .where("id", "=", sessionId)
-                .returningAll()
+                .where("id", "=", id)
                 .executeTakeFirst();
 
-            return updatedSession || null;
+            console.log("Result", result);
+
+            if (Number(result.numChangedRows) === 0) {
+                throw new Error(`Session not found for id : ${id}`);
+            }
         },
 
         delete: async sessionId => {

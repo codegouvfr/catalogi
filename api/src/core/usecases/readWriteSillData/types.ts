@@ -101,6 +101,7 @@ export type CreateUserParams = {
     declarations: (DeclarationFormData & { softwareName: string })[];
     isPublic: boolean;
     about: string | undefined;
+    sub: string | null;
 };
 
 export type UserWithId = CreateUserParams & { id: number };

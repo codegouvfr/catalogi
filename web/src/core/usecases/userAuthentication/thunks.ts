@@ -5,6 +5,7 @@
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
 import { name, actions } from "./state";
+import { apiUrl } from "urls";
 
 export const protectedThunks = {
     initialize:
@@ -30,14 +31,15 @@ export const thunks = {
         },
     login:
         (params: { doesCurrentHrefRequiresAuth: boolean }) =>
-        (...args): Promise<never> => {
-            const { doesCurrentHrefRequiresAuth } = params;
+        (...args) => {
+            window.location.href = `${apiUrl}/auth/login`;
+            // const { doesCurrentHrefRequiresAuth } = params;
 
-            const [, , { oidc }] = args;
+            // const [, , { oidc }] = args;
 
-            assert(!oidc.isUserLoggedIn);
+            // assert(!oidc.isUserLoggedIn);
 
-            return oidc.login({ doesCurrentHrefRequiresAuth });
+            // return oidc.login({ doesCurrentHrefRequiresAuth });
         },
     register:
         () =>

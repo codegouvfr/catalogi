@@ -41,8 +41,7 @@ export default defineConfig(async () => {
             }
         },
         server: {
-            port: 3000,
-            open: true
+            port: 3000
         },
         build: {
             outDir: "build", // Same output directory as CRA

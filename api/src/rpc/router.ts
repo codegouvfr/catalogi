@@ -161,6 +161,7 @@ export function createRouter(params: {
                     if (!user) {
                         userId = await dbApi.user.add({
                             email: userInContext.email,
+                            sub: userInContext.sub,
                             organization: null,
                             about: undefined,
                             isPublic: false
@@ -233,7 +234,8 @@ export function createRouter(params: {
                         email: userInContext.email,
                         organization: null,
                         about: undefined,
-                        isPublic: false
+                        isPublic: false,
+                        sub: userInContext.sub
                     });
                 }
 

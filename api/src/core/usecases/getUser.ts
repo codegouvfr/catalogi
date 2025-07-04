@@ -25,18 +25,20 @@ export const makeGetUser =
         if (currentUser) {
             if (user) return { user };
             if (currentUser.email === email) {
-                const agentWithoutId = {
+                const userWithoutId = {
                     email: currentUser.email,
                     organization: null,
                     about: "",
-                    isPublic: false
+                    isPublic: false,
+                    sub: currentUser.sub
                 };
-                const agentId = await userRepository.add(agentWithoutId);
+                const agentId = await userRepository.add(userWithoutId);
                 return {
                     user: {
                         id: agentId,
-                        ...agentWithoutId,
-                        declarations: []
+                        ...userWithoutId,
+                        declarations: [],
+                        sub: null
                     }
                 };
             }

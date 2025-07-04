@@ -3,16 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { SessionRepository } from "../core/ports/DbApiV2";
-import { type WithUserSubAndEmail } from "./user";
+import { UserRepository } from "../core/ports/DbApiV2";
+import { WithUserSubAndEmail } from "./user";
 
 export type Context = {
     user?: WithUserSubAndEmail;
 };
 
-export async function createContextFactory(params: { sessionRepository: SessionRepository }) {
-    const { sessionRepository } = params;
-
+export async function createContextFactory({ userRepository }: { userRepository: UserRepository }) {
     async function createContext({ req }: CreateExpressContextOptions): Promise<Context> {
         const sessionId = req.cookies?.sessionId;
 
@@ -20,13 +18,13 @@ export async function createContextFactory(params: { sessionRepository: SessionR
             return {};
         }
 
-        const session = await sessionRepository.findById(sessionId);
+        const user = await userRepository.getBySessionId(sessionId);
 
-        if (!session || !session.userId || !session.email) {
+        if (!user) {
             return {};
         }
 
-        return { user: { sub: session.userId, email: session.email } };
+        return { user: { email: user.email, sub: user.sub ?? "" } };
     }
 
     return { createContext };

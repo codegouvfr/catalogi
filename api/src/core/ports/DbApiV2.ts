@@ -93,6 +93,7 @@ export interface InstanceRepository {
 
 export type DbUser = {
     id: number;
+    sub: string | null;
     email: string;
     organization: string | null;
     about: string | undefined;
@@ -104,9 +105,11 @@ export interface UserRepository {
     update: (user: DbUser & Partial<CreateUserParams>) => Promise<void>;
     remove: (userId: number) => Promise<void>;
     getByEmail: (email: string) => Promise<UserWithId | undefined>;
+    getBySub: (sub: string) => Promise<UserWithId | undefined>;
     getAll: () => Promise<UserWithId[]>;
     countAll: () => Promise<number>;
     getAllOrganizations: () => Promise<string[]>;
+    getBySessionId: (sessionId: string) => Promise<UserWithId | undefined>;
 }
 
 export interface SoftwareReferentRepository {
@@ -131,9 +134,8 @@ export type Session = {
     id: string;
     state: string;
     redirectUrl: string | null;
-    userId: string | null;
+    userId: number | null;
     email: string | null;
-    sub: string | null;
     accessToken: string | null;
     refreshToken: string | null;
     expiresAt: Date | null;
@@ -143,17 +145,9 @@ export type Session = {
 
 export interface SessionRepository {
     create: (params: { id: string; state: string; redirectUrl: string | null }) => Promise<void>;
-    findByState: (state: string) => Promise<Session | null>;
-    findById: (id: string) => Promise<Session | null>;
-    updateWithUserInfo: (params: {
-        sessionId: string;
-        userId: string;
-        email: string;
-        sub: string;
-        accessToken: string;
-        refreshToken?: string;
-        expiresAt?: Date;
-    }) => Promise<Session | null>;
+    findByState: (state: string) => Promise<Session | undefined>;
+    findById: (id: string) => Promise<Session | undefined>;
+    updateWithUserInfo: (session: Session) => Promise<void>;
     delete: (sessionId: string) => Promise<void>;
 }
 

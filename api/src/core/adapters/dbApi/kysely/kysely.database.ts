@@ -33,6 +33,7 @@ type UsersTable = {
     organization: string | null;
     about: string | null;
     isPublic: boolean;
+    sub: string | null;
 };
 
 type Os = "windows" | "linux" | "mac" | "android" | "ios";
@@ -157,9 +158,8 @@ type SessionsTable = {
     id: string;
     state: string;
     redirectUrl: string | null;
-    userId: string | null;
+    userId: number | null;
     email: string | null;
-    sub: string | null;
     accessToken: string | null;
     refreshToken: string | null;
     expiresAt: Date | null;

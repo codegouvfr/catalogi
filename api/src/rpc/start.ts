@@ -29,6 +29,7 @@ import { OidcParams } from "../tools/oidc";
 import { createContextFactory } from "./context";
 import { createRouter } from "./router";
 import { getTranslations } from "./translations/getTranslations";
+import { z } from "zod";
 
 const makeGetCatalogiJson =
     (redirectUrl: string | undefined, dbApi: DbApiV2): Handler =>
@@ -83,7 +84,7 @@ export async function startRpcService(params: {
     });
 
     const { createContext } = await createContextFactory({
-        sessionRepository: dbApi.session
+        userRepository: dbApi.user
     });
 
     const { getSoftwareExternalDataOptions, getSoftwareExternalData } =
@@ -107,42 +108,34 @@ export async function startRpcService(params: {
         .use((req, _res, next) => (console.log("⬅", req.method, req.path, req.body ?? req.query), next()))
         .use("/public/healthcheck", (...[, res]) => res.sendStatus(200))
         .get("/auth/login", async (req, res) => {
+            console.log("🔴 Login");
             try {
-                const redirectUrl = req.query.redirectUrl as string | undefined;
-                const { sessionId, authUrl } = await useCases.auth.initiateAuth({
-                    redirectUrl
+                const { authUrl } = await useCases.auth.initiateAuth({
+                    redirectUrl: req.query.redirectUrl as string | undefined
                 });
 
-                // Set session cookie
-                res.cookie("sessionId", sessionId, {
-                    httpOnly: true,
-                    secure: !isDevEnvironnement,
-                    sameSite: "lax",
-                    maxAge: 24 * 60 * 60 * 1000 // 24 hours
-                });
+                console.log("🔴 Auth URL", authUrl);
 
                 res.redirect(authUrl);
-            } catch (error) {
-                console.error("Login error:", error);
+            } catch (error: any) {
+                console.error("Login error: ", error?.message);
+                console.error(error);
                 res.status(500).json({ error: "Authentication failed" });
             }
         })
         .get("/auth/callback", async (req, res) => {
             try {
-                const { code, state } = req.query;
-
-                if (!code || !state) {
-                    return res.status(400).json({ error: "Missing code or state parameter" });
-                }
+                const { code, state } = z
+                    .object({
+                        code: z.string(),
+                        state: z.string()
+                    })
+                    .parse(req.query);
 
                 const session = await useCases.auth.handleAuthCallback({
                     code: code as string,
                     state: state as string
                 });
-
-                if (!session) {
-                    return res.status(400).json({ error: "Invalid authentication callback" });
-                }
 
                 // Update session cookie
                 res.cookie("sessionId", session.id, {
@@ -153,7 +146,7 @@ export async function startRpcService(params: {
                 });
 
                 // Redirect to original URL or default
-                const redirectUrl = session.redirectUrl || "/";
+                const redirectUrl = session.redirectUrl || "/list";
                 res.redirect(redirectUrl);
             } catch (error) {
                 console.error("Callback error:", error);
