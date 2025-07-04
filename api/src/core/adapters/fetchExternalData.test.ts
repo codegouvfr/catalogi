@@ -124,7 +124,7 @@ describe("fetches software extra data (from different providers)", () => {
         await db.deleteFrom("software_users").execute();
         await db.deleteFrom("software_referents").execute();
         await db.deleteFrom("softwares").execute();
-        await db.deleteFrom("agents").execute();
+        await db.deleteFrom("users").execute();
         await db.deleteFrom("sources").execute();
 
         await db

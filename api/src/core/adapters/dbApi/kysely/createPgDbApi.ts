@@ -5,7 +5,7 @@
 import { Kysely } from "kysely";
 import { DbApiV2 } from "../../../ports/DbApiV2";
 import { createGetCompiledData } from "./createGetCompiledData";
-import { createPgAgentRepository } from "./createPgAgentRepository";
+import { createPgAgentRepository } from "./createPgUserRepository";
 import { createPgInstanceRepository } from "./createPgInstanceRepository";
 import { createPgOtherSoftwareExtraDataRepository } from "./createPgOtherSoftwareExtraDataRepositiory";
 import { createPgSoftwareExternalDataRepository } from "./createPgSoftwareExternalDataRepository";

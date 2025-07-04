@@ -12,10 +12,10 @@ import { stripNullOrUndefinedValues, isNotNull, jsonBuildObject, jsonStripNulls 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
     const agentById: Record<number, Db.AgentRow> = await db
-        .selectFrom("agents")
+        .selectFrom("users")
         .selectAll()
         .execute()
-        .then(agents => agents.reduce((acc, agent) => ({ ...acc, [agent.id]: agent }), {}));
+        .then(users => users.reduce((acc, user) => ({ ...acc, [user.id]: user }), {}));
     console.timeEnd("agentById query");
 
     console.time("softwares query");
@@ -23,7 +23,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .selectFrom("softwares as s")
         .leftJoin("compiled_softwares as csft", "csft.softwareId", "s.id")
         .leftJoin("software_referents as referents", "s.id", "referents.softwareId")
-        .leftJoin("software_users as users", "s.id", "users.softwareId")
+        .leftJoin("software_users", "s.id", "software_users.softwareId")
         .leftJoin("instances", "s.id", "instances.mainSoftwareSillId")
         .leftJoin("software_external_datas as ext", "ext.externalId", "s.externalIdForSource")
         .leftJoin(
@@ -88,7 +88,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     .end()
                     .as("softwareExternalData"),
             ({ fn }) => fn.jsonAgg("similarExt").distinct().as("similarExternalSoftwares"),
-            ({ fn }) => fn.jsonAgg("users").distinct().as("users"),
+            ({ fn }) => fn.jsonAgg("software_users").distinct().as("users"),
             ({ fn }) => fn.jsonAgg("referents").distinct().as("referents"),
             ({ fn }) => fn.jsonAgg("instances").distinct().as("instances")
         ])

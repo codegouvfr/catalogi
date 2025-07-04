@@ -102,7 +102,7 @@ describe("RPC e2e tests", () => {
             await kyselyDb.deleteFrom("instances").execute();
             await kyselyDb.deleteFrom("software_external_datas").execute();
             await kyselyDb.deleteFrom("softwares").execute();
-            await kyselyDb.deleteFrom("agents").execute();
+            await kyselyDb.deleteFrom("users").execute();
             await kyselyDb.deleteFrom("sources").execute();
 
             await kyselyDb.insertInto("sources").values(mainSource).executeTakeFirst();
@@ -245,7 +245,7 @@ describe("RPC e2e tests", () => {
     });
 
     const getSoftwareRows = async () => kyselyDb.selectFrom("softwares").selectAll().execute();
-    const getAgentRows = () => kyselyDb.selectFrom("agents").selectAll().execute();
+    const getAgentRows = () => kyselyDb.selectFrom("users").selectAll().execute();
     const getSoftwareUserRows = () => kyselyDb.selectFrom("software_users").selectAll().execute();
     const getInstanceRows = () => kyselyDb.selectFrom("instances").selectAll().execute();
 });

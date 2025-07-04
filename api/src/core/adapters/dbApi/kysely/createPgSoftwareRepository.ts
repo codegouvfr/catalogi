@@ -478,7 +478,7 @@ const getUserAndReferentCountByOrganizationBySoftwareId = async (
 ): Promise<UserAndReferentCountByOrganizationBySoftwareId> => {
     const softwareUserCountBySoftwareId: CountForOrganisationAndSoftwareId[] = await db
         .selectFrom("software_users as u")
-        .innerJoin("agents as a", "a.id", "u.agentId")
+        .innerJoin("users as a", "a.id", "u.agentId")
         .select([
             "u.softwareId",
             "a.organization",
@@ -490,7 +490,7 @@ const getUserAndReferentCountByOrganizationBySoftwareId = async (
 
     const softwareReferentCountBySoftwareId: CountForOrganisationAndSoftwareId[] = await db
         .selectFrom("software_referents as r")
-        .innerJoin("agents as a", "a.id", "r.agentId")
+        .innerJoin("users as a", "a.id", "r.agentId")
         .select([
             "r.softwareId",
             "a.organization",

@@ -117,7 +117,7 @@ describe("pgDbApi", () => {
         await db.deleteFrom("software_external_datas").execute();
         await db.deleteFrom("softwares").execute();
         await db.deleteFrom("instances").execute();
-        await db.deleteFrom("agents").execute();
+        await db.deleteFrom("users").execute();
         await db.deleteFrom("sources").execute();
 
         await db
@@ -276,7 +276,7 @@ describe("pgDbApi", () => {
         });
     });
 
-    describe("agents", () => {
+    describe("users", () => {
         it("adds an agent, get it by email, updates it, getAll", async () => {
             console.log("------ agent scenario------");
             console.log("inserting agent");

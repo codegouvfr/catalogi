@@ -27,7 +27,7 @@ const seed = async () => {
     await db.deleteFrom("software_external_datas").execute();
     await db.deleteFrom("softwares__similar_software_external_datas").execute();
     await db.deleteFrom("softwares").execute();
-    await db.deleteFrom("agents").execute();
+    await db.deleteFrom("users").execute();
     await db.deleteFrom("sources").execute();
 
     console.info("Data cleared");

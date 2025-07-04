@@ -15,7 +15,7 @@ type SchemaOrganization = {
 };
 
 export type Database = {
-    agents: AgentsTable;
+    users: UsersTable;
     software_referents: SoftwareReferentsTable;
     software_users: SoftwareUsersTable;
     instances: InstancesTable;
@@ -26,7 +26,7 @@ export type Database = {
     sources: SourcesTable;
 };
 
-type AgentsTable = {
+type UsersTable = {
     id: Generated<number>;
     email: string;
     organization: string | null;
