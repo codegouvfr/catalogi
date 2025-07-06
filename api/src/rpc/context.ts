@@ -4,27 +4,16 @@
 
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { UserRepository } from "../core/ports/DbApiV2";
-import { WithUserSubAndEmail } from "./user";
+import { UserWithId } from "../lib/ApiTypes";
 
 export type Context = {
-    user?: WithUserSubAndEmail;
+    currentUser?: UserWithId;
 };
 
 export async function createContextFactory({ userRepository }: { userRepository: UserRepository }) {
     async function createContext({ req }: CreateExpressContextOptions): Promise<Context> {
-        const sessionId = req.cookies?.sessionId;
-
-        if (!sessionId) {
-            return {};
-        }
-
-        const user = await userRepository.getBySessionId(sessionId);
-
-        if (!user) {
-            return {};
-        }
-
-        return { user: { email: user.email, sub: user.sub ?? "" } };
+        const currentUser = await userRepository.getBySessionId(req.cookies?.sessionId);
+        return currentUser ? { currentUser } : {};
     }
 
     return { createContext };

@@ -49,14 +49,14 @@ describe("RPC e2e tests", () => {
 
     describe("getAgents - wrong paths", () => {
         it("fails with UNAUTHORIZED if user is not logged in", async () => {
-            ({ apiCaller, kyselyDb } = await createTestCaller({ user: undefined }));
+            ({ apiCaller, kyselyDb } = await createTestCaller({ currentUser: undefined }));
             await expect(apiCaller.getUsers()).rejects.toThrow("UNAUTHORIZED");
         });
     });
 
     describe("createUserOrReferent - Wrong paths", () => {
         it("fails with UNAUTHORIZED if user is not logged in", async () => {
-            ({ apiCaller, kyselyDb } = await createTestCaller({ user: undefined }));
+            ({ apiCaller, kyselyDb } = await createTestCaller({ currentUser: undefined }));
             await expect(
                 apiCaller.createUserOrReferent({
                     formData: declarationFormData,
@@ -78,7 +78,7 @@ describe("RPC e2e tests", () => {
 
     describe("createSoftware - Wrong paths", () => {
         it("fails with UNAUTHORIZED if user is not logged in", async () => {
-            ({ apiCaller, kyselyDb } = await createTestCaller({ user: undefined }));
+            ({ apiCaller, kyselyDb } = await createTestCaller({ currentUser: undefined }));
             await expect(
                 apiCaller.createSoftware({
                     formData: softwareFormData

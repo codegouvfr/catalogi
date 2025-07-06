@@ -2,8 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { beforeEach, describe, expect, it } from "vitest";
-import { WithUserSubAndEmail } from "../../rpc/user";
+import { beforeEach, describe, it } from "vitest";
 import { expectPromiseToFailWith, expectToEqual } from "../../tools/test.helpers";
 import {
     UserRepositoryHelpers,
@@ -34,7 +33,12 @@ describe("getUser", () => {
         sub: null
     };
 
-    const currentUser: WithUserSubAndEmail = {
+    const currentUser: UserWithId = {
+        declarations: [],
+        id: 10,
+        isPublic: false,
+        about: undefined,
+        organization: null,
         sub: "user-id",
         email: "bob@mail.com"
     };
@@ -56,37 +60,11 @@ describe("getUser", () => {
             // WHEN
             const { user } = await getUser({
                 email: privateUser.email,
-                currentUser: {
-                    sub: "user-id",
-                    email: "some@mail.com"
-                }
+                currentUser
             });
 
             // THEN
             expectToEqual(user, privateUser);
-        });
-
-        it("creates an agent when no agent found, and user email matches searched email", async () => {
-            testHelpers.setUsers([]);
-            const { user } = await getUser({
-                email: currentUser.email,
-                currentUser
-            });
-
-            const expectedAgent: UserWithId = {
-                id: expect.any(Number),
-                email: currentUser.email,
-                organization: null,
-                isPublic: false,
-                about: "",
-                declarations: [],
-                sub: null
-            };
-
-            const { declarations, ...expectedAgentWithoutDeclaration } = expectedAgent;
-
-            expectToEqual(testHelpers.users, [expectedAgentWithoutDeclaration]);
-            expectToEqual(user, expectedAgent);
         });
 
         it("throw Not Found when no agent found, and user email does NOT match searched email", async () => {
@@ -96,7 +74,7 @@ describe("getUser", () => {
                     email: "another@mail.com",
                     currentUser
                 }),
-                "Agent not found"
+                "User not found"
             );
         });
     });
@@ -109,7 +87,7 @@ describe("getUser", () => {
                     email: "another@mail.com",
                     currentUser: undefined
                 }),
-                "Agent not found"
+                "User not found"
             );
         });
 

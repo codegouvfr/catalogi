@@ -11,20 +11,25 @@ import { getWikidataSoftwareOptions } from "../core/adapters/wikidata/getWikidat
 import { ExternalDataOrigin } from "../core/ports/GetSoftwareExternalData";
 import { testPgUrl } from "../tools/test.helpers";
 import { createRouter } from "./router";
-import { WithUserSubAndEmail } from "./user";
+import { UserWithId } from "../lib/ApiTypes";
 
 type TestCallerConfig = {
-    user: WithUserSubAndEmail | undefined;
+    currentUser: UserWithId | undefined;
 };
 
-export const defaultUser: WithUserSubAndEmail = {
-    sub: "1",
-    email: "default.user@mail.com"
+export const defaultUser: UserWithId = {
+    id: 1,
+    sub: "default-user-sub",
+    email: "default.user@mail.com",
+    organization: "default",
+    isPublic: false,
+    about: "",
+    declarations: []
 };
 
 export type ApiCaller = Awaited<ReturnType<typeof createTestCaller>>["apiCaller"];
 
-export const createTestCaller = async ({ user }: TestCallerConfig = { user: defaultUser }) => {
+export const createTestCaller = async ({ currentUser }: TestCallerConfig = { currentUser: defaultUser }) => {
     const externalSoftwareDataOrigin: ExternalDataOrigin = "wikidata";
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
 
@@ -45,5 +50,5 @@ export const createTestCaller = async ({ user }: TestCallerConfig = { user: defa
         uiConfig
     });
 
-    return { apiCaller: router.createCaller({ user }), kyselyDb };
+    return { apiCaller: router.createCaller({ currentUser }), kyselyDb };
 };

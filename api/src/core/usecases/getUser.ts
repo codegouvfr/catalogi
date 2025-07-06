@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { TRPCError } from "@trpc/server";
-import { WithUserSubAndEmail } from "../../rpc/user";
 import { UserRepository } from "../ports/DbApiV2";
 import { UserWithId } from "./readWriteSillData";
 
@@ -13,7 +12,7 @@ type GetUserDependencies = {
 
 type GetUserParams = {
     email: string;
-    currentUser: WithUserSubAndEmail | undefined;
+    currentUser: UserWithId | undefined;
 };
 
 export type GetUser = ReturnType<typeof makeGetUser>;
@@ -22,40 +21,16 @@ export const makeGetUser =
     async ({ email, currentUser }: GetUserParams): Promise<{ user: UserWithId }> => {
         const user = await userRepository.getByEmail(email);
 
-        if (currentUser) {
-            if (user) return { user };
-            if (currentUser.email === email) {
-                const userWithoutId = {
-                    email: currentUser.email,
-                    organization: null,
-                    about: "",
-                    isPublic: false,
-                    sub: currentUser.sub
-                };
-                const agentId = await userRepository.add(userWithoutId);
-                return {
-                    user: {
-                        id: agentId,
-                        ...userWithoutId,
-                        declarations: [],
-                        sub: null
-                    }
-                };
-            }
-
-            throw new TRPCError({
-                "code": "NOT_FOUND",
-                message: "Agent not found"
-            });
-        }
-
         if (!user)
             throw new TRPCError({
                 "code": "NOT_FOUND",
-                message: "Agent not found"
+                message: "User not found"
             });
 
-        if (!user?.isPublic) throw new TRPCError({ "code": "UNAUTHORIZED" });
+        if (!currentUser && !user.isPublic)
+            throw new TRPCError({
+                "code": "UNAUTHORIZED"
+            });
 
         return { user };
     };

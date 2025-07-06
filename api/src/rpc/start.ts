@@ -146,7 +146,7 @@ export async function startRpcService(params: {
                 });
 
                 // Redirect to original URL or default
-                const redirectUrl = session.redirectUrl || "/list";
+                const redirectUrl = session.redirectUrl || "http://localhost:3000/list";
                 res.redirect(redirectUrl);
             } catch (error) {
                 console.error("Callback error:", error);

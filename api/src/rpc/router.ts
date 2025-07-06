@@ -19,13 +19,13 @@ import {
     InstanceFormData,
     Os,
     SoftwareFormData,
-    SoftwareType
+    SoftwareType,
+    UserWithId
 } from "../core/usecases/readWriteSillData";
 import { getMonorepoRootPackageJson } from "../tools/getMonorepoRootPackageJson";
 import { OidcParams } from "../tools/oidc";
 import type { OptionalIfCanBeUndefined } from "../tools/OptionalIfCanBeUndefined";
 import type { Context } from "./context";
-import { WithUserSubAndEmail } from "./user";
 
 export function createRouter(params: {
     dbApi: DbApiV2;
@@ -68,12 +68,12 @@ export function createRouter(params: {
 
     const protectedProcedure = loggedProcedure.use(
         t.middleware(async ({ ctx, next }) => {
-            if (!ctx.user) throw new TRPCError({ "code": "UNAUTHORIZED" });
+            if (!ctx.currentUser) throw new TRPCError({ "code": "UNAUTHORIZED" });
 
             return next({
                 ctx: {
                     ...ctx,
-                    user: ctx.user
+                    currentUser: ctx.currentUser
                 }
             });
         })
@@ -118,7 +118,7 @@ export function createRouter(params: {
         }),
 
         // -------------- PROTECTED PROCEDURES --------------
-        "getCurrentUser": protectedProcedure.query(({ ctx: { user } }): WithUserSubAndEmail => user),
+        "getCurrentUser": protectedProcedure.query(({ ctx: { currentUser } }): UserWithId => currentUser),
         "getExternalSoftwareOptions": protectedProcedure
             .input(
                 z.object({
@@ -161,7 +161,7 @@ export function createRouter(params: {
                     "formData": zSoftwareFormData
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData } = input;
 
                 const existingSoftware = await dbApi.software.getByName(formData.softwareName.trim());
@@ -174,21 +174,9 @@ export function createRouter(params: {
                 }
 
                 try {
-                    const user = await dbApi.user.getByEmail(userInContext.email);
-                    let userId = user?.id as number;
-                    if (!user) {
-                        userId = await dbApi.user.add({
-                            email: userInContext.email,
-                            sub: userInContext.sub,
-                            organization: null,
-                            about: undefined,
-                            isPublic: false
-                        });
-                    }
-
                     await dbApi.software.create({
                         formData,
-                        userId
+                        userId: currentUser.id
                     });
                 } catch (e) {
                     throw new TRPCError({
@@ -204,20 +192,13 @@ export function createRouter(params: {
                     "formData": zSoftwareFormData
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { softwareSillId, formData } = input;
-
-                const user = await dbApi.user.getByEmail(userInContext.email);
-                if (!user)
-                    throw new TRPCError({
-                        "code": "NOT_FOUND",
-                        message: "User not found"
-                    });
 
                 await dbApi.software.update({
                     softwareSillId,
                     formData,
-                    userId: user.id
+                    userId: currentUser.id
                 });
             }),
         "createUserOrReferent": protectedProcedure
@@ -227,7 +208,7 @@ export function createRouter(params: {
                     "softwareId": z.number()
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData, softwareId } = input;
 
                 const software = await dbApi.software.getById(softwareId);
@@ -237,23 +218,11 @@ export function createRouter(params: {
                         message: "Software not found"
                     });
 
-                const user = await dbApi.user.getByEmail(userInContext.email);
-                let userId = user?.id as number;
-                if (!user) {
-                    userId = await dbApi.user.add({
-                        email: userInContext.email,
-                        organization: null,
-                        about: undefined,
-                        isPublic: false,
-                        sub: userInContext.sub
-                    });
-                }
-
                 switch (formData.declarationType) {
                     case "user":
                         await dbApi.softwareUser.add({
                             softwareId,
-                            userId,
+                            userId: currentUser.id,
                             os: formData.os ?? null,
                             serviceUrl: formData.serviceUrl ?? null,
                             useCaseDescription: formData.usecaseDescription,
@@ -263,7 +232,7 @@ export function createRouter(params: {
                     case "referent":
                         await dbApi.softwareReferent.add({
                             softwareId,
-                            userId,
+                            userId: currentUser.id,
                             isExpert: formData.isTechnicalExpert,
                             useCaseDescription: formData.usecaseDescription,
                             serviceUrl: formData.serviceUrl ?? null
@@ -279,15 +248,8 @@ export function createRouter(params: {
                     "declarationType": z.enum(["user", "referent"])
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { softwareId, declarationType } = input;
-
-                const user = await dbApi.user.getByEmail(userInContext.email);
-                if (!user)
-                    throw new TRPCError({
-                        "code": "NOT_FOUND",
-                        message: "User not found"
-                    });
 
                 const software = await dbApi.software.getById(softwareId);
                 if (!software)
@@ -300,7 +262,7 @@ export function createRouter(params: {
                     case "user": {
                         await dbApi.softwareUser.remove({
                             softwareId,
-                            userId: user.id
+                            userId: currentUser.id
                         });
                         break;
                     }
@@ -308,7 +270,7 @@ export function createRouter(params: {
                     case "referent": {
                         await dbApi.softwareReferent.remove({
                             softwareId,
-                            userId: user.id
+                            userId: currentUser.id
                         });
                         break;
                     }
@@ -320,10 +282,10 @@ export function createRouter(params: {
                     numberOfSoftwareAddedByThisUser,
                     numberOfInstanceAddedByThisUser
                 ] = await Promise.all([
-                    dbApi.softwareUser.countSoftwaresForUser({ userId: user.id }),
-                    dbApi.softwareReferent.countSoftwaresForUser({ userId: user.id }),
-                    dbApi.software.countAddedByUser({ userId: user.id }),
-                    dbApi.instance.countAddedByUser({ userId: user.id })
+                    dbApi.softwareUser.countSoftwaresForUser({ userId: currentUser.id }),
+                    dbApi.softwareReferent.countSoftwaresForUser({ userId: currentUser.id }),
+                    dbApi.software.countAddedByUser({ userId: currentUser.id }),
+                    dbApi.instance.countAddedByUser({ userId: currentUser.id })
                 ]);
 
                 if (
@@ -332,7 +294,7 @@ export function createRouter(params: {
                     numberOfSoftwareAddedByThisUser === 0 &&
                     numberOfInstanceAddedByThisUser === 0
                 ) {
-                    await dbApi.user.remove(user.id);
+                    await dbApi.user.remove(currentUser.id);
                 }
             }),
 
@@ -342,18 +304,12 @@ export function createRouter(params: {
                     "formData": zInstanceFormData
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                const user = await dbApi.user.getByEmail(userInContext.email);
-                if (!user)
-                    throw new TRPCError({
-                        "code": "NOT_FOUND",
-                        message: "User not found"
-                    });
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData } = input;
 
                 const instanceId = await dbApi.instance.create({
                     formData,
-                    userId: user.id
+                    userId: currentUser.id
                 });
 
                 return { instanceId };
@@ -385,17 +341,11 @@ export function createRouter(params: {
                     "newOrganization": z.string().optional()
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { isPublic, newOrganization, about } = input;
 
-                const user = await dbApi.user.getByEmail(userInContext.email);
-                if (!user)
-                    throw new TRPCError({
-                        "code": "NOT_FOUND",
-                        message: "User not found"
-                    });
                 await dbApi.user.update({
-                    ...user,
+                    ...currentUser,
                     ...(isPublic !== undefined ? { isPublic } : {}),
                     ...(newOrganization ? { organization: newOrganization } : {}),
                     ...(about ? { about } : {})
@@ -407,10 +357,10 @@ export function createRouter(params: {
                     "email": z.string()
                 })
             )
-            .query(async ({ ctx: { user: userInContext }, input }) =>
+            .query(async ({ ctx: { currentUser }, input }) =>
                 useCases.getUser({
                     email: input.email,
-                    currentUser: userInContext
+                    currentUser
                 })
             ),
         "updateEmail": protectedProcedure
@@ -419,16 +369,10 @@ export function createRouter(params: {
                     "newEmail": z.string().email()
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { newEmail } = input;
 
-                const user = await dbApi.user.getByEmail(userInContext.email);
-                if (!user)
-                    throw new TRPCError({
-                        "code": "NOT_FOUND",
-                        message: "User not found"
-                    });
-                await dbApi.user.update({ ...user, email: newEmail });
+                await dbApi.user.update({ ...currentUser, email: newEmail });
             }),
         "unreferenceSoftware": protectedProcedure
             .input(
