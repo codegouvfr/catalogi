@@ -6137,11 +6137,6 @@ ohash@^2.0.4:
   resolved "https://registry.yarnpkg.com/ohash/-/ohash-2.0.11.tgz#60b11e8cff62ca9dee88d13747a5baa145f5900b"
   integrity sha512-RdR9FQrFwNBNXAr4GixM8YaRZRJ5PUWbKYbE5eOsrwAjJW0q2REGcf79oYPsLyskQCZG1PLN+S/K1V00joZAoQ==
 
-oidc-spa@^6.14.0:
-  version "6.14.0"
-  resolved "https://registry.yarnpkg.com/oidc-spa/-/oidc-spa-6.14.0.tgz#38ec7d2a5d76829421bb3318c5f8f33878f0d227"
-  integrity sha512-RpdvmwDy54YGACn6jv3UpPwg2U1eRfgEhgX3M/OOtB3bFOjN+MnmpuKLwPSr2/gg2zMUXLsoap9RUB76PrbTsQ==
-
 on-finished@2.4.1:
   version "2.4.1"
   resolved "https://registry.yarnpkg.com/on-finished/-/on-finished-2.4.1.tgz#58c8c44116e54845ad57f14ab10b03533184ac3f"
