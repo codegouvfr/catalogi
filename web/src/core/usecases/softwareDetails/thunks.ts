@@ -20,20 +20,21 @@ export const thunks = {
 
             const [dispatch, getState, extraArg] = args;
 
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
             {
-                const state = getState()[name];
-
+                const softwareDetailsState = state[name];
                 assert(
-                    state.stateDescription === "not ready",
+                    softwareDetailsState.stateDescription === "not ready",
                     "The clear function should have been called"
                 );
 
-                if (state.isInitializing) {
+                if (softwareDetailsState.isInitializing) {
                     return;
                 }
             }
 
-            const { sillApi, oidc, evtAction } = extraArg;
+            const { sillApi, evtAction } = extraArg;
 
             {
                 const context = getContext(extraArg);
@@ -72,14 +73,9 @@ export const thunks = {
 
             const userDeclaration: { isReferent: boolean; isUser: boolean } | undefined =
                 await (async () => {
-                    if (!oidc.isUserLoggedIn) {
-                        return undefined;
-                    }
+                    if (!currentUser) return;
 
-                    const [{ users }, currentUser] = await Promise.all([
-                        sillApi.getUsers(),
-                        sillApi.getCurrentUser()
-                    ]);
+                    const { users } = await sillApi.getUsers();
 
                     const user = users.find(user => user.email === currentUser.email);
 

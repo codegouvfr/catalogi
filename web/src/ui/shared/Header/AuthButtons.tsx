@@ -8,19 +8,20 @@ import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { routes } from "ui/routes";
 
+export type UserAuthenticationApi =
+    | {
+          isUserLoggedIn: true;
+          logout: () => void;
+      }
+    | {
+          isUserLoggedIn: false;
+          login: () => Promise<void>;
+      };
+
 type Props = {
     id?: string;
     isOnPageMyAccount: boolean;
-    userAuthenticationApi:
-        | {
-              isUserLoggedIn: true;
-              logout: () => void;
-          }
-        | {
-              isUserLoggedIn: false;
-              login: () => Promise<never>;
-              register: () => Promise<never>;
-          };
+    userAuthenticationApi: UserAuthenticationApi;
 };
 
 export function AuthButtons(props: Props) {
@@ -41,16 +42,6 @@ export function AuthButtons(props: Props) {
                             onClick: () => userAuthenticationApi.login()
                         },
                         text: t("authButtons.login")
-                    }}
-                />
-                <HeaderQuickAccessItem
-                    id={`register-${id}`}
-                    quickAccessItem={{
-                        iconId: "ri-id-card-line",
-                        buttonProps: {
-                            onClick: () => userAuthenticationApi.register()
-                        },
-                        text: t("authButtons.register")
                     }}
                 />
             </>

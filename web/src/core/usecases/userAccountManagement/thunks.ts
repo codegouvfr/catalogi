@@ -11,7 +11,7 @@ export const thunks = {
     initialize:
         () =>
         async (...args) => {
-            const [dispatch, getState, { oidc, sillApi }] = args;
+            const [dispatch, getState, { sillApi }] = args;
 
             {
                 const state = getState()[name];
@@ -23,27 +23,23 @@ export const thunks = {
 
             dispatch(actions.initializeStarted());
 
-            assert(oidc.isUserLoggedIn);
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
 
-            const currentUser = await sillApi.getCurrentUser();
+            if (!currentUser) throw new Error("User not found, you need to be logged in");
 
-            const [oidcParams, allOrganizations, { user }] = await Promise.all([
-                sillApi.getOidcParams(),
-                sillApi.getAllOrganizations(),
-                sillApi.getUser({ email: currentUser.email })
+            const [oidcManageProfileUrl, allOrganizations] = await Promise.all([
+                sillApi.getOidcManageProfileUrl(),
+                sillApi.getAllOrganizations()
             ]);
 
-            const { about = "", isPublic, organization } = user;
+            const { about = "", isPublic, organization } = currentUser;
 
             dispatch(
                 actions.initialized({
                     email: currentUser.email,
                     organization: organization,
-                    accountManagementUrl: addParamToUrl({
-                        url: [oidcParams.issuerUri, "account"].join("/"),
-                        name: "referrer",
-                        value: oidcParams.clientId
-                    }).newUrl,
+                    accountManagementUrl: oidcManageProfileUrl,
                     allOrganizations,
                     about,
                     isPublic
@@ -64,15 +60,13 @@ export const thunks = {
                   }
         ) =>
         async (...args) => {
-            const [dispatch, getState, { sillApi, oidc }] = args;
+            const [dispatch, getState, { sillApi }] = args;
 
             const state = getState()[name];
 
             dispatch(actions.updateFieldStarted(params));
 
             assert(state.stateDescription === "ready");
-
-            assert(oidc.isUserLoggedIn);
 
             switch (params.fieldName) {
                 case "organization": {

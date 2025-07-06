@@ -2,39 +2,29 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { fr } from "@codegouvfr/react-dsfr";
-import Alert from "@codegouvfr/react-dsfr/Alert";
-import { Suspense, useEffect } from "react";
-import { tss, useStyles as useCss } from "tss-react";
-import { useRoute } from "ui/routes";
-import { Header } from "ui/shared/Header";
-import { Footer } from "ui/shared/Footer";
-import { declareComponentKeys } from "i18nifty";
-import { useCore, useCoreState } from "core";
-import { RouteProvider } from "ui/routes";
-import { evtLang } from "ui/i18n";
-import { createCoreProvider } from "core";
-import { pages } from "ui/pages";
-import { useConst } from "powerhooks/useConst";
-import { objectKeys } from "tsafe/objectKeys";
-import { assert } from "tsafe/assert";
 import { getIsDark } from "@codegouvfr/react-dsfr/useIsDark";
-import { keyframes } from "tss-react";
-import { LoadingFallback, loadingFallbackClassName } from "ui/shared/LoadingFallback";
+import { createCoreProvider, useCore, useCoreState } from "core";
+import { declareComponentKeys } from "i18nifty";
+import { useConst } from "powerhooks/useConst";
 import { useDomRect } from "powerhooks/useDomRect";
-import { apiUrl, appUrl, appPath } from "urls";
-import { PromptForOrganization } from "./shared/PromptForOrganization";
+import { Suspense, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { objectKeys } from "tsafe/objectKeys";
+import { keyframes, tss, useStyles as useCss } from "tss-react";
+import { evtLang } from "ui/i18n";
+import { pages } from "ui/pages";
+import { RouteProvider, useRoute } from "ui/routes";
+import { Footer } from "ui/shared/Footer";
+import { Header } from "ui/shared/Header";
+import { LoadingFallback, loadingFallbackClassName } from "ui/shared/LoadingFallback";
+import { apiUrl, appPath, appUrl } from "urls";
+import { PromptForOrganization } from "./shared/PromptForOrganization";
 
 const { CoreProvider } = createCoreProvider({
     apiUrl,
     appUrl,
-    transformUrlBeforeRedirectToLogin: ({ url }) => {
-        const parsedUrl = new URL(url);
-        parsedUrl.searchParams.set("dark", `${getIsDark()}`);
-        return parsedUrl.toString();
-    },
     getCurrentLang: () => evtLang.state,
+    getIsDark,
     // TODO: Remove, this was to redirect to an other instance of the sill
     onMoved: ({ redirectUrl }) => {
         const currentUrlObj = new URL(window.location.href);
@@ -52,11 +42,10 @@ const { CoreProvider } = createCoreProvider({
         );
 
         window.location.href = newUrl.toString();
-    },
+    }
     // NOTE: Passed so that it can be injected in the Account management URL.
     // I'm not comfortable with this level of indirection, this is only UI related logic
     // that shouldn't involve the core. However I do it this way for consistency sake.
-    getIsDark
 });
 
 export default function App() {
@@ -75,19 +64,17 @@ function ContextualizedApp() {
     const route = useRoute();
 
     const { userAuthentication, sillApiVersion } = useCore().functions;
-    const { currentAgent } = useCoreState("userAuthentication", "currentAgent");
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
 
     const headerUserAuthenticationApi = useConst(() =>
-        userAuthentication.getIsUserLoggedIn()
+        currentUser
             ? {
                   isUserLoggedIn: true as const,
-                  logout: () => userAuthentication.logout({ redirectTo: "home" })
+                  logout: () => userAuthentication.logout()
               }
             : {
                   isUserLoggedIn: false as const,
-                  login: () =>
-                      userAuthentication.login({ doesCurrentHrefRequiresAuth: false }),
-                  register: () => userAuthentication.register()
+                  login: () => userAuthentication.login()
               }
     );
 
@@ -121,15 +108,13 @@ function ContextualizedApp() {
                             if (page.routeGroup.has(route)) {
                                 if (
                                     page.getDoRequireUserLoggedIn(route) &&
-                                    !userAuthentication.getIsUserLoggedIn()
+                                    !currentUser
                                 ) {
-                                    userAuthentication.login({
-                                        doesCurrentHrefRequiresAuth: true
-                                    });
+                                    userAuthentication.login();
                                     return <LoadingFallback />;
                                 }
 
-                                if (currentAgent && !currentAgent.organization) {
+                                if (currentUser && !currentUser.organization) {
                                     return <PromptForOrganization firstTime={true} />;
                                 }
 

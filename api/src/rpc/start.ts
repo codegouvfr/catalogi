@@ -102,7 +102,12 @@ export async function startRpcService(params: {
     });
 
     express()
-        .use(cors())
+        .use(
+            cors({
+                origin: "http://localhost:3000",
+                credentials: true
+            })
+        )
         .use(compression() as any)
         .use(cookieParser())
         .use((req, _res, next) => (console.log("⬅", req.method, req.path, req.body ?? req.query), next()))
@@ -193,6 +198,7 @@ export async function startRpcService(params: {
                 });
 
                 return (req, res, next) => {
+                    console.log("cookies in trpc middleware : ", req.cookies);
                     const proxyReq = new Proxy(req, {
                         get: (target, prop) => {
                             if (prop === "path") {

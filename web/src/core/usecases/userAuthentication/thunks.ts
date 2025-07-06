@@ -3,74 +3,26 @@
 // SPDX-License-Identifier: MIT
 
 import type { Thunks } from "core/bootstrap";
-import { assert } from "tsafe/assert";
 import { name, actions } from "./state";
 import { apiUrl } from "urls";
 
 export const protectedThunks = {
     initialize:
         () =>
-        async (dispatch, getState, { sillApi, oidc }) => {
-            console.log("OIDC : is user logged in ?", oidc.isUserLoggedIn);
-            if (!oidc.isUserLoggedIn) return;
+        async (dispatch, getState, { sillApi }) => {
             const state = getState()[name];
             if (state.stateDescription === "ready" || state.isInitializing) return;
             dispatch(actions.initializationStarted());
             const currentUser = await sillApi.getCurrentUser();
-            const { user } = await sillApi.getUser({ email: currentUser.email });
-            dispatch(actions.initialized({ user }));
+            dispatch(actions.initialized({ currentUser: currentUser ?? null }));
         }
 } satisfies Thunks;
 
 export const thunks = {
-    getIsUserLoggedIn:
-        () =>
-        (...args): boolean => {
-            const [, , { oidc }] = args;
-            return oidc.isUserLoggedIn;
-        },
-    login:
-        (params: { doesCurrentHrefRequiresAuth: boolean }) =>
-        (...args) => {
-            window.location.href = `${apiUrl}/auth/login`;
-            // const { doesCurrentHrefRequiresAuth } = params;
-
-            // const [, , { oidc }] = args;
-
-            // assert(!oidc.isUserLoggedIn);
-
-            // return oidc.login({ doesCurrentHrefRequiresAuth });
-        },
-    register:
-        () =>
-        (...args): Promise<never> => {
-            const [, , { oidc }] = args;
-
-            assert(!oidc.isUserLoggedIn);
-
-            return oidc.login({
-                doesCurrentHrefRequiresAuth: false,
-                transformUrlBeforeRedirect: url => {
-                    const urlObj = new URL(url);
-
-                    urlObj.pathname = urlObj.pathname.replace(
-                        /\/auth$/,
-                        "/registrations"
-                    );
-
-                    return urlObj.href;
-                }
-            });
-        },
-    logout:
-        (params: { redirectTo: "home" | "current page" }) =>
-        (...args): Promise<never> => {
-            const { redirectTo } = params;
-
-            const [, , { oidc }] = args;
-
-            assert(oidc.isUserLoggedIn);
-
-            return oidc.logout({ redirectTo });
-        }
+    login: () => async () => {
+        window.location.href = `${apiUrl}/auth/login`;
+    },
+    logout: () => async () => {
+        window.location.href = `${apiUrl}/auth/logout`;
+    }
 } satisfies Thunks;

@@ -8,7 +8,8 @@ const zEnvConfiguration = z.object({
     "oidcParams": z.object({
         "issuerUri": z.string().nonempty(),
         "clientId": z.string().nonempty(),
-        "clientSecret": z.string().nonempty()
+        "clientSecret": z.string().nonempty(),
+        "manageProfileUrl": z.string().nonempty()
     }),
     "databaseUrl": z.string(),
     "isDevEnvironnement": z.boolean().default(false),
@@ -25,7 +26,8 @@ const envConfiguration = zEnvConfiguration.parse({
     "oidcParams": {
         "issuerUri": process.env.OIDC_ISSUER_URI,
         "clientId": process.env.OIDC_CLIENT_ID,
-        "clientSecret": process.env.OIDC_CLIENT_SECRET
+        "clientSecret": process.env.OIDC_CLIENT_SECRET,
+        "manageProfileUrl": process.env.OIDC_MANAGE_PROFILE_URL
     },
     "port": parseInt(process.env.API_PORT ?? ""),
     "isDevEnvironnement": process.env.IS_DEV_ENVIRONNEMENT?.toLowerCase() === "true",

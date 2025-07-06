@@ -6,4 +6,5 @@ export type OidcParams = {
     issuerUri: string;
     clientId: string;
     clientSecret: string;
+    manageProfileUrl: string;
 };

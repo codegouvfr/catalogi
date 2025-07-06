@@ -5,9 +5,9 @@
 import type { State as RootState } from "core/bootstrap";
 import { name } from "./state";
 
-const currentAgent = (rootState: RootState) => {
+const currentUser = (rootState: RootState) => {
     const state = rootState[name];
-    return { currentAgent: state.currentUser };
+    return { currentUser: state.currentUser };
 };
 
-export const selectors = { currentAgent };
+export const selectors = { currentUser };

@@ -89,18 +89,20 @@ export const protectedThunks = {
     initialize:
         () =>
         async (...args) => {
-            const [dispatch, , { sillApi, evtAction, oidc }] = args;
+            const [dispatch, getState, { sillApi, evtAction }] = args;
+
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
 
             const initialize = async () => {
                 const [apiSoftwares, { email: userEmail }] = await Promise.all([
                     sillApi.getSoftwares(),
-                    oidc.isUserLoggedIn ? sillApi.getCurrentUser() : { email: undefined }
+                    currentUser ?? { email: undefined }
                 ] as const);
 
-                const { users: users } =
-                    userEmail === undefined
-                        ? { users: undefined }
-                        : await sillApi.getUsers();
+                const { users } = currentUser
+                    ? await sillApi.getUsers()
+                    : { users: undefined };
 
                 const softwares = apiSoftwares
                     .filter(({ dereferencing }) => dereferencing === undefined)

@@ -12,7 +12,9 @@ export type Context = {
 
 export async function createContextFactory({ userRepository }: { userRepository: UserRepository }) {
     async function createContext({ req }: CreateExpressContextOptions): Promise<Context> {
+        console.log("cookies ?: ", req.cookies);
         const currentUser = await userRepository.getBySessionId(req.cookies?.sessionId);
+        console.log("getting current user : ", currentUser);
         return currentUser ? { currentUser } : {};
     }
 

@@ -92,7 +92,7 @@ export function createRouter(params: {
                 return () => out;
             })()
         ),
-        "getOidcParams": loggedProcedure.query(() => oidcParams),
+        "getOidcManageProfileUrl": loggedProcedure.query(() => oidcParams.manageProfileUrl),
         "getUiConfig": loggedProcedure.query(() => uiConfig),
         "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
         "getSoftwares": loggedProcedure.query(() => dbApi.software.getAll()),
@@ -116,9 +116,9 @@ export function createRouter(params: {
             const referentCount = await dbApi.softwareReferent.getTotalCount();
             return { referentCount };
         }),
+        "getCurrentUser": loggedProcedure.query(({ ctx: { currentUser } }): UserWithId | undefined => currentUser),
 
         // -------------- PROTECTED PROCEDURES --------------
-        "getCurrentUser": protectedProcedure.query(({ ctx: { currentUser } }): UserWithId => currentUser),
         "getExternalSoftwareOptions": protectedProcedure
             .input(
                 z.object({

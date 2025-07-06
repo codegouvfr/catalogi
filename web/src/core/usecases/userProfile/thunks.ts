@@ -5,6 +5,7 @@
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
 import { name, actions } from "./state";
+import { apiUrl } from "urls";
 
 export const thunks = {
     initialize:
@@ -12,30 +13,26 @@ export const thunks = {
         async (...args) => {
             const { email } = params;
 
-            const [dispatch, getState, { sillApi, oidc }] = args;
+            const [dispatch, getState, { sillApi }] = args;
 
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
             {
-                const state = getState()[name];
-
+                const userProfileState = state[name];
                 assert(
-                    state.stateDescription === "not ready",
+                    userProfileState.stateDescription === "not ready",
                     "The clear function should have been called"
                 );
 
-                if (state.isInitializing) {
+                if (userProfileState.isInitializing) {
                     return;
                 }
             }
 
             dispatch(actions.initializationStarted());
 
-            if (
-                !oidc.isUserLoggedIn &&
-                !(await sillApi.getIsUserProfilePublic({ email }))
-            ) {
-                await oidc.login({
-                    doesCurrentHrefRequiresAuth: true
-                });
+            if (!currentUser && !(await sillApi.getIsUserProfilePublic({ email }))) {
+                window.location.href = `${apiUrl}/auth/login`;
                 assert(false, "never");
             }
 
@@ -43,9 +40,7 @@ export const thunks = {
 
             assert(user !== undefined);
 
-            const isHimself = !oidc.isUserLoggedIn
-                ? false
-                : (await sillApi.getCurrentUser()).email === email;
+            const isHimself = currentUser ? currentUser.email === email : false;
 
             dispatch(
                 actions.initializationCompleted({

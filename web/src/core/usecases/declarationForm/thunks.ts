@@ -87,15 +87,11 @@ export const thunks = {
 
             const [dispatch, getState, { sillApi }] = args;
 
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
+
             redirect_if_declaration_already_exists: {
-                const [{ users }, { email }] = await Promise.all([
-                    sillApi.getUsers(),
-                    sillApi.getCurrentUser()
-                ]);
-
-                const user = users.find(user => user.email === email);
-
-                if (user === undefined) {
+                if (!currentUser) {
                     break redirect_if_declaration_already_exists;
                 }
 
@@ -110,7 +106,7 @@ export const thunks = {
                 })();
 
                 if (
-                    user.declarations.find(
+                    currentUser.declarations.find(
                         declaration =>
                             declaration.declarationType === declarationType &&
                             declaration.softwareName === softwareName

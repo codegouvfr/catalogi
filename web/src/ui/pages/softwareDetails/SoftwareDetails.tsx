@@ -37,6 +37,7 @@ export default function SoftwareDetails(props: Props) {
     const { route, className } = props;
 
     const { softwareDetails, userAuthentication } = useCore().functions;
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
     const uiConfig = useCoreState("uiConfig", "main");
 
     const { cx, classes } = useStyles();
@@ -306,10 +307,8 @@ export default function SoftwareDetails(props: Props) {
                                     priority="secondary"
                                     disabled={isUnreferencingOngoing}
                                     onClick={() => {
-                                        if (!userAuthentication.getIsUserLoggedIn()) {
-                                            userAuthentication.login({
-                                                doesCurrentHrefRequiresAuth: false
-                                            });
+                                        if (!currentUser) {
+                                            userAuthentication.login();
                                             return;
                                         }
 

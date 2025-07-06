@@ -8,30 +8,12 @@ import type { TrpcRouter } from "api";
 import superjson from "superjson";
 import memoize from "memoizee";
 
-export function createSillApi(params: {
-    url: string;
-    getOidcAccessToken: () => string | undefined;
-}): SillApi {
-    const { url, getOidcAccessToken } = params;
+export function createSillApi(params: { url: string }): SillApi {
+    const { url } = params;
 
     const trpcClient = createTRPCProxyClient<TrpcRouter>({
         transformer: superjson,
-        links: [
-            loggerLink(),
-            httpBatchLink({
-                url,
-                // You can pass any HTTP headers you wish here
-                headers: async () => {
-                    const oidcAccessToken = getOidcAccessToken();
-
-                    if (oidcAccessToken === undefined) {
-                        return {};
-                    }
-
-                    return { authorization: `Bearer ${oidcAccessToken}` };
-                }
-            })
-        ]
+        links: [loggerLink(), httpBatchLink({ url })]
     });
 
     const errorHandler = (err: any) => {
@@ -61,9 +43,12 @@ export function createSillApi(params: {
         getApiVersion: memoize(() => trpcClient.getApiVersion.query(), {
             promise: true
         }),
-        getOidcParams: memoize(() => trpcClient.getOidcParams.query(), {
-            promise: true
-        }),
+        getOidcManageProfileUrl: memoize(
+            () => trpcClient.getOidcManageProfileUrl.query(),
+            {
+                promise: true
+            }
+        ),
         getSoftwares: memoize(() => trpcClient.getSoftwares.query(), {
             promise: true
         }),

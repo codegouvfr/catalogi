@@ -10,21 +10,12 @@ import { Header as HeaderDsfr, HeaderProps } from "@codegouvfr/react-dsfr/Header
 import { routes } from "ui/routes";
 import { useCoreState } from "../../../core";
 import { LanguageSelect } from "./LanguageSelect";
-import { AuthButtons } from "./AuthButtons";
+import { AuthButtons, UserAuthenticationApi } from "./AuthButtons";
 
 type Props = {
     className?: string;
     routeName: keyof typeof routes | false;
-    userAuthenticationApi:
-        | {
-              isUserLoggedIn: true;
-              logout: () => void;
-          }
-        | {
-              isUserLoggedIn: false;
-              login: () => Promise<never>;
-              register: () => Promise<never>;
-          };
+    userAuthenticationApi: UserAuthenticationApi;
 };
 
 export const Header = memo(

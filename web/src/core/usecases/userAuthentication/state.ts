@@ -36,9 +36,12 @@ export const { reducer, actions } = createUsecaseActions({
         initializationStarted: state => {
             assert(state.stateDescription === "not initialized");
         },
-        initialized: (_, action: { payload: { user: ApiTypes.UserWithId | null } }) => ({
+        initialized: (
+            _,
+            action: { payload: { currentUser: ApiTypes.UserWithId | null } }
+        ) => ({
             stateDescription: "ready",
-            currentUser: action.payload.user
+            currentUser: action.payload.currentUser
         })
     },
     extraReducers: builder => {

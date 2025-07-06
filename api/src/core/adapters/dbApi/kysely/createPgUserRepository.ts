@@ -29,7 +29,7 @@ export const createPgAgentRepository = (db: Kysely<Database>): UserRepository =>
         return convertDbUserToUserWithId(dbUser);
     },
     getBySessionId: async sessionId => {
-        const dbUser = await db
+        const builder = db
             .selectFrom("sessions")
             .innerJoin("users", "sessions.userId", "users.id")
             .leftJoin("software_users", "users.id", "software_users.userId")
@@ -86,8 +86,13 @@ export const createPgAgentRepository = (db: Kysely<Database>): UserRepository =>
                         .as("referentsDeclarations")
             ])
             .groupBy("users.id")
-            .where("sessions.id", "=", sessionId)
-            .executeTakeFirst();
+            .where("sessions.id", "=", sessionId);
+
+        const { sql: sqlQuery, parameters } = builder.compile();
+        console.log("SQL Query: ", sqlQuery);
+        console.log("Parameters: ", parameters);
+
+        const dbUser = await builder.executeTakeFirst();
         return convertDbUserToUserWithId(dbUser);
     },
     getAll: () =>

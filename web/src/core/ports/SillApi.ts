@@ -39,10 +39,10 @@ export type SillApi = {
         ): Promise<TrpcRouterOutput["getApiVersion"]>;
         clear: () => void;
     };
-    getOidcParams: {
+    getOidcManageProfileUrl: {
         (
-            params: TrpcRouterInput["getOidcParams"]
-        ): Promise<TrpcRouterOutput["getOidcParams"]>;
+            params: TrpcRouterInput["getOidcManageProfileUrl"]
+        ): Promise<TrpcRouterOutput["getOidcManageProfileUrl"]>;
         clear: () => void;
     };
     getSoftwares: {

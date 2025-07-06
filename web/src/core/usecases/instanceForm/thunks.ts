@@ -21,17 +21,20 @@ export const thunks = {
                   }
         ) =>
         async (...args) => {
-            const [dispatch, getState, { sillApi, oidc }] = args;
+            const [dispatch, getState, { sillApi }] = args;
+
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
 
             {
-                const state = getState()[name];
+                const instanceFormState = state[name];
 
                 assert(
-                    state.stateDescription === "not ready",
+                    instanceFormState.stateDescription === "not ready",
                     "The clear function should have been called"
                 );
 
-                if (state.isInitializing) {
+                if (instanceFormState.isInitializing) {
                     return;
                 }
             }
@@ -81,9 +84,8 @@ export const thunks = {
                                       software.softwareName === params.softwareName
                               );
 
-                    assert(oidc.isUserLoggedIn);
+                    assert(currentUser);
 
-                    const currentUser = await sillApi.getCurrentUser();
                     const { user } = await sillApi.getUser({ email: currentUser.email });
 
                     dispatch(

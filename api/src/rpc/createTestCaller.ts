@@ -42,7 +42,12 @@ export const createTestCaller = async ({ currentUser }: TestCallerConfig = { cur
     const { router } = createRouter({
         useCases,
         dbApi,
-        oidcParams: { issuerUri: "http://fake.url", clientId: "fake-client-id", clientSecret: "fake-client-secret" },
+        oidcParams: {
+            issuerUri: "http://fake.url",
+            clientId: "fake-client-id",
+            clientSecret: "fake-client-secret",
+            manageProfileUrl: "http://fake.url/manage-profile"
+        },
         redirectUrl: undefined,
         externalSoftwareDataOrigin,
         getSoftwareExternalDataOptions: getWikidataSoftwareOptions,
