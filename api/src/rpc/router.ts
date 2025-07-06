@@ -66,7 +66,21 @@ export function createRouter(params: {
         })
     );
 
+    const protectedProcedure = loggedProcedure.use(
+        t.middleware(async ({ ctx, next }) => {
+            if (!ctx.user) throw new TRPCError({ "code": "UNAUTHORIZED" });
+
+            return next({
+                ctx: {
+                    ...ctx,
+                    user: ctx.user
+                }
+            });
+        })
+    );
+
     const router = t.router({
+        // PUBLIC PROCEDURES
         "getRedirectUrl": loggedProcedure.query(() => redirectUrl),
         "getExternalSoftwareDataOrigin": loggedProcedure.query(() => externalDataOrigin),
         "getApiVersion": loggedProcedure.query(
@@ -79,27 +93,40 @@ export function createRouter(params: {
             })()
         ),
         "getOidcParams": loggedProcedure.query(() => oidcParams),
-        "getCurrentUser": loggedProcedure.query(({ ctx: { user } }): WithUserSubAndEmail => {
-            if (!user) throw new TRPCError({ "code": "UNAUTHORIZED" });
-            return user;
-        }),
         "getUiConfig": loggedProcedure.query(() => uiConfig),
         "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
         "getSoftwares": loggedProcedure.query(() => dbApi.software.getAll()),
         "getInstances": loggedProcedure.query(() => dbApi.instance.getAll()),
-        "getExternalSoftwareOptions": loggedProcedure
+        "getIsUserProfilePublic": loggedProcedure
+            .input(
+                z.object({
+                    "email": z.string()
+                })
+            )
+            .query(async ({ input }) => {
+                const { email } = input;
+
+                const user = await dbApi.user.getByEmail(email);
+
+                return { isPublic: user?.isPublic ?? false };
+            }),
+        "getAllOrganizations": loggedProcedure.query(() => dbApi.user.getAllOrganizations()),
+        "getRegisteredUserCount": loggedProcedure.query(async () => dbApi.user.countAll()),
+        "getTotalReferentCount": loggedProcedure.query(async () => {
+            const referentCount = await dbApi.softwareReferent.getTotalCount();
+            return { referentCount };
+        }),
+
+        // -------------- PROTECTED PROCEDURES --------------
+        "getCurrentUser": protectedProcedure.query(({ ctx: { user } }): WithUserSubAndEmail => user),
+        "getExternalSoftwareOptions": protectedProcedure
             .input(
                 z.object({
                     "queryString": z.string(),
                     "language": zLanguage
                 })
             )
-            .query(async ({ ctx: { user }, input }) => {
-                if (user === undefined) {
-                    //To prevent abuse.
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
+            .query(async ({ input }) => {
                 const { queryString, language } = input;
                 const mainSource = await dbApi.source.getMainSource();
 
@@ -117,33 +144,24 @@ export function createRouter(params: {
                     sourceSlug
                 }));
             }),
-        "getSoftwareFormAutoFillDataFromExternalSoftwareAndOtherSources": loggedProcedure
+        "getSoftwareFormAutoFillDataFromExternalSoftwareAndOtherSources": protectedProcedure
             .input(
                 z.object({
                     "externalId": z.string()
                 })
             )
-            .query(async ({ ctx: { user }, input }) => {
-                if (user === undefined) {
-                    //To prevent abuse.
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
-                return useCases.getSoftwareFormAutoFillDataFromExternalAndOtherSources({
+            .query(async ({ input }) =>
+                useCases.getSoftwareFormAutoFillDataFromExternalAndOtherSources({
                     externalId: input.externalId
-                });
-            }),
-        "createSoftware": loggedProcedure
+                })
+            ),
+        "createSoftware": protectedProcedure
             .input(
                 z.object({
                     "formData": zSoftwareFormData
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const { formData } = input;
 
                 const existingSoftware = await dbApi.software.getByName(formData.softwareName.trim());
@@ -179,7 +197,7 @@ export function createRouter(params: {
                     });
                 }
             }),
-        "updateSoftware": loggedProcedure
+        "updateSoftware": protectedProcedure
             .input(
                 z.object({
                     "softwareSillId": z.number(),
@@ -187,10 +205,6 @@ export function createRouter(params: {
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const { softwareSillId, formData } = input;
 
                 const user = await dbApi.user.getByEmail(userInContext.email);
@@ -206,7 +220,7 @@ export function createRouter(params: {
                     userId: user.id
                 });
             }),
-        "createUserOrReferent": loggedProcedure
+        "createUserOrReferent": protectedProcedure
             .input(
                 z.object({
                     "formData": zDeclarationFormData,
@@ -214,10 +228,6 @@ export function createRouter(params: {
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const { formData, softwareId } = input;
 
                 const software = await dbApi.software.getById(softwareId);
@@ -262,7 +272,7 @@ export function createRouter(params: {
                 }
             }),
 
-        "removeUserOrReferent": loggedProcedure
+        "removeUserOrReferent": protectedProcedure
             .input(
                 z.object({
                     "softwareId": z.number(),
@@ -270,10 +280,6 @@ export function createRouter(params: {
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const { softwareId, declarationType } = input;
 
                 const user = await dbApi.user.getByEmail(userInContext.email);
@@ -330,17 +336,13 @@ export function createRouter(params: {
                 }
             }),
 
-        "createInstance": loggedProcedure
+        "createInstance": protectedProcedure
             .input(
                 z.object({
                     "formData": zInstanceFormData
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const user = await dbApi.user.getByEmail(userInContext.email);
                 if (!user)
                     throw new TRPCError({
@@ -356,18 +358,14 @@ export function createRouter(params: {
 
                 return { instanceId };
             }),
-        "updateInstance": loggedProcedure
+        "updateInstance": protectedProcedure
             .input(
                 z.object({
                     "instanceId": z.number(),
                     "formData": zInstanceFormData
                 })
             )
-            .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
+            .mutation(async ({ input }) => {
                 const { instanceId, formData } = input;
 
                 await dbApi.instance.update({
@@ -375,14 +373,11 @@ export function createRouter(params: {
                     instanceId
                 });
             }),
-        "getUsers": loggedProcedure.query(async ({ ctx: { user } }) => {
-            if (user === undefined) {
-                throw new TRPCError({ "code": "UNAUTHORIZED" });
-            }
+        "getUsers": protectedProcedure.query(async () => {
             const users = await dbApi.user.getAll();
             return { users };
         }),
-        "updateUserProfile": loggedProcedure
+        "updateUserProfile": protectedProcedure
             .input(
                 z.object({
                     "isPublic": z.boolean().optional(),
@@ -391,10 +386,6 @@ export function createRouter(params: {
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const { isPublic, newOrganization, about } = input;
 
                 const user = await dbApi.user.getByEmail(userInContext.email);
@@ -410,20 +401,7 @@ export function createRouter(params: {
                     ...(about ? { about } : {})
                 });
             }),
-        "getIsUserProfilePublic": loggedProcedure
-            .input(
-                z.object({
-                    "email": z.string()
-                })
-            )
-            .query(async ({ input }) => {
-                const { email } = input;
-
-                const user = await dbApi.user.getByEmail(email);
-
-                return { isPublic: user?.isPublic ?? false };
-            }),
-        "getUser": loggedProcedure
+        "getUser": protectedProcedure
             .input(
                 z.object({
                     "email": z.string()
@@ -435,18 +413,13 @@ export function createRouter(params: {
                     currentUser: userInContext
                 })
             ),
-        "getAllOrganizations": loggedProcedure.query(() => dbApi.user.getAllOrganizations()),
-        "updateEmail": loggedProcedure
+        "updateEmail": protectedProcedure
             .input(
                 z.object({
                     "newEmail": z.string().email()
                 })
             )
             .mutation(async ({ ctx: { user: userInContext }, input }) => {
-                if (userInContext === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
                 const { newEmail } = input;
 
                 const user = await dbApi.user.getByEmail(userInContext.email);
@@ -457,23 +430,14 @@ export function createRouter(params: {
                     });
                 await dbApi.user.update({ ...user, email: newEmail });
             }),
-        "getRegisteredUserCount": loggedProcedure.query(async () => dbApi.user.countAll()),
-        "getTotalReferentCount": loggedProcedure.query(async () => {
-            const referentCount = await dbApi.softwareReferent.getTotalCount();
-            return { referentCount };
-        }),
-        "unreferenceSoftware": loggedProcedure
+        "unreferenceSoftware": protectedProcedure
             .input(
                 z.object({
                     "softwareId": z.number(),
                     "reason": z.string()
                 })
             )
-            .mutation(async ({ ctx: { user }, input }) => {
-                if (user === undefined) {
-                    throw new TRPCError({ "code": "UNAUTHORIZED" });
-                }
-
+            .mutation(async ({ input }) => {
                 const { softwareId, reason } = input;
 
                 await dbApi.software.unreference({
