@@ -1,3 +1,3 @@
-export const getAuthRedirectUri = (): string => {
-    return "/auth/callback";
-};
+import { env } from "../../../env";
+
+export const getAuthRedirectUri = (): string => `${env.appUrl}/api/auth/callback`;

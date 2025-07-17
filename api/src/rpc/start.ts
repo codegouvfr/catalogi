@@ -30,6 +30,7 @@ import { createContextFactory } from "./context";
 import { createRouter } from "./router";
 import { getTranslations } from "./translations/getTranslations";
 import { z } from "zod";
+import { env } from "../env";
 
 const makeGetCatalogiJson =
     (redirectUrl: string | undefined, dbApi: DbApiV2): Handler =>
@@ -113,7 +114,6 @@ export async function startRpcService(params: {
         .use((req, _res, next) => (console.log("⬅", req.method, req.path, req.body ?? req.query), next()))
         .use("/public/healthcheck", (...[, res]) => res.sendStatus(200))
         .get("/auth/login", async (req, res) => {
-            console.log("Req : ", { protocol: req.protocol, host: req.get("host") });
             try {
                 const { authUrl } = await useCases.auth.initiateAuth({
                     redirectUrl: req.query.redirectUrl as string | undefined
@@ -148,7 +148,7 @@ export async function startRpcService(params: {
                     maxAge: 24 * 60 * 60 * 1000 // 24 hours
                 });
 
-                const defaultRedirectUrl = req.protocol + "://" + req.get("host") + "/list";
+                const defaultRedirectUrl = `${env.appUrl}/list`;
                 const redirectUrl = session.redirectUrl || defaultRedirectUrl;
                 res.redirect(redirectUrl);
             } catch (error) {

@@ -12,6 +12,7 @@ const zEnvConfiguration = z.object({
         "manageProfileUrl": z.string().nonempty()
     }),
     "databaseUrl": z.string(),
+    "appUrl": z.string().url(),
     "isDevEnvironnement": z.boolean().default(false),
     "port": z.coerce.number().optional().default(8080),
     "externalSoftwareDataOrigin": z.enum(["wikidata", "HAL"]).optional().default("wikidata"),
@@ -30,6 +31,7 @@ const envConfiguration = zEnvConfiguration.parse({
         "manageProfileUrl": process.env.OIDC_MANAGE_PROFILE_URL
     },
     "port": parseInt(process.env.API_PORT ?? ""),
+    "appUrl": process.env.APP_URL,
     "isDevEnvironnement": process.env.IS_DEV_ENVIRONNEMENT?.toLowerCase() === "true",
     "externalSoftwareDataOrigin": process.env.EXTERNAL_SOFTWARE_DATA_ORIGIN,
     "redirectUrl": process.env.REDIRECT_URL,
