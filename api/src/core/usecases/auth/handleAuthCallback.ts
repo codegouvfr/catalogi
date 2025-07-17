@@ -116,8 +116,6 @@ async function exchangeCodeForTokens(
     });
 
     if (!response.ok) {
-        console.log(response);
-        console.log(await response.text());
         throw new Error(`Token exchange failed: ${response.statusText}`);
     }
 

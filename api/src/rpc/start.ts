@@ -113,13 +113,11 @@ export async function startRpcService(params: {
         .use((req, _res, next) => (console.log("⬅", req.method, req.path, req.body ?? req.query), next()))
         .use("/public/healthcheck", (...[, res]) => res.sendStatus(200))
         .get("/auth/login", async (req, res) => {
-            console.log("🔴 Login");
+            console.log("Req : ", { protocol: req.protocol, host: req.get("host") });
             try {
                 const { authUrl } = await useCases.auth.initiateAuth({
                     redirectUrl: req.query.redirectUrl as string | undefined
                 });
-
-                console.log("🔴 Auth URL", authUrl);
 
                 res.redirect(authUrl);
             } catch (error: any) {
@@ -150,8 +148,8 @@ export async function startRpcService(params: {
                     maxAge: 24 * 60 * 60 * 1000 // 24 hours
                 });
 
-                // Redirect to original URL or default
-                const redirectUrl = session.redirectUrl || "http://localhost:3000/list";
+                const defaultRedirectUrl = req.protocol + "://" + req.get("host") + "/list";
+                const redirectUrl = session.redirectUrl || defaultRedirectUrl;
                 res.redirect(redirectUrl);
             } catch (error) {
                 console.error("Callback error:", error);
@@ -198,7 +196,6 @@ export async function startRpcService(params: {
                 });
 
                 return (req, res, next) => {
-                    console.log("cookies in trpc middleware : ", req.cookies);
                     const proxyReq = new Proxy(req, {
                         get: (target, prop) => {
                             if (prop === "path") {

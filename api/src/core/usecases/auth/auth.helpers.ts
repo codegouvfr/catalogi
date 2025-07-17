@@ -1,1 +1,3 @@
-export const getAuthRedirectUri = (): string => `http://localhost:3084/auth/callback`;
+export const getAuthRedirectUri = (): string => {
+    return "/auth/callback";
+};

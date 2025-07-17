@@ -51,8 +51,6 @@ export function createPgSessionRepository(params: { kyselyDb: Kysely<Database> }
                 .where("id", "=", id)
                 .executeTakeFirst();
 
-            console.log("Result", result);
-
             if (Number(result.numChangedRows) === 0) {
                 throw new Error(`Session not found for id : ${id}`);
             }

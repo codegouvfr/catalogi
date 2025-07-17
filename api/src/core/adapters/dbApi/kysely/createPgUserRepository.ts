@@ -86,11 +86,8 @@ export const createPgAgentRepository = (db: Kysely<Database>): UserRepository =>
                         .as("referentsDeclarations")
             ])
             .groupBy("users.id")
-            .where("sessions.id", "=", sessionId);
-
-        const { sql: sqlQuery, parameters } = builder.compile();
-        console.log("SQL Query: ", sqlQuery);
-        console.log("Parameters: ", parameters);
+            .where("sessions.id", "=", sessionId)
+            .where(eb => eb.or([eb("sessions.expiresAt", "is", null), eb("sessions.expiresAt", ">", new Date())]));
 
         const dbUser = await builder.executeTakeFirst();
         return convertDbUserToUserWithId(dbUser);
