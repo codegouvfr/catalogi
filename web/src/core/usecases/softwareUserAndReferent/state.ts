@@ -4,7 +4,7 @@
 
 import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
-import type { ApiTypes } from "api";
+import type { Os } from "shared";
 
 export type State = State.NotReady | State.Ready;
 
@@ -26,7 +26,7 @@ export namespace State {
         organization: string | null;
         usecaseDescription: string;
         /** NOTE: undefined if the software is not of type desktop/mobile */
-        os: ApiTypes.Os | undefined;
+        os: Os | undefined;
         version: string;
         /** NOTE: Defined only when software is cloud */
         serviceUrl: string | undefined;

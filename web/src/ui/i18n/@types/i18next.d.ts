@@ -2,11 +2,11 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ApiTypes } from "api";
+import type { Translations } from "api/src/lib";
 
 declare module "i18next" {
     interface CustomTypeOptions {
         defaultNS: "translations";
-        resources: ApiTypes.Translations;
+        resources: Translations;
     }
 }

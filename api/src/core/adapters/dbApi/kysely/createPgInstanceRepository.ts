@@ -6,7 +6,7 @@ import { Kysely } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 import { InstanceRepository } from "../../../ports/DbApiV2";
-import { Instance } from "../../../usecases/readWriteSillData";
+import type { Instance } from "shared";
 import { Database } from "./kysely.database";
 
 export const createPgInstanceRepository = (db: Kysely<Database>): InstanceRepository => ({

@@ -6,7 +6,7 @@ import { Kysely, sql } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 import { SoftwareRepository } from "../../../ports/DbApiV2";
-import { Software } from "../../../usecases/readWriteSillData";
+import type { Software } from "shared";
 import { Database } from "./kysely.database";
 import { stripNullOrUndefinedValues, jsonBuildObject } from "./kysely.utils";
 

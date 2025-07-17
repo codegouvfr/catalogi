@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it } from "vitest";
-import { User } from "../../rpc/user";
+import type { User } from "shared";
 import { expectPromiseToFailWith, expectToEqual } from "../../tools/test.helpers";
 import {
     AgentRepositoryHelpers,

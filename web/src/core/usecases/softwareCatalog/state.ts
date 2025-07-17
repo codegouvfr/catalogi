@@ -6,7 +6,7 @@ import {
     createUsecaseActions,
     createObjectThatThrowsIfAccessed
 } from "redux-clean-architecture";
-import type { ApiTypes } from "api";
+import type { SoftwareType, Catalogi } from "shared";
 
 type OmitFromExisting<T, K extends keyof T> = Omit<T, K>;
 
@@ -85,7 +85,7 @@ export namespace State {
                 | undefined;
             programmingLanguages: string[];
             applicationCategories: string[];
-            referencePublications?: ApiTypes.Catalogi.ScholarlyArticle[];
+            referencePublications?: Catalogi.ScholarlyArticle[];
         };
 
         export type External = Common & {
@@ -106,7 +106,7 @@ export namespace State {
                 Prerogatives,
                 "isInstallableOnUserComputer" | "isAvailableAsMobileApp"
             >;
-            softwareType: ApiTypes.SoftwareType;
+            softwareType: SoftwareType;
             search: string;
         };
     }

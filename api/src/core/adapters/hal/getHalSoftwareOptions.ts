@@ -6,8 +6,7 @@ import type {
     GetSoftwareExternalDataOptions,
     SoftwareExternalDataOption
 } from "../../ports/GetSoftwareExternalDataOptions";
-import { Language } from "../../ports/GetSoftwareExternalData";
-import { Source } from "../../usecases/readWriteSillData";
+import type { Source, Language } from "shared";
 import { HAL } from "./HalAPI/types/HAL";
 import { halAPIGateway } from "./HalAPI";
 

@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ServiceProvider } from "../usecases/readWriteSillData";
+import { ServiceProvider } from "shared";
 
 export type ServiceProvidersBySillId = Partial<Record<string, ServiceProvider[]>>;
 

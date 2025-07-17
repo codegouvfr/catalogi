@@ -4,7 +4,7 @@
 
 import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
-import type { ApiTypes } from "api";
+import type { Agent } from "shared";
 
 export type State = State.NotReady | State.Ready;
 
@@ -20,7 +20,7 @@ export namespace State {
         organization: string | null;
         about: string | undefined;
         isHimself: boolean;
-        declarations: ApiTypes.Agent["declarations"];
+        declarations: Agent["declarations"];
     };
 }
 
@@ -47,7 +47,7 @@ export const { reducer, actions } = createUsecaseActions({
                     organization: string | null;
                     about: string | undefined;
                     isHimself: boolean;
-                    declarations: ApiTypes.Agent["declarations"];
+                    declarations: Agent["declarations"];
                 };
             }
         ) => {

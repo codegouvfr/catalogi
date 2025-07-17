@@ -4,7 +4,7 @@
 
 import { Kysely, sql } from "kysely";
 import { AgentRepository } from "../../../ports/DbApiV2";
-import { Os } from "../../../usecases/readWriteSillData";
+import type { Os } from "shared";
 import type { Database } from "./kysely.database";
 import { jsonBuildObject, jsonStripNulls } from "./kysely.utils";
 

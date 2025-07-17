@@ -7,7 +7,7 @@ import { DbApiV2, OtherSoftwareExtraData } from "../ports/DbApiV2";
 import type { GetCnllPrestatairesSill } from "../ports/GetCnllPrestatairesSill";
 import { GetServiceProviders } from "../ports/GetServiceProviders";
 import type { GetSoftwareExternalData, SoftwareExternalData } from "../ports/GetSoftwareExternalData";
-import { Software, Source } from "../usecases/readWriteSillData";
+import type { Software, Source } from "shared";
 import { PgComptoirDuLibre } from "./dbApi/kysely/kysely.database";
 
 type ExternalId = string;

@@ -9,7 +9,7 @@ import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import { exclude } from "tsafe/exclude";
 import FlexSearch from "flexsearch";
-import type { ApiTypes } from "api";
+import type { Software } from "shared";
 import { createResolveLocalizedString } from "i18nifty";
 import { UpdateFilterParams } from "./state";
 import { name, actions, type State } from "./state";
@@ -185,7 +185,7 @@ function getDefaultSort(params: { userEmail: string | undefined }): State.Sort {
 }
 
 function apiSoftwareToInternalSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
+    apiSoftwares: Software[];
     softwareRef:
         | {
               type: "wikidataId";
@@ -235,9 +235,7 @@ function apiSoftwareToInternalSoftware(params: {
         authors
     } = apiSoftware;
 
-    assert<
-        Equals<ApiTypes.Software["prerogatives"], State.Software.Internal["prerogatives"]>
-    >();
+    assert<Equals<Software["prerogatives"], State.Software.Internal["prerogatives"]>>();
 
     const { resolveLocalizedString } = createResolveLocalizedString({
         currentLanguage: "fr",

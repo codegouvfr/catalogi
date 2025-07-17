@@ -6,7 +6,7 @@ import { tss } from "tss-react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { ReactNode } from "react";
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
-import { ApiTypes } from "api";
+import { Catalogi } from "shared";
 
 export type Props = {
     // from Button
@@ -18,7 +18,7 @@ export type Props = {
     url: URL | string | undefined;
     labelFromURL?: boolean;
     label?: string;
-    type?: ApiTypes.Catalogi.SourceKind;
+    type?: Catalogi.SourceKind;
 };
 
 const resolveLogoFromURL = (
@@ -65,7 +65,7 @@ const resolveLogoFromURL = (
 };
 
 const resolveLogoFromType = (
-    sourceType: ApiTypes.Catalogi.SourceKind
+    sourceType: Catalogi.SourceKind
 ): { URLlogo: URL | undefined; textFromURL: string | undefined } => {
     switch (sourceType) {
         case "HAL":

@@ -9,8 +9,7 @@ import { createKyselyPgDbApi } from "../src/core/adapters/dbApi/kysely/createPgD
 import { DbAgent, DbApiV2 } from "../src/core/ports/DbApiV2";
 import { Database } from "../src/core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../src/core/adapters/dbApi/kysely/kysely.dialect";
-import { SoftwareFormData, Source } from "../src/lib/ApiTypes";
-import { OmitFromExisting } from "../src/core/utils";
+import type { SoftwareFormData, Source, OmitFromExisting } from "shared";
 
 const seed = async () => {
     const dbUrl = process.env.DATABASE_URL;

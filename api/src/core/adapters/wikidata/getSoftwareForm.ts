@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { SoftwareFormData } from "../../usecases/readWriteSillData";
+import type { SoftwareFormData } from "shared";
 import { createGetClaimDataValue, fetchEntity, WikidataFetchError } from "./getWikidataSoftware";
 
 export const getWikidataForm = async (wikidataId: string): Promise<SoftwareFormData | undefined> => {

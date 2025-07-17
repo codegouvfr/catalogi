@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Source } from "../usecases/readWriteSillData";
+import { Source } from "shared";
 import type { Language } from "./GetSoftwareExternalData";
 
 export type SoftwareExternalDataOption = {

@@ -6,7 +6,7 @@ import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
 import { type State as SoftwareCatalogState } from "core/usecases/softwareCatalog";
-import type { ApiTypes } from "api";
+import type { Software, ServiceProvider, Catalogi, SoftwareType } from "shared";
 
 export const name = "softwareDetails";
 
@@ -14,7 +14,7 @@ export type State = State.NotReady | State.Ready;
 
 export namespace State {
     export type SimilarSoftwareNotInSill =
-        ApiTypes.Software.SimilarSoftware.SimilarSoftwareNotInSill;
+        Software.SimilarSoftware.SimilarSoftwareNotInSill;
 
     export type NotReady = {
         stateDescription: "not ready";
@@ -38,9 +38,9 @@ export namespace State {
         softwareId: number;
         softwareName: string;
         softwareDescription: string;
-        serviceProviders: ApiTypes.ServiceProvider[];
+        serviceProviders: ServiceProvider[];
         logoUrl: string | undefined;
-        authors: Array<ApiTypes.Catalogi.Person | ApiTypes.Catalogi.Organization>;
+        authors: Array<Catalogi.Person | Catalogi.Organization>;
         officialWebsiteUrl: string | undefined;
         documentationUrl: string | undefined;
         codeRepositoryUrl: string | undefined;
@@ -91,9 +91,9 @@ export namespace State {
         programmingLanguages: string[];
         keywords: string[];
         applicationCategories: string[];
-        referencePublications?: ApiTypes.Catalogi.ScholarlyArticle[];
-        softwareType: ApiTypes.SoftwareType;
-        identifiers: ApiTypes.Catalogi.Identification[];
+        referencePublications?: Catalogi.ScholarlyArticle[];
+        softwareType: SoftwareType;
+        identifiers: Catalogi.Identification[];
     };
 }
 

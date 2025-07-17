@@ -5,7 +5,7 @@
 import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import type { DeclarationFormData } from "shared";
 
 export type State = State.NotInitialized | State.Ready;
 
@@ -34,8 +34,8 @@ export namespace State {
 export type FormData = FormData.User | FormData.Referent;
 
 export namespace FormData {
-    export type User = ApiTypes.DeclarationFormData.User;
-    export type Referent = ApiTypes.DeclarationFormData.Referent;
+    export type User = DeclarationFormData.User;
+    export type Referent = DeclarationFormData.Referent;
 }
 
 export const name = "declarationForm";

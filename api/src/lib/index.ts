@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+// Export tRPC types that are specific to the API
 import type { TrpcRouter } from "../rpc/router";
 export type { TrpcRouter };
 
@@ -9,10 +10,4 @@ import type { inferRouterInputs, inferRouterOutputs } from "@trpc/server";
 export type TrpcRouterInput = inferRouterInputs<TrpcRouter>;
 export type TrpcRouterOutput = inferRouterOutputs<TrpcRouter>;
 
-export { type User } from "../rpc/user";
-export { type Language, type LocalizedString, languages } from "../core/ports/GetSoftwareExternalData";
-export type { ExternalDataOrigin } from "../core/ports/GetSoftwareExternalData";
-
-import type * as ApiTypes from "./ApiTypes";
-
-export type { ApiTypes };
+export type Translations = { translations: typeof import("../rpc/translations/en_default.json") };

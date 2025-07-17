@@ -2,6 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { SoftwareFormData } from "../usecases/readWriteSillData";
+import type { SoftwareFormData } from "shared";
 
 export type GetSoftwareFormData = (externalId: string) => Promise<SoftwareFormData | undefined>;

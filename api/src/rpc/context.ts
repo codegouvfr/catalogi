@@ -4,7 +4,7 @@
 
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
 import { createDecodeAccessToken, OidcParams } from "../tools/oidc";
-import { type User } from "./user";
+import { type User } from "shared";
 
 export type Context = {
     user?: User;

@@ -4,7 +4,7 @@
 
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import type { InstanceFormData } from "shared";
 import { name, actions } from "./state";
 
 export const thunks = {
@@ -152,7 +152,7 @@ export const thunks = {
 
             assert(step1Data !== undefined);
 
-            const formData: ApiTypes.InstanceFormData = {
+            const formData: InstanceFormData = {
                 mainSoftwareSillId: step1Data.mainSoftwareSillId,
                 organization,
                 instanceUrl,

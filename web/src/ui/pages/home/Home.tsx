@@ -25,7 +25,7 @@ import illustration_sill from "ui/assets/illustration_sill.svg";
 import { routes } from "ui/routes";
 import { useMetricCountUpAnimation } from "ui/tools/useMetricCountUpAnimation";
 import type { PageRoute } from "./route";
-import type { ApiTypes } from "api";
+import type { ConfigurableUseCaseName } from "shared";
 
 type Props = {
     className?: string;
@@ -56,7 +56,7 @@ export default function Home(props: Props) {
 
     const configUseCases = uiConfig.home.usecases;
     const useCaseNames = (
-        Object.keys(configUseCases) as ApiTypes.ConfigurableUseCaseName[]
+        Object.keys(configUseCases) as ConfigurableUseCaseName[]
     ).filter(key => configUseCases[key].enabled);
 
     const softwareSelectionList = [

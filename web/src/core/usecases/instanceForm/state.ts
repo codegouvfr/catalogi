@@ -6,7 +6,7 @@ import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
 import type { LocalizedString } from "i18nifty";
-import type { Language } from "api";
+import type { Language } from "shared";
 
 export type WikidataEntry = {
     label: LocalizedString<Language>;

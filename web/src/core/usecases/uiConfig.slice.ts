@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ApiTypes } from "api";
+import { UiConfig } from "shared";
 import { createSelector, createUsecaseActions } from "redux-clean-architecture";
 import type { State as RootState, Thunks } from "../bootstrap";
 import { id } from "tsafe";
@@ -18,7 +18,7 @@ export namespace State {
 
     export type Ready = {
         stateDescription: "initialized";
-        uiConfig: ApiTypes.UiConfig;
+        uiConfig: UiConfig;
     };
 }
 
@@ -27,10 +27,7 @@ export const { reducer, actions } = createUsecaseActions({
     initialState: id<State>({ stateDescription: "not initialized" }),
     reducers: {
         fetchUiConfigStarted: state => state,
-        fetchUiConfigSucceeded: (
-            _,
-            action: { payload: { uiConfig: ApiTypes.UiConfig } }
-        ) => ({
+        fetchUiConfigSucceeded: (_, action: { payload: { uiConfig: UiConfig } }) => ({
             stateDescription: "initialized",
             uiConfig: action.payload.uiConfig
         })

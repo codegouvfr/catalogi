@@ -5,7 +5,7 @@
 import { useMemo, useEffect, useReducer } from "react";
 import { useLang } from "ui/i18n";
 import { assert } from "tsafe/assert";
-import type { Language } from "api";
+import type { Language } from "shared";
 import { capitalize } from "tsafe/capitalize";
 
 export const { getFormattedDate } = (() => {

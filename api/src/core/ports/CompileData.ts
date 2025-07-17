@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ServiceProvider } from "../usecases/readWriteSillData";
+import { ServiceProvider } from "shared";
 import type { Db } from "./DbApi";
 import { SimilarSoftwareExternalData, SoftwareExternalData } from "./GetSoftwareExternalData";
 import type { ComptoirDuLibre } from "./ComptoirDuLibreApi";

@@ -4,9 +4,9 @@
 
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import type { SoftwareFormData } from "shared";
 import { exclude } from "tsafe/exclude";
-import type { Language } from "api";
+import type { Language } from "shared";
 import { name, actions, type FormData } from "./state";
 import { selectors as sourceSelectors } from "core/usecases/source.slice";
 
@@ -214,7 +214,7 @@ export const thunks = {
             assert(step2 !== undefined);
             assert(step3 !== undefined);
 
-            const formData: ApiTypes.SoftwareFormData = {
+            const formData: SoftwareFormData = {
                 softwareType: step1.softwareType,
                 externalIdForSource: step2.externalId,
                 sourceSlug: mainSource.slug,

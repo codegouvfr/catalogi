@@ -25,6 +25,7 @@
     "node": "^22"
   },
   "workspaces": [
+    "shared",
     "api",
     "web"
   ]

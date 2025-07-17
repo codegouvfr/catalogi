@@ -28,7 +28,7 @@ import {
     WikidataTime
 } from "../../../tools/WikidataEntity";
 import { Catalogi } from "../../../types/Catalogi";
-import { Source } from "../../usecases/readWriteSillData";
+import type { Source } from "shared";
 
 const { resolveLocalizedString } = createResolveLocalizedString({
     "currentLanguage": id<Language>("en"),

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { TRPCError } from "@trpc/server";
-import { User } from "../../rpc/user";
+import { User } from "shared";
 import { AgentRepository, AgentWithId } from "../ports/DbApiV2";
 
 type GetAgentDependencies = {

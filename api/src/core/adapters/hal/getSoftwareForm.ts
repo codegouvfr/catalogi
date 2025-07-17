@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import memoize from "memoizee";
-import { SoftwareFormData, SoftwareType } from "../../usecases/readWriteSillData";
+import { SoftwareFormData, SoftwareType } from "shared";
 import { halAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
 

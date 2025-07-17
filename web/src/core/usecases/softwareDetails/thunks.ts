@@ -5,7 +5,7 @@
 import type { Thunks } from "core/bootstrap";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import type { Software, Instance, Source } from "shared";
 import { createUsecaseContextApi } from "redux-clean-architecture";
 import { Evt } from "evt";
 import { createResolveLocalizedString } from "i18nifty";
@@ -162,10 +162,10 @@ const { getContext } = createUsecaseContextApi(() => ({
 }));
 
 function apiSoftwareToSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
-    apiInstances: ApiTypes.Instance[];
+    apiSoftwares: Software[];
+    apiInstances: Instance[];
     softwareName: string;
-    mainSource: ApiTypes.Source;
+    mainSource: Source;
 }): State.Software {
     const { apiSoftwares, apiInstances, softwareName } = params;
 

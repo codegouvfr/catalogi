@@ -8,10 +8,9 @@ import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { getWikidataSoftware } from "../core/adapters/wikidata/getWikidataSoftware";
 import { getWikidataSoftwareOptions } from "../core/adapters/wikidata/getWikidataSoftwareOptions";
-import { ExternalDataOrigin } from "../core/ports/GetSoftwareExternalData";
+import type { ExternalDataOrigin, User } from "shared";
 import { testPgUrl } from "../tools/test.helpers";
 import { createRouter } from "./router";
-import { User } from "./user";
 
 type TestCallerConfig = {
     user: User | undefined;

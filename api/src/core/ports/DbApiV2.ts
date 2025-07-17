@@ -10,9 +10,9 @@ import type {
     ServiceProvider,
     Software,
     SoftwareFormData,
-    Source
-} from "../usecases/readWriteSillData";
-import type { OmitFromExisting } from "../utils";
+    Source,
+    OmitFromExisting
+} from "shared";
 import type { CompiledData } from "./CompileData";
 import { ComptoirDuLibre } from "./ComptoirDuLibreApi";
 

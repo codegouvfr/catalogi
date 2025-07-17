@@ -4,7 +4,7 @@
 
 import { usecases } from "./usecases";
 import type { LocalizedString } from "i18nifty";
-import type { Language } from "api";
+import type { Language } from "shared";
 import type { Oidc } from "./ports/Oidc";
 import { createCore, type GenericCore } from "redux-clean-architecture";
 import { createSillApi } from "core/adapter/sillApi";

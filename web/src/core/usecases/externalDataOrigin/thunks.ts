@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ExternalDataOrigin } from "api";
+import { ExternalDataOrigin } from "shared";
 import type { Thunks } from "core/bootstrap";
 import { createUsecaseContextApi } from "redux-clean-architecture";
 

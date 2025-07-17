@@ -12,7 +12,7 @@ import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import { exclude } from "tsafe/exclude";
-import type { ApiTypes } from "api";
+import type { Software } from "shared";
 import { createResolveLocalizedString } from "i18nifty";
 import { name, type State } from "./state";
 import { selectors as uiConfigSelectors } from "../uiConfig.slice";
@@ -832,7 +832,7 @@ function filterByPrerogative(params: {
 }
 
 function apiSoftwareToInternalSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
+    apiSoftwares: Software[];
     softwareRef: SoftwareRef;
     userDeclaration:
         | {
@@ -875,9 +875,7 @@ function apiSoftwareToInternalSoftware(params: {
         authors
     } = apiSoftware;
 
-    assert<
-        Equals<ApiTypes.Software["prerogatives"], State.Software.Internal["prerogatives"]>
-    >();
+    assert<Equals<Software["prerogatives"], State.Software.Internal["prerogatives"]>>();
 
     const { resolveLocalizedString } = createResolveLocalizedString({
         currentLanguage: "fr",
@@ -1021,7 +1019,7 @@ type SoftwareRef =
       };
 
 export function apiSoftwareToExternalCatalogSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
+    apiSoftwares: Software[];
     softwareRef: SoftwareRef;
 }): State.Software.External | undefined {
     const { apiSoftwares, softwareRef } = params;

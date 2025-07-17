@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { SoftwareType } from "api/dist/src/lib/ApiTypes";
+import { SoftwareType } from "shared";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";

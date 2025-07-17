@@ -10,7 +10,7 @@ import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import { fr } from "@codegouvfr/react-dsfr";
 import { getFormattedDate } from "ui/datetimeUtils";
-import type { ApiTypes } from "api";
+import type { Catalogi } from "shared";
 import { Popover } from "@mui/material";
 import React from "react";
 import { AuthorCard } from "ui/shared/AuthorCard";
@@ -28,7 +28,7 @@ export type Props = {
               lastRecommendedVersion?: string;
           }
         | undefined;
-    authors: Array<ApiTypes.Catalogi.Person | ApiTypes.Catalogi.Organization>;
+    authors: Array<Catalogi.Person | Catalogi.Organization>;
     officialWebsite?: string;
     documentationWebsite?: string;
     sourceCodeRepository?: string;

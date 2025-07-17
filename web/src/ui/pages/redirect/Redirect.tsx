@@ -9,7 +9,7 @@ import { id } from "tsafe/id";
 import { LoadingFallback } from "ui/shared/LoadingFallback";
 import { typeGuard } from "tsafe/typeGuard";
 import { languages, evtLang } from "ui/i18n";
-import { type Language } from "api";
+import { type Language } from "shared";
 import { useCoreState } from "core";
 import { assert } from "tsafe/assert";
 

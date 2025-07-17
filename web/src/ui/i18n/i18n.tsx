@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { createI18nApi, declareComponentKeys } from "i18nifty";
-import type { Language } from "api";
+import type { Language } from "shared";
 import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import { statefulObservableToStatefulEvt } from "powerhooks/tools/StatefulObservable/statefulObservableToStatefulEvt";

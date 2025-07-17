@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Card, CardHeader } from "@mui/material";
-import { ApiTypes } from "api";
+import { Catalogi } from "shared";
 import { tss } from "tss-react";
 import { MouseEventHandler } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,7 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { LogoURLButton } from "./LogoURLButton";
 
 export type Props = {
-    author: ApiTypes.Catalogi.Person;
+    author: Catalogi.Person;
     handleClose?: MouseEventHandler<HTMLButtonElement>;
 };
 

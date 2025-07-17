@@ -4,10 +4,10 @@
 
 import { fr } from "@codegouvfr/react-dsfr";
 import { useTranslation } from "react-i18next";
-import { ApiTypes } from "api";
+import { Catalogi } from "shared";
 
 export type Props = {
-    referencePublications?: ApiTypes.Catalogi.ScholarlyArticle[];
+    referencePublications?: Catalogi.ScholarlyArticle[];
 };
 
 export const PublicationTab = (props: Props) => {

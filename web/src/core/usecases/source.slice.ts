@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { ApiTypes } from "api";
+import type { Source } from "shared";
 import { createSelector, createUsecaseActions } from "redux-clean-architecture";
 import type { State as RootState, Thunks } from "../bootstrap";
 import { id } from "tsafe";
@@ -19,7 +19,7 @@ export namespace State {
 
     export type Ready = {
         stateDescription: "initialized";
-        mainSource: ApiTypes.Source;
+        mainSource: Source;
     };
 }
 
@@ -28,10 +28,10 @@ export const { reducer, actions } = createUsecaseActions({
     initialState: id<State>({ stateDescription: "not initialized" }),
     reducers: {
         fetchMainSourceStarted: state => state,
-        fetchMainSourceSucceeded: (
-            _,
-            action: { payload: { mainSource: ApiTypes.Source } }
-        ) => ({ stateDescription: "initialized", mainSource: action.payload.mainSource })
+        fetchMainSourceSucceeded: (_, action: { payload: { mainSource: Source } }) => ({
+            stateDescription: "initialized",
+            mainSource: action.payload.mainSource
+        })
     }
 });
 

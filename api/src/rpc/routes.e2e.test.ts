@@ -7,7 +7,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { stripNullOrUndefinedValues } from "../core/adapters/dbApi/kysely/kysely.utils";
 import type { DbAgent } from "../core/ports/DbApiV2";
-import type { InstanceFormData, Source } from "../core/usecases/readWriteSillData";
+import type { InstanceFormData, Source } from "shared";
 import {
     createDeclarationFormData,
     createInstanceFormData,

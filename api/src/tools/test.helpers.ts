@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { expect } from "vitest";
-import { DeclarationFormData, InstanceFormData, SoftwareFormData } from "../core/usecases/readWriteSillData";
+import { DeclarationFormData, InstanceFormData, SoftwareFormData } from "shared";
 
 export const testPgUrl = "postgresql://catalogi:pg_password@localhost:5432/db";
 

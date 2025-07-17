@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Agent } from "api/dist/src/lib/ApiTypes";
+import { Agent } from "shared";
 import { createUsecaseActions } from "redux-clean-architecture";
 import { assert } from "tsafe/assert";
 import { id } from "tsafe/id";

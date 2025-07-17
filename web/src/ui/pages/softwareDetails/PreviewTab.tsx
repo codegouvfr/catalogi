@@ -12,7 +12,7 @@ import { capitalize } from "tsafe/capitalize";
 import { useCoreState } from "../../../core";
 import { CnllServiceProviderModal } from "./CnllServiceProviderModal";
 import { assert, type Equals } from "tsafe/assert";
-import { Catalogi, SoftwareType } from "api/dist/src/lib/ApiTypes";
+import { Catalogi, SoftwareType } from "shared";
 import { SoftwareTypeTable } from "ui/shared/SoftwareTypeTable";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 

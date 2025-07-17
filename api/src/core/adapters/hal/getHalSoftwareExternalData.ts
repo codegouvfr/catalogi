@@ -6,7 +6,7 @@ import memoize from "memoizee";
 import { JSDOM } from "jsdom";
 import { Catalogi } from "../../../types/Catalogi";
 import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
-import { Source } from "../../usecases/readWriteSillData";
+import type { Source } from "shared";
 import { halAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
 import { crossRefSource } from "./CrossRef";

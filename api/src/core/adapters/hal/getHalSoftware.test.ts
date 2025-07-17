@@ -4,7 +4,7 @@
 
 import { describe, it } from "vitest";
 import { expectToEqual } from "../../../tools/test.helpers";
-import { Source } from "../../usecases/readWriteSillData";
+import type { Source } from "shared";
 import { getHalSoftwareExternalData } from "./getHalSoftwareExternalData";
 import { getHalSoftwareOptions } from "./getHalSoftwareOptions";
 

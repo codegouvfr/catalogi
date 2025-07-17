@@ -28,6 +28,7 @@
         "@types/react-form": "^4.0.2",
         "@uiw/react-md-editor": "^3.23.5",
         "api": "*",
+        "shared": "*",
         "evt": "^2.5.7",
         "flexsearch": "0.7.43",
         "i18next": "^23.6.0",

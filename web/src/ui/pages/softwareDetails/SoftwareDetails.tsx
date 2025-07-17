@@ -26,7 +26,7 @@ import {
     DeclarationRemovalModal
 } from "ui/shared/DeclarationRemovalModal";
 import CircularProgress from "@mui/material/CircularProgress";
-import type { ApiTypes } from "api";
+import type { ServiceProvider } from "shared";
 
 type Props = {
     className?: string;
@@ -412,7 +412,7 @@ export default function SoftwareDetails(props: Props) {
 const ServiceProviderRow = ({
     serviceProvider: { website, cdlUrl, cnllUrl, name }
 }: {
-    serviceProvider: ApiTypes.ServiceProvider;
+    serviceProvider: ServiceProvider;
 }) => (
     <li>
         <span className={fr.cx("fr-text--bold")}>{name}</span>

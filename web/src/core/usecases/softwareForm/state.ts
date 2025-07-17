@@ -5,9 +5,9 @@
 import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import type { SoftwareType } from "shared";
 import type { LocalizedString } from "i18nifty";
-import type { Language } from "api";
+import type { Language } from "shared";
 
 type SoftwareFormState = SoftwareFormState.NotInitialized | SoftwareFormState.Ready;
 
@@ -28,7 +28,7 @@ namespace SoftwareFormState {
 
 export type FormData = {
     step1: {
-        softwareType: ApiTypes.SoftwareType;
+        softwareType: SoftwareType;
     };
     step2: {
         externalId: string | undefined;

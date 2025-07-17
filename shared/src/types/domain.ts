@@ -2,9 +2,27 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Catalogi } from "../../../types/Catalogi";
-import type { LocalizedString, SimilarSoftwareExternalData } from "../../ports/GetSoftwareExternalData";
-import SourceKind = Catalogi.SourceKind;
+import type { Catalogi } from "./catalogi";
+import type { LocalizedString, SimilarSoftwareExternalData } from "./external";
+
+export type Os = "windows" | "linux" | "mac" | "android" | "ios";
+
+export type SoftwareType = SoftwareType.Desktop | SoftwareType.CloudNative | SoftwareType.Stack;
+
+export namespace SoftwareType {
+    export type Desktop = {
+        type: "desktop/mobile";
+        os: Record<Os, boolean>;
+    };
+
+    export type CloudNative = {
+        type: "cloud";
+    };
+
+    export type Stack = {
+        type: "stack";
+    };
+}
 
 export type ServiceProvider = {
     name: string;
@@ -13,6 +31,22 @@ export type ServiceProvider = {
     cnllUrl?: string;
     siren?: string;
 };
+
+export type Source = {
+    slug: string;
+    kind: Catalogi.SourceKind;
+    url: string;
+    priority: number;
+    description: LocalizedString | null;
+};
+
+type Prerogatives = {
+    isPresentInSupportContract: boolean;
+    isFromFrenchPublicServices: boolean;
+    doRespectRgaa: boolean | null;
+};
+
+export type Prerogative = keyof Prerogatives;
 
 export type Software = {
     logoUrl: string | undefined;
@@ -63,14 +97,6 @@ export type Software = {
     identifiers?: Catalogi.Identification[];
 };
 
-export type Source = {
-    slug: string;
-    kind: SourceKind;
-    url: string;
-    priority: number;
-    description: LocalizedString | null;
-};
-
 export namespace Software {
     export type SimilarSoftware = SimilarSoftware.SimilarSoftwareNotInSill | SimilarSoftware.Sill;
 
@@ -112,50 +138,6 @@ export type Instance = {
     isPublic: boolean;
 };
 
-export type SoftwareType = SoftwareType.Desktop | SoftwareType.CloudNative | SoftwareType.Stack;
-
-export namespace SoftwareType {
-    export type Desktop = {
-        type: "desktop/mobile";
-        os: Record<Os, boolean>;
-    };
-
-    export type CloudNative = {
-        type: "cloud";
-    };
-
-    export type Stack = {
-        type: "stack";
-    };
-}
-
-type Prerogatives = {
-    isPresentInSupportContract: boolean;
-    isFromFrenchPublicServices: boolean;
-    doRespectRgaa: boolean | null;
-};
-export type Prerogative = keyof Prerogatives;
-
-export type Os = "windows" | "linux" | "mac" | "android" | "ios";
-
-export type SoftwareFormData = {
-    softwareName: string;
-    softwareDescription: string;
-    softwareType: SoftwareType;
-    externalIdForSource: string | undefined;
-    sourceSlug: string;
-    comptoirDuLibreId: number | undefined;
-    softwareLicense: string;
-    softwareMinimalVersion: string | undefined;
-    similarSoftwareExternalDataIds: string[];
-    softwareLogoUrl: string | undefined;
-    softwareKeywords: string[];
-
-    isPresentInSupportContract: boolean;
-    isFromFrenchPublicService: boolean;
-    doRespectRgaa: boolean | null;
-};
-
 export type DeclarationFormData = DeclarationFormData.User | DeclarationFormData.Referent;
 
 export namespace DeclarationFormData {
@@ -177,11 +159,3 @@ export namespace DeclarationFormData {
         serviceUrl: string | undefined;
     };
 }
-
-export type InstanceFormData = {
-    mainSoftwareSillId: number;
-    organization: string;
-    targetAudience: string;
-    instanceUrl: string | undefined;
-    isPublic: boolean;
-};

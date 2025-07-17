@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-export type User = {
-    id: string;
-    email: string;
-};
+export type Language = "fr" | "en";
+
+export const languages: Language[] = ["fr", "en"];

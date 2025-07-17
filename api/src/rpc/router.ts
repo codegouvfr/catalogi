@@ -14,18 +14,11 @@ import { ExternalDataOrigin, GetSoftwareExternalData, Language } from "../core/p
 import type { GetSoftwareExternalDataOptions } from "../core/ports/GetSoftwareExternalDataOptions";
 import { UiConfig } from "../core/uiConfigSchema";
 import type { UseCases } from "../core/usecases";
-import {
-    DeclarationFormData,
-    InstanceFormData,
-    Os,
-    SoftwareFormData,
-    SoftwareType
-} from "../core/usecases/readWriteSillData";
+import { DeclarationFormData, InstanceFormData, Os, SoftwareFormData, SoftwareType, User } from "shared";
 import { getMonorepoRootPackageJson } from "../tools/getMonorepoRootPackageJson";
 import { OidcParams } from "../tools/oidc";
 import type { OptionalIfCanBeUndefined } from "../tools/OptionalIfCanBeUndefined";
 import type { Context } from "./context";
-import { User } from "./user";
 
 export function createRouter(params: {
     dbApi: DbApiV2;
