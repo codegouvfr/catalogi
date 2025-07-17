@@ -8,17 +8,17 @@ import { Os, UserWithId } from "../../../usecases/readWriteSillData";
 import type { Database } from "./kysely.database";
 import { jsonBuildObject, jsonStripNulls } from "./kysely.utils";
 
-export const createPgAgentRepository = (db: Kysely<Database>): UserRepository => ({
-    add: async agent => {
-        const { id } = await db.insertInto("users").values(agent).returning("id").executeTakeFirstOrThrow();
+export const createPgUserRepository = (db: Kysely<Database>): UserRepository => ({
+    add: async user => {
+        const { id } = await db.insertInto("users").values(user).returning("id").executeTakeFirstOrThrow();
         return id;
     },
-    update: async agent => {
-        const { declarations, ...dbAgent } = agent;
-        await db.updateTable("users").set(dbAgent).where("id", "=", agent.id).execute();
+    update: async user => {
+        const { declarations, ...dbUser } = user;
+        await db.updateTable("users").set(dbUser).where("id", "=", user.id).execute();
     },
-    remove: async agentId => {
-        await db.deleteFrom("users").where("id", "=", agentId).execute();
+    remove: async userId => {
+        await db.deleteFrom("users").where("id", "=", userId).execute();
     },
     getByEmail: async email => {
         const dbUser = await makeGetUserBuilder(db).where("email", "=", email).executeTakeFirst();
@@ -30,7 +30,7 @@ export const createPgAgentRepository = (db: Kysely<Database>): UserRepository =>
     },
     getBySessionId: async sessionId => {
         const builder = db
-            .selectFrom("sessions")
+            .selectFrom("user_sessions as sessions")
             .innerJoin("users", "sessions.userId", "users.id")
             .leftJoin("software_users", "users.id", "software_users.userId")
             .leftJoin("softwares as us", "software_users.softwareId", "us.id")
@@ -87,6 +87,7 @@ export const createPgAgentRepository = (db: Kysely<Database>): UserRepository =>
             ])
             .groupBy("users.id")
             .where("sessions.id", "=", sessionId)
+            .where("sessions.loggedOutAt", "is", null)
             .where(eb => eb.or([eb("sessions.expiresAt", "is", null), eb("sessions.expiresAt", ">", new Date())]));
 
         const dbUser = await builder.executeTakeFirst();

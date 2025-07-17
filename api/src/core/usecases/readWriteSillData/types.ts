@@ -94,8 +94,8 @@ export namespace Software {
 }
 
 export type CreateUserParams = {
-    //NOTE: Undefined if the user isn't referent of at least one software
-    // If it's the user the email is never undefined.
+    firstName?: string;
+    lastName?: string;
     email: string;
     organization: string | null;
     declarations: (DeclarationFormData & { softwareName: string })[];

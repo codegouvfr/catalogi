@@ -23,14 +23,15 @@ import {
     UserWithId
 } from "../core/usecases/readWriteSillData";
 import { getMonorepoRootPackageJson } from "../tools/getMonorepoRootPackageJson";
-import { OidcParams } from "../tools/oidc";
+
 import type { OptionalIfCanBeUndefined } from "../tools/OptionalIfCanBeUndefined";
 import type { Context } from "./context";
+import type { OidcParams } from "../core/usecases/auth/oidcClient";
 
 export function createRouter(params: {
     dbApi: DbApiV2;
     useCases: UseCases;
-    oidcParams: OidcParams;
+    oidcParams: OidcParams & { manageProfileUrl: string };
     redirectUrl: string | undefined;
     externalSoftwareDataOrigin: ExternalDataOrigin;
     getSoftwareExternalDataOptions: GetSoftwareExternalDataOptions;

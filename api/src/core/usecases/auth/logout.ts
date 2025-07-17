@@ -3,9 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import { SessionRepository } from "../../ports/DbApiV2";
+import { OidcClient } from "./oidcClient";
 
 type LogoutDependencies = {
     sessionRepository: SessionRepository;
+    oidcClient: OidcClient;
 };
 
 type LogoutParams = {
@@ -14,7 +16,12 @@ type LogoutParams = {
 
 export type Logout = ReturnType<typeof makeLogout>;
 export const makeLogout =
-    ({ sessionRepository }: LogoutDependencies) =>
+    ({ sessionRepository, oidcClient }: LogoutDependencies) =>
     async ({ sessionId }: LogoutParams): Promise<void> => {
-        await sessionRepository.delete(sessionId);
+        const session = await sessionRepository.findById(sessionId);
+
+        if (!session) return;
+
+        await oidcClient.logout(session.accessToken);
+        await sessionRepository.update({ ...session, loggedOutAt: new Date() });
     };

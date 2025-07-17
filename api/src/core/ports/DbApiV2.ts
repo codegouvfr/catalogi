@@ -94,6 +94,8 @@ export interface InstanceRepository {
 export type DbUser = {
     id: number;
     sub: string | null;
+    firstName?: string;
+    lastName?: string;
     email: string;
     organization: string | null;
     about: string | undefined;
@@ -141,14 +143,15 @@ export type Session = {
     expiresAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
+    loggedOutAt: Date | null;
 };
 
 export interface SessionRepository {
     create: (params: { id: string; state: string; redirectUrl: string | null }) => Promise<void>;
     findByState: (state: string) => Promise<Session | undefined>;
     findById: (id: string) => Promise<Session | undefined>;
-    updateWithUserInfo: (session: Session) => Promise<void>;
-    delete: (sessionId: string) => Promise<void>;
+    update: (session: Session) => Promise<void>;
+    deleteSessionsNotCompletedByUser: () => Promise<void>;
 }
 
 export type DbApiV2 = {

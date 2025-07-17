@@ -6,15 +6,13 @@ import { Kysely } from "kysely";
 import { SessionRepository } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
 
-export function createPgSessionRepository(params: { kyselyDb: Kysely<Database> }): SessionRepository {
-    const { kyselyDb } = params;
-
+export function createPgSessionRepository(db: Kysely<Database>): SessionRepository {
     return {
         create: async params => {
             const { id, state, redirectUrl } = params;
 
-            await kyselyDb
-                .insertInto("sessions")
+            await db
+                .insertInto("user_sessions")
                 .values({
                     id,
                     state,
@@ -31,21 +29,22 @@ export function createPgSessionRepository(params: { kyselyDb: Kysely<Database> }
         },
 
         findByState: async state =>
-            kyselyDb.selectFrom("sessions").selectAll().where("state", "=", state).executeTakeFirst(),
+            db.selectFrom("user_sessions").selectAll().where("state", "=", state).executeTakeFirst(),
 
-        findById: async id => kyselyDb.selectFrom("sessions").selectAll().where("id", "=", id).executeTakeFirst(),
+        findById: async id => db.selectFrom("user_sessions").selectAll().where("id", "=", id).executeTakeFirst(),
 
-        updateWithUserInfo: async params => {
-            const { id, userId, email, accessToken, refreshToken, expiresAt } = params;
+        update: async params => {
+            const { id, userId, email, accessToken, refreshToken, expiresAt, loggedOutAt } = params;
 
-            const result = await kyselyDb
-                .updateTable("sessions")
+            const result = await db
+                .updateTable("user_sessions")
                 .set({
                     userId,
                     email,
                     accessToken,
-                    refreshToken: refreshToken || null,
-                    expiresAt: expiresAt || null,
+                    refreshToken,
+                    expiresAt,
+                    loggedOutAt,
                     updatedAt: new Date()
                 })
                 .where("id", "=", id)
@@ -56,8 +55,14 @@ export function createPgSessionRepository(params: { kyselyDb: Kysely<Database> }
             }
         },
 
-        delete: async sessionId => {
-            await kyselyDb.deleteFrom("sessions").where("id", "=", sessionId).execute();
+        deleteSessionsNotCompletedByUser: async () => {
+            const oneDayInMilliseconds = 1000 * 60 * 60 * 24;
+            const yesterday = new Date(Date.now() - oneDayInMilliseconds);
+            await db
+                .deleteFrom("user_sessions")
+                .where("userId", "is", null)
+                .where("createdAt", "<", yesterday)
+                .execute();
         }
     };
 }

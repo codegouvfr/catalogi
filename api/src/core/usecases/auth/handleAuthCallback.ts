@@ -3,13 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import { Session, SessionRepository, UserRepository } from "../../ports/DbApiV2";
-import { getAuthRedirectUri } from "./auth.helpers";
-import { OidcParams } from "./initiateAuth";
+import { OidcClient } from "./oidcClient";
 
 type HandleAuthCallbackDependencies = {
     userRepository: UserRepository;
     sessionRepository: SessionRepository;
-    oidcParams: OidcParams;
+    oidcClient: OidcClient;
 };
 
 type HandleAuthCallbackParams = {
@@ -17,28 +16,12 @@ type HandleAuthCallbackParams = {
     state: string;
 };
 
-export type OidcUserInfo = {
-    sub: string;
-    email: string;
-    name?: string;
-    given_name?: string;
-    family_name?: string;
-};
-
-type OidcConfiguration = {
-    token_endpoint: string;
-    userinfo_endpoint: string;
-};
-
 export type HandleAuthCallback = Awaited<ReturnType<typeof makeHandleAuthCallback>>;
-export const makeHandleAuthCallback = async ({
+export const makeHandleAuthCallback = ({
     sessionRepository,
     userRepository,
-    oidcParams
+    oidcClient
 }: HandleAuthCallbackDependencies) => {
-    // Fetch OIDC configuration once at startup
-    const oidcConfig = await getOidcConfiguration(oidcParams.issuerUri);
-
     return async ({ code, state }: HandleAuthCallbackParams): Promise<Session> => {
         // Find session by state
         const initialSession = await sessionRepository.findByState(state);
@@ -47,9 +30,9 @@ export const makeHandleAuthCallback = async ({
             throw new Error(`Session not found for state : ${state}`);
         }
 
-        const tokens = await exchangeCodeForTokens(code, oidcParams, oidcConfig);
+        const tokens = await oidcClient.exchangeCodeForTokens(code);
 
-        const userInfoFromProvider = await getUserInfoFromProvider(tokens.access_token, oidcConfig);
+        const userInfoFromProvider = await oidcClient.getUserInfo(tokens.access_token);
 
         let userId: number;
         const user =
@@ -60,6 +43,8 @@ export const makeHandleAuthCallback = async ({
             userId = await userRepository.add({
                 sub: userInfoFromProvider.sub,
                 email: userInfoFromProvider.email,
+                firstName: userInfoFromProvider.given_name,
+                lastName: userInfoFromProvider.family_name,
                 organization: null,
                 isPublic: false,
                 about: undefined
@@ -70,9 +55,13 @@ export const makeHandleAuthCallback = async ({
                 ...user,
                 id: userId,
                 sub: userInfoFromProvider.sub,
-                email: userInfoFromProvider.email
+                email: userInfoFromProvider.email,
+                firstName: userInfoFromProvider.given_name,
+                lastName: userInfoFromProvider.family_name
             });
         }
+
+        const twoDaysInMilliseconds = 2 * 24 * 60 * 60 * 1000;
 
         const updatedSession: Session = {
             ...initialSession,
@@ -80,69 +69,13 @@ export const makeHandleAuthCallback = async ({
             email: userInfoFromProvider.email,
             accessToken: tokens.access_token,
             refreshToken: tokens.refresh_token ?? null,
-            expiresAt: tokens.expires_in ? new Date(Date.now() + tokens.expires_in * 1000) : null
+            expiresAt: tokens.expires_in
+                ? new Date(Date.now() + tokens.expires_in * 1000)
+                : new Date(Date.now() + twoDaysInMilliseconds)
         };
 
-        await sessionRepository.updateWithUserInfo(updatedSession);
+        await sessionRepository.update(updatedSession);
 
         return updatedSession;
     };
 };
-
-async function exchangeCodeForTokens(
-    code: string,
-    oidcParams: OidcParams,
-    oidcConfig: OidcConfiguration
-): Promise<{
-    access_token: string;
-    refresh_token?: string;
-    expires_in?: number;
-    token_type: string;
-}> {
-    const body = new URLSearchParams({
-        grant_type: "authorization_code",
-        code,
-        redirect_uri: getAuthRedirectUri(),
-        client_id: oidcParams.clientId,
-        client_secret: oidcParams.clientSecret
-    });
-
-    const response = await fetch(oidcConfig.token_endpoint, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: body.toString()
-    });
-
-    if (!response.ok) {
-        throw new Error(`Token exchange failed: ${response.statusText}`);
-    }
-
-    return response.json();
-}
-
-async function getUserInfoFromProvider(accessToken: string, oidcConfig: any): Promise<OidcUserInfo> {
-    const response = await fetch(oidcConfig.userinfo_endpoint, {
-        headers: {
-            Authorization: `Bearer ${accessToken}`
-        }
-    });
-
-    if (!response.ok) {
-        throw new Error(`Failed to get user info: ${response.statusText}`);
-    }
-
-    return response.json();
-}
-
-async function getOidcConfiguration(issuerUri: string): Promise<OidcConfiguration> {
-    const configUrl = `${issuerUri}/.well-known/openid-configuration`;
-    const response = await fetch(configUrl);
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch OIDC configuration: ${response.statusText}`);
-    }
-
-    return response.json();
-}

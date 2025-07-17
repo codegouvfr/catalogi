@@ -6,7 +6,7 @@ import type { Kysely } from "kysely";
 
 export async function up(db: Kysely<any>): Promise<void> {
     await db.schema
-        .createTable("sessions")
+        .createTable("user_sessions")
         .addColumn("id", "uuid", col => col.primaryKey())
         .addColumn("state", "text", col => col.notNull())
         .addColumn("redirectUrl", "text")
@@ -14,22 +14,28 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn("email", "text")
         .addColumn("accessToken", "text")
         .addColumn("refreshToken", "text")
-        .addColumn("expiresAt", "timestamp")
-        .addColumn("createdAt", "timestamp", col => col.notNull().defaultTo("now()"))
-        .addColumn("updatedAt", "timestamp", col => col.notNull().defaultTo("now()"))
+        .addColumn("expiresAt", "timestamptz")
+        .addColumn("createdAt", "timestamptz", col => col.notNull().defaultTo("now()"))
+        .addColumn("updatedAt", "timestamptz", col => col.notNull().defaultTo("now()"))
+        .addColumn("loggedOutAt", "timestamptz")
         .execute();
 
-    await db.schema.createIndex("sessions_state_idx").on("sessions").column("state").execute();
+    await db.schema.createIndex("sessions_state_idx").on("user_sessions").column("state").execute();
 
-    await db.schema.createIndex("sessions_userId_idx").on("sessions").column("userId").execute();
+    await db.schema.createIndex("sessions_userId_idx").on("user_sessions").column("userId").execute();
 
-    await db.schema.createIndex("sessions_expiresAt_idx").on("sessions").column("expiresAt").execute();
+    await db.schema.createIndex("sessions_expiresAt_idx").on("user_sessions").column("expiresAt").execute();
 
-    await db.schema.alterTable("users").addColumn("sub", "text").execute();
+    await db.schema
+        .alterTable("users")
+        .addColumn("sub", "text")
+        .addColumn("firstName", "text")
+        .addColumn("lastName", "text")
+        .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-    await db.schema.alterTable("users").dropColumn("sub").execute();
+    await db.schema.alterTable("users").dropColumn("sub").dropColumn("firstName").dropColumn("lastName").execute();
 
-    await db.schema.dropTable("sessions").execute();
+    await db.schema.dropTable("user_sessions").execute();
 }

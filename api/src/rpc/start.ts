@@ -25,12 +25,12 @@ import {
     languages
 } from "../core/ports/GetSoftwareExternalData";
 import type { GetSoftwareExternalDataOptions } from "../core/ports/GetSoftwareExternalDataOptions";
-import { OidcParams } from "../tools/oidc";
 import { createContextFactory } from "./context";
 import { createRouter } from "./router";
 import { getTranslations } from "./translations/getTranslations";
 import { z } from "zod";
 import { env } from "../env";
+import type { OidcParams } from "../core/usecases/auth/oidcClient";
 
 const makeGetCatalogiJson =
     (redirectUrl: string | undefined, dbApi: DbApiV2): Handler =>
@@ -46,7 +46,7 @@ const makeGetCatalogiJson =
     };
 
 export async function startRpcService(params: {
-    oidcParams: OidcParams;
+    oidcParams: OidcParams & { manageProfileUrl: string };
     port: number;
     isDevEnvironnement: boolean;
     externalSoftwareDataOrigin: ExternalDataOrigin;
@@ -164,7 +164,7 @@ export async function startRpcService(params: {
                 }
 
                 res.clearCookie("sessionId");
-                res.redirect("/");
+                res.redirect(env.appUrl);
             } catch (error) {
                 console.error("Logout error:", error);
                 res.status(500).json({ error: "Logout failed" });

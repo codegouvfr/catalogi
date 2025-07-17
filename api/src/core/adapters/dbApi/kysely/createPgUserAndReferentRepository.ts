@@ -6,7 +6,7 @@ import { Kysely } from "kysely";
 import { SoftwareReferentRepository, SoftwareUserRepository } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
 
-export const createPgUserRepository = (db: Kysely<Database>): SoftwareUserRepository => ({
+export const createPgSoftwareUserRepository = (db: Kysely<Database>): SoftwareUserRepository => ({
     add: async user => {
         await db.insertInto("software_users").values(user).execute();
     },
@@ -28,7 +28,7 @@ export const createPgUserRepository = (db: Kysely<Database>): SoftwareUserReposi
     }
 });
 
-export const createPgReferentRepository = (db: Kysely<Database>): SoftwareReferentRepository => ({
+export const createPgSoftwareReferentRepository = (db: Kysely<Database>): SoftwareReferentRepository => ({
     add: async referent => {
         await db.insertInto("software_referents").values(referent).execute();
     },

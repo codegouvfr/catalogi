@@ -15,7 +15,6 @@ type SchemaOrganization = {
 };
 
 export type Database = {
-    users: UsersTable;
     software_referents: SoftwareReferentsTable;
     software_users: SoftwareUsersTable;
     instances: InstancesTable;
@@ -24,7 +23,8 @@ export type Database = {
     softwares__similar_software_external_datas: SimilarExternalSoftwareExternalDataTable;
     compiled_softwares: CompiledSoftwaresTable;
     sources: SourcesTable;
-    sessions: SessionsTable;
+    users: UsersTable;
+    user_sessions: SessionsTable;
 };
 
 type UsersTable = {
@@ -165,6 +165,7 @@ type SessionsTable = {
     expiresAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
+    loggedOutAt: Date | null;
 };
 
 // ---------- compiled data ----------

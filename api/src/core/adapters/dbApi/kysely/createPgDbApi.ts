@@ -5,27 +5,28 @@
 import { Kysely } from "kysely";
 import { DbApiV2 } from "../../../ports/DbApiV2";
 import { createGetCompiledData } from "./createGetCompiledData";
-import { createPgAgentRepository } from "./createPgUserRepository";
+import { createPgUserRepository } from "./createPgUserRepository";
 import { createPgInstanceRepository } from "./createPgInstanceRepository";
 import { createPgOtherSoftwareExtraDataRepository } from "./createPgOtherSoftwareExtraDataRepositiory";
 import { createPgSessionRepository } from "./createPgSessionRepository";
 import { createPgSoftwareExternalDataRepository } from "./createPgSoftwareExternalDataRepository";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 import { createPgSourceRepository } from "./createPgSourceRepository";
-import { createPgReferentRepository, createPgUserRepository } from "./createPgUserAndReferentRepository";
+import {
+    createPgSoftwareReferentRepository,
+    createPgSoftwareUserRepository
+} from "./createPgUserAndReferentRepository";
 import { Database } from "./kysely.database";
 
-export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
-    return {
-        source: createPgSourceRepository(db),
-        software: createPgSoftwareRepository(db),
-        softwareExternalData: createPgSoftwareExternalDataRepository(db),
-        otherSoftwareExtraData: createPgOtherSoftwareExtraDataRepository(db),
-        instance: createPgInstanceRepository(db),
-        user: createPgAgentRepository(db),
-        softwareReferent: createPgReferentRepository(db),
-        softwareUser: createPgUserRepository(db),
-        session: createPgSessionRepository({ kyselyDb: db }),
-        getCompiledDataPrivate: createGetCompiledData(db)
-    };
-};
+export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => ({
+    source: createPgSourceRepository(db),
+    software: createPgSoftwareRepository(db),
+    softwareExternalData: createPgSoftwareExternalDataRepository(db),
+    otherSoftwareExtraData: createPgOtherSoftwareExtraDataRepository(db),
+    instance: createPgInstanceRepository(db),
+    user: createPgUserRepository(db),
+    softwareReferent: createPgSoftwareReferentRepository(db),
+    softwareUser: createPgSoftwareUserRepository(db),
+    session: createPgSessionRepository(db),
+    getCompiledDataPrivate: createGetCompiledData(db)
+});

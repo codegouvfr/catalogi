@@ -5,7 +5,9 @@
 import type { FetchAndSaveExternalDataForAllSoftwares } from "../adapters/fetchExternalData";
 import { GetUser } from "./getUser";
 import type { GetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./getSoftwareFormAutoFillDataFromExternalAndOtherSources";
-import type { InitiateAuth, HandleAuthCallback, Logout } from "./auth";
+import { InitiateAuth } from "./auth/initiateAuth";
+import { HandleAuthCallback } from "./auth/handleAuthCallback";
+import { Logout } from "./auth/logout";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;

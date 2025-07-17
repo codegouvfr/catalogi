@@ -4,17 +4,11 @@
 
 import crypto from "crypto";
 import { SessionRepository } from "../../ports/DbApiV2";
-import { getAuthRedirectUri } from "./auth.helpers";
-
-export type OidcParams = {
-    issuerUri: string;
-    clientId: string;
-    clientSecret: string;
-};
+import { OidcClient } from "./oidcClient";
 
 type InitiateAuthDependencies = {
     sessionRepository: SessionRepository;
-    oidcParams: OidcParams;
+    oidcClient: OidcClient;
 };
 
 type InitiateAuthParams = {
@@ -22,9 +16,7 @@ type InitiateAuthParams = {
 };
 
 export type InitiateAuth = Awaited<ReturnType<typeof makeInitiateAuth>>;
-export const makeInitiateAuth = async ({ sessionRepository, oidcParams }: InitiateAuthDependencies) => {
-    const authEndpoint = await getOidcAuthEndpoint(oidcParams.issuerUri);
-
+export const makeInitiateAuth = ({ sessionRepository, oidcClient }: InitiateAuthDependencies) => {
     return async ({ redirectUrl }: InitiateAuthParams) => {
         const sessionId = crypto.randomUUID();
         const state = crypto.randomBytes(32).toString("hex");
@@ -35,11 +27,11 @@ export const makeInitiateAuth = async ({ sessionRepository, oidcParams }: Initia
             redirectUrl: redirectUrl || null
         });
 
-        const authUrl = new URL(authEndpoint);
+        const authUrl = new URL(oidcClient.getAuthorizationEndpoint());
         authUrl.search = new URLSearchParams({
             response_type: "code",
-            client_id: oidcParams.clientId,
-            redirect_uri: getAuthRedirectUri(),
+            client_id: oidcClient.clientId,
+            redirect_uri: oidcClient.redirectUri,
             state,
             scope: "openid email profile"
         }).toString();
@@ -47,16 +39,3 @@ export const makeInitiateAuth = async ({ sessionRepository, oidcParams }: Initia
         return { sessionId, authUrl: authUrl.toString() };
     };
 };
-
-async function getOidcAuthEndpoint(issuerUri: string): Promise<string> {
-    const configUrl = `${issuerUri}/.well-known/openid-configuration`;
-    const response = await fetch(configUrl);
-
-    if (!response.ok) {
-        throw new Error(`Failed to fetch OIDC configuration: ${response.statusText}`);
-    }
-
-    const { authorization_endpoint } = await response.json();
-
-    return authorization_endpoint;
-}

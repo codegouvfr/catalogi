@@ -43,5 +43,9 @@ const envConfiguration = zEnvConfiguration.parse({
 
 export const env = {
     ...envConfiguration,
+    "oidcParams": {
+        ...envConfiguration.oidcParams,
+        "redirectUri": `${envConfiguration.appUrl}/api/auth/callback`
+    },
     "isDevEnvironnement": envConfiguration.isDevEnvironnement ?? false
 };

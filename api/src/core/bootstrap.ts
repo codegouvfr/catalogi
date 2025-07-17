@@ -17,7 +17,10 @@ import type { ExternalDataOrigin, GetSoftwareExternalData } from "./ports/GetSof
 import type { GetSoftwareExternalDataOptions } from "./ports/GetSoftwareExternalDataOptions";
 import { UiConfig, uiConfigSchema } from "./uiConfigSchema";
 import { UseCases } from "./usecases";
-import { makeHandleAuthCallback, makeInitiateAuth, makeLogout } from "./usecases/auth";
+import { makeHandleAuthCallback } from "./usecases/auth/handleAuthCallback";
+import { makeInitiateAuth } from "./usecases/auth/initiateAuth";
+import { makeLogout } from "./usecases/auth/logout";
+import { HttpOidcClient, type OidcParams } from "./usecases/auth/oidcClient";
 import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import rawUiConfig from "../customization/ui-config.json";
@@ -29,7 +32,7 @@ type DbConfig = PgDbConfig;
 type ParamsOfBootstrapCore = {
     dbConfig: DbConfig;
     externalSoftwareDataOrigin: ExternalDataOrigin;
-    oidcParams: import("./usecases/auth").OidcParams;
+    oidcParams: OidcParams;
 };
 
 export type Context = {
@@ -60,6 +63,9 @@ export async function bootstrapCore(
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
 
+    // clean up old sessions, where no user ended connecting (we do this on app start to avoid handling a cron job)
+    await dbApi.session.deleteSessionsNotCompletedByUser();
+
     const context: Context = {
         "paramsOfBootstrapCore": params,
         dbApi,
@@ -68,6 +74,8 @@ export async function bootstrapCore(
     };
 
     const wikidataSource = await dbApi.source.getWikidataSource();
+
+    const oidcClient = await HttpOidcClient.create(oidcParams);
 
     const useCases: UseCases = {
         getSoftwareFormAutoFillDataFromExternalAndOtherSources:
@@ -82,13 +90,13 @@ export async function bootstrapCore(
         }),
         getUser: makeGetUser({ userRepository: dbApi.user }),
         auth: {
-            initiateAuth: await makeInitiateAuth({ sessionRepository: dbApi.session, oidcParams }),
-            handleAuthCallback: await makeHandleAuthCallback({
+            initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
+            handleAuthCallback: makeHandleAuthCallback({
                 sessionRepository: dbApi.session,
                 userRepository: dbApi.user,
-                oidcParams
+                oidcClient
             }),
-            logout: makeLogout({ sessionRepository: dbApi.session })
+            logout: makeLogout({ sessionRepository: dbApi.session, oidcClient })
         }
     };
 
