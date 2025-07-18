@@ -24,7 +24,6 @@ export const makeInitiateLogout =
             throw new Error(`Session not found: ${sessionId}`);
         }
 
-        // Mark session as logged out immediately
         await sessionRepository.update({ ...session, loggedOutAt: new Date() });
 
         // Get logout URL from OIDC client

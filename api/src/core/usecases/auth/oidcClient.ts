@@ -123,12 +123,14 @@ export class HttpOidcClient implements OidcClient {
 
         const userInfoAsString = responseBody.startsWith("ey") ? atob(responseBody.split(".")[1]) : responseBody;
 
+        console.log("\n \n userInfoAsString : ", userInfoAsString);
+
         return JSON.parse(userInfoAsString);
     }
 
     async logout(idToken: string | null): Promise<string> {
         if (!this.#config.end_session_endpoint) {
-            throw new Error("OIDC provider does not support logout");
+            return this.logoutRedirectUri; // in that case we skip the logout and redirect to the identity provider logout page
         }
 
         const logoutUrl = new URL(this.#config.end_session_endpoint);
