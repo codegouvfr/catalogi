@@ -5,6 +5,7 @@
 import { Kysely } from "kysely";
 import { beforeAll, describe, expect, it } from "vitest";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
+import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { stripNullOrUndefinedValues } from "../core/adapters/dbApi/kysely/kysely.utils";
 import type { DbUser } from "../core/ports/DbApiV2";
 import type { InstanceFormData, Source } from "../core/usecases/readWriteSillData";
@@ -13,7 +14,8 @@ import {
     createInstanceFormData,
     createSoftwareFormData,
     expectToEqual,
-    expectToMatchObject
+    expectToMatchObject,
+    testPgUrl
 } from "../tools/test.helpers";
 import { ApiCaller, createTestCaller, defaultUser } from "./createTestCaller";
 
@@ -96,7 +98,7 @@ describe("RPC e2e tests", () => {
         let user: DbUser;
 
         beforeAll(async () => {
-            ({ apiCaller, kyselyDb } = await createTestCaller());
+            kyselyDb = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
             await kyselyDb.deleteFrom("software_referents").execute();
             await kyselyDb.deleteFrom("software_users").execute();
             await kyselyDb.deleteFrom("instances").execute();
@@ -106,11 +108,13 @@ describe("RPC e2e tests", () => {
             await kyselyDb.deleteFrom("sources").execute();
 
             await kyselyDb.insertInto("sources").values(mainSource).executeTakeFirst();
+
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
         });
 
         it("gets the list of users, which is initially empty", async () => {
             const { users } = await apiCaller.getUsers();
-            expect(users).toHaveLength(0);
+            expect(users).toHaveLength(1);
         });
 
         it("adds a new software", async () => {
@@ -128,7 +132,7 @@ describe("RPC e2e tests", () => {
             expectToMatchObject(user, {
                 id: expect.any(Number),
                 email: defaultUser.email,
-                organization: null
+                organization: defaultUser.organization
             });
 
             const softwareRows = await getSoftwareRows();
@@ -174,7 +178,7 @@ describe("RPC e2e tests", () => {
             expect(users).toHaveLength(1);
             expectToMatchObject(users[0], {
                 "email": defaultUser.email,
-                "organization": null
+                "organization": defaultUser.organization
             });
         });
 
