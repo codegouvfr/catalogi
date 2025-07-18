@@ -106,16 +106,18 @@ export class HttpOidcClient implements OidcClient {
 
     async getUserInfo(accessToken: string): Promise<OidcUserInfo> {
         const response = await fetch(this.#config.userinfo_endpoint, {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
+            headers: { Authorization: `Bearer ${accessToken}` }
         });
 
         if (!response.ok) {
             throw new Error(`Failed to get user info: ${response.statusText}`);
         }
 
-        return response.json();
+        const responseBody = await response.text();
+
+        const userInfoAsString = responseBody.split("ey") ? atob(responseBody.split("ey")[1]) : responseBody;
+
+        return JSON.parse(userInfoAsString);
     }
 
     async logout(accessToken: string | null): Promise<void> {
