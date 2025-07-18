@@ -10,12 +10,40 @@ import { jsonBuildObject, jsonStripNulls } from "./kysely.utils";
 
 export const createPgUserRepository = (db: Kysely<Database>): UserRepository => ({
     add: async user => {
-        const { id } = await db.insertInto("users").values(user).returning("id").executeTakeFirstOrThrow();
+        const now = new Date();
+        const { id } = await db
+            .insertInto("users")
+            .values({
+                ...user,
+                createdAt: now,
+                updatedAt: now
+            })
+            .returning("id")
+            .executeTakeFirstOrThrow();
         return id;
     },
     update: async user => {
         const { declarations, ...dbUser } = user;
-        await db.updateTable("users").set(dbUser).where("id", "=", user.id).execute();
+
+        const userInDb = await db.selectFrom("users").selectAll().where("id", "=", user.id).executeTakeFirst();
+        if (!userInDb) throw new Error(`User not found`);
+
+        const hasChanges = Object.keys(dbUser).some(key => {
+            const currentValue = userInDb[key as keyof typeof userInDb];
+            const newValue = dbUser[key as keyof typeof dbUser];
+            return currentValue !== newValue;
+        });
+
+        if (hasChanges) {
+            await db
+                .updateTable("users")
+                .set({
+                    ...dbUser,
+                    updatedAt: new Date()
+                })
+                .where("id", "=", user.id)
+                .execute();
+        }
     },
     remove: async userId => {
         await db.deleteFrom("users").where("id", "=", userId).execute();

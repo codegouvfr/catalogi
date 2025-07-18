@@ -34,6 +34,8 @@ type UsersTable = {
     about: string | null;
     isPublic: boolean;
     sub: string | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
 };
 
 type Os = "windows" | "linux" | "mac" | "android" | "ios";
