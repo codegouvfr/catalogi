@@ -21,6 +21,7 @@ export function createPgSessionRepository(db: Kysely<Database>): SessionReposito
                     email: null,
                     accessToken: null,
                     refreshToken: null,
+                    idToken: null,
                     expiresAt: null,
                     createdAt: new Date(),
                     updatedAt: new Date()
@@ -34,7 +35,7 @@ export function createPgSessionRepository(db: Kysely<Database>): SessionReposito
         findById: async id => db.selectFrom("user_sessions").selectAll().where("id", "=", id).executeTakeFirst(),
 
         update: async params => {
-            const { id, userId, email, accessToken, refreshToken, expiresAt, loggedOutAt } = params;
+            const { id, userId, email, accessToken, refreshToken, idToken, expiresAt, loggedOutAt } = params;
 
             const result = await db
                 .updateTable("user_sessions")
@@ -43,6 +44,7 @@ export function createPgSessionRepository(db: Kysely<Database>): SessionReposito
                     email,
                     accessToken,
                     refreshToken,
+                    idToken,
                     expiresAt,
                     loggedOutAt,
                     updatedAt: new Date()

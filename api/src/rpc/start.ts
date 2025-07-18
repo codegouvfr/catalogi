@@ -76,11 +76,12 @@ export async function startRpcService(params: {
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
 
     const { dbApi, useCases, uiConfig } = await bootstrapCore({
-        "dbConfig": {
-            "dbKind": "kysely",
-            "kyselyDb": kyselyDb
+        dbConfig: {
+            dbKind: "kysely",
+            kyselyDb: kyselyDb
         },
-        "externalSoftwareDataOrigin": externalSoftwareDataOrigin,
+        externalSoftwareDataOrigin: externalSoftwareDataOrigin,
+        oidcKind: "http",
         oidcParams
     });
 
@@ -159,16 +160,23 @@ export async function startRpcService(params: {
         .get("/auth/logout", async (req, res) => {
             try {
                 const sessionId = req.cookies.sessionId;
-                if (sessionId) {
-                    await useCases.auth.logout({ sessionId });
+                if (!sessionId) {
+                    res.clearCookie("sessionId");
+                    res.redirect(env.appUrl);
+                    return;
                 }
 
+                const { logoutUrl } = await useCases.auth.initiateLogout({ sessionId });
+
                 res.clearCookie("sessionId");
-                res.redirect(env.appUrl);
+                res.redirect(logoutUrl);
             } catch (error) {
                 console.error("Logout error:", error);
                 res.status(500).json({ error: "Logout failed" });
             }
+        })
+        .get("/auth/logout/callback", async (_, res) => {
+            res.redirect(env.appUrl);
         })
         .get("/:lang/translations.json", async (req, res) => {
             const lang = req.params.lang as Language;

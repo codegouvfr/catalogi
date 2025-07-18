@@ -45,7 +45,7 @@ export const env = {
     ...envConfiguration,
     "oidcParams": {
         ...envConfiguration.oidcParams,
-        "redirectUri": `${envConfiguration.appUrl}/api/auth/callback`
+        "appUrl": envConfiguration.appUrl
     },
     "isDevEnvironnement": envConfiguration.isDevEnvironnement ?? false
 };

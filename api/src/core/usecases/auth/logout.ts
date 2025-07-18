@@ -5,23 +5,30 @@
 import { SessionRepository } from "../../ports/DbApiV2";
 import { OidcClient } from "./oidcClient";
 
-type LogoutDependencies = {
+type InitiateLogoutDependencies = {
     sessionRepository: SessionRepository;
     oidcClient: OidcClient;
 };
 
-type LogoutParams = {
+type InitiateLogoutParams = {
     sessionId: string;
 };
 
-export type Logout = ReturnType<typeof makeLogout>;
-export const makeLogout =
-    ({ sessionRepository, oidcClient }: LogoutDependencies) =>
-    async ({ sessionId }: LogoutParams): Promise<void> => {
+export type InitiateLogout = ReturnType<typeof makeInitiateLogout>;
+export const makeInitiateLogout =
+    ({ sessionRepository, oidcClient }: InitiateLogoutDependencies) =>
+    async ({ sessionId }: InitiateLogoutParams): Promise<{ logoutUrl: string }> => {
         const session = await sessionRepository.findById(sessionId);
 
-        if (!session) return;
+        if (!session) {
+            throw new Error(`Session not found: ${sessionId}`);
+        }
 
-        await oidcClient.logout(session.accessToken);
+        // Mark session as logged out immediately
         await sessionRepository.update({ ...session, loggedOutAt: new Date() });
+
+        // Get logout URL from OIDC client
+        const logoutUrl = await oidcClient.logout(session.idToken);
+
+        return { logoutUrl };
     };

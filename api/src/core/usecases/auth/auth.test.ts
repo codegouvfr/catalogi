@@ -7,14 +7,14 @@ import { Database } from "../../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../../adapters/dbApi/kysely/kysely.dialect";
 import { expectToEqual, expectToMatchObject, testPgUrl } from "../../../tools/test.helpers";
 import { HandleAuthCallback, makeHandleAuthCallback } from "./handleAuthCallback";
-import { makeLogout, Logout } from "./logout";
+import { makeInitiateLogout, InitiateLogout } from "./logout";
 import { createPgUserRepository } from "../../adapters/dbApi/kysely/createPgUserRepository";
 
 describe("Authentication workflow", () => {
     let oidcClient: TestOidcClient;
     let initiateAuth: InitiateAuth;
     let handleAuthCallback: HandleAuthCallback;
-    let logout: Logout;
+    let initiateLogout: InitiateLogout;
     let db: Kysely<Database>;
 
     beforeEach(async () => {
@@ -22,7 +22,7 @@ describe("Authentication workflow", () => {
             issuerUri: "https://auth.example.com",
             clientId: "test-client-id",
             clientSecret: "test-client-secret",
-            redirectUri: "https://example.com/callback"
+            appUrl: "https://example.com"
         });
 
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
@@ -36,7 +36,7 @@ describe("Authentication workflow", () => {
             userRepository: createPgUserRepository(db),
             oidcClient
         });
-        logout = makeLogout({
+        initiateLogout = makeInitiateLogout({
             sessionRepository: createPgSessionRepository(db),
             oidcClient
         });
@@ -97,7 +97,10 @@ describe("Authentication workflow", () => {
             }
         ]);
 
-        await logout({ sessionId });
+        const { logoutUrl } = await initiateLogout({ sessionId });
+        expectToEqual(typeof logoutUrl, "string");
+        expectToEqual(logoutUrl.includes("logout"), true);
+
         expectToEqual(oidcClient.calls, [
             { method: "getAuthorizationEndpoint", args: [] },
             { method: "exchangeCodeForTokens", args: [fakeCode] },
@@ -105,7 +108,7 @@ describe("Authentication workflow", () => {
                 method: "getUserInfo",
                 args: ["test-token-my-identity-provided-code"]
             },
-            { method: "logout", args: ["test-token-my-identity-provided-code"] }
+            { method: "logout", args: ["test-id-token-my-identity-provided-code"] }
         ]);
 
         const sessionAfterLogout = await db

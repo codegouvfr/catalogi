@@ -69,6 +69,7 @@ export const makeHandleAuthCallback = ({
             email: userInfoFromProvider.email,
             accessToken: tokens.access_token,
             refreshToken: tokens.refresh_token ?? null,
+            idToken: tokens.id_token ?? null,
             expiresAt: tokens.expires_in
                 ? new Date(Date.now() + tokens.expires_in * 1000)
                 : new Date(Date.now() + twoDaysInMilliseconds)

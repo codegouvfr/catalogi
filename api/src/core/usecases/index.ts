@@ -7,7 +7,7 @@ import { GetUser } from "./getUser";
 import type { GetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import { InitiateAuth } from "./auth/initiateAuth";
 import { HandleAuthCallback } from "./auth/handleAuthCallback";
-import { Logout } from "./auth/logout";
+import { InitiateLogout } from "./auth/logout";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;
@@ -16,6 +16,6 @@ export type UseCases = {
     auth: {
         initiateAuth: InitiateAuth;
         handleAuthCallback: HandleAuthCallback;
-        logout: Logout;
+        initiateLogout: InitiateLogout;
     };
 };

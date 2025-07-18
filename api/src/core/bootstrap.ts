@@ -19,8 +19,8 @@ import { UiConfig, uiConfigSchema } from "./uiConfigSchema";
 import { UseCases } from "./usecases";
 import { makeHandleAuthCallback } from "./usecases/auth/handleAuthCallback";
 import { makeInitiateAuth } from "./usecases/auth/initiateAuth";
-import { makeLogout } from "./usecases/auth/logout";
-import { HttpOidcClient, type OidcParams } from "./usecases/auth/oidcClient";
+import { makeInitiateLogout } from "./usecases/auth/logout";
+import { HttpOidcClient, TestOidcClient, type OidcParams } from "./usecases/auth/oidcClient";
 import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import rawUiConfig from "../customization/ui-config.json";
@@ -32,6 +32,7 @@ type DbConfig = PgDbConfig;
 type ParamsOfBootstrapCore = {
     dbConfig: DbConfig;
     externalSoftwareDataOrigin: ExternalDataOrigin;
+    oidcKind: "http" | "test";
     oidcParams: OidcParams;
 };
 
@@ -75,7 +76,8 @@ export async function bootstrapCore(
 
     const wikidataSource = await dbApi.source.getWikidataSource();
 
-    const oidcClient = await HttpOidcClient.create(oidcParams);
+    const oidcClient =
+        params.oidcKind === "http" ? await HttpOidcClient.create(oidcParams) : new TestOidcClient(oidcParams);
 
     const useCases: UseCases = {
         getSoftwareFormAutoFillDataFromExternalAndOtherSources:
@@ -96,7 +98,7 @@ export async function bootstrapCore(
                 userRepository: dbApi.user,
                 oidcClient
             }),
-            logout: makeLogout({ sessionRepository: dbApi.session, oidcClient })
+            initiateLogout: makeInitiateLogout({ sessionRepository: dbApi.session, oidcClient })
         }
     };
 

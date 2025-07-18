@@ -6,7 +6,7 @@ export type OidcParams = {
     issuerUri: string;
     clientId: string;
     clientSecret: string;
-    redirectUri: string;
+    appUrl: string;
 };
 
 type OidcConfiguration = {
@@ -33,9 +33,10 @@ export interface OidcClient {
         refresh_token?: string;
         expires_in?: number;
         token_type: string;
+        id_token?: string;
     }>;
     getUserInfo(accessToken: string): Promise<OidcUserInfo>;
-    logout(accessToken: string | null): Promise<void>;
+    logout(idToken: string | null): Promise<string>;
 }
 
 export class HttpOidcClient implements OidcClient {
@@ -72,7 +73,11 @@ export class HttpOidcClient implements OidcClient {
     }
 
     get redirectUri(): string {
-        return this.#oidcParams.redirectUri;
+        return `${this.#oidcParams.appUrl}/api/auth/callback`;
+    }
+
+    get logoutRedirectUri(): string {
+        return `${this.#oidcParams.appUrl}/api/auth/logout/callback`;
     }
 
     async exchangeCodeForTokens(code: string): Promise<{
@@ -80,11 +85,12 @@ export class HttpOidcClient implements OidcClient {
         refresh_token?: string;
         expires_in?: number;
         token_type: string;
+        id_token?: string;
     }> {
         const body = new URLSearchParams({
             grant_type: "authorization_code",
             code,
-            redirect_uri: this.#oidcParams.redirectUri,
+            redirect_uri: this.redirectUri,
             client_id: this.#oidcParams.clientId,
             client_secret: this.#oidcParams.clientSecret
         });
@@ -115,28 +121,23 @@ export class HttpOidcClient implements OidcClient {
 
         const responseBody = await response.text();
 
-        const userInfoAsString = responseBody.split("ey") ? atob(responseBody.split("ey")[1]) : responseBody;
+        const userInfoAsString = responseBody.startsWith("ey") ? atob(responseBody.split(".")[1]) : responseBody;
 
         return JSON.parse(userInfoAsString);
     }
 
-    async logout(accessToken: string | null): Promise<void> {
+    async logout(idToken: string | null): Promise<string> {
         if (!this.#config.end_session_endpoint) {
-            return;
+            throw new Error("OIDC provider does not support logout");
         }
 
-        const url = new URL(this.#config.end_session_endpoint);
-        if (accessToken) {
-            url.searchParams.set("id_token_hint", accessToken);
-        }
+        const logoutUrl = new URL(this.#config.end_session_endpoint);
+        logoutUrl.search = new URLSearchParams({
+            post_logout_redirect_uri: this.logoutRedirectUri,
+            ...(idToken ? { id_token_hint: idToken } : {})
+        }).toString();
 
-        const response = await fetch(url.toString(), {
-            method: "POST"
-        });
-
-        if (!response.ok) {
-            console.warn(`Partner logout failed: ${response.statusText}`);
-        }
+        return logoutUrl.toString();
     }
 }
 
@@ -177,7 +178,11 @@ export class TestOidcClient implements OidcClient {
     }
 
     get redirectUri(): string {
-        return this.#oidcParams.redirectUri;
+        return `${this.#oidcParams.appUrl}/api/auth/callback`;
+    }
+
+    get logoutRedirectUri(): string {
+        return `${this.#oidcParams.appUrl}/api/auth/logout/callback`;
     }
 
     async exchangeCodeForTokens(code: string): Promise<{
@@ -185,6 +190,7 @@ export class TestOidcClient implements OidcClient {
         refresh_token?: string;
         expires_in?: number;
         token_type: string;
+        id_token?: string;
     }> {
         this.#calls.push({
             method: "exchangeCodeForTokens",
@@ -194,7 +200,8 @@ export class TestOidcClient implements OidcClient {
             access_token: `test-token-${code}`,
             refresh_token: `test-refresh-${code}`,
             expires_in: 3600,
-            token_type: "Bearer"
+            token_type: "Bearer",
+            id_token: `test-id-token-${code}`
         };
     }
 
@@ -212,11 +219,23 @@ export class TestOidcClient implements OidcClient {
         };
     }
 
-    async logout(accessToken: string): Promise<void> {
+    async logout(idToken: string | null): Promise<string> {
         this.#calls.push({
             method: "logout",
-            args: [accessToken]
+            args: [idToken]
         });
-        return;
+
+        if (!this.#config.end_session_endpoint) {
+            throw new Error("OIDC provider does not support logout");
+        }
+
+        const logoutUrl = new URL(this.#config.end_session_endpoint);
+
+        logoutUrl.search = new URLSearchParams({
+            post_logout_redirect_uri: this.logoutRedirectUri,
+            ...(idToken ? { id_token_hint: idToken } : {})
+        }).toString();
+
+        return logoutUrl.toString();
     }
 }

@@ -14,6 +14,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn("email", "text")
         .addColumn("accessToken", "text")
         .addColumn("refreshToken", "text")
+        .addColumn("idToken", "text")
         .addColumn("expiresAt", "timestamptz")
         .addColumn("createdAt", "timestamptz", col => col.notNull().defaultTo("now()"))
         .addColumn("updatedAt", "timestamptz", col => col.notNull().defaultTo("now()"))

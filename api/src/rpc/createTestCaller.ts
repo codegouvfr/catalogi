@@ -36,11 +36,12 @@ export const createTestCaller = async ({ currentUser }: TestCallerConfig = { cur
     const { dbApi, useCases, uiConfig } = await bootstrapCore({
         "dbConfig": { dbKind: "kysely", kyselyDb },
         "externalSoftwareDataOrigin": externalSoftwareDataOrigin,
+        "oidcKind": "test",
         "oidcParams": {
             issuerUri: "http://fake.url",
             clientId: "fake-client-id",
             clientSecret: "fake-client-secret",
-            redirectUri: "http://localhost:3000/api/auth/callback"
+            appUrl: "http://localhost:3000"
         }
     });
 
@@ -52,7 +53,7 @@ export const createTestCaller = async ({ currentUser }: TestCallerConfig = { cur
             clientId: "fake-client-id",
             clientSecret: "fake-client-secret",
             manageProfileUrl: "http://fake.url/manage-profile",
-            redirectUri: "http://localhost:3000/api/auth/callback"
+            appUrl: "http://localhost:3000"
         },
         redirectUrl: undefined,
         externalSoftwareDataOrigin,

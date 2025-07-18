@@ -140,6 +140,7 @@ export type Session = {
     email: string | null;
     accessToken: string | null;
     refreshToken: string | null;
+    idToken: string | null;
     expiresAt: Date | null;
     createdAt: Date;
     updatedAt: Date;
