@@ -44,7 +44,7 @@ export const makeHandleAuthCallback = ({
                 sub: userInfoFromProvider.sub,
                 email: userInfoFromProvider.email,
                 firstName: userInfoFromProvider.given_name,
-                lastName: userInfoFromProvider.family_name,
+                lastName: userInfoFromProvider.family_name ?? userInfoFromProvider.usual_name,
                 organization: null,
                 isPublic: false,
                 about: undefined
@@ -57,7 +57,7 @@ export const makeHandleAuthCallback = ({
                 sub: userInfoFromProvider.sub,
                 email: userInfoFromProvider.email,
                 firstName: userInfoFromProvider.given_name,
-                lastName: userInfoFromProvider.family_name
+                lastName: userInfoFromProvider.family_name ?? userInfoFromProvider.usual_name
             });
         }
 

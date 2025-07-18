@@ -33,7 +33,7 @@ export const makeInitiateAuth = ({ sessionRepository, oidcClient }: InitiateAuth
             client_id: oidcClient.clientId,
             redirect_uri: oidcClient.redirectUri,
             state,
-            scope: "openid email profile"
+            scope: oidcClient.scope
         }).toString();
 
         return { sessionId, authUrl: authUrl.toString() };

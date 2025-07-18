@@ -22,11 +22,14 @@ type OidcUserInfo = {
     name?: string;
     given_name?: string;
     family_name?: string;
+    // following is not standard, it is just for ProConnect
+    usual_name?: string;
 };
 
 export interface OidcClient {
     clientId: string;
     redirectUri: string;
+    scope: string;
     getAuthorizationEndpoint(): string;
     exchangeCodeForTokens(code: string): Promise<{
         access_token: string;
@@ -39,12 +42,23 @@ export interface OidcClient {
     logout(idToken: string | null): Promise<string>;
 }
 
+const standardOidcScope = ["openid", "email", "profile"];
+
+const getScope = (oidcIssuerUri: string): string => {
+    if (oidcIssuerUri.includes("agentconnect") || oidcIssuerUri.includes("proconnect"))
+        return [...standardOidcScope, "given_name", "usual_name"].join(" ");
+    return standardOidcScope.join(" ");
+};
+
 export class HttpOidcClient implements OidcClient {
     #config!: OidcConfiguration;
     #oidcParams: OidcParams;
 
+    public scope: string;
+
     private constructor(oidcParams: OidcParams) {
         this.#oidcParams = oidcParams;
+        this.scope = getScope(oidcParams.issuerUri);
     }
 
     static async create(oidcParams: OidcParams): Promise<HttpOidcClient> {
@@ -123,8 +137,6 @@ export class HttpOidcClient implements OidcClient {
 
         const userInfoAsString = responseBody.startsWith("ey") ? atob(responseBody.split(".")[1]) : responseBody;
 
-        console.log("\n \n userInfoAsString : ", userInfoAsString);
-
         return JSON.parse(userInfoAsString);
     }
 
@@ -152,9 +164,11 @@ export class TestOidcClient implements OidcClient {
     #config: OidcConfiguration;
     #oidcParams: OidcParams;
     #calls: TestOidcClientCall[] = [];
+    scope: string;
 
     constructor(oidcParams: OidcParams) {
         this.#oidcParams = oidcParams;
+        this.scope = getScope(oidcParams.issuerUri);
         this.#config = {
             authorization_endpoint: `${oidcParams.issuerUri}/auth`,
             token_endpoint: `${oidcParams.issuerUri}/token`,
