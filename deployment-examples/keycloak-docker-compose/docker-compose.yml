@@ -22,7 +22,7 @@ services:
       retries: 3
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.2.5
+    image: quay.io/keycloak/keycloak:26.3.1
     container_name: keycloak
     environment:
       KC_DB: postgres
