@@ -65,6 +65,15 @@ export type SchemaIdentifier = {
     additionalType?: string; // Organization | Article | Person | ...
 };
 
+// Created from nowhere
+export type RepoMetadata = {
+    healthCheck?: {
+        lastCommit?: number;
+        lastClosedIssue?: number;
+        lastClosedIssuePullRequest?: number;
+    };
+};
+
 export type Database = {
     users: UsersTable;
     software_referents: SoftwareReferentsTable;
@@ -176,13 +185,7 @@ export type SoftwareExternalDatasTable = {
     identifiers: JSONColumnType<SchemaIdentifier[]> | null;
     lastDataFetchAt: Date | null;
     providers: JSONColumnType<Array<SchemaOrganization>> | null;
-    repoMetadata: JSONColumnType<{
-        healthCheck?: {
-            lastCommit?: number;
-            lastClosedIssue?: number;
-            lastClosedIssuePullRequest?: number;
-        };
-    }> | null;
+    repoMetadata: JSONColumnType<RepoMetadata> | null;
 };
 
 type SoftwareType =
