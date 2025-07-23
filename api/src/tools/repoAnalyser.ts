@@ -9,9 +9,6 @@ export const repoAnalyser = async (url: string | URL | undefined): Promise<RepoT
         return undefined;
     }
 
-    const test = urlObj.origin;
-    console.log(test);
-
     if (urlObj.origin === "https://github.com") {
         return "GitHub";
     }
