@@ -5,6 +5,7 @@
 import type { LocalizedString, SimilarSoftwareExternalData } from "../../ports/GetSoftwareExternalData";
 import { DatabaseDataType } from "../../ports/DbApiV2";
 import {
+    RepoMetadata,
     SchemaIdentifier,
     SchemaOrganization,
     SchemaPerson,
@@ -69,6 +70,7 @@ export type Software = {
     programmingLanguages: string[];
     referencePublications?: ScholarlyArticle[];
     identifiers?: SchemaIdentifier[];
+    repoMetadata?: RepoMetadata;
 };
 
 export type Source = DatabaseDataType.SourceRow;
