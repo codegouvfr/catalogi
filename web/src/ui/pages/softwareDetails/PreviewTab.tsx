@@ -360,6 +360,9 @@ export const PreviewTab = (props: Props) => {
                 )}
                 {uiConfig?.softwareDetails.repoMetadata.enabled && repoMetadata && (
                     <div className={classes.section}>
+                        <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
+                            {t("previewTab.repoMetadata")}
+                        </p>
                         {repoMetadata?.healthCheck?.lastClosedIssue && (
                             <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
                                 <span className={classes.labelDetail}>
@@ -367,7 +370,8 @@ export const PreviewTab = (props: Props) => {
                                 </span>
                                 <span>
                                     {useFormattedDate({
-                                        time: repoMetadata.healthCheck.lastClosedIssue
+                                        time: repoMetadata.healthCheck.lastClosedIssue,
+                                        showTime: false
                                     })}
                                 </span>
                             </p>
@@ -381,7 +385,8 @@ export const PreviewTab = (props: Props) => {
                                 <span>
                                     {useFormattedDate({
                                         time: repoMetadata.healthCheck
-                                            .lastClosedIssuePullRequest
+                                            .lastClosedIssuePullRequest,
+                                        showTime: false
                                     })}
                                 </span>
                             </p>
@@ -393,7 +398,8 @@ export const PreviewTab = (props: Props) => {
                                 </span>
                                 <span>
                                     {useFormattedDate({
-                                        time: repoMetadata.healthCheck.lastCommit
+                                        time: repoMetadata.healthCheck.lastCommit,
+                                        showTime: false
                                     })}
                                 </span>
                             </p>
