@@ -37,7 +37,7 @@ const getLastMergeRequest = async (projectUrl: string) => {
     return getApiCallTakeFirst<MergeRequestSchema>(`${projectUrl}/merge_requests?state=closed&sort=desc`);
 };
 
-export const projectEndpointMaker = (repoUrl: string | URL) => {
+export const projectGitLabApiMaker = (repoUrl: string | URL) => {
     const apiProjectEndpoint = repoUrlToAPIUrl(repoUrl);
 
     return {

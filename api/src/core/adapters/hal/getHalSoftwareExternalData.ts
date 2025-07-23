@@ -14,7 +14,7 @@ import { SchemaIdentifier, SchemaOrganization, SchemaPerson, ScholarlyArticle } 
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { populateFromDOIIdentifiers } from "../doiResolver";
 import { repoAnalyser, RepoType } from "../../../tools/repoAnalyser";
-import { projectEndpointMaker } from "../GitLab/api/project";
+import { projectGitLabApiMaker } from "../GitLab/api/project";
 
 const buildParentOrganizationTree = async (
     structureIdArray: number[] | string[] | undefined
@@ -211,17 +211,19 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
         const getRepoMetadata = async (repoType: RepoType | undefined) => {
             switch (repoType) {
                 case "GitLab":
-                    const apiProject = projectEndpointMaker(halRawSoftware?.softCodeRepository_s?.[0]);
-                    const lastCommit = await apiProject.commits.getLastCommit();
-                    const lastIssue = await apiProject.issues.getLastClosedIssue();
-                    const lastMergeRequest = await apiProject.mergeRequests.getLast();
+                    const gitLabProjectapi = projectGitLabApiMaker(halRawSoftware?.softCodeRepository_s?.[0]);
+                    const lastGLCommit = await gitLabProjectapi.commits.getLastCommit();
+                    const lastFLIssue = await gitLabProjectapi.issues.getLastClosedIssue();
+                    const lastGLMergeRequest = await gitLabProjectapi.mergeRequests.getLast();
                     return {
                         healthCheck: {
-                            lastCommit: lastCommit ? new Date(lastCommit.created_at) : undefined,
+                            lastCommit: lastGLCommit ? new Date(lastGLCommit.created_at) : undefined,
                             lastClosedIssue:
-                                lastIssue && lastIssue.closed_at ? new Date(lastIssue.closed_at) : undefined,
-                            lastClosedIssuePullRequest: lastMergeRequest
-                                ? new Date(lastMergeRequest.updated_at)
+                                lastFLIssue && lastFLIssue.closed_at
+                                    ? new Date(lastFLIssue.closed_at)
+                                    : undefined,
+                            lastClosedIssuePullRequest: lastGLMergeRequest
+                                ? new Date(lastGLMergeRequest.updated_at)
                                 : undefined
                         }
                     };
