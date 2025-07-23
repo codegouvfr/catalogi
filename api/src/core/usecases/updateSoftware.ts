@@ -5,19 +5,19 @@
 import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 
-import { DbApiV2, WithAgentId } from "../ports/DbApiV2";
+import { DbApiV2, WithUserId } from "../ports/DbApiV2";
 import { SoftwareFormData } from "./readWriteSillData";
 
 export type UpdateSoftware = (
     params: {
         formData: SoftwareFormData;
         softwareId: number;
-    } & WithAgentId
+    } & WithUserId
 ) => Promise<void>;
 
 export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
     (dbApi: DbApiV2) =>
-    async ({ formData, agentId, softwareId }) => {
+    async ({ formData, userId, softwareId }) => {
         // Push in software
         const {
             softwareName,
@@ -54,7 +54,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 workshopUrls: [],
                 categories: [],
                 generalInfoMd: undefined,
-                addedByAgentId: agentId,
+                addedByUserId: userId,
                 keywords: softwareKeywords
             },
             softwareId: softwareId

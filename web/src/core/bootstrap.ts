@@ -5,7 +5,6 @@
 import { usecases } from "./usecases";
 import type { LocalizedString } from "i18nifty";
 import type { Language } from "api";
-import type { Oidc } from "./ports/Oidc";
 import { createCore, type GenericCore } from "redux-clean-architecture";
 import { createSillApi } from "core/adapter/sillApi";
 import { SillApi } from "./ports/SillApi";
@@ -14,7 +13,6 @@ type ParamsOfBootstrapCore = {
     /** Empty string for using mock */
     apiUrl: string;
     appUrl: string;
-    transformUrlBeforeRedirectToLogin: (params: { url: string }) => string;
     getCurrentLang: () => Language;
     getIsDark: () => boolean;
     onMoved: (params: { redirectUrl: string }) => void;
@@ -23,7 +21,6 @@ type ParamsOfBootstrapCore = {
 type Context = {
     paramsOfBootstrapCore: ParamsOfBootstrapCore;
     sillApi: SillApi;
-    oidc: Oidc;
 };
 
 type Core = GenericCore<typeof usecases, Context>;
@@ -35,18 +32,10 @@ export type CreateEvt = Core["types"]["CreateEvt"];
 export async function bootstrapCore(
     params: ParamsOfBootstrapCore
 ): Promise<{ core: Core }> {
-    const { apiUrl, appUrl, transformUrlBeforeRedirectToLogin, getCurrentLang } = params;
-
-    let oidc: Oidc | undefined = undefined;
+    const { apiUrl } = params;
 
     const sillApi = createSillApi({
-        url: apiUrl,
-        getOidcAccessToken: () => {
-            if (oidc === undefined || !oidc.isUserLoggedIn) {
-                return undefined;
-            }
-            return oidc.getTokens().accessToken;
-        }
+        url: apiUrl
     });
 
     const redirectUrl = await sillApi.getRedirectUrl();
@@ -57,27 +46,9 @@ export async function bootstrapCore(
         await new Promise(() => {});
     }
 
-    const oidcParams = await sillApi.getOidcParams();
-
-    oidc = await (async () => {
-        const { createOidc } = await import("core/adapter/oidc");
-
-        return createOidc({
-            issuerUri: oidcParams.issuerUri,
-            clientId: oidcParams.clientId,
-            appUrl,
-            transformUrlBeforeRedirect: url =>
-                transformUrlBeforeRedirectToLogin({
-                    url
-                }),
-            getUiLocales: getCurrentLang
-        });
-    })();
-
     const context: Context = {
         paramsOfBootstrapCore: params,
-        sillApi,
-        oidc
+        sillApi
     };
 
     const { core, dispatch } = createCore({

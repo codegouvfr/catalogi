@@ -66,7 +66,7 @@ export type SchemaIdentifier = {
 };
 
 export type Database = {
-    agents: AgentsTable;
+    users: UsersTable;
     software_referents: SoftwareReferentsTable;
     software_users: SoftwareUsersTable;
     instances: InstancesTable;
@@ -74,21 +74,25 @@ export type Database = {
     software_external_datas: SoftwareExternalDatasTable;
     softwares__similar_software_external_datas: SimilarExternalSoftwareExternalDataTable;
     sources: SourcesTable;
+    user_sessions: SessionsTable;
 };
 
-type AgentsTable = {
+type UsersTable = {
     id: Generated<number>;
     email: string;
     organization: string | null;
     about: string | null;
     isPublic: boolean;
+    sub: string | null;
+    createdAt: Date | null;
+    updatedAt: Date | null;
 };
 
 type Os = "windows" | "linux" | "mac" | "android" | "ios";
 
 type SoftwareUsersTable = {
     softwareId: number;
-    agentId: number;
+    userId: number;
     useCaseDescription: string;
     os: Os | null;
     version: string;
@@ -97,7 +101,7 @@ type SoftwareUsersTable = {
 
 type SoftwareReferentsTable = {
     softwareId: number;
-    agentId: number;
+    userId: number;
     isExpert: boolean;
     useCaseDescription: string;
     serviceUrl: string | null;
@@ -110,7 +114,7 @@ type InstancesTable = {
     targetAudience: string;
     instanceUrl: string | null;
     isPublic: boolean;
-    addedByAgentId: number;
+    addedByUserId: number;
     referencedSinceTime: number;
     updateTime: number;
 };
@@ -186,13 +190,13 @@ type SoftwaresTable = {
     workshopUrls: JSONColumnType<string[]>;
     categories: JSONColumnType<string[]>;
     generalInfoMd: string | null;
-    addedByAgentId: number;
+    addedByUserId: number;
     logoUrl: string | null;
     keywords: JSONColumnType<string[]>;
 };
 
 export namespace DatabaseRowOutput {
-    export type Agent = TransformRepoToRowOutput<AgentsTable>;
+    export type User = TransformRepoToRowOutput<UsersTable>;
     export type SoftwareReferent = TransformRepoToRowOutput<SoftwareReferentsTable>;
     export type SoftwareUsert = TransformRepoToRowOutput<SoftwareUsersTable>;
     export type Instance = TransformRepoToRowOutput<InstancesTable>;
@@ -202,6 +206,21 @@ export namespace DatabaseRowOutput {
         TransformRepoToRowOutput<SimilarExternalSoftwareExternalDataTable>;
     export type Source = TransformRepoToRowOutput<SourcesTable>;
 }
+
+type SessionsTable = {
+    id: string;
+    state: string;
+    redirectUrl: string | null;
+    userId: number | null;
+    email: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    idToken: string | null;
+    expiresAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    loggedOutAt: Date | null;
+};
 
 // ---------- compiled data ----------
 // TODO DELETE ?

@@ -11,26 +11,27 @@ import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { makeZenodoApi } from "../adapters/zenodo/zenodoAPI";
 
 export type ImportFromSource = (params: {
-    agentEmail: string;
+    userEmail: string;
     source: Source;
     softwareIdOnSource?: string[];
 }) => Promise<number[]>;
 
 export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: DbApiV2) => {
-    return async ({ agentEmail, source, softwareIdOnSource }) => {
+    return async ({ userEmail, source, softwareIdOnSource }) => {
         const sourceGateway = resolveAdapterFromSource(source);
 
         if (sourceGateway.sourceProfile !== "Primary")
             throw new Error("[UC:Import] Import if not possible from a secondary source");
 
-        const agent = await dbApi.agent.getByEmail(agentEmail);
-        const agentId = agent
-            ? agent.id
-            : await dbApi.agent.add({
-                  email: agentEmail,
+        const user = await dbApi.user.getByEmail(userEmail);
+        const userId = user
+            ? user.id
+            : await dbApi.user.add({
+                  email: userEmail,
                   "isPublic": false,
                   organization: "",
-                  about: "This is a bot user created to import data."
+                  about: "This is a bot user created to import data.",
+                  sub: null
               });
 
         const getSoftwareForm = sourceGateway.softwareForm.getById;
@@ -44,7 +45,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
         console.info(`[UC:Import] Importing  ${softwareIds.length} software packages from ${source.slug}`);
 
         for (const externalId of softwareIds) {
-            const newId = await checkSoftware(dbApi, source, externalId, getSoftwareForm, agentId);
+            const newId = await checkSoftware(dbApi, source, externalId, getSoftwareForm, userId);
             result.push(newId);
         }
         return result.filter(val => val != undefined);
@@ -75,7 +76,7 @@ const checkSoftware = async (
     source: Source,
     externalId: string,
     getSoftwareForm: GetSoftwareFormData,
-    agentId: number
+    userId: number
 ) => {
     // Get software form from source
     const softwareForm = await getSoftwareForm({ externalId, source });
@@ -87,5 +88,5 @@ const checkSoftware = async (
         `[UC:Import] Importing ${softwareForm.softwareName}(${externalId}) from ${source.slug} : Adding software and externalData `
     );
     const createSoftware = makeCreateSofware(dbApi);
-    return createSoftware({ formData: softwareForm, agentId: agentId });
+    return createSoftware({ formData: softwareForm, userId });
 };

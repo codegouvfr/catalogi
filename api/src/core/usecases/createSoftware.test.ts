@@ -41,7 +41,7 @@ describe("Create software - Trying all the cases", () => {
     let dbApi: DbApiV2;
     let db: Kysely<Database>;
     let craSoftwareId: number;
-    let agentId: number;
+    let userId: number;
     let useCaseCreate: CreateSoftware;
 
     beforeEach(async () => {
@@ -50,11 +50,12 @@ describe("Create software - Trying all the cases", () => {
 
         dbApi = createKyselyPgDbApi(db);
 
-        agentId = await dbApi.agent.add({
+        userId = await dbApi.user.add({
             email: "myuser@example.com",
             organization: "myorg",
             about: "my about",
-            isPublic: false
+            isPublic: false,
+            sub: null
         });
 
         useCaseCreate = makeCreateSofware(dbApi);
@@ -63,14 +64,14 @@ describe("Create software - Trying all the cases", () => {
     it("should insert into three tables", async () => {
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
 
         expectToEqual(softwareList.length, 1);
         expectToMatchObject(softwareList[0], {
-            "addedByAgentId": agentId,
+            "addedByUserId": userId,
             "categories": [],
             "dereferencing": null,
             "description": "To create React apps.",
@@ -122,12 +123,12 @@ describe("Create software - Trying all the cases", () => {
     it("Insert two software with the same name, should not duplicate the software", async () => {
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
@@ -137,7 +138,7 @@ describe("Create software - Trying all the cases", () => {
     it("Insert two software with the same name but different external Id, should create a new externalData linked with the saved software package", async () => {
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         craSoftwareId = await useCaseCreate({
@@ -145,7 +146,7 @@ describe("Create software - Trying all the cases", () => {
                 ...craSoftwareFormData,
                 externalIdForSource: "Q118629388"
             },
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
@@ -171,7 +172,7 @@ describe("Create software - Trying all the cases", () => {
 
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
@@ -188,7 +189,7 @@ describe("Create software - Trying all the cases", () => {
     it("Insert a software when externalData is already saved with related software, should not create another software neither new externalData", async () => {
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         const externdalDataListBefore = await db.selectFrom("software_external_datas").selectAll().execute();
@@ -201,7 +202,7 @@ describe("Create software - Trying all the cases", () => {
 
         craSoftwareId = await useCaseCreate({
             formData: alteredNameForm,
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
@@ -228,7 +229,7 @@ describe("Create software - Trying all the cases", () => {
 
         craSoftwareId = await useCaseCreate({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
@@ -255,7 +256,7 @@ describe("Create software - Trying all the cases", () => {
 
         craSoftwareId = await useCaseCreate({
             formData: { ...craSoftwareFormData, similarSoftwareExternalDataIds: ["Q111590996", "Q111590997"] },
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
@@ -271,7 +272,7 @@ describe("Create software - Trying all the cases", () => {
 
         craSoftwareId = await useCaseCreate({
             formData: { ...craSoftwareFormData, similarSoftwareExternalDataIds: ["Q111590996", "Q111590998"] },
-            agentId
+            userId
         });
 
         const externalDataListUpdated = await db.selectFrom("software_external_datas").selectAll().execute();

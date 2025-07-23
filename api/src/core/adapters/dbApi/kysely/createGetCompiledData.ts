@@ -12,17 +12,17 @@ import { stripNullOrUndefinedValues, isNotNull, jsonBuildObject, jsonStripNulls 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
     const agentById: Record<number, Db.AgentRow> = await db
-        .selectFrom("agents")
+        .selectFrom("users")
         .selectAll()
         .execute()
-        .then(agents => agents.reduce((acc, agent) => ({ ...acc, [agent.id]: agent }), {}));
+        .then(users => users.reduce((acc, user) => ({ ...acc, [user.id]: user }), {}));
     console.timeEnd("agentById query");
 
     console.time("softwares query");
     const compliedSoftwares = await db
         .selectFrom("softwares as s")
         .leftJoin("software_referents as referents", "s.id", "referents.softwareId")
-        .leftJoin("software_users as users", "s.id", "users.softwareId")
+        .leftJoin("software_users", "s.id", "software_users.softwareId")
         .leftJoin("instances", "s.id", "instances.mainSoftwareSillId")
         .leftJoin("software_external_datas as ext", "ext.softwareId", "s.id")
         .leftJoin(
@@ -38,7 +38,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .groupBy(["s.id", "ext.externalId"])
         .select([
             "s.id",
-            "s.addedByAgentId",
+            "s.addedByUserId",
             "s.categories",
             "s.dereferencing",
             "s.description",
@@ -81,7 +81,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     .end()
                     .as("softwareExternalData"),
             ({ fn }) => fn.jsonAgg("similarExt").distinct().as("similarExternalSoftwares"),
-            ({ fn }) => fn.jsonAgg("users").distinct().as("users"),
+            ({ fn }) => fn.jsonAgg("software_users").distinct().as("users"),
             ({ fn }) => fn.jsonAgg("referents").distinct().as("referents"),
             ({ fn }) => fn.jsonAgg("instances").distinct().as("instances")
         ])
@@ -91,7 +91,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             console.time("software processing");
             const processedSoftwares = results.map(
                 ({
-                    addedByAgentId,
+                    addedByUserId,
                     similarExternalSoftwares,
                     dereferencing,
                     doRespectRgaa,
@@ -112,7 +112,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             : undefined;
                     return {
                         ...stripNullOrUndefinedValues(software),
-                        addedByAgentEmail: agentById[addedByAgentId].email,
+                        addedByUserEmail: agentById[addedByUserId].email,
                         updateTime: new Date(+updateTime).getTime(),
                         referencedSinceTime: new Date(+referencedSinceTime).getTime(),
                         doRespectRgaa,
@@ -132,18 +132,18 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             .sort((a, b) => a.externalId.localeCompare(b.externalId)),
                         users: users.filter(isNotNull).map(user => ({
                             ...(user as any),
-                            organization: agentById[user.agentId!]?.organization
+                            organization: agentById[user.userId!]?.organization
                         })),
                         referents: referents.filter(isNotNull).map(referent => ({
                             ...(referent as any),
-                            organization: agentById[referent.agentId!]?.organization
+                            organization: agentById[referent.userId!]?.organization
                         })),
                         instances: (instances ?? []).filter(isNotNull).map(instance => ({
                             id: instance.id!,
                             organization: instance.organization!,
                             targetAudience: instance.targetAudience!,
                             publicUrl: instance.instanceUrl ?? undefined,
-                            addedByAgentEmail: agentById[instance.addedByAgentId!].email,
+                            addedByUserEmail: agentById[instance.addedByUserId!].email,
                             otherWikidataSoftwares: []
                         }))
                     };

@@ -40,7 +40,7 @@ const craSoftwareFormData = {
 
 const apacheSoftwareId = 6;
 
-const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) => {
+const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) => {
     await db
         .insertInto("softwares")
         .values({
@@ -62,7 +62,7 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) 
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify([]),
             generalInfoMd: null,
-            addedByAgentId: agentId,
+            addedByUserId: userId,
             dereferencing: null,
             referencedSinceTime: 1728462232094,
             updateTime: 1728462232094
@@ -83,7 +83,7 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, agentId: number) 
 };
 
 const acceleroId = 2;
-const insertAcceleroWithCorrectId = async (db: Kysely<Database>, agentId: number) => {
+const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number) => {
     await db
         .insertInto("softwares")
         .values({
@@ -102,7 +102,7 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, agentId: number
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify(["Other Development Tools"]),
             generalInfoMd: null,
-            addedByAgentId: agentId,
+            addedByUserId: userId,
             dereferencing: null,
             referencedSinceTime: 1514764800000,
             updateTime: 1514764800000
@@ -138,21 +138,22 @@ describe("fetches software extra data (from different providers)", () => {
 
         dbApi = createKyselyPgDbApi(db);
 
-        const agentId = await dbApi.agent.add({
+        const userId = await dbApi.user.add({
             email: "myuser@example.com",
             organization: "myorg",
             about: "my about",
-            isPublic: false
+            isPublic: false,
+            sub: null
         });
 
         const makeSoftware = makeCreateSofware(dbApi);
         craSoftwareId = await makeSoftware({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
-        await insertApacheWithCorrectId(db, agentId);
-        await insertAcceleroWithCorrectId(db, agentId);
+        await insertApacheWithCorrectId(db, userId);
+        await insertAcceleroWithCorrectId(db, userId);
 
         fetchAndSaveSoftwareExtraDataBySoftwareId = makeRefreshExternalDataForSoftware({
             dbApi

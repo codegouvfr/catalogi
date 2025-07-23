@@ -42,7 +42,7 @@ describe("Create software, than updates it adding a similar software", () => {
     let dbApi: DbApiV2;
     let db: Kysely<Database>;
     let craSoftwareId: number;
-    let agentId: number;
+    let userId: number;
     let createSoftware: CreateSoftware;
     let updateSoftware: UpdateSoftware;
 
@@ -52,11 +52,12 @@ describe("Create software, than updates it adding a similar software", () => {
 
         dbApi = createKyselyPgDbApi(db);
 
-        agentId = await dbApi.agent.add({
+        userId = await dbApi.user.add({
             email: "myuser@example.com",
             organization: "myorg",
             about: "my about",
-            isPublic: false
+            isPublic: false,
+            sub: null
         });
 
         createSoftware = makeCreateSofware(dbApi);
@@ -66,14 +67,14 @@ describe("Create software, than updates it adding a similar software", () => {
     it("should insert into three tables", async () => {
         craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
-            agentId
+            userId
         });
 
         const softwareList = await db.selectFrom("softwares").selectAll().execute();
 
         expectToEqual(softwareList.length, 1);
         expectToMatchObject(softwareList[0], {
-            "addedByAgentId": agentId,
+            "addedByUserId": userId,
             "categories": [],
             "dereferencing": null,
             "description": "To create React apps.",
@@ -127,7 +128,7 @@ describe("Create software, than updates it adding a similar software", () => {
         await updateSoftware({
             formData: formDataWithAnNewSimilarSoftware,
             softwareId: craSoftwareId,
-            agentId
+            userId
         });
 
         const updatedSoftwareList = await db.selectFrom("softwares").selectAll().execute();

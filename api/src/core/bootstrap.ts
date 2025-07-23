@@ -10,7 +10,11 @@ import type { ComptoirDuLibreApi } from "./ports/ComptoirDuLibreApi";
 import { DbApiV2 } from "./ports/DbApiV2";
 import { UiConfig, uiConfigSchema } from "./uiConfigSchema";
 import { UseCasesUsedOnRouter } from "../rpc/router";
-import { makeGetAgent } from "./usecases/getAgent";
+import { makeHandleAuthCallback } from "./usecases/auth/handleAuthCallback";
+import { makeInitiateAuth } from "./usecases/auth/initiateAuth";
+import { makeInitiateLogout } from "./usecases/auth/logout";
+import { HttpOidcClient, TestOidcClient, type OidcParams } from "./usecases/auth/oidcClient";
+import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import rawUiConfig from "../customization/ui-config.json";
 import { makeCreateSofware } from "./usecases/createSoftware";
@@ -24,6 +28,8 @@ type DbConfig = PgDbConfig;
 
 type ParamsOfBootstrapCore = {
     dbConfig: DbConfig;
+    oidcKind: "http" | "test";
+    oidcParams: OidcParams;
 };
 
 export type Context = {
@@ -46,10 +52,13 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 export async function bootstrapCore(
     params: ParamsOfBootstrapCore
 ): Promise<{ dbApi: DbApiV2; context: Context; useCases: UseCasesUsedOnRouter; uiConfig: UiConfig }> {
-    const { dbConfig } = params;
+    const { dbConfig, oidcParams } = params;
     const uiConfig = uiConfigSchema.parse(rawUiConfig);
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
+
+    // clean up old sessions, where no user ended connecting (we do this on app start to avoid handling a cron job)
+    await dbApi.session.deleteSessionsNotCompletedByUser();
 
     const context: Context = {
         "paramsOfBootstrapCore": params,
@@ -57,14 +66,26 @@ export async function bootstrapCore(
         comptoirDuLibreApi
     };
 
+    const oidcClient =
+        params.oidcKind === "http" ? await HttpOidcClient.create(oidcParams) : new TestOidcClient(oidcParams);
+
     const useCases: UseCasesUsedOnRouter = {
         getSoftwareFormAutoFillDataFromExternalAndOtherSources:
             makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources(context, {}),
-        getAgent: makeGetAgent({ agentRepository: dbApi.agent }),
+        getUser: makeGetUser({ userRepository: dbApi.user }),
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
         createSoftware: makeCreateSofware(dbApi),
         updateSoftware: makeUpdateSoftware(dbApi),
-        getPopulateSoftware: makeGetPopulatedSoftware(dbApi)
+        getPopulateSoftware: makeGetPopulatedSoftware(dbApi),
+        auth: {
+            initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
+            handleAuthCallback: makeHandleAuthCallback({
+                sessionRepository: dbApi.session,
+                userRepository: dbApi.user,
+                oidcClient
+            }),
+            initiateLogout: makeInitiateLogout({ sessionRepository: dbApi.session, oidcClient })
+        }
     };
 
     return { dbApi, context, useCases, uiConfig };

@@ -46,7 +46,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 categories,
                 generalInfoMd,
                 keywords,
-                addedByAgentId,
+                addedByUserId,
                 ...rest
             } = software;
 
@@ -74,7 +74,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         workshopUrls: JSON.stringify(workshopUrls), // Legacy field from SILL imported
                         categories: JSON.stringify(categories), // Legacy field from SILL imported
                         generalInfoMd, // Legacy field from SILL imported
-                        addedByAgentId,
+                        addedByUserId,
                         keywords: JSON.stringify(keywords)
                     })
                     .returning("id as softwareId")
@@ -100,7 +100,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 categories,
                 generalInfoMd,
                 keywords,
-                addedByAgentId,
+                addedByUserId,
                 ...rest
             } = software;
 
@@ -125,7 +125,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     workshopUrls: JSON.stringify(workshopUrls),
                     categories: JSON.stringify(categories),
                     generalInfoMd: generalInfoMd,
-                    addedByAgentId,
+                    addedByUserId,
                     keywords: JSON.stringify(keywords)
                 })
                 .where("id", "=", softwareId)
@@ -148,11 +148,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .execute()
                 .then(rows => rows.map(row => row.externalId!)),
 
-        countAddedByAgent: async ({ agentId }) => {
+        countAddedByUser: async ({ userId }) => {
             const { count } = await db
                 .selectFrom("softwares")
                 .select(qb => qb.fn.countAll<string>().as("count"))
-                .where("addedByAgentId", "=", agentId)
+                .where("addedByUserId", "=", userId)
                 .executeTakeFirstOrThrow();
             return +count;
         },
@@ -232,7 +232,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
         getUserAndReferentCountByOrganization: async ({ softwareId }) => {
             const softwareUserCount = await db
                 .selectFrom("software_users as u")
-                .innerJoin("agents as a", "a.id", "u.agentId")
+                .innerJoin("users as a", "a.id", "u.userId")
                 .select([
                     "a.organization",
                     ({ fn }) => fn.countAll<string>().as("count"),
@@ -244,13 +244,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             const softwareReferentCount = await db
                 .selectFrom("software_referents as r")
-                .innerJoin("agents as a", "a.id", "r.agentId")
+                .innerJoin("users as u", "u.id", "r.userId")
                 .select([
-                    "a.organization",
+                    "u.organization",
                     ({ fn }) => fn.countAll<string>().as("count"),
                     sql<"referent">`'referentCount'`.as("type")
                 ])
-                .groupBy(["a.organization"])
+                .groupBy(["u.organization"])
                 .where("r.softwareId", "=", softwareId)
                 .execute();
 
@@ -275,21 +275,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     }
                 >
             );
-
-            const allCount = await getUserAndReferentCountByOrganizationBySoftwareId(db);
-            return allCount[softwareId];
         }
     };
 };
 
-type CountForOrganisationAndSoftwareId = {
-    organization: string | null;
-    softwareId: number;
-    type: "user" | "referent";
-    count: string;
-};
-
-type UserAndReferentCountByOrganizationBySoftwareId = Record<
+export type UserAndReferentCountByOrganizationBySoftwareId = Record<
     string,
     Record<string, { userCount: number; referentCount: number }>
 >;
@@ -297,49 +287,4 @@ type UserAndReferentCountByOrganizationBySoftwareId = Record<
 const defaultCount = {
     userCount: 0,
     referentCount: 0
-};
-
-const getUserAndReferentCountByOrganizationBySoftwareId = async (
-    db: Kysely<Database>
-): Promise<UserAndReferentCountByOrganizationBySoftwareId> => {
-    const softwareUserCountBySoftwareId: CountForOrganisationAndSoftwareId[] = await db
-        .selectFrom("software_users as u")
-        .innerJoin("agents as a", "a.id", "u.agentId")
-        .select([
-            "u.softwareId",
-            "a.organization",
-            ({ fn }) => fn.countAll<string>().as("count"),
-            sql<"user">`'userCount'`.as("type")
-        ])
-        .groupBy(["a.organization", "u.softwareId"])
-        .execute();
-
-    const softwareReferentCountBySoftwareId: CountForOrganisationAndSoftwareId[] = await db
-        .selectFrom("software_referents as r")
-        .innerJoin("agents as a", "a.id", "r.agentId")
-        .select([
-            "r.softwareId",
-            "a.organization",
-            ({ fn }) => fn.countAll<string>().as("count"),
-            sql<"referent">`'referentCount'`.as("type")
-        ])
-        .groupBy(["a.organization", "r.softwareId"])
-        .execute();
-
-    return [...softwareReferentCountBySoftwareId, ...softwareUserCountBySoftwareId].reduce(
-        (acc, { organization, softwareId, type, count }): UserAndReferentCountByOrganizationBySoftwareId => {
-            const orga = organization ?? "NO_ORGANIZATION";
-            return {
-                ...acc,
-                [softwareId]: {
-                    ...(acc[softwareId] ?? {}),
-                    [orga]: {
-                        ...(acc[softwareId]?.[orga] ?? defaultCount),
-                        [type]: +count
-                    }
-                }
-            };
-        },
-        {} as UserAndReferentCountByOrganizationBySoftwareId
-    );
 };

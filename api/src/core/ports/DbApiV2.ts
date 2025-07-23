@@ -4,13 +4,13 @@
 
 import type { Database, DatabaseRowOutput } from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
-import type { Agent, Instance, InstanceFormData } from "../usecases/readWriteSillData";
+import type { CreateUserParams, Instance, InstanceFormData, UserWithId } from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
 import type { SoftwareExternalData } from "./GetSoftwareExternalData";
 
-export type WithAgentId = { agentId: number };
+export type WithUserId = { userId: number };
 
 // Other data, intrinsic are managed internally by the database
 export type SoftwareExtrinsicRow = Pick<
@@ -30,11 +30,11 @@ export type SoftwareExtrinsicRow = Pick<
     | "categories"
     | "generalInfoMd"
     | "keywords"
-    | "addedByAgentId"
+    | "addedByUserId"
 >;
 
 export namespace DatabaseDataType {
-    export type AgentRow = TransformRepoToCleanedRow<DatabaseRowOutput.Agent>;
+    export type UserRow = TransformRepoToCleanedRow<DatabaseRowOutput.User>;
     export type SoftwareReferentRow = TransformRepoToCleanedRow<DatabaseRowOutput.SoftwareReferent>;
     export type SoftwareUsertRow = TransformRepoToCleanedRow<DatabaseRowOutput.SoftwareUsert>;
     export type InstanceRow = TransformRepoToCleanedRow<DatabaseRowOutput.Instance>;
@@ -49,7 +49,6 @@ export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow &
     Pick<DatabaseDataType.SoftwareRow, "referencedSinceTime">;
 
 export interface SoftwareRepository {
-    // Primary
     create: (params: { software: SoftwareExtrinsicCreation }) => Promise<number>;
     update: (params: { softwareId: number; software: SoftwareExtrinsicRow }) => Promise<void>;
     getSoftwareIdByExternalIdAndSlug: (params: {
@@ -80,7 +79,7 @@ export interface SoftwareRepository {
     //     | undefined
     // >;
     // getByName: (name: string) => Promise<Software | undefined>;
-    countAddedByAgent: (params: { agentId: number }) => Promise<number>;
+    countAddedByUser: (params: { userId: number }) => Promise<number>;
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
     getUserAndReferentCountByOrganization: (params: { softwareId: number }) => Promise<
@@ -140,44 +139,47 @@ export interface InstanceRepository {
     create: (
         params: {
             formData: InstanceFormData;
-        } & WithAgentId
+        } & WithUserId
     ) => Promise<number>;
     update: (params: { formData: InstanceFormData; instanceId: number }) => Promise<void>;
-    countAddedByAgent: (params: { agentId: number }) => Promise<number>;
+    countAddedByUser: (params: { userId: number }) => Promise<number>;
     getAll: () => Promise<Instance[]>;
 }
 
-export type DbAgent = {
+export type DbUser = {
     id: number;
+    sub: string | null;
+    firstName?: string;
+    lastName?: string;
     email: string;
     organization: string | null;
     about: string | undefined;
     isPublic: boolean;
 };
 
-export type AgentWithId = Agent & Pick<DbAgent, "id">;
-
-export interface AgentRepository {
-    add: (agent: OmitFromExisting<DbAgent, "id">) => Promise<number>;
-    update: (agent: DbAgent & Partial<Agent>) => Promise<void>;
-    remove: (agentId: number) => Promise<void>;
-    getByEmail: (email: string) => Promise<AgentWithId | undefined>;
-    getAll: () => Promise<AgentWithId[]>;
+export interface UserRepository {
+    add: (user: OmitFromExisting<DbUser, "id">) => Promise<number>;
+    update: (user: DbUser & Partial<CreateUserParams>) => Promise<void>;
+    remove: (userId: number) => Promise<void>;
+    getByEmail: (email: string) => Promise<UserWithId | undefined>;
+    getBySub: (sub: string) => Promise<UserWithId | undefined>;
+    getAll: () => Promise<UserWithId[]>;
     countAll: () => Promise<number>;
     getAllOrganizations: () => Promise<string[]>;
+    getBySessionId: (sessionId: string) => Promise<UserWithId | undefined>;
 }
 
 export interface SoftwareReferentRepository {
     add: (params: Database["software_referents"]) => Promise<void>;
-    remove: (params: { softwareId: number; agentId: number }) => Promise<void>;
-    countSoftwaresForAgent: (params: { agentId: number }) => Promise<number>;
+    remove: (params: { softwareId: number; userId: number }) => Promise<void>;
+    countSoftwaresForUser: (params: { userId: number }) => Promise<number>;
     getTotalCount: () => Promise<number>;
 }
 
 export interface SoftwareUserRepository {
     add: (params: Database["software_users"]) => Promise<void>;
-    remove: (params: { softwareId: number; agentId: number }) => Promise<void>;
-    countSoftwaresForAgent: (params: { agentId: number }) => Promise<number>;
+    remove: (params: { softwareId: number; userId: number }) => Promise<void>;
+    countSoftwaresForUser: (params: { userId: number }) => Promise<number>;
 }
 
 export interface SourceRepository {
@@ -187,13 +189,37 @@ export interface SourceRepository {
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
 }
 
+export type Session = {
+    id: string;
+    state: string;
+    redirectUrl: string | null;
+    userId: number | null;
+    email: string | null;
+    accessToken: string | null;
+    refreshToken: string | null;
+    idToken: string | null;
+    expiresAt: Date | null;
+    createdAt: Date;
+    updatedAt: Date;
+    loggedOutAt: Date | null;
+};
+
+export interface SessionRepository {
+    create: (params: { id: string; state: string; redirectUrl: string | null }) => Promise<void>;
+    findByState: (state: string) => Promise<Session | undefined>;
+    findById: (id: string) => Promise<Session | undefined>;
+    update: (session: Session) => Promise<void>;
+    deleteSessionsNotCompletedByUser: () => Promise<void>;
+}
+
 export type DbApiV2 = {
     source: SourceRepository;
     software: SoftwareRepository;
     softwareExternalData: SoftwareExternalDataRepository;
     instance: InstanceRepository;
-    agent: AgentRepository;
+    user: UserRepository;
     softwareReferent: SoftwareReferentRepository;
     softwareUser: SoftwareUserRepository;
+    session: SessionRepository;
     getCompiledDataPrivate: () => Promise<CompiledData<"private">>;
 };

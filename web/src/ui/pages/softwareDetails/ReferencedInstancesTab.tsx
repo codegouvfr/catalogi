@@ -10,7 +10,7 @@ import { assert } from "tsafe/assert";
 import { Accordion } from "@codegouvfr/react-dsfr/Accordion";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import type { Link } from "type-route";
-import { useCore } from "../../../core";
+import { useCore, useCoreState } from "../../../core";
 import { routes } from "../../routes";
 
 type InstanceInList = {
@@ -64,7 +64,7 @@ const ReferenceInstancesSection = ({
     classname
 }: ReferenceInstancesSectionProps) => {
     const { userAuthentication } = useCore().functions;
-    const isUserLoggedIn = userAuthentication.getIsUserLoggedIn();
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
     const { classes, cx } = useStyles();
     const { t } = useTranslation();
 
@@ -72,7 +72,7 @@ const ReferenceInstancesSection = ({
 
     const instancesByOrganisation = Object.groupBy(instances, v => v.organization);
 
-    if (visibility === "private" && !isUserLoggedIn) {
+    if (visibility === "private" && !currentUser) {
         return (
             <>
                 <p className={fr.cx("fr-text--bold", classname)}>
@@ -138,7 +138,7 @@ const ReferenceInstancesSection = ({
                                             {targetAudience}
                                         </p>
                                         <div className={classes.footer}>
-                                            {isUserLoggedIn && (
+                                            {currentUser && (
                                                 <Button
                                                     className={fr.cx("fr-mr-3w")}
                                                     onClick={() =>

@@ -11,7 +11,7 @@ export const thunks = {
     initialize:
         () =>
         async (...args) => {
-            const [dispatch, getState, { oidc, sillApi }] = args;
+            const [dispatch, getState, { sillApi }] = args;
 
             {
                 const state = getState()[name];
@@ -23,27 +23,23 @@ export const thunks = {
 
             dispatch(actions.initializeStarted());
 
-            assert(oidc.isUserLoggedIn);
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
 
-            const user = await sillApi.getCurrentUser();
+            if (!currentUser) throw new Error("User not found, you need to be logged in");
 
-            const [oidcParams, allOrganizations, { agent }] = await Promise.all([
-                sillApi.getOidcParams(),
-                sillApi.getAllOrganizations(),
-                sillApi.getAgent({ email: user.email })
+            const [oidcManageProfileUrl, allOrganizations] = await Promise.all([
+                sillApi.getOidcManageProfileUrl(),
+                sillApi.getAllOrganizations()
             ]);
 
-            const { about = "", isPublic, organization } = agent;
+            const { about = "", isPublic, organization } = currentUser;
 
             dispatch(
                 actions.initialized({
-                    email: user.email,
+                    email: currentUser.email,
                     organization: organization,
-                    accountManagementUrl: addParamToUrl({
-                        url: [oidcParams.issuerUri, "account"].join("/"),
-                        name: "referrer",
-                        value: oidcParams.clientId
-                    }).newUrl,
+                    accountManagementUrl: oidcManageProfileUrl,
                     allOrganizations,
                     about,
                     isPublic
@@ -64,7 +60,7 @@ export const thunks = {
                   }
         ) =>
         async (...args) => {
-            const [dispatch, getState, { sillApi, oidc }] = args;
+            const [dispatch, getState, { sillApi }] = args;
 
             const state = getState()[name];
 
@@ -72,17 +68,15 @@ export const thunks = {
 
             assert(state.stateDescription === "ready");
 
-            assert(oidc.isUserLoggedIn);
-
             switch (params.fieldName) {
                 case "organization": {
-                    await sillApi.updateAgentProfile({
+                    await sillApi.updateUserProfile({
                         newOrganization: params.value
                     });
                     break;
                 }
                 case "aboutAndIsPublic": {
-                    await sillApi.updateAgentProfile({
+                    await sillApi.updateUserProfile({
                         about: params.about || undefined,
                         isPublic: params.isPublic
                     });

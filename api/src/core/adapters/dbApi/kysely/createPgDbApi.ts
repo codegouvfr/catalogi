@@ -5,12 +5,16 @@
 import { Kysely } from "kysely";
 import { DbApiV2 } from "../../../ports/DbApiV2";
 import { createGetCompiledData } from "./createGetCompiledData";
-import { createPgAgentRepository } from "./createPgAgentRepository";
+import { createPgUserRepository } from "./createPgUserRepository";
 import { createPgInstanceRepository } from "./createPgInstanceRepository";
+import { createPgSessionRepository } from "./createPgSessionRepository";
 import { createPgSoftwareExternalDataRepository } from "./createPgSoftwareExternalDataRepository";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 import { createPgSourceRepository } from "./createPgSourceRepository";
-import { createPgReferentRepository, createPgUserRepository } from "./createPgUserAndReferentRepository";
+import {
+    createPgSoftwareReferentRepository,
+    createPgSoftwareUserRepository
+} from "./createPgUserAndReferentRepository";
 import { Database } from "./kysely.database";
 
 export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
@@ -19,9 +23,10 @@ export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
         software: createPgSoftwareRepository(db),
         softwareExternalData: createPgSoftwareExternalDataRepository(db),
         instance: createPgInstanceRepository(db),
-        agent: createPgAgentRepository(db),
-        softwareReferent: createPgReferentRepository(db),
-        softwareUser: createPgUserRepository(db),
+        user: createPgUserRepository(db),
+        softwareReferent: createPgSoftwareReferentRepository(db),
+        softwareUser: createPgSoftwareUserRepository(db),
+        session: createPgSessionRepository(db),
         getCompiledDataPrivate: createGetCompiledData(db)
     };
 };

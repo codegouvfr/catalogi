@@ -2,16 +2,16 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { DbApiV2, SoftwareExtrinsicCreation, WithAgentId } from "../ports/DbApiV2";
+import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
 import { SoftwareFormData } from "./readWriteSillData";
 
 export type CreateSoftware = (
     params: {
         formData: SoftwareFormData;
-    } & WithAgentId
+    } & WithUserId
 ) => Promise<number>;
 
-export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, agentId: number): SoftwareExtrinsicCreation => ({
+export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => ({
     name: softwareForm.softwareName,
     description: softwareForm.softwareDescription,
     license: softwareForm.softwareLicense,
@@ -27,7 +27,7 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, agentId: n
     workshopUrls: [],
     categories: [],
     generalInfoMd: undefined,
-    addedByAgentId: agentId,
+    addedByUserId: userId,
     keywords: softwareForm.softwareKeywords
 });
 
@@ -91,11 +91,11 @@ const resolveExistingSoftwareId = async ({
 const resolveOrCreateSoftwareId = async ({
     dbApi,
     formData,
-    agentId
+    userId
 }: {
     dbApi: DbApiV2;
     formData: SoftwareFormData;
-    agentId: number;
+    userId: number;
 }) => {
     const { softwareName, sourceSlug } = formData;
     const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
@@ -106,19 +106,19 @@ const resolveOrCreateSoftwareId = async ({
 
     console.log(logTitle, `The software package isn't save yet, let's create it`);
     return dbApi.software.create({
-        software: formDataToSoftwareRow(formData, agentId)
+        software: formDataToSoftwareRow(formData, userId)
     });
 };
 
 export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
     (dbApi: DbApiV2) =>
-    async ({ formData, agentId }) => {
+    async ({ formData, userId }) => {
         const { softwareName, similarSoftwareExternalDataIds, externalIdForSource, sourceSlug } = formData;
         const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const softwareId = await resolveOrCreateSoftwareId({ formData, agentId, dbApi });
+        const softwareId = await resolveOrCreateSoftwareId({ formData, userId, dbApi });
 
         if (externalIdForSource) {
             const savedExternalData = await dbApi.softwareExternalData.get({

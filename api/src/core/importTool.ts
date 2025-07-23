@@ -14,7 +14,7 @@ type DbConfig = PgDbConfig;
 
 type ParamsOfImportTool = {
     dbConfig: DbConfig;
-    botAgentEmail: string | undefined;
+    botUserEmail: string | undefined;
     sourceSlug: string;
     listToImport?: string[];
 };
@@ -31,11 +31,11 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 };
 
 export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
-    const { dbConfig, botAgentEmail, listToImport, sourceSlug } = params;
+    const { dbConfig, botUserEmail, listToImport, sourceSlug } = params;
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
 
-    if (!botAgentEmail) throw new Error("[Loader:Import] No bot agent email provided");
+    if (!botUserEmail) throw new Error("[Loader:Import] No bot agent email provided");
 
     const source = await dbApi.source.getByName({ name: sourceSlug });
     if (!source) throw new Error("[Loader:Import] Couldn't find the source to connect to");
@@ -45,7 +45,7 @@ export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
     const importService = importFromSource(dbApi);
 
     console.time(loggerTime);
-    return importService({ agentEmail: botAgentEmail, source, softwareIdOnSource: listToImport }).then(result => {
+    return importService({ userEmail: botUserEmail, source, softwareIdOnSource: listToImport }).then(result => {
         console.log(`[Loader:Import] Feeding database with ${result.length} software packages`);
         console.timeEnd(loggerTime);
         return true;

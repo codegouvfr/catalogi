@@ -67,12 +67,12 @@ export namespace CompiledData {
         };
 
         export type Private = Common & {
-            addedByAgentEmail: string;
+            addedByUserEmail: string;
             users: (Pick<Db.AgentRow, "organization"> &
                 Pick<Db.SoftwareUserRow, "os" | "serviceUrl" | "useCaseDescription" | "version">)[];
             referents: (Pick<Db.AgentRow, "email" | "organization"> &
                 Pick<Db.SoftwareReferentRow, "isExpert" | "serviceUrl" | "useCaseDescription">)[];
-            instances: (Instance & { addedByAgentEmail: string })[];
+            instances: (Instance & { addedByUserEmail: string })[];
         };
     }
 
@@ -152,7 +152,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
 
                 return out;
             })(),
-            "instances": instances.map(({ addedByAgentEmail, ...rest }) => rest)
+            "instances": instances.map(({ addedByUserEmail, ...rest }) => rest)
         };
     });
 }

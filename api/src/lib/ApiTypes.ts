@@ -15,7 +15,8 @@ export type {
 } from "../core/adapters/dbApi/kysely/kysely.database";
 
 export type {
-    Agent,
+    CreateUserParams,
+    UserWithId,
     Instance,
     Os,
     Prerogative,

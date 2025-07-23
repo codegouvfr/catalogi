@@ -7,13 +7,16 @@ import { z } from "zod";
 const zEnvConfiguration = z.object({
     "oidcParams": z.object({
         "issuerUri": z.string().nonempty(),
-        "clientId": z.string().nonempty()
+        "clientId": z.string().nonempty(),
+        "clientSecret": z.string().nonempty(),
+        "manageProfileUrl": z.string().nonempty()
     }),
     "databaseUrl": z.string(),
+    "appUrl": z.string().url(),
     "isDevEnvironnement": z.boolean().default(false),
     "port": z.coerce.number().optional().default(8080),
     "importDataSourceOrigin": z.string().optional().default("wikidata"),
-    "botAgentEmail": z.string().optional(),
+    "botUserEmail": z.string().optional(),
     "listToImport": z.array(z.string()).optional(),
     "updateSkipTimingInMinutes": z.number().optional(),
     // Completely disable this instance and redirect to another url
@@ -23,19 +26,26 @@ const zEnvConfiguration = z.object({
 const envConfiguration = zEnvConfiguration.parse({
     "oidcParams": {
         "issuerUri": process.env.OIDC_ISSUER_URI,
-        "clientId": process.env.OIDC_CLIENT_ID
+        "clientId": process.env.OIDC_CLIENT_ID,
+        "clientSecret": process.env.OIDC_CLIENT_SECRET,
+        "manageProfileUrl": process.env.OIDC_MANAGE_PROFILE_URL
     },
     "port": parseInt(process.env.API_PORT ?? ""),
+    "appUrl": process.env.APP_URL,
     "isDevEnvironnement": process.env.IS_DEV_ENVIRONNEMENT?.toLowerCase() === "true",
     "importDataSourceOrigin": process.env.IMPORT_DATA_SOURCE_ORIGIN,
     "redirectUrl": process.env.REDIRECT_URL,
     "databaseUrl": process.env.DATABASE_URL,
-    "botAgentEmail": process.env?.BOT_AGENT_EMAIL,
+    "botUserEmail": process.env?.BOT_USER_EMAIL,
     "listToImport": process.env?.IMPORT_DATA_IDS?.split(","),
     "updateSkipTimingInMinutes": process.env?.UPDATE_SKIP_TIMING ? parseInt(process.env.UPDATE_SKIP_TIMING) : undefined
 });
 
 export const env = {
     ...envConfiguration,
+    "oidcParams": {
+        ...envConfiguration.oidcParams,
+        "appUrl": envConfiguration.appUrl
+    },
     "isDevEnvironnement": envConfiguration.isDevEnvironnement ?? false
 };

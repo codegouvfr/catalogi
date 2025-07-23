@@ -20,20 +20,21 @@ export const thunks = {
 
             const [dispatch, getState, extraArg] = args;
 
+            const state = getState();
+            const { currentUser } = state.userAuthentication;
             {
-                const state = getState()[name];
-
+                const softwareDetailsState = state[name];
                 assert(
-                    state.stateDescription === "not ready",
+                    softwareDetailsState.stateDescription === "not ready",
                     "The clear function should have been called"
                 );
 
-                if (state.isInitializing) {
+                if (softwareDetailsState.isInitializing) {
                     return;
                 }
             }
 
-            const { sillApi, oidc, evtAction } = extraArg;
+            const { sillApi, evtAction } = extraArg;
 
             {
                 const context = getContext(extraArg);
@@ -72,18 +73,13 @@ export const thunks = {
 
             const userDeclaration: { isReferent: boolean; isUser: boolean } | undefined =
                 await (async () => {
-                    if (!oidc.isUserLoggedIn) {
-                        return undefined;
-                    }
+                    if (!currentUser) return;
 
-                    const [{ agents }, user] = await Promise.all([
-                        sillApi.getAgents(),
-                        sillApi.getCurrentUser()
-                    ]);
+                    const { users } = await sillApi.getUsers();
 
-                    const agent = agents.find(agent => agent.email === user.email);
+                    const user = users.find(user => user.email === currentUser.email);
 
-                    if (agent === undefined) {
+                    if (user === undefined) {
                         return {
                             isReferent: false,
                             isUser: false
@@ -92,13 +88,13 @@ export const thunks = {
 
                     return {
                         isReferent:
-                            agent.declarations.find(
+                            user.declarations.find(
                                 d =>
                                     d.softwareName === softwareName &&
                                     d.declarationType === "referent"
                             ) !== undefined,
                         isUser:
-                            agent.declarations.find(
+                            user.declarations.find(
                                 d =>
                                     d.softwareName === softwareName &&
                                     d.declarationType === "user"

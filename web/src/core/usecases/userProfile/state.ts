@@ -20,7 +20,7 @@ export namespace State {
         organization: string | null;
         about: string | undefined;
         isHimself: boolean;
-        declarations: ApiTypes.Agent["declarations"];
+        declarations: ApiTypes.UserWithId["declarations"];
     };
 }
 
@@ -47,7 +47,7 @@ export const { reducer, actions } = createUsecaseActions({
                     organization: string | null;
                     about: string | undefined;
                     isHimself: boolean;
-                    declarations: ApiTypes.Agent["declarations"];
+                    declarations: ApiTypes.UserWithId["declarations"];
                 };
             }
         ) => {

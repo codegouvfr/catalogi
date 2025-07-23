@@ -3,28 +3,17 @@
 // SPDX-License-Identifier: MIT
 
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import { createDecodeAccessToken, OidcParams } from "../tools/oidc";
-import { type User } from "./user";
+import { UserRepository } from "../core/ports/DbApiV2";
+import { UserWithId } from "../lib/ApiTypes";
 
 export type Context = {
-    user?: User;
+    currentUser?: UserWithId;
 };
 
-export async function createContextFactory(params: { oidcParams: Pick<OidcParams, "issuerUri"> }) {
-    const { oidcParams } = params;
-
-    const { decodeAccessToken } = await createDecodeAccessToken(oidcParams.issuerUri);
-
+export async function createContextFactory({ userRepository }: { userRepository: UserRepository }) {
     async function createContext({ req }: CreateExpressContextOptions): Promise<Context> {
-        const { authorization } = req.headers;
-
-        if (!authorization) {
-            return {};
-        }
-
-        const { sub, email } = decodeAccessToken({ authorizationHeaderValue: authorization });
-
-        return { user: { id: sub, email } };
+        const currentUser = await userRepository.getBySessionId(req.cookies?.sessionId);
+        return currentUser ? { currentUser } : {};
     }
 
     return { createContext };

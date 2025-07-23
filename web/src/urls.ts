@@ -37,7 +37,4 @@ export const appUrl = `${window.location.origin}${appPath}`;
  *
  * Example 'https://code.gouv.fr/sill/api'
  **/
-export const apiUrl =
-    import.meta.env.NODE_ENV === "development"
-        ? "http://localhost:3084"
-        : `${appUrl}/api`;
+export const apiUrl = `${appUrl}/api`;

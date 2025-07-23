@@ -77,15 +77,18 @@ export namespace Software {
     }
 }
 
-export type Agent = {
-    //NOTE: Undefined if the agent isn't referent of at least one software
-    // If it's the user the email is never undefined.
+export type CreateUserParams = {
+    firstName?: string;
+    lastName?: string;
     email: string;
     organization: string | null;
     declarations: (DeclarationFormData & { softwareName: string })[];
     isPublic: boolean;
     about: string | undefined;
+    sub: string | null;
 };
+
+export type UserWithId = CreateUserParams & { id: number };
 
 export type Instance = {
     id: number;

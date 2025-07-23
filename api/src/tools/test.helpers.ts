@@ -136,7 +136,7 @@ export const resetDB = async (db: Kysely<Database>) => {
     await db.deleteFrom("software_users").execute();
     await db.deleteFrom("software_referents").execute();
     await db.deleteFrom("softwares").execute();
-    await db.deleteFrom("agents").execute();
+    await db.deleteFrom("users").execute();
     await db.deleteFrom("sources").execute();
 
     return db

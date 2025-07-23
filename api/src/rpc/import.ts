@@ -12,11 +12,11 @@ import { importTool } from "../core/importTool";
 export async function startImportService(params: {
     isDevEnvironnement: boolean;
     databaseUrl: string;
-    botAgentEmail?: string;
+    botUserEmail?: string;
     importDataSourceOrigin: string;
     listToImport?: string[];
 }) {
-    const { isDevEnvironnement, databaseUrl, botAgentEmail, listToImport, importDataSourceOrigin, ...rest } = params;
+    const { isDevEnvironnement, databaseUrl, botUserEmail, listToImport, importDataSourceOrigin, ...rest } = params;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -29,7 +29,7 @@ export async function startImportService(params: {
             "dbKind": "kysely",
             "kyselyDb": kyselyDb
         },
-        "botAgentEmail": botAgentEmail,
+        "botUserEmail": botUserEmail,
         "sourceSlug": importDataSourceOrigin,
         "listToImport": listToImport ?? []
     });
