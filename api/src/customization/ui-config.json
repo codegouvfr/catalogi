@@ -94,6 +94,9 @@
                 "softwareType": true
             }
         },
+        "repoMetadata": {
+            "enabled": false
+        },
         "links": {
             "enabled": true
         },
