@@ -329,7 +329,7 @@ export const PreviewTab = (props: Props) => {
                         })}
                     </div>
                 )}
-                {repoMetadata && (
+                {uiConfig?.softwareDetails.repoMetadata.enabled && repoMetadata && (
                     <div className={classes.section}>
                         {repoMetadata?.healthCheck?.lastClosedIssue && (
                             <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
