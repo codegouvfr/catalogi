@@ -6,11 +6,12 @@ import memoize from "memoizee";
 
 import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
 import { Source } from "../../usecases/readWriteSillData";
-import { SchemaPerson } from "../dbApi/kysely/kysely.database";
+import { SchemaIdentifier, SchemaPerson } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { makeZenodoApi } from "./zenodoAPI";
 import { Zenodo } from "./zenodoAPI/type";
 import { populateFromDOIIdentifiers } from "../doiResolver";
+import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 export const getZenodoExternalData: GetSoftwareExternalData = memoize(
     async ({
@@ -43,7 +44,12 @@ export const getZenodoExternalData: GetSoftwareExternalData = memoize(
             return undefined;
         }
 
-        const formatedExternalData = formatRecordToExternalData(record, communitiesRows, source);
+        const repositoryUrl =
+            record.metadata.related_identifiers?.filter(identifier => identifier.relation === "isSupplementTo")?.[0]
+                ?.identifier ?? undefined;
+        const repoIdentifer = await repoUrlToIdentifer({ repoUrl: repositoryUrl });
+
+        const formatedExternalData = await formatRecordToExternalData(record, communitiesRows, source, repoIdentifer);
 
         formatedExternalData.identifiers = await populateFromDOIIdentifiers(formatedExternalData.identifiers ?? []);
 
@@ -70,7 +76,8 @@ const creatorToPerson = (creator: Zenodo.Creator): SchemaPerson => {
 const formatRecordToExternalData = (
     recordSoftwareItem: Zenodo.Record,
     communities: Zenodo.Community[],
-    source: Source
+    source: Source,
+    repoIdentifier: SchemaIdentifier | undefined
 ): SoftwareExternalData => {
     return {
         externalId: recordSoftwareItem.id.toString(),
@@ -106,7 +113,8 @@ const formatRecordToExternalData = (
                 : []),
             ...(recordSoftwareItem.swh.swhid
                 ? [identifersUtils.makeSWHIdentifier({ swhId: recordSoftwareItem.swh.swhid })]
-                : [])
+                : []),
+            ...(repoIdentifier ? [repoIdentifier] : [])
         ],
         repoMetadata: undefined,
         providers: []
