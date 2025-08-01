@@ -30,6 +30,7 @@ import {
 import { Source } from "../../usecases/readWriteSillData";
 import { SchemaOrganization, SchemaPerson } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
+import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 const { resolveLocalizedString } = createResolveLocalizedString({
     "currentLanguage": id<Language>("en"),
@@ -124,6 +125,9 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
 
         const framaLibreId = getClaimDataValue<"string">("P4107")[0];
 
+        const sourceUrl = getClaimDataValue<"string">("P1324")[0];
+        const repoIdentifer = await repoUrlToIdentifer({ repoUrl: sourceUrl });
+
         return {
             externalId,
             sourceSlug: source.slug,
@@ -194,7 +198,6 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
             })(),
             ...(() => {
                 const websiteUrl = getClaimDataValue<"string">("P856")[0];
-                const sourceUrl = getClaimDataValue<"string">("P1324")[0];
 
                 return {
                     sourceUrl,
@@ -292,7 +295,8 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
                 ...(framaLibreId
                     ? [identifersUtils.makeFramaIndentifier({ framaLibreId, additionalType: "Software" })]
                     : []),
-                identifersUtils.makeWikidataIdentifier({ wikidataId: externalId, additionalType: "Software" })
+                identifersUtils.makeWikidataIdentifier({ wikidataId: externalId, additionalType: "Software" }),
+                ...(repoIdentifer ? [repoIdentifer] : [])
             ],
             repoMetadata: undefined,
             providers: []
