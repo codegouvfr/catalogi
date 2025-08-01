@@ -3,36 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import memoize from "memoizee";
-import { SoftwareFormData, SoftwareType, Source } from "../../usecases/readWriteSillData";
+import { SoftwareFormData, Source } from "../../usecases/readWriteSillData";
 import { halAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
 import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
-
-const stringOfArrayIncluded = (stringArray: Array<string>, text: string): boolean => {
-    return stringArray.some((arg: string) => {
-        return text.includes(arg);
-    });
-};
-
-const textToSoftwareType = (text: string): SoftwareType => {
-    if (text.includes("docker")) {
-        return {
-            type: "cloud"
-        };
-    }
-
-    const linux = stringOfArrayIncluded(["linux", "ubuntu", "unix", "multiplatform", "all"], text);
-    const windows = stringOfArrayIncluded(["windows", "multiplatform", "all"], text);
-    const mac = stringOfArrayIncluded(["mac", "unix", "multiplatform", "all"], text);
-
-    const android = text.includes("android");
-    const ios = stringOfArrayIncluded(["ios", "os x", "unix", "Multiplatform", "all"], text);
-
-    return {
-        type: "desktop/mobile",
-        os: { "linux": linux, "windows": windows, "android": android, "ios": ios, "mac": mac }
-    };
-};
+import { resolveSoftwareType } from "../../utils";
 
 export const halRawSoftwareToSoftwareForm = async (
     halSoftware: HAL.API.Software,
@@ -43,9 +18,7 @@ export const halRawSoftwareToSoftwareForm = async (
     const formData: SoftwareFormData = {
         softwareName: halSoftware.title_s[0],
         softwareDescription: halSoftware.abstract_s ? halSoftware.abstract_s[0] : "",
-        softwareType: textToSoftwareType(
-            halSoftware.softPlatform_s ? halSoftware.softPlatform_s.join("").toLocaleLowerCase() : ""
-        ),
+        softwareType: resolveSoftwareType(halSoftware.softPlatform_s ?? []),
         externalIdForSource: halSoftware.docid,
         sourceSlug: source.slug,
         softwareLicense: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright

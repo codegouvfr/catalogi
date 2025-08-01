@@ -92,7 +92,7 @@ export namespace HAL {
             authIdHal_s: string[];
             releasedDate_tdate: string;
             softCodeRepository_s: string[];
-            softPlatform_s: string[];
+            softPlatform_s?: string[];
             softProgrammingLanguage_s: string[];
             softVersion_s: string[];
             licence_s: string[];

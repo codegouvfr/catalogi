@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { SoftwareType } from "./usecases/readWriteSillData";
+
 export type OmitFromExisting<T, K extends keyof T> = Omit<T, K>;
 
 const isEqual = (var1: any, var2: any): boolean => {
@@ -66,3 +68,31 @@ export function mergeArrays(arr1: any[], arr2: any[]): any[] {
         return [...acc, item];
     }, []);
 }
+
+const stringOfArrayIncluded = (stringArray: Array<string>, text: string): boolean => {
+    return stringArray.some((arg: string) => {
+        return text.includes(arg);
+    });
+};
+
+export const resolveSoftwareType = (keywords: string[]): SoftwareType => {
+    const searchString = keywords.join("").toLocaleLowerCase();
+
+    if (searchString.includes("docker")) {
+        return {
+            type: "cloud"
+        };
+    }
+
+    const linux = stringOfArrayIncluded(["linux", "ubuntu", "unix", "multiplatform", "all"], searchString);
+    const windows = stringOfArrayIncluded(["windows", "multiplatform", "all"], searchString);
+    const mac = stringOfArrayIncluded(["mac", "unix", "multiplatform", "all"], searchString);
+
+    const android = searchString.includes("android");
+    const ios = stringOfArrayIncluded(["ios", "os x", "unix", "Multiplatform", "all"], searchString);
+
+    return {
+        type: "desktop/mobile",
+        os: { "linux": linux, "windows": windows, "android": android, "ios": ios, "mac": mac }
+    };
+};
