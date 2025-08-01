@@ -60,6 +60,13 @@ const orcidSource: WebSite = {
     additionalType: "ORCID"
 };
 
+const gitHubSource: WebSite = {
+    "@type": "Website" as const,
+    name: "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+    url: new URL("https://github.com/"),
+    additionalType: "GitHub"
+};
+
 const nationalSIREN: WebSite = {
     "@type": "Website" as const,
     name: "L’Annuaire des Entreprises",
@@ -204,6 +211,56 @@ export const identifersUtils = {
             url: url,
             subjectOf: zenodoSource,
             ...(additionalType ? { additionalType: additionalType } : {})
+        };
+    },
+    makeUserGitHubIdentifer: (params: { username: string; userId: number }): SchemaIdentifier => {
+        const { username, userId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: username,
+            valueReference: userId.toString(),
+            url: `https://github.com/${username}`,
+            subjectOf: gitHubSource,
+            additionalType: "User"
+        };
+    },
+    makeRepoGitHubIdentifer: (params: { repoUrl: string; repoId: number }): SchemaIdentifier => {
+        const { repoUrl, repoId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: repoUrl,
+            url: repoUrl,
+            valueReference: repoId.toString(),
+            subjectOf: gitHubSource,
+            additionalType: "Repo"
+        };
+    },
+    // TODO
+    makeRepoGitLabIdentifer: (params: { orcidId: string; additionalType?: string }): SchemaIdentifier => {
+        const { orcidId, additionalType } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: orcidId,
+            url: `https://orcid.org/${orcidId}`,
+            subjectOf: {
+                "@type": "Website" as const,
+                name: "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+                url: new URL("https://github.com/"),
+                additionalType: "GitHub"
+            },
+            ...(additionalType ? { additionalType: additionalType } : {})
+        };
+    },
+    // TODO
+    makeUserGitLabIdentifer: (params: { username: string; userId: number }): SchemaIdentifier => {
+        const { username, userId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: username,
+            valueReference: userId.toString(),
+            url: `https://github.com/${username}`,
+            subjectOf: gitHubSource,
+            additionalType: "User"
         };
     }
 };

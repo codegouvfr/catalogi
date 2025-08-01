@@ -13,9 +13,7 @@ import { getScholarlyArticle } from "./getScholarlyArticle";
 import { SchemaIdentifier, SchemaOrganization, SchemaPerson, ScholarlyArticle } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { populateFromDOIIdentifiers } from "../doiResolver";
-import { repoAnalyser, RepoType } from "../../../tools/repoAnalyser";
-import { projectGitLabApiMaker } from "../GitLab/api/project";
-import { repoGitHubEndpointMaker } from "../GitHub/api/repo";
+import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 const buildParentOrganizationTree = async (
     structureIdArray: number[] | string[] | undefined
@@ -172,8 +170,10 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
             })
         );
 
-        const identifiers: SchemaIdentifier[] =
-            codemetaSoftware?.identifier?.map(identifierItem => {
+        const repoIdentifier = await repoUrlToIdentifer({ repoUrl: halRawSoftware?.softCodeRepository_s?.[0] });
+
+        const identifiers: SchemaIdentifier[] = [
+            ...codemetaSoftware?.identifier?.map(identifierItem => {
                 const base = {
                     "@type": "PropertyValue" as const,
                     value: identifierItem.value,
@@ -205,59 +205,10 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                     default:
                         return base;
                 }
-            }) ?? [];
+            }) ?? [],
+            ...(repoIdentifier ? [repoIdentifier] : [])
+        ]
 
-        const repoType = await repoAnalyser(halRawSoftware?.softCodeRepository_s?.[0]);
-
-        const getRepoMetadata = async (repoType: RepoType | undefined) => {
-            switch (repoType) {
-                case "GitLab":
-                    const gitLabProjectapi = projectGitLabApiMaker(halRawSoftware?.softCodeRepository_s?.[0]);
-                    const lastGLCommit = await gitLabProjectapi.commits.getLastCommit();
-                    const lastFLIssue = await gitLabProjectapi.issues.getLastClosedIssue();
-                    const lastGLMergeRequest = await gitLabProjectapi.mergeRequests.getLast();
-                    return {
-                        healthCheck: {
-                            lastCommit: lastGLCommit ? new Date(lastGLCommit.created_at) : undefined,
-                            lastClosedIssue:
-                                lastFLIssue && lastFLIssue.closed_at ? new Date(lastFLIssue.closed_at) : undefined,
-                            lastClosedIssuePullRequest: lastGLMergeRequest
-                                ? new Date(lastGLMergeRequest.updated_at)
-                                : undefined
-                        }
-                    };
-                case "GitHub":
-                    const gitHubApi = repoGitHubEndpointMaker(halRawSoftware?.softCodeRepository_s?.[0]);
-                    if (!gitHubApi) {
-                        console.error("Bad URL string");
-                        return undefined;
-                    }
-
-                    const lastGHCommit = await gitHubApi.commits.getLastCommit();
-                    const lastGHCloseIssue = await gitHubApi.issues.getLastClosedIssue();
-                    const lastGHClosedPull = await gitHubApi.mergeRequests.getLast();
-
-                    return {
-                        healthCheck: {
-                            lastCommit: lastGHCommit?.commit?.author?.date
-                                ? new Date(lastGHCommit.commit.author.date)
-                                : undefined,
-                            lastClosedIssue: lastGHCloseIssue?.closed_at
-                                ? new Date(lastGHCloseIssue.closed_at)
-                                : undefined,
-                            lastClosedIssuePullRequest: lastGHClosedPull?.closed_at
-                                ? new Date(lastGHClosedPull.closed_at)
-                                : undefined
-                        }
-                    };
-
-                case undefined:
-                    return undefined;
-                default:
-                    repoType satisfies never;
-                    return undefined;
-            }
-        };
 
         return {
             externalId: halRawSoftware.docid,
@@ -292,9 +243,10 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                         halRawSoftware.relatedPublication_s.map(id => buildReferencePublication(parseScolarId(id), id))
                     )
                 ).filter(val => val !== undefined),
-            identifiers: await populateFromDOIIdentifiers(identifiers),
+            identifiers: [
+                ... await populateFromDOIIdentifiers(identifiers)],
             providers: [],
-            repoMetadata: await getRepoMetadata(repoType)
+            repoMetadata: undefined
         };
     },
     {

@@ -8,8 +8,9 @@ import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSo
 import { Source } from "../../usecases/readWriteSillData";
 import { comptoirDuLibreApi } from "../comptoirDuLibreApi";
 import { ComptoirDuLibre } from "../../ports/ComptoirDuLibreApi";
-import { SchemaOrganization } from "../dbApi/kysely/kysely.database";
+import { SchemaIdentifier, SchemaOrganization } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
+import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 export const getCDLSoftwareExternalData: GetSoftwareExternalData = memoize(
     async ({
@@ -25,7 +26,11 @@ export const getCDLSoftwareExternalData: GetSoftwareExternalData = memoize(
 
         if (!comptoirSoftware) return undefined;
 
-        return formatCDLSoftwareToExternalData(comptoirSoftware, source);
+        const repoIdentifier = await repoUrlToIdentifer({
+            repoUrl: comptoirSoftware.external_resources.repository ?? undefined
+        });
+
+        return formatCDLSoftwareToExternalData(comptoirSoftware, source, repoIdentifier);
     },
     {
         maxAge: 3 * 3600 * 1000
@@ -49,7 +54,8 @@ const cdlProviderToCMProdivers = (provider: ComptoirDuLibre.Provider): SchemaOrg
 
 const formatCDLSoftwareToExternalData = (
     cdlSoftwareItem: ComptoirDuLibre.Software,
-    source: Source
+    source: Source,
+    repoIdentifier: SchemaIdentifier | undefined
 ): SoftwareExternalData => {
     const splittedCNLLUrl = !Array.isArray(cdlSoftwareItem.external_resources.cnll)
         ? cdlSoftwareItem.external_resources.cnll.url.split("/")
@@ -105,7 +111,8 @@ const formatCDLSoftwareToExternalData = (
                           additionalType: "Software"
                       })
                   ]
-                : [])
+                : []),
+            ...(repoIdentifier ? [repoIdentifier] : [])
         ],
         repoMetadata: undefined,
         providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers)
