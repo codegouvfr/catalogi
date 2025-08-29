@@ -231,15 +231,15 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
         },
         getUserAndReferentCountByOrganization: async ({ softwareId }) => {
             const softwareUserCount = await db
-                .selectFrom("software_users as u")
-                .innerJoin("users as a", "a.id", "u.userId")
+                .selectFrom("software_users")
+                .innerJoin("users", "users.id", "software_users.userId")
                 .select([
-                    "a.organization",
+                    "users.organization",
                     ({ fn }) => fn.countAll<string>().as("count"),
-                    sql<"user">`'userCount'`.as("type")
+                    sql<"userCount">`'userCount'`.as("type")
                 ])
-                .groupBy(["a.organization"])
-                .where("u.softwareId", "=", softwareId)
+                .groupBy(["users.organization"])
+                .where("software_users.softwareId", "=", softwareId)
                 .execute();
 
             const softwareReferentCount = await db
@@ -248,24 +248,24 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .select([
                     "u.organization",
                     ({ fn }) => fn.countAll<string>().as("count"),
-                    sql<"referent">`'referentCount'`.as("type")
+                    sql<"referentCount">`'referentCount'`.as("type")
                 ])
                 .groupBy(["u.organization"])
                 .where("r.softwareId", "=", softwareId)
                 .execute();
 
             return [...softwareUserCount, ...softwareReferentCount].reduce(
-                (acc, value) => {
-                    const orga = value.organization ?? "NO_ORGANIZATION";
-                    const data =
-                        value.type == "referent"
-                            ? { referentCount: Number(value.count) }
-                            : { userCount: Number(value.count) };
+                (acc, { organization, type, count }) => {
+                    const orga = organization ?? "NO_ORGANIZATION";
 
-                    if (Object.hasOwn(acc, orga)) acc[orga] = Object.assign(acc[orga], data);
-                    else acc[orga] = Object.assign(defaultCount, data);
-
-                    return acc;
+                    return {
+                        ...acc,
+                        [orga]: {
+                            ...defaultCount,
+                            ...acc[orga],
+                            [type]: +count
+                        }
+                    };
                 },
                 {} as Record<
                     string,
