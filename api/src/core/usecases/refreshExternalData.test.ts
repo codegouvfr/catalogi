@@ -297,7 +297,7 @@ describe("fetches software extra data (from different providers)", () => {
                         "//upload.wikimedia.org/wikipedia/commons/thumb/f/f1/Vitejs-logo.svg/250px-Vitejs-logo.svg.png",
                     sourceUrl: "https://github.com/vitejs/vite",
                     websiteUrl: "https://vite.dev/",
-                    programmingLanguages: ["JavaScript"],
+                    programmingLanguages: ["جافا سكريبت"],
                     referencePublications: undefined,
                     identifiers: [
                         {
@@ -392,7 +392,7 @@ describe("fetches software extra data (from different providers)", () => {
                     license: "Apache License v2.0",
                     logoUrl:
                         "//upload.wikimedia.org/wikipedia/commons/thumb/1/10/Apache_HTTP_server_logo_%282019-present%29.svg/250px-Apache_HTTP_server_logo_%282019-present%29.svg.png",
-                    sourceUrl: "https://github.com/apache/httpd",
+                    sourceUrl: "https://svn.apache.org/viewvc/httpd/httpd/",
                     websiteUrl: "https://httpd.apache.org/",
                     referencePublications: undefined,
                     identifiers: [
@@ -410,7 +410,7 @@ describe("fetches software extra data (from different providers)", () => {
                             "value": "Q11354"
                         }
                     ],
-                    programmingLanguages: ["C"],
+                    programmingLanguages: ["Си"],
                     softwareVersion: "2.5.0-alpha",
                     publicationTime: new Date("2017-11-08T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Number),

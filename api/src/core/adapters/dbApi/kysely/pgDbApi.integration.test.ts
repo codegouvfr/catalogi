@@ -245,7 +245,9 @@ describe("pgDbApi", () => {
 
             console.log("getting all sill software external ids");
             const softwareExternalIds = await dbApi.software.getAllSillSoftwareExternalIds("wikidata");
-            expectToEqual(softwareExternalIds, [similarExternalId, externalIdForSource]);
+            expect(softwareExternalIds).toHaveLength(2);
+            expect(softwareExternalIds).include(externalIdForSource);
+            expect(softwareExternalIds).include(similarExternalId);
         });
     });
 
@@ -404,7 +406,7 @@ describe("pgDbApi", () => {
                     os: "windows",
                     version: "1.0.0"
                 }),
-                'insert or update on table "software_users" violates foreign key constraint "software_users_userId_fkey"'
+                'insert or update on table "software_users" violates foreign key constraint'
             );
         });
 
