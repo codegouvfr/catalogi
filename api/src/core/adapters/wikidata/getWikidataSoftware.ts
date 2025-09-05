@@ -350,6 +350,8 @@ export async function fetchEntity(wikidataId: string): Promise<{ entity: Wikidat
 
     const entity = Object.values(json["entities"])[0] as WikidataEntity;
 
+    console.info(`   -> fetched wiki soft : ${entity.aliases.en?.[0]?.value || entity.aliases.fr?.[0]?.value}`);
+
     return { entity };
 }
 

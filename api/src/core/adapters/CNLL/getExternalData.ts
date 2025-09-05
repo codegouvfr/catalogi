@@ -32,11 +32,21 @@ export const getCNLLSoftwareExternalData: GetSoftwareExternalData = memoize(
 );
 
 const cnllProviderToCMProdivers = (provider: CnllPrestatairesSill.Prestataire): SchemaOrganization => {
+    const cnllId = provider.url.split("/").at(-1) ?? provider.nom;
+
     return {
         "@type": "Organization" as const,
         name: provider.nom,
-        url: provider.url ?? undefined,
         identifiers: [
+            ...(provider.url
+                ? [
+                      identifersUtils.makeCNLLIdentifier({
+                          cNNLId: cnllId,
+                          url: provider.url,
+                          additionalType: "Organization"
+                      })
+                  ]
+                : []),
             identifersUtils.makeSIRENIdentifier({
                 SIREN: provider.siren,
                 additionalType: "Organization"
@@ -71,5 +81,5 @@ const formatCNLLProvidersToExternalData = (
             cNNLId: cnllProdivers.sill_id.toString()
         })
     ],
-    providers: cnllProdivers.prestataires.map(prodiver => cnllProviderToCMProdivers(prodiver))
+    providers: cnllProdivers.prestataires.map(cnllProviderToCMProdivers)
 });

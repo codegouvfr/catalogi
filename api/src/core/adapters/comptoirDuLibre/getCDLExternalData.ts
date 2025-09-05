@@ -107,6 +107,6 @@ const formatCDLSoftwareToExternalData = (
                   ]
                 : [])
         ],
-        providers: cdlSoftwareItem.providers.map(prodiver => cdlProviderToCMProdivers(prodiver))
+        providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers)
     };
 };
