@@ -9,7 +9,8 @@
         "providers_other": "fournisseurs",
         "free software_one": "logiciel libre",
         "free software_other": "logiciels libres",
-        "appAccronym": "SILL"
+        "appAccronym": "SILL",
+        "officialWebsite": "Site officiel"
     },
     "app": {
         "title": "Le socle interministériel de logiciels libres est un ensemble de logiciels libres préconisés par l'État français depuis 2013.",

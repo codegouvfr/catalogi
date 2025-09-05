@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { useEffect } from "react";
+import { Fragment, useEffect } from "react";
 import { useCoreState, useCore } from "core";
 import { Breadcrumb } from "@codegouvfr/react-dsfr/Breadcrumb";
 import { tss } from "tss-react";
@@ -405,33 +405,38 @@ const ServiceProviderRow = ({
     serviceProvider: { url, name, identifiers }
 }: {
     serviceProvider: ApiTypes.Organization;
-}) => (
-    <li>
-        <span className={fr.cx("fr-text--bold")}>{name}</span>
-        {" - "}
-        {url && (
-            <a href={url} target="_blank" rel="noreferrer">
-                Site officiel TODO Translate
-            </a>
-        )}{" "}
-        {identifiers &&
-            identifiers.map(identifier => (
-                <>
-                    -{" "}
-                    {identifier?.url && (
-                        <a
-                            href={identifier.url.toString()}
-                            target="_blank"
-                            rel="noreferrer"
-                        >
-                            {identifier.subjectOf?.name ?? identifier.name}
-                        </a>
-                    )}
-                </>
-            ))}
-    </li>
-);
+}) => {
+    const { t } = useTranslation();
 
+    return (
+        <li>
+            <span className={fr.cx("fr-text--bold")}>{name}</span>
+            {url && (
+                <>
+                    {" - "}
+                    <a href={url} target="_blank" rel="noreferrer">
+                        {t("common.officialWebsite")}
+                    </a>
+                </>
+            )}
+            {identifiers &&
+                identifiers
+                    .filter(identifier => !!identifier.url)
+                    .map(identifier => (
+                        <Fragment key={identifier.url! as string}>
+                            {" - "}
+                            <a
+                                href={identifier.url!.toString()}
+                                target="_blank"
+                                rel="noreferrer"
+                            >
+                                {identifier.subjectOf?.name ?? identifier.name}
+                            </a>
+                        </Fragment>
+                    ))}
+        </li>
+    );
+};
 const useStyles = tss.withName({ SoftwareDetails }).create({
     breadcrumb: {
         marginBottom: fr.spacing("4v")

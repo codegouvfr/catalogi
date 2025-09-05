@@ -7,7 +7,8 @@
         "referent_other": "referents",
         "provider_one": "provider",
         "providers_other": "providers",
-        "appAccronym": "SILL"
+        "appAccronym": "SILL",
+        "officialWebsite": "Official website"
     },
     "app": {
         "title": "The Interministerial Free Software Base is a set of free software recommended by the French State since 2013.",

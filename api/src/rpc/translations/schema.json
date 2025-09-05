@@ -37,6 +37,10 @@
                 "appAccronym": {
                     "type": "string",
                     "description": "Common reusable translation"
+                },
+                "officialWebsite": {
+                    "type": "string",
+                    "description": "Common reusable translation"
                 }
             },
             "description": "Common reusable translation",
