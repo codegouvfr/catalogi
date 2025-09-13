@@ -118,13 +118,13 @@ jobs:
           OUT_WEB=$(echo "$OUT_WEB" | awk '{print tolower($0)}')
           echo ::set-output name=docker_web_tags::$OUT_WEB
 
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           push: true
           context: .
           file: ./Dockerfile.api
           tags: ${{ steps.step1.outputs.docker_api_tags }}
-      - uses: docker/build-push-action@v5
+      - uses: docker/build-push-action@v6
         with:
           push: true
           context: .
