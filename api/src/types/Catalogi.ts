@@ -13,5 +13,6 @@ export namespace Catalogi {
         | "GitHub"
         | "ComptoirDuLibre"
         | "FramaLibre"
+        | "CNLL"
         | "Zenodo";
 }

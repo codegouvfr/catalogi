@@ -339,15 +339,22 @@ export const PreviewTab = (props: Props) => {
                                                 ))
                                         );
                                     })
-                                    .map(identifier => (
-                                        <LogoURLButton
-                                            key={identifier.url?.toString()}
-                                            className={cx(fr.cx("fr-ml-4v", "fr-my-2v"))}
-                                            priority="secondary"
-                                            url={identifier.url}
-                                            labelFromURL={true}
-                                        />
-                                    ))}
+                                    .map(identifier => {
+                                        const url =
+                                            identifier.url ?? identifier.subjectOf?.url;
+
+                                        return (
+                                            <LogoURLButton
+                                                key={url?.toString()}
+                                                className={cx(
+                                                    fr.cx("fr-ml-4v", "fr-my-2v")
+                                                )}
+                                                priority="secondary"
+                                                url={url}
+                                                labelFromURL={true}
+                                            />
+                                        );
+                                    })}
                             </>
                         )}
                     </div>

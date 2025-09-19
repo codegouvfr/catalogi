@@ -62,6 +62,10 @@ const resolveLogoFromURL = (
         return resolveLogoFromType("Zenodo");
     }
 
+    if (urlString.includes("cnll")) {
+        return resolveLogoFromType("CNLL");
+    }
+
     return {
         URLlogo: undefined,
         textFromURL: undefined
@@ -137,6 +141,12 @@ const resolveLogoFromType = (
                 ),
                 textFromURL: "Zenodo"
             };
+        case "CNLL":
+            return {
+                URLlogo: new URL("https://cnll.fr/static/img/logo-cnll.svg"),
+                textFromURL: "CNLL"
+            };
+
         default:
             sourceType satisfies never;
             return {
@@ -201,3 +211,16 @@ const useStyles = tss.withName({ LogoURLButton }).create({
         marginLeft: "7px"
     }
 });
+
+const yo = [
+    {
+        "@type": "PropertyValue",
+        value: "93",
+        subjectOf: {
+            url: "https://cnll.fr/",
+            name: "Union des entreprises du logiciel libre et du numérique ouvert",
+            "@type": "Website",
+            additionalType: "cnll"
+        }
+    }
+];
