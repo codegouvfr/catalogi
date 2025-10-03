@@ -14,7 +14,7 @@ export const createPgInstanceRepository = (db: Kysely<Database>): InstanceReposi
         const { mainSoftwareSillId, organization, targetAudience, instanceUrl, isPublic, ...rest } = formData;
         assert<Equals<typeof rest, {}>>();
 
-        const now = Date.now();
+        const now = new Date();
         const { instanceId } = await db
             .insertInto("instances")
             .values({
@@ -35,7 +35,7 @@ export const createPgInstanceRepository = (db: Kysely<Database>): InstanceReposi
         const { mainSoftwareSillId, organization, targetAudience, instanceUrl, isPublic, ...rest } = formData;
         assert<Equals<typeof rest, {}>>();
 
-        const now = Date.now();
+        const now = new Date();
         await db
             .updateTable("instances")
             .set({

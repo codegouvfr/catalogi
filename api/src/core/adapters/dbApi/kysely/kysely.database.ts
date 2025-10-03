@@ -115,8 +115,8 @@ type InstancesTable = {
     instanceUrl: string | null;
     isPublic: boolean;
     addedByUserId: number;
-    referencedSinceTime: number;
-    updateTime: number;
+    referencedSinceTime: Date;
+    updateTime: Date;
 };
 
 type ExternalId = string;
@@ -157,7 +157,7 @@ export type SoftwareExternalDatasTable = {
     referencePublications: JSONColumnType<ScholarlyArticle[]> | null;
     publicationTime: Date | null;
     identifiers: JSONColumnType<SchemaIdentifier[]> | null;
-    lastDataFetchAt: number | null;
+    lastDataFetchAt: Date | null;
     providers: JSONColumnType<Array<SchemaOrganization>> | null;
 };
 
@@ -173,8 +173,8 @@ type SoftwaresTable = {
     id: Generated<number>;
     name: string;
     description: string;
-    referencedSinceTime: number;
-    updateTime: number;
+    referencedSinceTime: Date;
+    updateTime: Date;
     dereferencing: JSONColumnType<{
         reason?: string;
         time: number;

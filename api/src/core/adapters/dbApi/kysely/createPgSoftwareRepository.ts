@@ -52,7 +52,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             assert<Equals<typeof rest, {}>>();
 
-            const now = Date.now();
+            const now = new Date();
 
             return db.transaction().execute(async trx => {
                 const { softwareId } = await trx
@@ -106,7 +106,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             assert<Equals<typeof rest, {}>>();
 
-            const now = Date.now();
+            const now = new Date();
             await db
                 .updateTable("softwares")
                 .set({

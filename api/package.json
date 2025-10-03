@@ -9,8 +9,6 @@
     "main": "dist/src/lib/index.js",
     "types": "dist/src/lib/index.d.ts",
     "scripts": {
-        "migrate": "dotenv -e ../.env -- kysely migrate",
-        "db:up": "yarn migrate latest",
         "test": "vitest --watch=false --no-file-parallelism",
         "dev": "yarn build && yarn start",
         "generate-translation-schema": "node scripts/generate-translation-schema.js",
@@ -27,6 +25,8 @@
         "link-in-web": "ts-node --skipProject scripts/link-in-app.ts sill-web",
         "db:seed": "yarn build && dotenv -e ../.env -- node dist/scripts/seed.js",
         "typecheck": "tsc --noEmit",
+        "migrate": "dotenv -e ../.env -- kysely migrate",
+        "db:up": "yarn migrate latest",
         "dev:db:up": "docker compose -f ../docker-compose.resources.yml up -d",
         "dev:db:down": "docker compose -f ../docker-compose.resources.yml down",
         "dev:db:flush": "rm -rf ../docker-data",

@@ -5,12 +5,11 @@
 import { Kysely } from "kysely";
 import { DatabaseDataType, PopulatedExternalData, SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
 import { Database, DatabaseRowOutput } from "./kysely.database";
-import { stripNullOrUndefinedValues, transformNullToUndefined, parseBigIntToNumber } from "./kysely.utils";
+import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeArrays } from "../../../utils";
 import merge from "deepmerge";
 
-const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) =>
-    transformNullToUndefined(parseBigIntToNumber(row, ["lastDataFetchAt"]));
+const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) => transformNullToUndefined(row);
 
 const mergeExternalData = (externalData: PopulatedExternalData[]) => {
     if (externalData.length === 0) return undefined;
@@ -113,9 +112,9 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
         let request = db.selectFrom("software_external_datas").select(["externalId", "sourceSlug"]);
 
         if (minuteSkipSince) {
-            const dateNum = new Date().valueOf() - minuteSkipSince * 1000 * 60;
+            const thresholdDate = new Date(Date.now() - minuteSkipSince * 1000 * 60);
             request = request.where(eb =>
-                eb.or([eb("lastDataFetchAt", "is", null), eb("lastDataFetchAt", "<", dateNum)])
+                eb.or([eb("lastDataFetchAt", "is", null), eb("lastDataFetchAt", "<", thresholdDate)])
             );
         }
 
@@ -216,7 +215,7 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .select(["s.kind", "s.priority", "s.url", "s.slug"])
             .where("softwareId", "=", softwareId)
             .execute();
-        const cleanResult = result.map(row => transformNullToUndefined(parseBigIntToNumber(row, ["lastDataFetchAt"])));
+        const cleanResult = result.map(row => transformNullToUndefined(row));
 
         if (!cleanResult) return undefined;
 

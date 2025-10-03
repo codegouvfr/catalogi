@@ -84,7 +84,7 @@ describe("Create software - Trying all the cases", () => {
             "license": "MIT",
             "logoUrl": "https://example.com/logo.png",
             "name": "Create react app",
-            "referencedSinceTime": expect.any(String), // To format
+            "referencedSinceTime": expect.any(Date),
             "softwareType": {
                 "type": "stack"
             },

@@ -85,7 +85,7 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
             await dbApi.softwareExternalData.update({
                 sourceSlug: source.slug,
                 externalId: externalId,
-                lastDataFetchAt: Date.now(),
+                lastDataFetchAt: new Date(),
                 softwareExternalData: externalData,
                 ...(actualExternalDataRow?.softwareId ? { softwareId: actualExternalDataRow.softwareId } : {})
             });

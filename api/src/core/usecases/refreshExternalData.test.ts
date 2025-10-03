@@ -64,8 +64,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             generalInfoMd: null,
             addedByUserId: userId,
             dereferencing: null,
-            referencedSinceTime: 1728462232094,
-            updateTime: 1728462232094
+            referencedSinceTime: new Date(1728462232094),
+            updateTime: new Date(1728462232094)
         })
         .execute();
 
@@ -104,8 +104,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             generalInfoMd: null,
             addedByUserId: userId,
             dereferencing: null,
-            referencedSinceTime: 1514764800000,
-            updateTime: 1514764800000
+            referencedSinceTime: new Date(1514764800000),
+            updateTime: new Date(1514764800000)
         })
         .execute();
 
@@ -266,7 +266,7 @@ describe("fetches software extra data (from different providers)", () => {
                     ],
                     softwareVersion: "5.0.1",
                     publicationTime: new Date("2022-04-12T00:00:00.000Z"),
-                    lastDataFetchAt: expect.any(Number),
+                    lastDataFetchAt: expect.any(Date),
                     providers: []
                 },
                 {
@@ -316,7 +316,7 @@ describe("fetches software extra data (from different providers)", () => {
                     ],
                     softwareVersion: expect.any(String),
                     publicationTime: expect.any(Date),
-                    lastDataFetchAt: expect.any(Number),
+                    lastDataFetchAt: expect.any(Date),
                     providers: []
                 }
             ]);
@@ -413,7 +413,7 @@ describe("fetches software extra data (from different providers)", () => {
                     programmingLanguages: ["C"],
                     softwareVersion: "2.5.0-alpha",
                     publicationTime: new Date("2017-11-08T00:00:00.000Z"),
-                    lastDataFetchAt: expect.any(Number),
+                    lastDataFetchAt: expect.any(Date),
                     providers: []
                 },
                 emptyExternalDataCleaned({
