@@ -60,7 +60,11 @@ export function createRouter(params: {
             const durationMs = Date.now() - start;
             const meta = { "path": opts.path, "type": opts.type, durationMs };
 
-            result.ok ? console.log("OK request timing:", meta) : console.error("Non-OK request timing", meta);
+            if (result.ok) {
+                console.log("OK request timing:", meta);
+            } else {
+                console.error("Non-OK request timing", { meta, error: result.error });
+            }
 
             return result;
         })
