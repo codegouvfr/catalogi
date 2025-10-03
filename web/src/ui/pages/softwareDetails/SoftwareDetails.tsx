@@ -258,7 +258,8 @@ export default function SoftwareDetails(props: Props) {
                                           )
                                       }
                                   ]),
-                            ...(software.referencePublications === undefined
+                            ...(software.referencePublications === undefined ||
+                            software.referencePublications.length === 0
                                 ? []
                                 : [
                                       {
