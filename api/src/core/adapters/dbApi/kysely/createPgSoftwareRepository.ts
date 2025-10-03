@@ -184,19 +184,21 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 }));
             });
 
-            await db
-                .insertInto("software_external_datas")
-                .values(
-                    dataToInsert.map(({ similarExternalId, sourceSlug }) => ({
-                        externalId: similarExternalId,
-                        sourceSlug,
-                        label: JSON.stringify(""),
-                        description: JSON.stringify(""),
-                        developers: JSON.stringify([])
-                    }))
-                )
-                .onConflict(oc => oc.doNothing())
-                .execute();
+            if (dataToInsert.length > 0) {
+                await db
+                    .insertInto("software_external_datas")
+                    .values(
+                        dataToInsert.map(({ similarExternalId, sourceSlug }) => ({
+                            externalId: similarExternalId,
+                            sourceSlug,
+                            label: JSON.stringify(""),
+                            description: JSON.stringify(""),
+                            developers: JSON.stringify([])
+                        }))
+                    )
+                    .onConflict(oc => oc.doNothing())
+                    .execute();
+            }
 
             await db.transaction().execute(async trx => {
                 await trx
@@ -208,11 +210,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     )
                     .execute();
 
-                await trx
-                    .insertInto("softwares__similar_software_external_datas")
-                    .values(dataToInsert)
-                    .onConflict(oc => oc.columns(["softwareId", "sourceSlug", "similarExternalId"]).doNothing())
-                    .execute();
+                if (dataToInsert.length > 0) {
+                    await trx
+                        .insertInto("softwares__similar_software_external_datas")
+                        .values(dataToInsert)
+                        .onConflict(oc => oc.columns(["softwareId", "sourceSlug", "similarExternalId"]).doNothing())
+                        .execute();
+                }
             });
         },
         getSimilarSoftwareExternalDataPks: async ({ softwareId }) => {

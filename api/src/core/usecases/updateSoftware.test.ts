@@ -142,5 +142,21 @@ describe("Create software, than updates it adding a similar software", () => {
             { sourceSlug: testSource.slug, externalId: "Q111590996", softwareId: undefined },
             { sourceSlug: testSource.slug, externalId: "Q56062435", softwareId: undefined }
         ]);
+
+        // than update the software again, removing all similar software:
+        const formDataWithNoSimilarSoftware: SoftwareFormData = {
+            ...craSoftwareFormData,
+            similarSoftwareExternalDataIds: []
+        };
+        await updateSoftware({
+            formData: formDataWithNoSimilarSoftware,
+            softwareId: craSoftwareId,
+            userId
+        });
+
+        const finalSimilarSofts = await dbApi.software.getSimilarSoftwareExternalDataPks({
+            softwareId: craSoftwareId
+        });
+        expectToMatchObject(finalSimilarSofts, []);
     });
 });
