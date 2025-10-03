@@ -20,7 +20,10 @@ export const protectedThunks = {
 
 export const thunks = {
     login: () => async () => {
-        window.location.href = `${apiUrl}/auth/login`;
+        const currentUrl =
+            window.location.pathname + window.location.search + window.location.hash;
+        const redirectUrl = encodeURIComponent(`${window.location.origin}${currentUrl}`);
+        window.location.href = `${apiUrl}/auth/login?redirectUrl=${redirectUrl}`;
     },
     logout: () => async () => {
         window.location.href = `${apiUrl}/auth/logout`;
