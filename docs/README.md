@@ -24,8 +24,11 @@ Use the sidebar on the left to navigate through the complete documentation:
 ### Getting Started
 - **[Getting Started](2-getting-started.md)** - Set up and run Catalogi locally for development
 
-### Deployment Guides  
-- **[Setting up Keycloak](3-setup-a-keycloak.md)** - Authentication setup with Keycloak
+### Authentication
+- **[Authentication (OIDC)](3.1-authentication.md)** - Configure authentication with any OIDC provider
+- **[Setting up Keycloak](3.2-setup-a-keycloak.md)** - Detailed Keycloak setup guide
+
+### Deployment Guides
 - **[Deploying with Docker Compose](4-deploying-with-docker-compose.md)** - Production deployment using Docker Compose
 - **[Deploying with Kubernetes](5-deploying-with-kubernetes.md)** - Scalable deployment with Kubernetes
 - **[Environment Variables and Customization](6-env-variables-and-customization.md)** - Configuration options and customization
