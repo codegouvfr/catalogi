@@ -11,6 +11,7 @@ import { createPgSessionRepository } from "./createPgSessionRepository";
 import { createPgSoftwareExternalDataRepository } from "./createPgSoftwareExternalDataRepository";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 import { createPgSourceRepository } from "./createPgSourceRepository";
+import { createPgAttributeDefinitionRepository } from "./createPgAttributeDefinitionRepository";
 import {
     createPgSoftwareReferentRepository,
     createPgSoftwareUserRepository
@@ -27,6 +28,7 @@ export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
         softwareReferent: createPgSoftwareReferentRepository(db),
         softwareUser: createPgSoftwareUserRepository(db),
         session: createPgSessionRepository(db),
+        attributeDefinition: createPgAttributeDefinitionRepository(db),
         getCompiledDataPrivate: createGetCompiledData(db)
     };
 };

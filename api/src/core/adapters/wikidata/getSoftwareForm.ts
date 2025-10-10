@@ -70,9 +70,7 @@ export const getWikidataForm: GetSoftwareFormData = async ({
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: `https://upload.wikimedia.org/wikipedia/commons/6/69/${logoName?.replace(" ", "_") ?? ""}`,
             softwareKeywords: [],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: false
+            customAttributes: undefined
         };
     } catch (error) {
         console.error(`Error for ${externalId} : `, error);

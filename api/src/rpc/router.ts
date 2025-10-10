@@ -97,7 +97,10 @@ export function createRouter(params: {
             })()
         ),
         "getOidcManageProfileUrl": loggedProcedure.query(() => oidcParams.manageProfileUrl),
-        "getUiConfig": loggedProcedure.query(() => uiConfig),
+        "getUiConfig": loggedProcedure.query(async () => ({
+            uiConfig,
+            attributeDefinitions: await dbApi.attributeDefinition.getAll()
+        })),
         "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
         "getSoftwares": loggedProcedure.query(() => {
             return useCases.getPopulateSoftware();
@@ -445,7 +448,7 @@ const zOs = z.enum(["windows", "linux", "mac", "android", "ios"]);
 }
 
 const zSoftwareFormData = (() => {
-    const zOut = z.object({
+    const zOut: z.ZodType<OptionalIfCanBeUndefined<SoftwareFormData>> = z.object({
         "softwareType": zSoftwareType,
         "externalIdForSource": z.string().optional(),
         "sourceSlug": z.string(),
@@ -453,20 +456,11 @@ const zSoftwareFormData = (() => {
         "softwareDescription": z.string(),
         "softwareLicense": z.string(),
         "softwareMinimalVersion": z.string().optional(),
-        "isPresentInSupportContract": z.boolean(),
-        "isFromFrenchPublicService": z.boolean(),
         "similarSoftwareExternalDataIds": z.array(z.string()),
         "softwareLogoUrl": z.string().optional(),
         "softwareKeywords": z.array(z.string()),
-        "doRespectRgaa": z.boolean().or(z.null())
+        "customAttributes": z.record(z.string(), z.any()).optional()
     });
-
-    {
-        type Got = ReturnType<(typeof zOut)["parse"]>;
-        type Expected = OptionalIfCanBeUndefined<SoftwareFormData>;
-
-        assert<Equals<Got, Expected>>();
-    }
 
     return zOut as z.ZodType<SoftwareFormData>;
 })();

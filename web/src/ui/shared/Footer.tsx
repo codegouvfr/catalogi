@@ -20,7 +20,7 @@ export type Props = {
 export const Footer = memo(
     forwardRef<HTMLDivElement, Props>((props, ref) => {
         const { className, version, ...rest } = props;
-        const uiConfig = useCoreState("uiConfig", "main");
+        const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
 
         assert<Equals<typeof rest, {}>>();
 

@@ -35,9 +35,6 @@ export namespace CompiledData {
             | "updateTime"
             | "dereferencing"
             | "isStillInObservation"
-            | "doRespectRgaa"
-            | "isFromFrenchPublicService"
-            | "isPresentInSupportContract"
             | "license"
             | "softwareType"
             | "versionMin"
@@ -48,6 +45,7 @@ export namespace CompiledData {
             | "keywords"
             | "externalId"
             | "sourceSlug"
+            | "customAttributes"
         > & {
             serviceProviders: ServiceProvider[];
             softwareExternalData: SoftwareExternalData | undefined;
@@ -93,11 +91,9 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             categories,
             dereferencing,
             description,
-            doRespectRgaa,
+            customAttributes,
             generalInfoMd,
             id,
-            isFromFrenchPublicService,
-            isPresentInSupportContract,
             isStillInObservation,
             keywords,
             license,
@@ -119,11 +115,9 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             categories,
             dereferencing,
             description,
-            doRespectRgaa,
+            customAttributes,
             generalInfoMd,
             id,
-            isFromFrenchPublicService,
-            isPresentInSupportContract,
             isStillInObservation,
             keywords,
             license,

@@ -14,6 +14,7 @@ import type { Equals } from "tsafe";
 import { exclude } from "tsafe/exclude";
 import type { ApiTypes } from "api";
 import { createResolveLocalizedString } from "i18nifty";
+import { LocalizedString } from "../../../ui/i18n";
 import { name, type State } from "./state";
 import { selectors as uiConfigSelectors } from "../uiConfig.slice";
 
@@ -26,7 +27,8 @@ const organization = (rootState: RootState) => rootState[name].organization;
 const category = (rootState: RootState) => rootState[name].category;
 const programmingLanguage = (rootState: RootState) => rootState[name].programmingLanguage;
 const environment = (rootState: RootState) => rootState[name].environment;
-const prerogatives = (rootState: RootState) => rootState[name].prerogatives;
+const filteredAttributeNames = (rootState: RootState) =>
+    rootState[name].filteredAttributeNames;
 const userEmail = (rootState: RootState) => rootState[name].userEmail;
 
 const sortOptions = createSelector(
@@ -34,7 +36,8 @@ const sortOptions = createSelector(
     sort,
     userEmail,
     uiConfigSelectors.main,
-    (searchResults, sort, userEmail, uiConfig): State.Sort[] => {
+    (searchResults, sort, userEmail, ui): State.Sort[] => {
+        const uiConfig = ui?.uiConfig;
         const sorts: State.Sort[] = [
             ...(searchResults !== undefined || sort === "best_match"
                 ? ["best_match" as const]
@@ -73,7 +76,7 @@ const softwares = createSelector(
     category,
     programmingLanguage,
     environment,
-    prerogatives,
+    filteredAttributeNames,
     (
         internalSoftwares,
         searchResults,
@@ -82,7 +85,7 @@ const softwares = createSelector(
         category,
         programmingLanguage,
         environment,
-        prerogatives
+        filteredAttributeNames
     ) => {
         let tmpSoftwares = internalSoftwares;
 
@@ -131,10 +134,10 @@ const softwares = createSelector(
             });
         }
 
-        for (const prerogative of prerogatives) {
-            tmpSoftwares = filterByPrerogative({
+        for (const attributeName of filteredAttributeNames) {
+            tmpSoftwares = filterByAttributeName({
                 softwares: tmpSoftwares,
-                prerogative
+                attributeName
             });
         }
 
@@ -225,14 +228,14 @@ const organizationOptions = createSelector(
     category,
     programmingLanguage,
     environment,
-    prerogatives,
+    filteredAttributeNames,
     (
         internalSoftwares,
         searchResults,
         category,
         programmingLanguage,
         environment,
-        prerogatives
+        filteredAttributeNames
     ): { organization: string; softwareCount: number }[] => {
         const softwareCountInCurrentFilterByOrganization = Object.fromEntries(
             Array.from(
@@ -274,10 +277,10 @@ const organizationOptions = createSelector(
             });
         }
 
-        for (const prerogative of prerogatives) {
-            tmpSoftwares = filterByPrerogative({
+        for (const attributeName of filteredAttributeNames) {
+            tmpSoftwares = filterByAttributeName({
                 softwares: tmpSoftwares,
-                prerogative
+                attributeName
             });
         }
 
@@ -310,14 +313,14 @@ const categoryOptions = createSelector(
     organization,
     programmingLanguage,
     environment,
-    prerogatives,
+    filteredAttributeNames,
     (
         internalSoftwares,
         searchResults,
         organization,
         programmingLanguage,
         environment,
-        prerogatives
+        filteredAttributeNames
     ): { category: string; softwareCount: number }[] => {
         const softwareCountInCurrentFilterByCategory = Object.fromEntries(
             Array.from(
@@ -359,10 +362,10 @@ const categoryOptions = createSelector(
             });
         }
 
-        for (const prerogative of prerogatives) {
-            tmpSoftwares = filterByPrerogative({
+        for (const attributeName of filteredAttributeNames) {
+            tmpSoftwares = filterByAttributeName({
                 softwares: tmpSoftwares,
-                prerogative
+                attributeName
             });
         }
 
@@ -388,14 +391,14 @@ const environmentOptions = createSelector(
     organization,
     category,
     programmingLanguage,
-    prerogatives,
+    filteredAttributeNames,
     (
         internalSoftwares,
         searchResults,
         organization,
         category,
         programmingLanguage,
-        prerogatives
+        filteredAttributeNames
     ): { environment: State.Environment; softwareCount: number }[] => {
         const softwareCountInCurrentFilterByEnvironment = new Map(
             Array.from(
@@ -455,10 +458,10 @@ const environmentOptions = createSelector(
             });
         }
 
-        for (const prerogative of prerogatives) {
-            tmpSoftwares = filterByPrerogative({
+        for (const attributeName of filteredAttributeNames) {
+            tmpSoftwares = filterByAttributeName({
                 softwares: tmpSoftwares,
-                prerogative
+                attributeName
             });
         }
 
@@ -498,14 +501,15 @@ const environmentOptions = createSelector(
     }
 );
 
-const prerogativeFilterOptions = createSelector(
+const attributeNameFilterOptions = createSelector(
     internalSoftwares,
     searchResults,
     organization,
     category,
     programmingLanguage,
     environment,
-    prerogatives,
+    filteredAttributeNames,
+    uiConfigSelectors.main,
     (
         internalSoftwares,
         searchResults,
@@ -513,23 +517,29 @@ const prerogativeFilterOptions = createSelector(
         category,
         programmingLanguage,
         environment,
-        prerogatives
-    ): { prerogative: State.Prerogative; softwareCount: number }[] => {
-        const softwareCountInCurrentFilterByPrerogative = new Map(
+        filteredAttributeNames,
+        ui
+    ): {
+        attributeName: State.AttributeName;
+        attributeLabel: LocalizedString;
+        softwareCount: number;
+    }[] => {
+        const softwareCountInCurrentFilterByAttributeName = new Map(
             [
                 ...Array.from(
                     new Set(
                         internalSoftwares
-                            .map(({ prerogatives }) =>
-                                objectKeys(prerogatives).filter(
-                                    prerogative => prerogatives[prerogative]
-                                )
-                            )
+                            .map(({ customAttributes }) => {
+                                if (!customAttributes) return [];
+                                return objectKeys(customAttributes).filter(
+                                    attributeName => customAttributes[attributeName]
+                                );
+                            })
                             .reduce((prev, curr) => [...prev, ...curr], [])
                     )
                 ),
                 "isInstallableOnUserComputer" as const
-            ].map(prerogative => [prerogative, id<number>(0)] as const)
+            ].map(attributeName => [attributeName, id<number>(0)] as const)
         );
 
         let tmpSoftwares = internalSoftwares;
@@ -569,30 +579,31 @@ const prerogativeFilterOptions = createSelector(
             });
         }
 
-        for (const prerogative of prerogatives) {
-            tmpSoftwares = filterByPrerogative({
+        for (const attributeName of filteredAttributeNames) {
+            tmpSoftwares = filterByAttributeName({
                 softwares: tmpSoftwares,
-                prerogative
+                attributeName
             });
         }
 
-        tmpSoftwares.forEach(({ prerogatives, softwareType }) => {
-            objectKeys(prerogatives)
-                .filter(prerogative => prerogatives[prerogative])
-                .forEach(prerogative => {
+        tmpSoftwares.forEach(({ customAttributes, softwareType }) => {
+            if (!customAttributes) return;
+            objectKeys(customAttributes)
+                .filter(attributeName => customAttributes[attributeName])
+                .forEach(attributeName => {
                     const currentCount =
-                        softwareCountInCurrentFilterByPrerogative.get(prerogative);
+                        softwareCountInCurrentFilterByAttributeName.get(attributeName);
 
                     assert(currentCount !== undefined);
 
-                    softwareCountInCurrentFilterByPrerogative.set(
-                        prerogative,
+                    softwareCountInCurrentFilterByAttributeName.set(
+                        attributeName,
                         currentCount + 1
                     );
                 });
 
-            (["isInstallableOnUserComputer"] as const).forEach(prerogativeName => {
-                switch (prerogativeName) {
+            (["isInstallableOnUserComputer"] as const).forEach(attributeName => {
+                switch (attributeName) {
                     case "isInstallableOnUserComputer":
                         if (softwareType.type !== "desktop/mobile") {
                             return;
@@ -601,21 +612,28 @@ const prerogativeFilterOptions = createSelector(
                 }
 
                 const currentCount =
-                    softwareCountInCurrentFilterByPrerogative.get(prerogativeName);
+                    softwareCountInCurrentFilterByAttributeName.get(attributeName);
 
                 assert(currentCount !== undefined);
 
-                softwareCountInCurrentFilterByPrerogative.set(
-                    prerogativeName,
+                softwareCountInCurrentFilterByAttributeName.set(
+                    attributeName,
                     currentCount + 1
                 );
             });
         });
 
+        const getLabel = (attributeName: string) =>
+            ui?.attributeDefinitions.find(({ name }) => attributeName === name)?.label;
+
         /** prettier-ignore */
-        return Array.from(softwareCountInCurrentFilterByPrerogative.entries()).map(
-            ([prerogative, softwareCount]) => ({ prerogative, softwareCount })
-        );
+        return Array.from(softwareCountInCurrentFilterByAttributeName.entries())
+            .filter(([attributeName]) => getLabel(attributeName) !== undefined)
+            .map(([attributeName, softwareCount]) => ({
+                attributeName,
+                attributeLabel: getLabel(attributeName)!,
+                softwareCount
+            }));
     }
 );
 
@@ -625,14 +643,14 @@ const programmingLanguageOptions = createSelector(
     organization,
     category,
     environment,
-    prerogatives,
+    filteredAttributeNames,
     (
         internalSoftwares,
         searchResults,
         organization,
         category,
         environment,
-        prerogatives
+        filteredAttributeNames
     ): { programmingLanguage: string; softwareCount: number }[] => {
         const softwareCountInCurrentFilterByProgrammingLanguage = Object.fromEntries(
             Array.from(
@@ -674,10 +692,10 @@ const programmingLanguageOptions = createSelector(
             });
         }
 
-        for (const prerogative of prerogatives) {
-            tmpSoftwares = filterByPrerogative({
+        for (const attributeName of filteredAttributeNames) {
+            tmpSoftwares = filterByAttributeName({
                 softwares: tmpSoftwares,
-                prerogative
+                attributeName
             });
         }
 
@@ -707,7 +725,7 @@ const main = createSelector(
     categoryOptions,
     environmentOptions,
     programmingLanguageOptions,
-    prerogativeFilterOptions,
+    attributeNameFilterOptions,
     (
         softwares,
         sortOptions,
@@ -715,7 +733,7 @@ const main = createSelector(
         categoryOptions,
         environmentOptions,
         programmingLanguageOptions,
-        prerogativeFilterOptions
+        attributeNameFilterOptions
     ) => ({
         softwares,
         sortOptions,
@@ -723,7 +741,7 @@ const main = createSelector(
         categoryOptions,
         environmentOptions,
         programmingLanguageOptions,
-        prerogativeFilterOptions
+        attributeNameFilterOptions
     })
 );
 
@@ -813,11 +831,11 @@ function filterByEnvironnement(params: {
     });
 }
 
-function filterByPrerogative(params: {
+function filterByAttributeName(params: {
     softwares: State.Software.Internal[];
-    prerogative: State.Prerogative;
+    attributeName: State.AttributeName;
 }) {
-    const { softwares, prerogative } = params;
+    const { softwares, attributeName } = params;
 
     return softwares.filter(
         software =>
@@ -825,9 +843,9 @@ function filterByPrerogative(params: {
                 ...internalSoftwareToExternalSoftware({
                     internalSoftware: software,
                     positions: undefined
-                }).prerogatives,
-                ...software.prerogatives
-            })[prerogative]
+                }).customAttributes,
+                ...software.customAttributes
+            })[attributeName]
     );
 }
 
@@ -865,7 +883,7 @@ function apiSoftwareToInternalSoftware(params: {
         addedTime,
         updateTime,
         applicationCategories,
-        prerogatives,
+        customAttributes,
         softwareType,
         userAndReferentCountByOrganization,
         similarSoftwares,
@@ -876,7 +894,10 @@ function apiSoftwareToInternalSoftware(params: {
     } = apiSoftware;
 
     assert<
-        Equals<ApiTypes.Software["prerogatives"], State.Software.Internal["prerogatives"]>
+        Equals<
+            ApiTypes.Software["customAttributes"],
+            State.Software.Internal["customAttributes"]
+        >
     >();
 
     const { resolveLocalizedString } = createResolveLocalizedString({
@@ -903,7 +924,7 @@ function apiSoftwareToInternalSoftware(params: {
         applicationCategories,
         organizations: objectKeys(userAndReferentCountByOrganization),
         softwareType,
-        prerogatives,
+        customAttributes,
         search: (() => {
             const search =
                 softwareName +
@@ -962,16 +983,12 @@ function internalSoftwareToExternalSoftware(params: {
         updateTime,
         applicationCategories,
         organizations,
-        prerogatives: {
-            isFromFrenchPublicServices,
-            isPresentInSupportContract,
-            doRespectRgaa
-        },
         search,
         softwareType,
         userDeclaration,
         programmingLanguages,
         referencePublications,
+        customAttributes,
         ...rest
     } = internalSoftware;
 
@@ -984,11 +1001,8 @@ function internalSoftwareToExternalSoftware(params: {
         latestVersion,
         referentCount,
         userCount,
-        prerogatives: {
-            isFromFrenchPublicServices,
-            isPresentInSupportContract,
-            doRespectRgaa,
-            isInstallableOnUserComputer:
+        supportedPlatforms: {
+            hasDesktopApp:
                 softwareType.type === "desktop/mobile" &&
                 (softwareType.os.windows || softwareType.os.linux || softwareType.os.mac),
             isAvailableAsMobileApp:
@@ -1005,7 +1019,8 @@ function internalSoftwareToExternalSoftware(params: {
         userDeclaration,
         programmingLanguages,
         applicationCategories,
-        referencePublications
+        referencePublications,
+        customAttributes
     };
 }
 

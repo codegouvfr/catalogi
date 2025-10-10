@@ -228,7 +228,7 @@ function apiSoftwareToInternalSoftware(params: {
         addedTime,
         updateTime,
         applicationCategories,
-        prerogatives,
+        customAttributes,
         softwareType,
         userAndReferentCountByOrganization,
         similarSoftwares,
@@ -238,7 +238,10 @@ function apiSoftwareToInternalSoftware(params: {
     } = apiSoftware;
 
     assert<
-        Equals<ApiTypes.Software["prerogatives"], State.Software.Internal["prerogatives"]>
+        Equals<
+            ApiTypes.Software["customAttributes"],
+            State.Software.Internal["customAttributes"]
+        >
     >();
 
     const { resolveLocalizedString } = createResolveLocalizedString({
@@ -265,7 +268,7 @@ function apiSoftwareToInternalSoftware(params: {
         applicationCategories,
         organizations: objectKeys(userAndReferentCountByOrganization),
         softwareType,
-        prerogatives,
+        customAttributes,
         search: (() => {
             const search =
                 softwareName +

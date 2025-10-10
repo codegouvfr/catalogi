@@ -16,6 +16,7 @@ import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useWindowInnerSize } from "powerhooks/useWindowInnerSize";
 import { useBreakpointsValues } from "@codegouvfr/react-dsfr/useBreakpointsValues";
 import { SelectNext } from "ui/shared/SelectNext";
+import { LocalizedString } from "../../i18n";
 
 export type Props = {
     className?: string;
@@ -62,12 +63,13 @@ export type Props = {
         environmentsFilter: SoftwareCatalogState.Environment | undefined
     ) => void;
 
-    prerogativesOptions: {
-        prerogative: SoftwareCatalogState.Prerogative;
+    attributeOptions: {
+        attributeName: SoftwareCatalogState.AttributeName;
+        attributeLabel: LocalizedString;
         softwareCount: number;
     }[];
-    prerogatives: SoftwareCatalogState.Prerogative[];
-    onPrerogativesChange: (prerogatives: SoftwareCatalogState.Prerogative[]) => void;
+    attributeNames: SoftwareCatalogState.AttributeName[];
+    onAttributeNameChange: (attribuetNames: SoftwareCatalogState.AttributeName[]) => void;
 };
 
 export function SoftwareCatalogControlled(props: Props) {
@@ -89,9 +91,9 @@ export function SoftwareCatalogControlled(props: Props) {
         environmentOptions,
         environment,
         onEnvironmentChange,
-        prerogativesOptions,
-        prerogatives,
-        onPrerogativesChange,
+        attributeOptions,
+        attributeNames,
+        onAttributeNameChange,
         programmingLanguageOptions,
         programmingLanguage,
         onProgrammingLanguageChange,
@@ -117,9 +119,9 @@ export function SoftwareCatalogControlled(props: Props) {
                 environmentOptions={environmentOptions}
                 environment={environment}
                 onEnvironmentChange={onEnvironmentChange}
-                prerogativesOptions={prerogativesOptions}
-                prerogatives={prerogatives}
-                onPrerogativesChange={onPrerogativesChange}
+                attributeNames={attributeNames}
+                attributeOptions={attributeOptions}
+                onAttributeNamesChange={onAttributeNameChange}
                 programmingLanguage={programmingLanguage}
                 programmingLanguageOptions={programmingLanguageOptions}
                 onProgrammingLanguageChange={onProgrammingLanguageChange}

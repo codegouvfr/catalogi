@@ -115,10 +115,7 @@ const amdSoftwareForm = {
     softwareMinimalVersion: undefined,
     similarSoftwareExternalDataIds: [],
     softwareLogoUrl: undefined,
-    softwareKeywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"],
-    isPresentInSupportContract: false,
-    isFromFrenchPublicService: false,
-    doRespectRgaa: null
+    softwareKeywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"]
 };
 
 const resultRequest = [

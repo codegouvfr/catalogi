@@ -19,7 +19,6 @@ export type {
     UserWithId,
     Instance,
     Os,
-    Prerogative,
     Software,
     SoftwareFormData,
     DeclarationFormData,
@@ -28,6 +27,13 @@ export type {
     ServiceProvider,
     Source
 } from "../core/usecases/readWriteSillData";
+
+export type {
+    CustomAttributes,
+    AttributeValue,
+    AttributeKind,
+    AttributeDefinition
+} from "../core/usecases/readWriteSillData/attributeTypes";
 
 export type { UiConfig, ConfigurableUseCaseName } from "../core/uiConfigSchema";
 

@@ -34,7 +34,7 @@ type Props = {
 
 export default function Home(props: Props) {
     const { className, route, ...rest } = props;
-    const uiConfig = useCoreState("uiConfig", "main")!;
+    const { uiConfig } = useCoreState("uiConfig", "main")!;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -75,7 +75,7 @@ export default function Home(props: Props) {
         {
             title: t("home.essential"),
             linkProps: routes.softwareCatalog({
-                prerogatives: ["isInstallableOnUserComputer"]
+                attributeNames: ["isInstallableOnUserComputer"]
             }).link
         },
         {
@@ -93,7 +93,7 @@ export default function Home(props: Props) {
         {
             title: t("home.inSupportMarket"),
             linkProps: routes.softwareCatalog({
-                prerogatives: ["isPresentInSupportContract"]
+                attributeNames: ["isPresentInSupportContract"]
             }).link
         }
     ];
@@ -510,7 +510,7 @@ const { WhatIsTheSillSection } = (() => {
 
     function WhatIsTheSillSection(props: Props) {
         const { className } = props;
-        const uiConfig = useCoreState("uiConfig", "main")!;
+        const { uiConfig } = useCoreState("uiConfig", "main")!;
 
         const [isVisible, setIsVisible] = useState(false);
 

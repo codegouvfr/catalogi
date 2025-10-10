@@ -9,6 +9,7 @@ import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
 import type { SoftwareExternalData } from "./GetSoftwareExternalData";
+import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
 
 export type WithUserId = { userId: number };
 
@@ -22,9 +23,7 @@ export type SoftwareExtrinsicRow = Pick<
     | "versionMin"
     | "dereferencing"
     | "isStillInObservation"
-    | "doRespectRgaa"
-    | "isFromFrenchPublicService"
-    | "isPresentInSupportContract"
+    | "customAttributes"
     | "softwareType"
     | "workshopUrls"
     | "categories"
@@ -212,6 +211,11 @@ export interface SessionRepository {
     deleteSessionsNotCompletedByUser: () => Promise<void>;
 }
 
+export interface AttributeDefinitionRepository {
+    getAll: () => Promise<AttributeDefinition[]>;
+    getByName: (name: string) => Promise<AttributeDefinition | undefined>;
+}
+
 export type DbApiV2 = {
     source: SourceRepository;
     software: SoftwareRepository;
@@ -221,5 +225,6 @@ export type DbApiV2 = {
     softwareReferent: SoftwareReferentRepository;
     softwareUser: SoftwareUserRepository;
     session: SessionRepository;
+    attributeDefinition: AttributeDefinitionRepository;
     getCompiledDataPrivate: () => Promise<CompiledData<"private">>;
 };

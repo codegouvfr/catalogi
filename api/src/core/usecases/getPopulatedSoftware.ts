@@ -136,10 +136,10 @@ type DataFromSofwareRow = Pick<
     | "license"
     | "keywords"
     | "softwareType"
-    | "prerogatives"
     | "dereferencing"
     | "sourceSlug"
     | "externalId"
+    | "customAttributes"
 >;
 const formatSoftwareRowToUISoftware = (
     software: DatabaseDataType.SoftwareRow
@@ -156,11 +156,7 @@ const formatSoftwareRowToUISoftware = (
         license: software.license,
         keywords: software.keywords,
         softwareType: software.softwareType,
-        prerogatives: {
-            isPresentInSupportContract: software.isPresentInSupportContract,
-            isFromFrenchPublicServices: software.isFromFrenchPublicService,
-            doRespectRgaa: software.doRespectRgaa ?? null
-        },
+        customAttributes: software.customAttributes,
         dereferencing: software.dereferencing
     };
 };

@@ -21,7 +21,7 @@ type Props = {
 export const Header = memo(
     forwardRef<HTMLDivElement, Props>((props, ref) => {
         const { className, routeName, userAuthenticationApi, ...rest } = props;
-        const uiConfig = useCoreState("uiConfig", "main");
+        const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
 
         assert<Equals<typeof rest, {}>>();
 

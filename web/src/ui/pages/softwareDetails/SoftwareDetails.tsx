@@ -39,7 +39,7 @@ export default function SoftwareDetails(props: Props) {
 
     const { softwareDetails, userAuthentication } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
-    const uiConfig = useCoreState("uiConfig", "main");
+    const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
 
     const { cx, classes } = useStyles();
 
@@ -125,24 +125,8 @@ export default function SoftwareDetails(props: Props) {
                                         serviceProviders={software.serviceProviders}
                                         softwareDescription={software.softwareDescription}
                                         license={software.license}
-                                        hasDesktopApp={
-                                            software.prerogatives
-                                                .isInstallableOnUserComputer
-                                        }
-                                        isAvailableAsMobileApp={
-                                            software.prerogatives.isAvailableAsMobileApp
-                                        }
-                                        isPresentInSupportMarket={
-                                            software.prerogatives
-                                                .isPresentInSupportContract
-                                        }
-                                        isFromFrenchPublicService={
-                                            software.prerogatives
-                                                .isFromFrenchPublicServices
-                                        }
-                                        isRGAACompliant={
-                                            software.prerogatives.doRespectRgaa
-                                        }
+                                        supportedPlatforms={software.supportedPlatforms}
+                                        customAttributes={software.customAttributes}
                                         minimalVersionRequired={software.versionMin}
                                         registerDate={software.addedTime}
                                         softwareDateCurrentVersion={

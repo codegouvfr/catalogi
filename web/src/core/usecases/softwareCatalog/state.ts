@@ -12,6 +12,11 @@ type OmitFromExisting<T, K extends keyof T> = Omit<T, K>;
 
 export const name = "softwareCatalog" as const;
 
+export type SupportedPlatforms = {
+    hasDesktopApp?: boolean;
+    isAvailableAsMobileApp?: boolean;
+};
+
 export type State = {
     softwares: State.Software.Internal[];
     search: string;
@@ -28,7 +33,7 @@ export type State = {
     category: string | undefined;
     programmingLanguage: string | undefined;
     environment: State.Environment | undefined;
-    prerogatives: State.Prerogative[];
+    filteredAttributeNames: State.AttributeName[];
     sortBackup: State.Sort;
     /** Undefined if user isn't logged in */
     userEmail: string | undefined;
@@ -55,14 +60,7 @@ export namespace State {
         | "android"
         | "ios";
 
-    type Prerogatives = {
-        isPresentInSupportContract: boolean;
-        isFromFrenchPublicServices: boolean;
-        doRespectRgaa: boolean | null;
-        isInstallableOnUserComputer: boolean;
-        isAvailableAsMobileApp: boolean;
-    };
-    export type Prerogative = keyof Prerogatives;
+    export type AttributeName = string;
 
     export namespace Software {
         type Common = {
@@ -89,7 +87,8 @@ export namespace State {
         };
 
         export type External = Common & {
-            prerogatives: Prerogatives;
+            customAttributes: ApiTypes.CustomAttributes | undefined;
+            supportedPlatforms: SupportedPlatforms;
             searchHighlight:
                 | {
                       searchChars: string[];
@@ -102,10 +101,7 @@ export namespace State {
             addedTime: number;
             updateTime: number;
             organizations: string[];
-            prerogatives: OmitFromExisting<
-                Prerogatives,
-                "isInstallableOnUserComputer" | "isAvailableAsMobileApp"
-            >;
+            customAttributes: ApiTypes.CustomAttributes | undefined;
             softwareType: ApiTypes.SoftwareType;
             search: string;
         };
@@ -159,7 +155,7 @@ export const { reducer, actions } = createUsecaseActions({
                 category: undefined,
                 programmingLanguage: undefined,
                 environment: undefined,
-                prerogatives: [],
+                filteredAttributeNames: [],
                 referentCount: undefined,
                 isRemovingUserOrReferent: false,
                 userEmail
@@ -202,12 +198,11 @@ export const { reducer, actions } = createUsecaseActions({
             }
         },
         filterReset: state => {
-            state.prerogatives = [];
             state.organization = undefined;
             state.category = undefined;
             state.programmingLanguage = undefined;
             state.environment = undefined;
-            state.prerogatives = [];
+            state.filteredAttributeNames = [];
         }
     }
 });

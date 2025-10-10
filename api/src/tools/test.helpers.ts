@@ -54,12 +54,14 @@ export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
     softwareDescription: "Some software description",
     softwareLicense: "Some software license",
     softwareMinimalVersion: "1.0.0",
-    isPresentInSupportContract: true,
-    isFromFrenchPublicService: true,
     similarSoftwareExternalDataIds: ["some-external-id"],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["some", "keywords"],
-    doRespectRgaa: true
+    customAttributes: {
+        isPresentInSupportContract: true,
+        isFromFrenchPublicService: true,
+        doRespectRgaa: true
+    }
 });
 export const createInstanceFormData = makeObjectFactory<InstanceFormData>({
     organization: "Default organization",

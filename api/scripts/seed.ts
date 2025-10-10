@@ -71,9 +71,7 @@ const seed = async () => {
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: "https://react.dev/favicon.ico",
             softwareKeywords: ["javascript", "ui", "frontend", "library"],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: {}
         },
         {
             softwareName: "Git",
@@ -89,9 +87,7 @@ const seed = async () => {
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png",
             softwareKeywords: ["vcs", "version control", "git", "scm"],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: {}
         },
         {
             softwareName: "OpenOffice",
@@ -108,9 +104,7 @@ const seed = async () => {
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: "https://www.openoffice.org/images/AOO_logos/AOO_Logo_FullColor.svg",
             softwareKeywords: ["office", "suite", "word", "spreadsheet", "presentation"],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: {}
         },
         {
             softwareName: "VLC media player",
@@ -126,9 +120,7 @@ const seed = async () => {
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: "https://www.videolan.org/images/favicon.png",
             softwareKeywords: ["media", "player", "video", "audio", "vlc"],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: {}
         },
         {
             softwareName: "GIMP",
@@ -144,9 +136,7 @@ const seed = async () => {
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: "https://www.gimp.org/images/wilber-big.png",
             softwareKeywords: ["image", "editor", "graphics", "gimp"],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: {}
         },
         {
             softwareName: "Onyxia",
@@ -163,9 +153,7 @@ const seed = async () => {
             softwareLogoUrl:
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Onyxia.svg/250px-Onyxia.svg.png",
             softwareKeywords: ["hébergement", "hosting", "plateforme", "platform", "cloud", "nuage"],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: true,
-            doRespectRgaa: false
+            customAttributes: {}
         }
     ];
 

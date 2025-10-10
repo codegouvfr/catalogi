@@ -55,7 +55,7 @@ export const HeaderDetailCard = memo((props: Props) => {
         softwareDereferencing,
         ...rest
     } = props;
-    const uiConfig = useCoreState("uiConfig", "main")!;
+    const { uiConfig } = useCoreState("uiConfig", "main")!;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -133,7 +133,7 @@ export const HeaderDetailCard = memo((props: Props) => {
                                 </span>
                                 <span>
                                     {authors.map(author => (
-                                        <>
+                                        <React.Fragment key={author.name}>
                                             {(!uiConfig?.softwareDetails.authorCard ||
                                                 author["@type"] === "Organization" ||
                                                 (author["@type"] === "Person" &&
@@ -193,7 +193,7 @@ export const HeaderDetailCard = memo((props: Props) => {
                                                         </Popover>
                                                     </>
                                                 )}
-                                        </>
+                                        </React.Fragment>
                                     ))}
                                 </span>
                             </div>

@@ -29,12 +29,14 @@ const craSoftwareFormData = {
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
     softwareMinimalVersion: "1.0.0",
-    isPresentInSupportContract: true,
-    isFromFrenchPublicService: true,
     similarSoftwareExternalDataIds: ["Q111590996" /* viteJS */],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
-    doRespectRgaa: true
+    customAttributes: {
+        doRespectRgaa: true,
+        isPresentInSupportContract: true,
+        isFromFrenchPublicService: true
+    }
 } satisfies SoftwareFormData;
 
 describe("Create software - Trying all the cases", () => {
@@ -75,10 +77,7 @@ describe("Create software - Trying all the cases", () => {
             "categories": [],
             "dereferencing": null,
             "description": "To create React apps.",
-            "doRespectRgaa": true,
             "generalInfoMd": null,
-            "isFromFrenchPublicService": true,
-            "isPresentInSupportContract": true,
             "isStillInObservation": false,
             "keywords": ["Productivity", "Task", "Management"],
             "license": "MIT",
@@ -89,7 +88,12 @@ describe("Create software - Trying all the cases", () => {
                 "type": "stack"
             },
             "versionMin": "1.0.0",
-            "workshopUrls": []
+            "workshopUrls": [],
+            "customAttributes": {
+                "isFromFrenchPublicService": true,
+                "isPresentInSupportContract": true,
+                "doRespectRgaa": true
+            }
         });
 
         const initialExternalSoftwarePackagesBeforeFetching = [

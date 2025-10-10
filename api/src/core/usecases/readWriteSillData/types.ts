@@ -10,6 +10,7 @@ import {
     SchemaPerson,
     ScholarlyArticle
 } from "../../adapters/dbApi/kysely/kysely.database";
+import { CustomAttributes } from "./attributeTypes";
 
 export type Software = {
     logoUrl: string | undefined;
@@ -33,7 +34,7 @@ export type Software = {
           }
         | undefined;
     applicationCategories: string[];
-    prerogatives: Prerogatives;
+    customAttributes: CustomAttributes | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
     authors: Array<SchemaPerson | SchemaOrganization>;
     officialWebsiteUrl: string | undefined;
@@ -116,13 +117,6 @@ export namespace SoftwareType {
     };
 }
 
-type Prerogatives = {
-    isPresentInSupportContract: boolean;
-    isFromFrenchPublicServices: boolean;
-    doRespectRgaa: boolean | null;
-};
-export type Prerogative = keyof Prerogatives;
-
 export type Os = "windows" | "linux" | "mac" | "android" | "ios";
 
 export type SoftwareFormData = {
@@ -136,10 +130,7 @@ export type SoftwareFormData = {
     similarSoftwareExternalDataIds: string[];
     softwareLogoUrl: string | undefined;
     softwareKeywords: string[];
-
-    isPresentInSupportContract: boolean;
-    isFromFrenchPublicService: boolean;
-    doRespectRgaa: boolean | null;
+    customAttributes: CustomAttributes | undefined;
 };
 
 export type DeclarationFormData = DeclarationFormData.User | DeclarationFormData.Referent;

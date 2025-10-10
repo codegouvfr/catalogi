@@ -12,7 +12,8 @@ import { Equals } from "tsafe";
 import {
     useLang,
     softwareCategoriesFrBySoftwareCategoryEn,
-    useGetOrganizationFullName
+    useGetOrganizationFullName,
+    LocalizedString
 } from "ui/i18n";
 import { useTranslation } from "react-i18next";
 import { State as SoftwareCatalogState } from "core/usecases/softwareCatalog";
@@ -62,12 +63,15 @@ export type Props = {
         environmentsFilter: SoftwareCatalogState.Environment | undefined
     ) => void;
 
-    prerogativesOptions: {
-        prerogative: SoftwareCatalogState.Prerogative;
+    attributeOptions: {
+        attributeName: SoftwareCatalogState.AttributeName;
+        attributeLabel: LocalizedString;
         softwareCount: number;
     }[];
-    prerogatives: SoftwareCatalogState.Prerogative[];
-    onPrerogativesChange: (prerogatives: SoftwareCatalogState.Prerogative[]) => void;
+    attributeNames: SoftwareCatalogState.AttributeName[];
+    onAttributeNamesChange: (
+        attributeNames: SoftwareCatalogState.AttributeName[]
+    ) => void;
 };
 
 export function SoftwareCatalogSearch(props: Props) {
@@ -93,13 +97,13 @@ export function SoftwareCatalogSearch(props: Props) {
         programmingLanguage,
         onProgrammingLanguageChange,
 
-        prerogativesOptions,
-        prerogatives,
-        onPrerogativesChange,
+        attributeOptions,
+        attributeNames,
+        onAttributeNamesChange,
 
         ...rest
     } = props;
-    const uiConfig = useCoreState("uiConfig", "main")!;
+    const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main")!;
 
     /** Assert to make sure all props are deconstructed */
     assert<Equals<typeof rest, {}>>();
@@ -116,7 +120,7 @@ export function SoftwareCatalogSearch(props: Props) {
             organization !== undefined ||
             category !== undefined ||
             environment !== undefined ||
-            prerogatives.length !== 0
+            attributeNames.length !== 0
     );
 
     useEffectOnValueChange(() => {
@@ -124,7 +128,7 @@ export function SoftwareCatalogSearch(props: Props) {
             onOrganizationChange(undefined);
             onCategoryChange(undefined);
             onEnvironmentChange(undefined);
-            onPrerogativesChange([]);
+            onAttributeNamesChange([]);
         }
     }, [areFiltersOpen]);
 
@@ -289,71 +293,57 @@ export function SoftwareCatalogSearch(props: Props) {
                     />
                 )}
 
-                {uiConfig?.catalog.search.options.prerogatives && (
+                {uiConfig?.catalog.search.options.customAttributes && (
                     <div className={classes.filterSelectGroup}>
                         <label htmlFor="prerogatives-label">
-                            {t("softwareCatalogSearch.prerogativesLabel")}
+                            {t("softwareCatalogSearch.customAttributesTitle")}
                         </label>
                         <SelectMui
                             multiple
                             displayEmpty={true}
-                            value={prerogatives}
+                            value={attributeNames}
                             onChange={event => {
-                                const prerogatives = event.target.value;
+                                const attributeNames = event.target.value;
 
-                                assert(typeof prerogatives !== "string");
+                                assert(typeof attributeNames !== "string");
 
-                                onPrerogativesChange(prerogatives);
+                                onAttributeNamesChange(attributeNames);
                             }}
                             className={cx(fr.cx("fr-select"), classes.multiSelect)}
                             input={<InputBase />}
-                            renderValue={prerogatives =>
-                                t(
-                                    "softwareCatalogSearch.number of prerogatives selected",
-                                    {
-                                        count: prerogatives.length
-                                    }
-                                )
+                            renderValue={attributeNames =>
+                                t("softwareCatalogSearch.number of attributes selected", {
+                                    count: attributeNames.length
+                                })
                             }
                             placeholder="Placeholder"
                         >
-                            {prerogativesOptions.map(({ prerogative, softwareCount }) => (
-                                <MenuItem
-                                    key={prerogative}
-                                    value={prerogative}
-                                    disabled={softwareCount === 0}
-                                >
-                                    <Checkbox
-                                        checked={prerogatives.indexOf(prerogative) !== -1}
-                                    />
-                                    <ListItemText
-                                        primary={(() => {
-                                            switch (prerogative) {
-                                                case "doRespectRgaa":
-                                                    return `${t(
-                                                        "softwareCatalogSearch.doRespectRgaa"
-                                                    )} (${softwareCount})`;
-                                                case "isFromFrenchPublicServices":
-                                                    return `${t(
-                                                        "softwareCatalogSearch.isFromFrenchPublicServices"
-                                                    )} (${softwareCount})`;
-                                                case "isInstallableOnUserComputer":
-                                                    return `${t(
-                                                        "softwareCatalogSearch.isInstallableOnUserComputer"
-                                                    )} (${softwareCount})`;
-                                                case "isPresentInSupportContract":
-                                                    return `${t(
-                                                        "softwareCatalogSearch.isPresentInSupportContract"
-                                                    )} (${softwareCount})`;
-                                                case "isAvailableAsMobileApp":
-                                                    return `${t(
-                                                        "softwareCatalogSearch.isAvailableAsMobileApp"
-                                                    )} (${softwareCount})`;
-                                            }
-                                        })()}
-                                    />
-                                </MenuItem>
-                            ))}
+                            {attributeOptions.map(
+                                ({ attributeName, attributeLabel, softwareCount }) => {
+                                    const label =
+                                        typeof attributeLabel === "string"
+                                            ? attributeLabel
+                                            : attributeLabel[lang];
+                                    return (
+                                        <MenuItem
+                                            key={attributeName}
+                                            value={attributeName}
+                                            disabled={softwareCount === 0}
+                                        >
+                                            <Checkbox
+                                                checked={
+                                                    attributeNames.indexOf(
+                                                        attributeName
+                                                    ) !== -1
+                                                }
+                                            />
+                                            <ListItemText
+                                                primary={`${label} (${softwareCount})`}
+                                            />
+                                        </MenuItem>
+                                    );
+                                }
+                            )}
                         </SelectMui>
                     </div>
                 )}

@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
+
 export type Db = {
     softwareRows: Db.SoftwareRow[];
     agentRows: Db.AgentRow[];
@@ -23,9 +25,6 @@ export namespace Db {
             lastRecommendedVersion?: string;
         };
         isStillInObservation: boolean;
-        doRespectRgaa: boolean | null;
-        isFromFrenchPublicService: boolean;
-        isPresentInSupportContract: boolean;
         similarSoftwareExternalDataIds: string[];
         externalId?: string;
         sourceSlug?: string;
@@ -44,6 +43,7 @@ export namespace Db {
         addedByAgentEmail: string;
         logoUrl: string | undefined;
         keywords: string[];
+        customAttributes: CustomAttributes | null;
     };
 
     export type AgentRow = {

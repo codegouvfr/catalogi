@@ -78,7 +78,7 @@ const softwareDetailsSchema = z.object({
             license: z.boolean()
         })
     }),
-    prerogatives: z.object({
+    customAttributes: z.object({
         enabled: z.boolean()
     }),
     metadata: z.object({
@@ -105,7 +105,7 @@ const catalogSchema = z.object({
             organisation: z.boolean(),
             applicationCategories: z.boolean(),
             softwareType: z.boolean(),
-            prerogatives: z.boolean(),
+            customAttributes: z.boolean(),
             programmingLanguages: z.boolean()
         })
     }),

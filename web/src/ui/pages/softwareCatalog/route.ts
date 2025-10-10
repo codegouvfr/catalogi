@@ -63,17 +63,12 @@ export const routeDefs = {
                 stringify: value => value
             }),
             programmingLanguage: param.query.optional.string,
-            prerogatives: param.query.optional
+            attributeNames: param.query.optional
                 .ofType({
                     parse: raw => {
-                        const schema: z.Schema<State["prerogatives"][number][]> = z.array(
-                            z.enum([
-                                "isPresentInSupportContract",
-                                "isFromFrenchPublicServices",
-                                "doRespectRgaa",
-                                "isInstallableOnUserComputer"
-                            ] as const)
-                        );
+                        const schema: z.Schema<
+                            State["filteredAttributeNames"][number][]
+                        > = z.array(z.string());
 
                         try {
                             return schema.parse(JSON.parse(raw));

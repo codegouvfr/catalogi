@@ -20,15 +20,13 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
     referencedSinceTime: new Date(),
     dereferencing: undefined,
     isStillInObservation: false,
-    doRespectRgaa: softwareForm.doRespectRgaa ?? undefined,
-    isFromFrenchPublicService: softwareForm.isFromFrenchPublicService,
-    isPresentInSupportContract: softwareForm.isPresentInSupportContract,
     softwareType: softwareForm.softwareType,
     workshopUrls: [],
     categories: [],
     generalInfoMd: undefined,
     addedByUserId: userId,
-    keywords: softwareForm.softwareKeywords
+    keywords: softwareForm.softwareKeywords,
+    customAttributes: softwareForm.customAttributes
 });
 
 const textUC = "CreateSoftware";

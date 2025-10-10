@@ -30,12 +30,14 @@ const craSoftwareFormData = {
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
     softwareMinimalVersion: "1.0.0",
-    isPresentInSupportContract: true,
-    isFromFrenchPublicService: true,
     similarSoftwareExternalDataIds: ["Q111590996" /* viteJS */],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
-    doRespectRgaa: true
+    customAttributes: {
+        isPresentInSupportContract: true,
+        isFromFrenchPublicService: true,
+        doRespectRgaa: true
+    }
 } satisfies SoftwareFormData;
 
 const apacheSoftwareId = 6;
@@ -53,11 +55,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             description: "Serveur Web & Reverse Proxy",
             license: "Apache-2.0",
             versionMin: "212",
-            isPresentInSupportContract: true,
-            isFromFrenchPublicService: false,
             logoUrl: "https://sill.code.gouv.fr/logo/apache-http.png",
             keywords: JSON.stringify(["serveur", "http", "web", "server", "apache"]),
-            doRespectRgaa: false,
             isStillInObservation: false,
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify([]),
@@ -65,7 +64,12 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             addedByUserId: userId,
             dereferencing: null,
             referencedSinceTime: new Date(1728462232094),
-            updateTime: new Date(1728462232094)
+            updateTime: new Date(1728462232094),
+            customAttributes: JSON.stringify({
+                isPresentInSupportContract: true,
+                isFromFrenchPublicService: false,
+                doRespectRgaa: false
+            })
         })
         .execute();
 
@@ -93,11 +97,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             description: "Outil et/ou plugin de génération de tout ou partie du code",
             license: "EPL-2.0",
             versionMin: "3.7.8",
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
             logoUrl: null,
             keywords: JSON.stringify(["modélisation", "génération", "code", "modeling", "code generation"]),
-            doRespectRgaa: false,
             isStillInObservation: false,
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify(["Other Development Tools"]),
@@ -105,7 +106,12 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             addedByUserId: userId,
             dereferencing: null,
             referencedSinceTime: new Date(1514764800000),
-            updateTime: new Date(1514764800000)
+            updateTime: new Date(1514764800000),
+            customAttributes: JSON.stringify({
+                isPresentInSupportContract: false,
+                isFromFrenchPublicService: false,
+                doRespectRgaa: false
+            })
         })
         .execute();
 

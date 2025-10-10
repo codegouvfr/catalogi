@@ -30,10 +30,7 @@ const formatCDLSoftwareToExternalData = async (
         similarSoftwareExternalDataIds: [],
         softwareLogoUrl: logoUrl,
         softwareKeywords: keywords,
-
-        isPresentInSupportContract: false,
-        isFromFrenchPublicService: false,
-        doRespectRgaa: null
+        customAttributes: undefined
     };
 };
 

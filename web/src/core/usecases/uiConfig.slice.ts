@@ -19,6 +19,7 @@ export namespace State {
     export type Ready = {
         stateDescription: "initialized";
         uiConfig: ApiTypes.UiConfig;
+        attributeDefinitions: ApiTypes.AttributeDefinition[];
     };
 }
 
@@ -29,10 +30,16 @@ export const { reducer, actions } = createUsecaseActions({
         fetchUiConfigStarted: state => state,
         fetchUiConfigSucceeded: (
             _,
-            action: { payload: { uiConfig: ApiTypes.UiConfig } }
+            action: {
+                payload: {
+                    uiConfig: ApiTypes.UiConfig;
+                    attributeDefinitions: ApiTypes.AttributeDefinition[];
+                };
+            }
         ) => ({
             stateDescription: "initialized",
-            uiConfig: action.payload.uiConfig
+            uiConfig: action.payload.uiConfig,
+            attributeDefinitions: action.payload.attributeDefinitions
         })
     }
 });
@@ -44,7 +51,12 @@ const readyState = (rootState: RootState) => {
 
 export const selectors = {
     main: createSelector(readyState, state =>
-        state?.stateDescription === "initialized" ? state.uiConfig : undefined
+        state?.stateDescription === "initialized"
+            ? {
+                  uiConfig: state.uiConfig,
+                  attributeDefinitions: state.attributeDefinitions
+              }
+            : undefined
     )
 };
 
@@ -54,7 +66,7 @@ export const protectedThunks = {
     initialize:
         () =>
         async (dispatch, _, { sillApi }) => {
-            const uiConfig = await sillApi.getUiConfig();
-            dispatch(actions.fetchUiConfigSucceeded({ uiConfig }));
+            const response = await sillApi.getUiConfig();
+            dispatch(actions.fetchUiConfigSucceeded(response));
         }
 } satisfies Thunks;

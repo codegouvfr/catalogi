@@ -28,7 +28,7 @@ export default function SoftwareCatalog(props: Props) {
         categoryOptions,
         environmentOptions,
         organizationOptions,
-        prerogativeFilterOptions,
+        attributeNameFilterOptions,
         programmingLanguageOptions,
         softwares,
         sortOptions
@@ -53,8 +53,8 @@ export default function SoftwareCatalog(props: Props) {
                     delete params.search;
                 }
 
-                if (params.prerogatives?.length === 0) {
-                    delete params.prerogatives;
+                if (params.attributeNames?.length === 0) {
+                    delete params.attributeNames;
                 }
 
                 refParams.ref = params;
@@ -139,10 +139,10 @@ export default function SoftwareCatalog(props: Props) {
 
     useEffect(() => {
         softwareCatalog.updateFilter({
-            key: "prerogatives",
-            value: route.params.prerogatives
+            key: "filteredAttributeNames",
+            value: route.params.attributeNames
         });
-    }, [route.params.prerogatives]);
+    }, [route.params.attributeNames]);
 
     const linksBySoftwareName = useMemo(
         () =>
@@ -183,9 +183,9 @@ export default function SoftwareCatalog(props: Props) {
             environmentOptions={environmentOptions}
             environment={route.params.environment}
             onEnvironmentChange={environment => startTransition(() => updateRouteParams({ environment }).replace())}
-            prerogativesOptions={prerogativeFilterOptions}
-            prerogatives={route.params.prerogatives}
-            onPrerogativesChange={prerogatives => startTransition(() => updateRouteParams({ prerogatives }).replace())}
+            attributeOptions={attributeNameFilterOptions}
+            attributeNames={route.params.attributeNames}
+            onAttributeNameChange={attributeNames => startTransition(() => updateRouteParams({ attributeNames }).replace())}
         />
     );
 }

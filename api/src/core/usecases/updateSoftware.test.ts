@@ -30,12 +30,14 @@ const craSoftwareFormData = {
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
     softwareMinimalVersion: "1.0.0",
-    isPresentInSupportContract: true,
-    isFromFrenchPublicService: true,
     similarSoftwareExternalDataIds: ["Q111590996" /* viteJS */],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
-    doRespectRgaa: true
+    customAttributes: {
+        isPresentInSupportContract: true,
+        isFromFrenchPublicService: true,
+        doRespectRgaa: true
+    }
 } satisfies SoftwareFormData;
 
 describe("Create software, than updates it adding a similar software", () => {
@@ -78,10 +80,7 @@ describe("Create software, than updates it adding a similar software", () => {
             "categories": [],
             "dereferencing": null,
             "description": "To create React apps.",
-            "doRespectRgaa": true,
             "generalInfoMd": null,
-            "isFromFrenchPublicService": true,
-            "isPresentInSupportContract": true,
             "isStillInObservation": false,
             "keywords": ["Productivity", "Task", "Management"],
             "license": "MIT",
@@ -92,7 +91,12 @@ describe("Create software, than updates it adding a similar software", () => {
                 "type": "stack"
             },
             "versionMin": "1.0.0",
-            "workshopUrls": []
+            "workshopUrls": [],
+            "customAttributes": {
+                "isPresentInSupportContract": true,
+                "isFromFrenchPublicService": true,
+                "doRespectRgaa": true
+            }
         });
 
         const initialExternalSoftwarePackagesBeforeFetching = [

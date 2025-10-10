@@ -191,7 +191,7 @@ function apiSoftwareToSoftware(params: {
         latestVersion,
         addedTime,
         dereferencing,
-        prerogatives,
+        customAttributes,
         similarSoftwares: similarSoftwares_api,
         sourceSlug,
         externalId,
@@ -275,17 +275,15 @@ function apiSoftwareToSoftware(params: {
             };
         }),
         license,
-        prerogatives: {
+        customAttributes,
+        supportedPlatforms: {
             isInstallableOnUserComputer:
                 softwareType.type === "stack"
                     ? undefined
                     : softwareType.type === "desktop/mobile",
             isAvailableAsMobileApp:
                 softwareType.type === "desktop/mobile" &&
-                (softwareType.os.android || softwareType.os.ios),
-            isPresentInSupportContract: prerogatives.isPresentInSupportContract,
-            isFromFrenchPublicServices: prerogatives.isFromFrenchPublicServices,
-            doRespectRgaa: prerogatives.doRespectRgaa ?? undefined
+                (softwareType.os.android || softwareType.os.ios)
         },
         versionMin,
         programmingLanguages,

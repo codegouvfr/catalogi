@@ -53,10 +53,7 @@ export const halRawSoftwareToSoftwareForm = async (
         similarSoftwareExternalDataIds: [],
         softwareLogoUrl: undefined,
         softwareKeywords: halSoftware.keyword_s || [],
-
-        isPresentInSupportContract: false,
-        isFromFrenchPublicService: false,
-        doRespectRgaa: null
+        customAttributes: undefined
     };
 
     return formData;

@@ -65,7 +65,11 @@ export namespace State {
                   lastRecommendedVersion?: string;
               }
             | undefined;
-        prerogatives: Record<SoftwareCatalogState.Prerogative, boolean | undefined>;
+        customAttributes: ApiTypes.CustomAttributes | undefined;
+        supportedPlatforms: {
+            isInstallableOnUserComputer: boolean | undefined;
+            isAvailableAsMobileApp: boolean | undefined;
+        };
         userCount: number;
         referentCount: number;
         instances:

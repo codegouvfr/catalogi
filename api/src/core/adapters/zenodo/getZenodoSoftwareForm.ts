@@ -42,8 +42,6 @@ const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, sourc
         softwareLogoUrl: undefined,
         softwareKeywords: recordSoftwareItem.metadata.keywords ?? [],
 
-        isPresentInSupportContract: false,
-        isFromFrenchPublicService: false,
-        doRespectRgaa: null
+        customAttributes: undefined
     };
 };

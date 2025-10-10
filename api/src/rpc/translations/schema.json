@@ -551,22 +551,6 @@
                 "logo preview alt"
             ]
         },
-        "softwareFormStep3": {
-            "type": "object",
-            "properties": {
-                "is present in support market": {
-                    "type": "string"
-                },
-                "is from french public service": {
-                    "type": "string"
-                },
-                "do respect RGAA": {
-                    "type": "string"
-                }
-            },
-            "additionalProperties": false,
-            "required": ["is present in support market", "is from french public service", "do respect RGAA"]
-        },
         "softwareFormStep4": {
             "type": "object",
             "properties": {
@@ -793,7 +777,7 @@
                     "type": "string",
                     "description": "Label for a form field or button"
                 },
-                "prerogativesLabel": {
+                "customAttributesTitle": {
                     "type": "string"
                 },
                 "programmingLanguages label": {
@@ -807,15 +791,6 @@
                     "type": "string"
                 },
                 "isAvailableAsMobileApp": {
-                    "type": "string"
-                },
-                "isFromFrenchPublicServices": {
-                    "type": "string"
-                },
-                "doRespectRgaa": {
-                    "type": "string"
-                },
-                "isPresentInSupportContract": {
                     "type": "string"
                 },
                 "organization filter hint": {
@@ -837,10 +812,10 @@
                 "stack": {
                     "type": "string"
                 },
-                "number of prerogatives selected_zero": {
+                "number of attributes selected_zero": {
                     "type": "string"
                 },
-                "number of prerogatives selected_other": {
+                "number of attributes selected_other": {
                     "type": "string"
                 },
                 "ios": {
@@ -857,22 +832,19 @@
                 "organizationLabel",
                 "categoriesLabel",
                 "environnement label",
-                "prerogativesLabel",
+                "customAttributesTitle",
                 "programmingLanguages label",
                 "filters",
                 "isInstallableOnUserComputer",
                 "isAvailableAsMobileApp",
-                "isFromFrenchPublicServices",
-                "doRespectRgaa",
-                "isPresentInSupportContract",
                 "organization filter hint",
                 "linux",
                 "mac",
                 "windows",
                 "browser",
                 "stack",
-                "number of prerogatives selected_zero",
-                "number of prerogatives selected_other",
+                "number of attributes selected_zero",
+                "number of attributes selected_other",
                 "ios",
                 "android"
             ]
@@ -907,7 +879,7 @@
                 "list of service providers": {
                     "type": "string"
                 },
-                "prerogatives": {
+                "customAttributesTitle": {
                     "type": "string"
                 },
                 "last version": {
@@ -932,15 +904,6 @@
                     "type": "string"
                 },
                 "hasDesktopApp": {
-                    "type": "string"
-                },
-                "isPresentInSupportMarket": {
-                    "type": "string"
-                },
-                "isFromFrenchPublicService": {
-                    "type": "string"
-                },
-                "isRGAACompliant": {
                     "type": "string"
                 },
                 "comptoire du libre sheet": {
@@ -1004,7 +967,7 @@
                 "tab service providers",
                 "tab title alike software",
                 "list of service providers",
-                "prerogatives",
+                "customAttributesTitle",
                 "last version",
                 "last version date",
                 "register",
@@ -1013,9 +976,6 @@
                 "license",
                 "declare oneself referent",
                 "hasDesktopApp",
-                "isPresentInSupportMarket",
-                "isFromFrenchPublicService",
-                "isRGAACompliant",
                 "comptoire du libre sheet",
                 "wikiData sheet",
                 "share software",
@@ -1082,7 +1042,10 @@
                 "useful links": {
                     "type": "string"
                 },
-                "prerogatives": {
+                "customAttributesTitle": {
+                    "type": "string"
+                },
+                "supportedPlatforms": {
                     "type": "string"
                 },
                 "last version": {
@@ -1104,15 +1067,6 @@
                     "type": "string"
                 },
                 "isAvailableAsMobileApp": {
-                    "type": "string"
-                },
-                "isPresentInSupportMarket": {
-                    "type": "string"
-                },
-                "isFromFrenchPublicService": {
-                    "type": "string"
-                },
-                "isRGAACompliant": {
                     "type": "string"
                 },
                 "comptoire du libre sheet": {
@@ -1153,7 +1107,7 @@
             "required": [
                 "about",
                 "useful links",
-                "prerogatives",
+                "customAttributesTitle",
                 "last version",
                 "register",
                 "minimal version",
@@ -1161,9 +1115,6 @@
                 "license",
                 "hasDesktopApp",
                 "isAvailableAsMobileApp",
-                "isPresentInSupportMarket",
-                "isFromFrenchPublicService",
-                "isRGAACompliant",
                 "comptoire du libre sheet",
                 "wikiData sheet",
                 "what is the support market",

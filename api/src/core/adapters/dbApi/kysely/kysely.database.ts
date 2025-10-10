@@ -75,6 +75,7 @@ export type Database = {
     softwares__similar_software_external_datas: SimilarExternalSoftwareExternalDataTable;
     sources: SourcesTable;
     user_sessions: SessionsTable;
+    software_attribute_definitions: SoftwareAttributeDefinitionsTable;
 };
 
 type UsersTable = {
@@ -122,6 +123,7 @@ type InstancesTable = {
 type ExternalId = string;
 export type ExternalDataOriginKind = "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo";
 type LocalizedString = Partial<Record<string, string>>;
+export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
 type SimilarExternalSoftwareExternalDataTable = {
     softwareId: number;
@@ -135,6 +137,21 @@ type SourcesTable = {
     url: string;
     priority: number;
     description: JSONColumnType<LocalizedString> | null;
+};
+
+type SoftwareAttributeDefinitionsTable = {
+    name: string;
+    kind: AttributeKind;
+    label: JSONColumnType<LocalizedString>;
+    description: JSONColumnType<LocalizedString> | null;
+    displayInForm: boolean;
+    displayInDetails: boolean;
+    displayInCardIcon: "computer" | "france" | "question" | "thumbs-up" | "chat" | "star" | null;
+    enableFiltering: boolean;
+    required: boolean;
+    displayOrder: number;
+    createdAt: Date;
+    updatedAt: Date;
 };
 
 export type SoftwareExternalDatasTable = {
@@ -181,9 +198,7 @@ type SoftwaresTable = {
         lastRecommendedVersion?: string;
     }> | null;
     isStillInObservation: boolean;
-    doRespectRgaa: boolean | null;
-    isFromFrenchPublicService: boolean;
-    isPresentInSupportContract: boolean;
+    customAttributes: JSONColumnType<Record<string, any>> | null;
     license: string;
     softwareType: JSONColumnType<SoftwareType>;
     versionMin: string | null;

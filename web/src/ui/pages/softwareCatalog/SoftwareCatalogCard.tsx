@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import Tooltip from "@mui/material/Tooltip";
+import type { ApiTypes } from "api";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useResolveLocalizedString } from "ui/i18n";
@@ -11,21 +13,18 @@ import { tss } from "tss-react";
 import { useFromNow } from "ui/datetimeUtils";
 import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
-import Tooltip from "@mui/material/Tooltip";
 import { DetailUsersAndReferents } from "ui/shared/DetailUsersAndReferents";
 import softwareLogoPlaceholder from "ui/assets/software_logo_placeholder.png";
 import Markdown from "react-markdown";
 import { useCoreState } from "../../../core";
+import { CustomAttributesInCard } from "./CustomAttributeInCard";
 
 export type Props = {
     className?: string;
     logoUrl?: string;
     softwareName: string;
-    prerogatives: {
-        isFromFrenchPublicServices: boolean;
-        isInstallableOnUserComputer: boolean;
-        isPresentInSupportContract: boolean;
-    };
+    customAttributes: ApiTypes.CustomAttributes | undefined;
+    isInstallableOnUserComputer?: boolean;
     latestVersion?: {
         semVer?: string;
         publicationTime?: number;
@@ -55,7 +54,8 @@ export const SoftwareCatalogCard = memo((props: Props) => {
         className,
         logoUrl,
         softwareName,
-        prerogatives,
+        customAttributes,
+        isInstallableOnUserComputer,
         latestVersion,
         softwareDescription,
         userCount,
@@ -67,7 +67,7 @@ export const SoftwareCatalogCard = memo((props: Props) => {
         userDeclaration,
         ...rest
     } = props;
-    const uiConfig = useCoreState("uiConfig", "main");
+    const ui = useCoreState("uiConfig", "main");
 
     /** Assert to make sure all props are deconstructed */
     assert<Equals<typeof rest, {}>>();
@@ -76,7 +76,8 @@ export const SoftwareCatalogCard = memo((props: Props) => {
     const { resolveLocalizedString } = useResolveLocalizedString();
     const { classes, cx } = useStyles({
         isSearchHighlighted:
-            searchHighlight !== undefined || !uiConfig?.catalog.cardOptions.referentCount
+            searchHighlight !== undefined ||
+            !ui?.uiConfig.catalog.cardOptions.referentCount
     });
     const { fromNowText } = useFromNow({ dateTime: latestVersion?.publicationTime });
 
@@ -84,7 +85,7 @@ export const SoftwareCatalogCard = memo((props: Props) => {
         <div className={cx(fr.cx("fr-card"), classes.root, className)}>
             <div className={classes.cardBody}>
                 <a className={cx(classes.headerContainer)} {...softwareDetailsLink}>
-                    {(logoUrl || uiConfig?.catalog.defaultLogo) && (
+                    {(logoUrl || ui?.uiConfig.catalog.defaultLogo) && (
                         <div className={classes.logoWrapper}>
                             <img
                                 className={cx(classes.logo)}
@@ -98,7 +99,7 @@ export const SoftwareCatalogCard = memo((props: Props) => {
                         <div className={cx(classes.titleContainer)}>
                             <h3 className={cx(classes.title)}>{softwareName}</h3>
                             <div className={cx(classes.titleActionsContainer)}>
-                                {prerogatives.isInstallableOnUserComputer && (
+                                {isInstallableOnUserComputer && (
                                     <Tooltip
                                         title={t("softwareCatalogCard.hasDesktopApp")}
                                         arrow
@@ -106,30 +107,10 @@ export const SoftwareCatalogCard = memo((props: Props) => {
                                         <i className={fr.cx("fr-icon-computer-line")} />
                                     </Tooltip>
                                 )}
-                                {prerogatives.isFromFrenchPublicServices && (
-                                    <Tooltip
-                                        title={t(
-                                            "softwareCatalogCard.isFromFrenchPublicService"
-                                        )}
-                                        arrow
-                                    >
-                                        <i className={fr.cx("fr-icon-france-line")} />
-                                    </Tooltip>
-                                )}
-                                {prerogatives.isPresentInSupportContract && (
-                                    <Tooltip
-                                        title={t(
-                                            "softwareCatalogCard.isPresentInSupportMarket"
-                                        )}
-                                        arrow
-                                    >
-                                        <i
-                                            className={fr.cx(
-                                                "fr-icon-questionnaire-line"
-                                            )}
-                                        />
-                                    </Tooltip>
-                                )}
+                                <CustomAttributesInCard
+                                    customAttributes={customAttributes}
+                                    attributeDefinitions={ui?.attributeDefinitions}
+                                />
                             </div>
                         </div>
                         {userDeclaration?.isReferent ? (
@@ -206,7 +187,7 @@ export const SoftwareCatalogCard = memo((props: Props) => {
                     <Markdown>{resolveLocalizedString(softwareDescription)}</Markdown>
                 </div>
 
-                {uiConfig?.catalog.cardOptions.referentCount && (
+                {ui?.uiConfig.catalog.cardOptions.referentCount && (
                     <DetailUsersAndReferents
                         seeUserAndReferent={
                             referentCount > 0 || userCount > 0
@@ -220,7 +201,7 @@ export const SoftwareCatalogCard = memo((props: Props) => {
                 )}
             </div>
             <div className={classes.footer}>
-                {uiConfig?.catalog.cardOptions.userCase &&
+                {ui?.uiConfig.catalog.cardOptions.userCase &&
                     !userDeclaration?.isReferent &&
                     !userDeclaration?.isUser && (
                         <a

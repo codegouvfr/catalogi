@@ -21,11 +21,8 @@ const externalIdForSource = "external-id-111";
 
 const similarExternalId = "external-id-222";
 const softwareFormData: SoftwareFormData = {
-    doRespectRgaa: true,
     externalIdForSource,
     sourceSlug: testSource.slug,
-    isFromFrenchPublicService: false,
-    isPresentInSupportContract: true,
     similarSoftwareExternalDataIds: [similarExternalId],
     softwareDescription: "Super software",
     softwareKeywords: ["bob", "l'éponge"],
@@ -42,6 +39,11 @@ const softwareFormData: SoftwareFormData = {
             linux: false,
             windows: true
         }
+    },
+    customAttributes: {
+        isFromFrenchPublicService: false,
+        isPresentInSupportContract: true,
+        doRespectRgaa: true
     }
 };
 
@@ -204,9 +206,9 @@ describe("pgDbApi", () => {
                 license: "MIT",
                 logoUrl: softwareFormData.softwareLogoUrl,
                 officialWebsiteUrl: softwareExternalData.websiteUrl,
-                prerogatives: {
+                customAttributes: {
                     doRespectRgaa: true,
-                    isFromFrenchPublicServices: false,
+                    isFromFrenchPublicService: false,
                     isPresentInSupportContract: true
                 },
                 programmingLanguages: ["C++"],

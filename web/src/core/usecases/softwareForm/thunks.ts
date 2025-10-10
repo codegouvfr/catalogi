@@ -101,15 +101,7 @@ export const thunks = {
                                         softwareLogoUrl: software.logoUrl,
                                         softwareKeywords: software.keywords
                                     },
-                                    step3: {
-                                        isPresentInSupportContract:
-                                            software.prerogatives
-                                                .isPresentInSupportContract,
-                                        isFromFrenchPublicService:
-                                            software.prerogatives
-                                                .isFromFrenchPublicServices,
-                                        doRespectRgaa: software.prerogatives.doRespectRgaa
-                                    },
+                                    step3: software.customAttributes,
                                     step4: {
                                         similarSoftwares: software.similarSoftwares
                                             .map(similarSoftware => {
@@ -219,9 +211,7 @@ export const thunks = {
                 softwareDescription: step2.softwareDescription,
                 softwareLicense: step2.softwareLicense,
                 softwareMinimalVersion: step2.softwareMinimalVersion ?? "",
-                isPresentInSupportContract: step3.isPresentInSupportContract ?? false,
-                isFromFrenchPublicService: step3.isFromFrenchPublicService,
-                doRespectRgaa: step3.doRespectRgaa,
+                customAttributes: step3,
                 similarSoftwareExternalDataIds: formDataStep4.similarSoftwares.map(
                     ({ externalId }) => externalId
                 ),

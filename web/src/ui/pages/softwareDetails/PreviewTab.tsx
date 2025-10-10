@@ -2,20 +2,22 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { CustomAttributes } from "api/dist/src/core/usecases/readWriteSillData/attributeTypes";
+import { id } from "tsafe/id";
 import { useLang } from "ui/i18n";
-import { Trans, useTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { shortEndMonthDate, monthDate } from "ui/datetimeUtils";
-import Tooltip from "@mui/material/Tooltip";
 import { capitalize } from "tsafe/capitalize";
 import { useCoreState } from "../../../core";
+import { SupportedPlatforms } from "../../../core/usecases/softwareCatalog";
 import { CnllServiceProviderModal } from "./CnllServiceProviderModal";
-import { assert, type Equals } from "tsafe/assert";
 import { Identifier, SoftwareType } from "api/dist/src/lib/ApiTypes";
 import { SoftwareTypeTable } from "ui/shared/SoftwareTypeTable";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { ApiTypes } from "api";
+import { CustomAttributeDetails } from "./CustomAttributeDetails";
 
 //TODO: Do not use optional props (?) use ( | undefined ) instead
 // so we are sure that we don't forget to provide some props
@@ -29,11 +31,8 @@ export type Props = {
     minimalVersionRequired?: string;
     license?: string;
     serviceProviders: ApiTypes.Organization[];
-    hasDesktopApp: boolean | undefined;
-    isAvailableAsMobileApp: boolean | undefined;
-    isPresentInSupportMarket: boolean | undefined;
-    isFromFrenchPublicService: boolean | undefined;
-    isRGAACompliant?: boolean | undefined;
+    supportedPlatforms: SupportedPlatforms;
+    customAttributes: CustomAttributes | undefined;
     programmingLanguages: string[];
     keywords?: string[];
     applicationCategories: string[];
@@ -49,20 +48,18 @@ export const PreviewTab = (props: Props) => {
         softwareDescription,
         registerDate,
         license,
-        hasDesktopApp,
-        isAvailableAsMobileApp,
-        isPresentInSupportMarket,
-        isFromFrenchPublicService,
-        isRGAACompliant,
+        supportedPlatforms,
+        customAttributes,
         serviceProviders,
         programmingLanguages,
         keywords,
         applicationCategories,
         softwareType,
         identifiers,
-        officialWebsiteUrl
+        officialWebsiteUrl,
+        minimalVersionRequired
     } = props;
-    const uiConfig = useCoreState("uiConfig", "main");
+    const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main")!;
 
     const { classes, cx } = useStyles();
 
@@ -102,14 +99,14 @@ export const PreviewTab = (props: Props) => {
         <>
             <section className={classes.tabContainer}>
                 <p style={{ gridColumn: "span 2" }}>{softwareDescription}</p>
-                {uiConfig?.softwareDetails.details.enabled && (
+                {uiConfig.softwareDetails.details.enabled && (
                     <div className="section">
                         <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
                             {t("previewTab.about")}
                         </p>
-                        {(uiConfig?.softwareDetails.details.fields
+                        {(uiConfig.softwareDetails.details.fields
                             .softwareCurrentVersion ||
-                            uiConfig?.softwareDetails.details.fields
+                            uiConfig.softwareDetails.details.fields
                                 .softwareCurrentVersionDate) &&
                             (softwareCurrentVersion || softwareDateCurrentVersion) && (
                                 <p
@@ -121,7 +118,7 @@ export const PreviewTab = (props: Props) => {
                                     <span className={classes.labelDetail}>
                                         {t("previewTab.last version")}
                                     </span>
-                                    {uiConfig?.softwareDetails.details.fields
+                                    {uiConfig.softwareDetails.details.fields
                                         .softwareCurrentVersion &&
                                         softwareCurrentVersion && (
                                             <span
@@ -138,7 +135,7 @@ export const PreviewTab = (props: Props) => {
                                             </span>
                                         )}
 
-                                    {uiConfig?.softwareDetails.details.fields
+                                    {uiConfig.softwareDetails.details.fields
                                         .softwareCurrentVersionDate &&
                                         softwareDateCurrentVersion &&
                                         capitalize(
@@ -149,7 +146,7 @@ export const PreviewTab = (props: Props) => {
                                         )}
                                 </p>
                             )}
-                        {uiConfig?.softwareDetails.details.fields.registerDate &&
+                        {uiConfig.softwareDetails.details.fields.registerDate &&
                             registerDate && (
                                 <p
                                     className={cx(
@@ -166,7 +163,7 @@ export const PreviewTab = (props: Props) => {
 
                         {uiConfig?.softwareDetails.details.fields
                             .minimalVersionRequired &&
-                            props.minimalVersionRequired && (
+                            minimalVersionRequired && (
                                 <p
                                     className={cx(
                                         fr.cx("fr-text--regular"),
@@ -186,12 +183,12 @@ export const PreviewTab = (props: Props) => {
                                             classes.badgeVersion
                                         )}
                                     >
-                                        {props.minimalVersionRequired}
+                                        {minimalVersionRequired}
                                     </span>
                                 </p>
                             )}
 
-                        {uiConfig?.softwareDetails.details.fields.license && license && (
+                        {uiConfig.softwareDetails.details.fields.license && license && (
                             <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
                                 <span className={classes.labelDetail}>
                                     {t("previewTab.license")}
@@ -202,102 +199,57 @@ export const PreviewTab = (props: Props) => {
                     </div>
                 )}
 
-                {uiConfig?.softwareDetails.prerogatives.enabled && (
-                    <div className={classes.section}>
-                        <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                            {t("previewTab.prerogatives")}
-                        </p>
-
-                        {(
-                            [
-                                "hasDesktopApp",
-                                "isAvailableAsMobileApp",
-                                "isPresentInSupportMarket",
-                                "isFromFrenchPublicService",
-                                "isRGAACompliant"
-                            ] as const
-                        ).map(prerogativeName => {
-                            const value = (() => {
-                                switch (prerogativeName) {
-                                    case "hasDesktopApp":
-                                        return hasDesktopApp;
-                                    case "isAvailableAsMobileApp":
-                                        return isAvailableAsMobileApp;
-                                    case "isFromFrenchPublicService":
-                                        return isFromFrenchPublicService;
-                                    case "isPresentInSupportMarket":
-                                        return isPresentInSupportMarket;
-                                    case "isRGAACompliant":
-                                        return isRGAACompliant;
-                                }
-                                assert<Equals<typeof prerogativeName, never>>(false);
-                            })();
-
-                            if (value === undefined) {
-                                return null;
-                            }
-
-                            const label = t(`previewTab.${prerogativeName}`);
-
-                            return (
-                                <div
-                                    key={label}
-                                    className={cx(classes.item, classes.prerogativeItem)}
-                                >
-                                    <i
-                                        className={cx(
-                                            fr.cx(
-                                                value
-                                                    ? "fr-icon-check-line"
-                                                    : "fr-icon-close-line"
+                {uiConfig.softwareDetails.customAttributes.enabled && (
+                    <div className={cx(classes.section, fr.cx("fr-mb-4v"))}>
+                        {Object.keys(supportedPlatforms).length > 0 && (
+                            <>
+                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
+                                    {t("previewTab.supportedPlatforms")}
+                                </p>
+                                <CustomAttributeDetails
+                                    customAttributes={supportedPlatforms}
+                                    attributeDefinitions={[
+                                        {
+                                            name: id<keyof SupportedPlatforms>(
+                                                "hasDesktopApp"
                                             ),
-                                            value
-                                                ? classes.prerogativeStatusSuccess
-                                                : classes.prerogativeStatusError
-                                        )}
-                                    />
-                                    <p
-                                        className={cx(
-                                            fr.cx("fr-text--md"),
-                                            classes.prerogativeItemDetail
-                                        )}
-                                    >
-                                        {label}
-                                    </p>
-                                    {prerogativeName === "isPresentInSupportMarket" && (
-                                        <Tooltip
-                                            title={
-                                                <Trans
-                                                    i18nKey="previewTab.what is the support market"
-                                                    components={{
-                                                        a: (
-                                                            /* eslint-disable-next-line jsx-a11y/anchor-has-content */
-                                                            <a href="https://code.gouv.fr/fr/utiliser/marches-interministeriels-support-expertise-logiciels-libres/" />
-                                                        )
-                                                    }}
-                                                />
-                                            }
-                                            arrow
-                                        >
-                                            <i
-                                                className={fr.cx(
-                                                    "fr-icon-information-line"
-                                                )}
-                                            />
-                                        </Tooltip>
-                                    )}
-                                </div>
-                            );
-                        })}
+                                            label: t("previewTab.hasDesktopApp"),
+                                            kind: "boolean",
+                                            displayInDetails: true
+                                        },
+                                        {
+                                            name: id<keyof SupportedPlatforms>(
+                                                "isAvailableAsMobileApp"
+                                            ),
+                                            label: t("previewTab.isAvailableAsMobileApp"),
+                                            kind: "boolean",
+                                            displayInDetails: true
+                                        }
+                                    ]}
+                                />
+                            </>
+                        )}
+
+                        {customAttributes && Object.keys(customAttributes).length > 0 && (
+                            <>
+                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
+                                    {t("previewTab.customAttributesTitle")}
+                                </p>
+                                <CustomAttributeDetails
+                                    customAttributes={customAttributes}
+                                    attributeDefinitions={attributeDefinitions}
+                                />
+                            </>
+                        )}
                     </div>
                 )}
 
-                {uiConfig?.softwareDetails.metadata.enabled && (
+                {uiConfig.softwareDetails.metadata.enabled && (
                     <div className={classes.section}>
                         <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
                             {t("previewTab.metadata")}
                         </p>
-                        {uiConfig?.softwareDetails.metadata.fields.keywords &&
+                        {uiConfig.softwareDetails.metadata.fields.keywords &&
                             keywords &&
                             keywords.length > 0 && (
                                 <p
@@ -313,7 +265,7 @@ export const PreviewTab = (props: Props) => {
                                 </p>
                             )}
 
-                        {uiConfig?.softwareDetails.metadata.fields.programmingLanguages &&
+                        {uiConfig.softwareDetails.metadata.fields.programmingLanguages &&
                             programmingLanguages &&
                             programmingLanguages.length > 0 && (
                                 <p
@@ -329,8 +281,7 @@ export const PreviewTab = (props: Props) => {
                                 </p>
                             )}
 
-                        {uiConfig?.softwareDetails.metadata.fields
-                            .applicationCategories &&
+                        {uiConfig.softwareDetails.metadata.fields.applicationCategories &&
                             applicationCategories &&
                             applicationCategories.length > 0 && (
                                 <p
@@ -346,7 +297,7 @@ export const PreviewTab = (props: Props) => {
                                 </p>
                             )}
 
-                        {uiConfig?.softwareDetails.metadata.fields.softwareType &&
+                        {uiConfig.softwareDetails.metadata.fields.softwareType &&
                             applicationCategories &&
                             applicationCategories.length > 0 && (
                                 <p
@@ -374,7 +325,7 @@ export const PreviewTab = (props: Props) => {
                     </div>
                 )}
 
-                {uiConfig?.softwareDetails.links.enabled && usefulLinks.length > 0 && (
+                {uiConfig.softwareDetails.links.enabled && usefulLinks.length > 0 && (
                     <div className={classes.section}>
                         <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
                             {t("previewTab.useful links")}
@@ -429,25 +380,6 @@ const useStyles = tss.withName({ PreviewTab }).create({
         "&:not(:last-of-type)": {
             marginBottom: fr.spacing("4v")
         }
-    },
-    prerogativeItem: {
-        display: "flex",
-        alignItems: "center",
-        marginBottom: "24px"
-    },
-    prerogativeItemDetail: {
-        color: fr.colors.decisions.text.label.grey.default,
-        ...fr.spacing("margin", {
-            left: "3v",
-            right: "1v",
-            bottom: 0
-        })
-    },
-    prerogativeStatusSuccess: {
-        color: fr.colors.decisions.text.default.success.default
-    },
-    prerogativeStatusError: {
-        color: fr.colors.decisions.text.default.error.default
     },
     labelDetail: {
         color: fr.colors.decisions.text.mention.grey.default

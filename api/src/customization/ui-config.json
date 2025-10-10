@@ -78,7 +78,7 @@
                 "license": true
             }
         },
-        "prerogatives": {
+        "customAttributes": {
             "enabled": true
         },
         "metadata": {
@@ -104,7 +104,7 @@
                 "organisation": true,
                 "applicationCategories": true,
                 "softwareType": true,
-                "prerogatives": true,
+                "customAttributes": true,
                 "programmingLanguages": false
             }
         },
