@@ -6,8 +6,8 @@ import type { Thunks } from "core/bootstrap";
 import { name, actions } from "./state";
 import { apiUrl } from "urls";
 
-export const protectedThunks = {
-    initialize:
+export const thunks = {
+    getCurrentUser:
         () =>
         async (dispatch, getState, { sillApi }) => {
             const state = getState()[name];
@@ -15,10 +15,7 @@ export const protectedThunks = {
             dispatch(actions.initializationStarted());
             const currentUser = await sillApi.getCurrentUser();
             dispatch(actions.initialized({ currentUser: currentUser ?? null }));
-        }
-} satisfies Thunks;
-
-export const thunks = {
+        },
     login: () => async () => {
         const currentUrl =
             window.location.pathname + window.location.search + window.location.hash;

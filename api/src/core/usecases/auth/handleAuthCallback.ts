@@ -5,6 +5,8 @@
 import { Session, SessionRepository, UserRepository } from "../../ports/DbApiV2";
 import { OidcClient } from "./oidcClient";
 
+export const MIN_SESSION_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
 type HandleAuthCallbackDependencies = {
     userRepository: UserRepository;
     sessionRepository: SessionRepository;
@@ -31,6 +33,11 @@ export const makeHandleAuthCallback = ({
         }
 
         const tokens = await oidcClient.exchangeCodeForTokens(code);
+        // console.log("🔍 OIDC tokens received:", {
+        //     expires_in: tokens.expires_in,
+        //     has_refresh_token: !!tokens.refresh_token,
+        //     has_id_token: !!tokens.id_token
+        // });
 
         const userInfoFromProvider = await oidcClient.getUserInfo(tokens.access_token);
 
@@ -61,7 +68,12 @@ export const makeHandleAuthCallback = ({
             });
         }
 
-        const twoDaysInMilliseconds = 2 * 24 * 60 * 60 * 1000;
+        // Use minimum session duration or default if OIDC doesn't provide expires_in
+        const sessionDurationMs = tokens.expires_in
+            ? Math.max(tokens.expires_in * 1000, MIN_SESSION_DURATION_MS)
+            : MIN_SESSION_DURATION_MS;
+
+        console.log("🔍 Session duration:", sessionDurationMs / 1000 / 60, "minutes");
 
         const updatedSession: Session = {
             ...initialSession,
@@ -70,9 +82,7 @@ export const makeHandleAuthCallback = ({
             accessToken: tokens.access_token,
             refreshToken: tokens.refresh_token ?? null,
             idToken: tokens.id_token ?? null,
-            expiresAt: tokens.expires_in
-                ? new Date(Date.now() + tokens.expires_in * 1000)
-                : new Date(Date.now() + twoDaysInMilliseconds)
+            expiresAt: new Date(Date.now() + sessionDurationMs)
         };
 
         await sessionRepository.update(updatedSession);

@@ -64,7 +64,7 @@ export async function bootstrapCore(
         dispatch(usecases.softwareCatalog.protectedThunks.initialize()),
         dispatch(usecases.generalStats.protectedThunks.initialize()),
         dispatch(usecases.redirect.protectedThunks.initialize()),
-        dispatch(usecases.userAuthentication.protectedThunks.initialize())
+        dispatch(usecases.userAuthentication.thunks.getCurrentUser())
     ]);
 
     return { core };

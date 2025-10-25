@@ -8,6 +8,8 @@ import type { TrpcRouter } from "api";
 import superjson from "superjson";
 import memoize from "memoizee";
 
+export const MIN_SESSION_DURATION_MS = 60 * 60 * 1000; // 1 hour
+
 export function createSillApi(params: { url: string }): SillApi {
     const { url } = params;
 
@@ -30,7 +32,8 @@ export function createSillApi(params: { url: string }): SillApi {
             promise: true
         }),
         getCurrentUser: memoize(() => trpcClient.getCurrentUser.query(), {
-            promise: true
+            promise: true,
+            maxAge: MIN_SESSION_DURATION_MS
         }),
         getExternalSoftwareDataOrigin: memoize(
             () => trpcClient.getExternalSoftwareDataOrigin.query(),

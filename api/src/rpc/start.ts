@@ -23,6 +23,7 @@ import { getTranslations } from "./translations/getTranslations";
 import { z } from "zod";
 import { env } from "../env";
 import type { OidcParams } from "../core/usecases/auth/oidcClient";
+import { MIN_SESSION_DURATION_MS } from "../core/usecases/auth/handleAuthCallback";
 
 const makeGetCatalogiJson =
     (redirectUrl: string | undefined, dbApi: DbApiV2): Handler =>
@@ -111,12 +112,15 @@ export async function startRpcService(params: {
                     state: state as string
                 });
 
-                // Update session cookie
+                const cookieMaxAge = session.expiresAt
+                    ? session.expiresAt.getTime() - Date.now()
+                    : MIN_SESSION_DURATION_MS; // Default: 24 hours if no expiry
+
                 res.cookie("sessionId", session.id, {
                     httpOnly: true,
                     secure: !isDevEnvironnement,
                     sameSite: "lax",
-                    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+                    maxAge: cookieMaxAge
                 });
 
                 const defaultRedirectUrl = `${env.appUrl}/list`;

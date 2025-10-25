@@ -19,6 +19,7 @@ import { Header } from "ui/shared/Header";
 import { LoadingFallback, loadingFallbackClassName } from "ui/shared/LoadingFallback";
 import { apiUrl, appPath, appUrl } from "urls";
 import { PromptForOrganization } from "./shared/PromptForOrganization";
+import { MIN_SESSION_DURATION_MS } from "core/adapter/sillApi";
 
 const { CoreProvider } = createCoreProvider({
     apiUrl,
@@ -90,6 +91,17 @@ function ContextualizedApp() {
     useEffect(() => {
         document.title = t("app.title");
     }, []);
+
+    // Poll user authentication periodically to detect session expiry (only when logged in)
+    useEffect(() => {
+        if (!currentUser) return;
+
+        const interval = setInterval(() => {
+            userAuthentication.getCurrentUser();
+        }, MIN_SESSION_DURATION_MS);
+
+        return () => clearInterval(interval);
+    }, [userAuthentication, currentUser]);
 
     return (
         <div className={classes.root}>
