@@ -9,12 +9,14 @@ import { expectToEqual, expectToMatchObject, testPgUrl } from "../../../tools/te
 import { HandleAuthCallback, makeHandleAuthCallback } from "./handleAuthCallback";
 import { makeInitiateLogout, InitiateLogout } from "./logout";
 import { createPgUserRepository } from "../../adapters/dbApi/kysely/createPgUserRepository";
+import { makeRefreshSession, RefreshSession } from "./refreshSession";
 
 describe("Authentication workflow", () => {
     let oidcClient: TestOidcClient;
     let initiateAuth: InitiateAuth;
     let handleAuthCallback: HandleAuthCallback;
     let initiateLogout: InitiateLogout;
+    let refreshSession: RefreshSession;
     let db: Kysely<Database>;
 
     beforeEach(async () => {
@@ -37,6 +39,10 @@ describe("Authentication workflow", () => {
             oidcClient
         });
         initiateLogout = makeInitiateLogout({
+            sessionRepository: createPgSessionRepository(db),
+            oidcClient
+        });
+        refreshSession = makeRefreshSession({
             sessionRepository: createPgSessionRepository(db),
             oidcClient
         });
@@ -118,6 +124,60 @@ describe("Authentication workflow", () => {
             .executeTakeFirst();
         expectToMatchObject(sessionAfterLogout, {
             loggedOutAt: expect.any(Date)
+        });
+    });
+
+    it("refreshes expired session using refresh token", async () => {
+        const { sessionId } = await initiateAuth({ redirectUrl: "/dashboard" });
+        const session = await db.selectFrom("user_sessions").selectAll().where("id", "=", sessionId).executeTakeFirst();
+
+        const fakeCode = "auth-code-123";
+        const authenticatedSession = await handleAuthCallback({
+            code: fakeCode,
+            state: session!.state
+        });
+
+        expectToMatchObject(authenticatedSession, {
+            refreshToken: expect.any(String),
+            accessToken: expect.any(String),
+            expiresAt: expect.any(Date)
+        });
+
+        const oldAccessToken = authenticatedSession.accessToken;
+        const oldRefreshToken = authenticatedSession.refreshToken;
+
+        await db
+            .updateTable("user_sessions")
+            .set({ expiresAt: new Date(Date.now() - 1000) })
+            .where("id", "=", sessionId)
+            .execute();
+
+        const expiredSession = await db
+            .selectFrom("user_sessions")
+            .selectAll()
+            .where("id", "=", sessionId)
+            .executeTakeFirst();
+
+        expectToMatchObject(expiredSession, {
+            refreshToken: oldRefreshToken,
+            accessToken: oldAccessToken
+        });
+        expect(expiredSession!.expiresAt!.getTime()).toBeLessThan(Date.now());
+
+        const refreshedSession = await refreshSession(expiredSession!);
+
+        expectToMatchObject(refreshedSession, {
+            accessToken: expect.any(String),
+            refreshToken: expect.any(String),
+            expiresAt: expect.any(Date)
+        });
+
+        expect(refreshedSession.accessToken).not.toEqual(oldAccessToken);
+        expect(refreshedSession.expiresAt!.getTime()).toBeGreaterThan(Date.now());
+
+        expectToEqual(oidcClient.calls.at(-1), {
+            method: "refreshAccessToken",
+            args: [oldRefreshToken]
         });
     });
 });

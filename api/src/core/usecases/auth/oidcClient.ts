@@ -38,6 +38,13 @@ export interface OidcClient {
         token_type: string;
         id_token?: string;
     }>;
+    refreshAccessToken(refreshToken: string): Promise<{
+        access_token: string;
+        refresh_token?: string;
+        expires_in?: number;
+        token_type: string;
+        id_token?: string;
+    }>;
     getUserInfo(accessToken: string): Promise<OidcUserInfo>;
     logout(idToken: string | null): Promise<string>;
 }
@@ -124,6 +131,35 @@ export class HttpOidcClient implements OidcClient {
         return response.json();
     }
 
+    async refreshAccessToken(refreshToken: string): Promise<{
+        access_token: string;
+        refresh_token?: string;
+        expires_in?: number;
+        token_type: string;
+        id_token?: string;
+    }> {
+        const body = new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: refreshToken,
+            client_id: this.#oidcParams.clientId,
+            client_secret: this.#oidcParams.clientSecret
+        });
+
+        const response = await fetch(this.#config.token_endpoint, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/x-www-form-urlencoded"
+            },
+            body: body.toString()
+        });
+
+        if (!response.ok) {
+            throw new Error(`Token refresh failed: ${response.statusText}`);
+        }
+
+        return response.json();
+    }
+
     async getUserInfo(accessToken: string): Promise<OidcUserInfo> {
         const response = await fetch(this.#config.userinfo_endpoint, {
             headers: { Authorization: `Bearer ${accessToken}` }
@@ -158,7 +194,7 @@ export class HttpOidcClient implements OidcClient {
 }
 
 export type TestOidcClientCall = {
-    method: "getAuthorizationEndpoint" | "exchangeCodeForTokens" | "getUserInfo" | "logout";
+    method: "getAuthorizationEndpoint" | "exchangeCodeForTokens" | "refreshAccessToken" | "getUserInfo" | "logout";
     args: any[];
 };
 
@@ -220,6 +256,26 @@ export class TestOidcClient implements OidcClient {
             expires_in: 3600,
             token_type: "Bearer",
             id_token: `test-id-token-${code}`
+        };
+    }
+
+    async refreshAccessToken(refreshToken: string): Promise<{
+        access_token: string;
+        refresh_token?: string;
+        expires_in?: number;
+        token_type: string;
+        id_token?: string;
+    }> {
+        this.#calls.push({
+            method: "refreshAccessToken",
+            args: [refreshToken]
+        });
+        return {
+            access_token: `refreshed-token-${refreshToken}`,
+            refresh_token: `new-refresh-${refreshToken}`,
+            expires_in: 3600,
+            token_type: "Bearer",
+            id_token: `new-id-token-${refreshToken}`
         };
     }
 

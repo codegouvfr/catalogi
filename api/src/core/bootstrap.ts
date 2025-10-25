@@ -13,6 +13,7 @@ import { UseCasesUsedOnRouter } from "../rpc/router";
 import { makeHandleAuthCallback } from "./usecases/auth/handleAuthCallback";
 import { makeInitiateAuth } from "./usecases/auth/initiateAuth";
 import { makeInitiateLogout } from "./usecases/auth/logout";
+import { makeRefreshSession } from "./usecases/auth/refreshSession";
 import { HttpOidcClient, TestOidcClient, type OidcParams } from "./usecases/auth/oidcClient";
 import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
@@ -84,7 +85,8 @@ export async function bootstrapCore(
                 userRepository: dbApi.user,
                 oidcClient
             }),
-            initiateLogout: makeInitiateLogout({ sessionRepository: dbApi.session, oidcClient })
+            initiateLogout: makeInitiateLogout({ sessionRepository: dbApi.session, oidcClient }),
+            refreshSession: makeRefreshSession({ sessionRepository: dbApi.session, oidcClient })
         }
     };
 

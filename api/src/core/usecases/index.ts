@@ -15,6 +15,7 @@ import { GetPopulatedSoftware } from "./getPopulatedSoftware";
 import { InitiateAuth } from "./auth/initiateAuth";
 import { HandleAuthCallback } from "./auth/handleAuthCallback";
 import { InitiateLogout } from "./auth/logout";
+import { RefreshSession } from "./auth/refreshSession";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;
@@ -25,6 +26,7 @@ export type UseCases = {
         initiateAuth: InitiateAuth;
         handleAuthCallback: HandleAuthCallback;
         initiateLogout: InitiateLogout;
+        refreshSession: RefreshSession;
     };
     importFromSource: ImportFromSource;
     createSoftware: CreateSoftware;

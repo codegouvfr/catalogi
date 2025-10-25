@@ -23,7 +23,6 @@ import { getTranslations } from "./translations/getTranslations";
 import { z } from "zod";
 import { env } from "../env";
 import type { OidcParams } from "../core/usecases/auth/oidcClient";
-import { MIN_SESSION_DURATION_MS } from "../core/usecases/auth/handleAuthCallback";
 
 const makeGetCatalogiJson =
     (redirectUrl: string | undefined, dbApi: DbApiV2): Handler =>
@@ -63,7 +62,9 @@ export async function startRpcService(params: {
     });
 
     const { createContext } = await createContextFactory({
-        userRepository: dbApi.user
+        userRepository: dbApi.user,
+        sessionRepository: dbApi.session,
+        refreshSession: useCases.auth.refreshSession
     });
 
     const { router } = createRouter({
@@ -112,15 +113,14 @@ export async function startRpcService(params: {
                     state: state as string
                 });
 
-                const cookieMaxAge = session.expiresAt
-                    ? session.expiresAt.getTime() - Date.now()
-                    : MIN_SESSION_DURATION_MS; // Default: 24 hours if no expiry
+                // Cookie should live longer than session to allow refresh token usage
+                const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 
                 res.cookie("sessionId", session.id, {
                     httpOnly: true,
                     secure: !isDevEnvironnement,
                     sameSite: "lax",
-                    maxAge: cookieMaxAge
+                    maxAge: COOKIE_MAX_AGE
                 });
 
                 const defaultRedirectUrl = `${env.appUrl}/list`;
