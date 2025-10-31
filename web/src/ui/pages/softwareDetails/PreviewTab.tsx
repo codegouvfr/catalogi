@@ -164,6 +164,33 @@ export const PreviewTab = (props: Props) => {
                                 </p>
                             )}
 
+                        {uiConfig?.softwareDetails.details.fields
+                            .minimalVersionRequired &&
+                            props.minimalVersionRequired && (
+                                <p
+                                    className={cx(
+                                        fr.cx("fr-text--regular"),
+                                        classes.item
+                                    )}
+                                >
+                                    <span className={classes.labelDetail}>
+                                        {t("previewTab.minimal version")}
+                                    </span>
+                                    <span
+                                        className={cx(
+                                            fr.cx(
+                                                "fr-badge",
+                                                "fr-badge--yellow-tournesol",
+                                                "fr-badge--sm"
+                                            ),
+                                            classes.badgeVersion
+                                        )}
+                                    >
+                                        {props.minimalVersionRequired}
+                                    </span>
+                                </p>
+                            )}
+
                         {uiConfig?.softwareDetails.details.fields.license && license && (
                             <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
                                 <span className={classes.labelDetail}>
