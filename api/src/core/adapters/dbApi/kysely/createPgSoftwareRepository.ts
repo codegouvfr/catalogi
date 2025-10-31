@@ -113,7 +113,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     name,
                     description,
                     license,
-                    logoUrl,
+                    logoUrl: logoUrl ?? null,
                     versionMin,
                     dereferencing: JSON.stringify(dereferencing),
                     updateTime: now,
