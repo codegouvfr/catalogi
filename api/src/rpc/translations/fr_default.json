@@ -241,7 +241,13 @@
         "stop being referent": "Ne plus être référent",
         "become referent": "Devenir référent",
         "please provide a reason for unreferencing this software": "Merci de préciser la raison pour laquelle vous estimez que ce logiciel ne devrait plus être référencé dans le $t(common.appAccronym)",
-        "unreference software": "Dé-référencer le logiciel"
+        "unreference software": "Dé-référencer le logiciel",
+        "error": {
+            "title": "Logiciel introuvable",
+            "notFound": "Le logiciel demandé n'a pas pu être trouvé dans le catalogue. Il a peut-être été supprimé ou le nom pourrait être incorrect.",
+            "generic": "Une erreur inattendue s'est produite lors du chargement des détails du logiciel.",
+            "searchInCatalog": "Le chercher dans le catalogue"
+        }
     },
     "headerDetailCard": {
         "authors": "Auteurs : ",

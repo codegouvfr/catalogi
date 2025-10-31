@@ -64,12 +64,19 @@ export const thunks = {
                 sillApi.getInstances()
             ]);
 
-            const software = apiSoftwareToSoftware({
-                apiSoftwares,
-                apiInstances,
-                softwareName,
-                mainSource
-            });
+            let software: State.Software;
+
+            try {
+                software = apiSoftwareToSoftware({
+                    apiSoftwares,
+                    apiInstances,
+                    softwareName,
+                    mainSource
+                });
+            } catch (error) {
+                dispatch(actions.initializationFailed({ error: error as Error }));
+                return;
+            }
 
             const userDeclaration: { isReferent: boolean; isUser: boolean } | undefined =
                 await (async () => {
@@ -169,7 +176,9 @@ function apiSoftwareToSoftware(params: {
         apiSoftware => apiSoftware.softwareName === softwareName
     );
 
-    assert(apiSoftware !== undefined);
+    if (!apiSoftware) {
+        throw new Error(`Software "${softwareName}" not found`);
+    }
 
     const {
         softwareId,

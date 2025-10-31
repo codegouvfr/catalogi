@@ -972,6 +972,26 @@
                 },
                 "unreference software": {
                     "type": "string"
+                },
+                "error": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "Title text"
+                        },
+                        "notFound": {
+                            "type": "string"
+                        },
+                        "generic": {
+                            "type": "string"
+                        },
+                        "searchInCatalog": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": ["title", "notFound", "generic", "searchInCatalog"]
                 }
             },
             "additionalProperties": false,
@@ -1005,7 +1025,8 @@
                 "stop being referent",
                 "become referent",
                 "please provide a reason for unreferencing this software",
-                "unreference software"
+                "unreference software",
+                "error"
             ]
         },
         "headerDetailCard": {

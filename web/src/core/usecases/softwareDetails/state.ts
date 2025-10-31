@@ -10,7 +10,7 @@ import type { ApiTypes } from "api";
 
 export const name = "softwareDetails";
 
-export type State = State.NotReady | State.Ready;
+export type State = State.NotReady | State.Ready | State.Error;
 
 export namespace State {
     export type SimilarSoftwareNotRegistered =
@@ -19,6 +19,11 @@ export namespace State {
     export type NotReady = {
         stateDescription: "not ready";
         isInitializing: boolean;
+    };
+
+    export type Error = {
+        stateDescription: "error";
+        error: globalThis.Error;
     };
 
     export type Ready = {
@@ -133,6 +138,13 @@ export const { reducer, actions } = createUsecaseActions({
         cleared: () => ({
             stateDescription: "not ready" as const,
             isInitializing: false
+        }),
+        initializationFailed: (
+            _state,
+            { payload }: { payload: { error: globalThis.Error } }
+        ) => ({
+            stateDescription: "error" as const,
+            error: payload.error
         }),
         unreferencingStarted: state => {
             assert(state.stateDescription === "ready");

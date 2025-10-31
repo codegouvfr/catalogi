@@ -16,6 +16,7 @@ import { SimilarSoftwareTab } from "ui/pages/softwareDetails/AlikeSoftwareTab";
 import { PublicationTab } from "./PublicationTab";
 import { ActionsFooter } from "ui/shared/ActionsFooter";
 import { DetailUsersAndReferents } from "ui/shared/DetailUsersAndReferents";
+import { Alert } from "@codegouvfr/react-dsfr/Alert";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import type { PageRoute } from "./route";
 import softwareLogoPlaceholder from "ui/assets/software_logo_placeholder.png";
@@ -44,10 +45,8 @@ export default function SoftwareDetails(props: Props) {
 
     const { t } = useTranslation();
 
-    const { isReady, software, userDeclaration, isUnreferencingOngoing } = useCoreState(
-        "softwareDetails",
-        "main"
-    );
+    const { isReady, error, software, userDeclaration, isUnreferencingOngoing } =
+        useCoreState("softwareDetails", "main");
 
     useEffect(() => {
         softwareDetails.initialize({
@@ -57,12 +56,21 @@ export default function SoftwareDetails(props: Props) {
         return () => softwareDetails.clear();
     }, [route.params.name]);
 
+    if (error) {
+        return (
+            <SoftwareDetailsErrorFallback
+                error={error}
+                softwareName={route.params.name}
+            />
+        );
+    }
+
     if (!isReady) {
         return <LoadingFallback />;
     }
 
     const getLogoUrl = (): string | undefined => {
-        if (software.logoUrl) return software.logoUrl;
+        if (software?.logoUrl) return software.logoUrl;
         if (uiConfig?.softwareDetails.defaultLogo) return softwareLogoPlaceholder;
     };
 
@@ -438,6 +446,49 @@ const ServiceProviderRow = ({
         </li>
     );
 };
+
+function SoftwareDetailsErrorFallback({
+    error,
+    softwareName
+}: {
+    error: Error;
+    softwareName: string;
+}) {
+    const { t } = useTranslation();
+
+    return (
+        <div
+            style={{
+                padding: fr.spacing("4v"),
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: fr.spacing("4v")
+            }}
+        >
+            <Alert
+                severity="error"
+                title={t("softwareDetails.error.title")}
+                description={
+                    error.message.includes("not found")
+                        ? t("softwareDetails.error.notFound")
+                        : t("softwareDetails.error.generic")
+                }
+            />
+            <div style={{ display: "flex", gap: fr.spacing("2v") }}>
+                <Button
+                    priority="primary"
+                    onClick={() => {
+                        routes.softwareCatalog({ search: softwareName }).push();
+                    }}
+                >
+                    {t("softwareDetails.error.searchInCatalog")}
+                </Button>
+            </div>
+        </div>
+    );
+}
+
 const useStyles = tss.withName({ SoftwareDetails }).create({
     breadcrumb: {
         marginBottom: fr.spacing("4v")

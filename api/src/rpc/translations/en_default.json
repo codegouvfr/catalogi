@@ -238,7 +238,13 @@
         "stop being referent": "Stop being referent",
         "become referent": "Become referent",
         "please provide a reason for unreferencing this software": "Please provide a reason why you think this software should not be in the $t(common.appAccronym) anymore",
-        "unreference software": "Dereference the software"
+        "unreference software": "Dereference the software",
+        "error": {
+            "title": "Software not found",
+            "notFound": "The requested software could not be found in the catalog. It may have been removed or the name might be incorrect.",
+            "generic": "An unexpected error occurred while loading the software details.",
+            "searchInCatalog": "Look for it in the catalog"
+        }
     },
     "headerDetailCard": {
         "authors": "Authors : ",

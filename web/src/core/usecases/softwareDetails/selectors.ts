@@ -17,7 +17,19 @@ const readyState = (rootState: RootState) => {
     return state;
 };
 
+const errorState = (rootState: RootState) => {
+    const state = rootState[name];
+
+    if (state.stateDescription !== "error") {
+        return undefined;
+    }
+
+    return state;
+};
+
 const isReady = createSelector(readyState, state => state !== undefined);
+
+const error = createSelector(errorState, state => state?.error);
 
 const software = createSelector(readyState, readyState => readyState?.software);
 
@@ -33,7 +45,15 @@ const main = createSelector(
     software,
     userDeclaration,
     isUnreferencingOngoing,
-    (isReady, software, userDeclaration, isUnreferencingOngoing) => {
+    error,
+    (isReady, software, userDeclaration, isUnreferencingOngoing, error) => {
+        if (error) {
+            return {
+                isReady: false as const,
+                error
+            };
+        }
+
         if (!isReady) {
             return {
                 isReady: false as const
