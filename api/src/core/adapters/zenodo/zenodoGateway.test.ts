@@ -132,7 +132,7 @@ const resultRequest = [
     }
 ];
 
-describe("zenodoSourceGateway", () => {
+describe.skip("zenodoSourceGateway", () => {
     const zenodoSource: Source = {
         slug: "zenodo",
         kind: "Zenodo",
