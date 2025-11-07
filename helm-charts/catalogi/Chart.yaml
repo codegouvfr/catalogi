@@ -2,8 +2,8 @@ apiVersion: v2
 name: catalogi
 description: A Helm chart for deploying the Catalogi open source software catalog.
 type: application
-version: 2.0.11
-appVersion: 1.52.0
+version: 2.0.12
+appVersion: 1.52.1
 dependencies:
   - name: postgresql
     version: '16'
