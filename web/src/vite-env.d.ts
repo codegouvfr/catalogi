@@ -23,6 +23,7 @@ type ImportMetaEnv = {
   DEV: boolean
   PROD: boolean
   VITE_HEAD: string
+  VITE_ENVIRONMENT: string
   VERSION: string
   NODE_ENV: string
   // @user-defined-start

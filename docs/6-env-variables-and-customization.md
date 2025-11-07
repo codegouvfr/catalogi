@@ -7,7 +7,7 @@
 
 ## Environment variables
 
-The following environment variables are used to configure the Catalogi web application. 
+The following environment variables are used to configure the Catalogi web application.
 You can set them in a `.env` file or directly in your environment.
 
 | Variable Name | Required | Default Value | Example Value |
@@ -17,13 +17,33 @@ You can set them in a `.env` file or directly in your environment.
 | DATABASE_URL | ✅ | - | `postgresql://catalogi:pg_password@localhost:5432/catalogi` |
 | API_PORT | ❌ | `8080` | `1234` |
 | IS_DEV_ENVIRONNEMENT | ❌ | `false` | `true` |
+| VITE_ENVIRONMENT | ❌ | `local` | `local`, `dev`, `staging`, `pre-production`, or `production` |
 | EXTERNAL_SOFTWARE_DATA_ORIGIN | ❌ | `wikidata` | `wikidata` or `HAL` |
 | INIT_SOFT_FROM_SOURCE | ❌ | `false` | `true` |
 | BOT_AGENT_EMAIL | ❌ | - | `bot@example.com` |
 | IMPORT_WIKIDATA | ❌ | - | `Q123,Q456,Q789` |
 | REDIRECT_URL | ❌ | - | `https://catalogi.example.com` |
 
-There is another variable that is purely for frontend configuration, which can contain HTML code, that will be injected in the `<head>` of the web application. It is useful to add meta tags, or other HTML elements that you want to be present in the head of the page. Note that you cannot use the syntay with backticks '`'.
+### VITE_ENVIRONMENT
+
+The `VITE_ENVIRONMENT` variable identifies the deployment environment and is available in both the API (backend) and web (frontend). Valid values are:
+- `local` - Local development environment (default)
+- `dev` - Development environment
+- `staging` - Staging environment
+- `pre-production` - Pre-production environment
+- `production` - Production environment
+
+This variable can be used to enable environment-specific features and configurations, such as:
+- Error monitoring and logging services (e.g., Sentry)
+- Analytics and tracking tools
+- Feature flags and conditional behavior
+- Different API endpoints or service configurations
+
+While Sentry is not currently set up in this project, the `VITE_ENVIRONMENT` variable provides the foundation for integrating such tools if they become frequently requested features.
+
+### VITE_HEAD
+
+There is another variable that is purely for frontend configuration, which can contain HTML code, that will be injected in the `<head>` of the web application. It is useful to add meta tags, or other HTML elements that you want to be present in the head of the page. Note that you cannot use the syntay with backticks '`'.
 
 ```
 VITE_HEAD="
