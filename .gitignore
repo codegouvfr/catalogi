@@ -11,3 +11,4 @@ CLAUDE.md
 # Helm
 helm-charts/*/Chart.lock
 helm-charts/*/charts/
+docs/charts/*.tgz

@@ -128,6 +128,11 @@ jobs:
         uses: azure/setup-helm@v4
       - name: Create charts directory
         run: mkdir -p docs/charts
+      - name: Download chart from release
+        run: |
+          gh release download v${TO_VERSION} --pattern "catalogi-*.tgz" --dir docs/charts/
+        env:
+          GH_TOKEN: ${{ github.token }}
       - name: Generate Helm repository index
         run: |
           helm repo index docs/charts/ --url https://github.com/codegouvfr/catalogi/releases/download/v${TO_VERSION}/
