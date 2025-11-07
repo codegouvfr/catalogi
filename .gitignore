@@ -7,3 +7,7 @@ docker-data
 .bruno
 dump*
 CLAUDE.md
+
+# Helm
+helm-charts/*/Chart.lock
+helm-charts/*/charts/
