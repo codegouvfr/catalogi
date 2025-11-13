@@ -2,8 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import "../instrument";
-import { startRpcService } from "../rpc";
-import { env } from "../env";
+import packageJson from "../../../package.json";
 
-startRpcService(env);
+export const projectVersion: string = packageJson.version;

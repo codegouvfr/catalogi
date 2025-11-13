@@ -23,9 +23,10 @@ type ImportMetaEnv = {
   DEV: boolean
   PROD: boolean
   VITE_HEAD: string
-  VITE_ENVIRONMENT: string
+  ENVIRONMENT: string
   VERSION: string
   NODE_ENV: string
+  SENTRY_DSN_WEB: string
   // @user-defined-start
   /*
    *  You can use this section to explicitly extend the type definition of `import.meta.env`

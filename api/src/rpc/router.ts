@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { initTRPC, TRPCError } from "@trpc/server";
+import * as Sentry from "@sentry/node";
 import superjson from "superjson";
 import type { Equals, ReturnType } from "tsafe";
 import { assert } from "tsafe/assert";
@@ -46,10 +47,40 @@ export function createRouter(params: {
     const { useCases, dbApi, oidcParams, redirectUrl, uiConfig } = params;
 
     const t = initTRPC.context<Context>().create({
-        "transformer": superjson
+        "transformer": superjson,
+        errorFormatter({ shape, error }) {
+            if (error.code === "INTERNAL_SERVER_ERROR" && error.cause) {
+                Sentry.captureException(error.cause);
+            } else if (error.code === "INTERNAL_SERVER_ERROR") {
+                Sentry.captureException(error);
+            }
+            return shape;
+        }
     });
 
-    const loggedProcedure = t.procedure.use(
+    const sentryMiddleware = t.middleware(async opts => {
+        try {
+            return await opts.next();
+        } catch (error) {
+            if (error instanceof TRPCError && error.code !== "INTERNAL_SERVER_ERROR") {
+                throw error;
+            }
+
+            Sentry.captureException(error, {
+                contexts: {
+                    trpc: {
+                        path: opts.path,
+                        type: opts.type,
+                        input: opts.rawInput
+                    }
+                }
+            });
+
+            throw error;
+        }
+    });
+
+    const loggedProcedure = t.procedure.use(sentryMiddleware).use(
         t.middleware(async opts => {
             const start = Date.now();
 

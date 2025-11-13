@@ -3,20 +3,56 @@
 // SPDX-License-Identifier: MIT
 
 import type { SillApi } from "../ports/SillApi";
-import { createTRPCProxyClient, httpBatchLink, loggerLink } from "@trpc/client";
+import {
+    createTRPCProxyClient,
+    httpBatchLink,
+    loggerLink,
+    TRPCClientError
+} from "@trpc/client";
 import type { TrpcRouter } from "api";
 import superjson from "superjson";
 import memoize from "memoizee";
+import * as Sentry from "@sentry/react";
 
 export function createSillApi(params: { url: string }): SillApi {
     const { url } = params;
 
     const trpcClient = createTRPCProxyClient<TrpcRouter>({
         transformer: superjson,
-        links: [loggerLink(), httpBatchLink({ url })]
+        links: [
+            loggerLink(),
+            httpBatchLink({
+                url,
+                fetch(url, options) {
+                    return fetch(url, options).catch(error => {
+                        Sentry.captureException(error, {
+                            contexts: {
+                                trpc: {
+                                    url: url.toString()
+                                }
+                            }
+                        });
+                        throw error;
+                    });
+                }
+            })
+        ]
     });
 
     const errorHandler = (err: any) => {
+        if (err instanceof TRPCClientError) {
+            Sentry.captureException(err, {
+                contexts: {
+                    trpc: {
+                        data: err.data,
+                        message: err.message
+                    }
+                }
+            });
+        } else {
+            Sentry.captureException(err);
+        }
+
         if (err.shape?.message) {
             alert(err.shape.message);
         } else {

@@ -21,7 +21,8 @@ const zEnvConfiguration = z.object({
     "listToImport": z.array(z.string()).optional(),
     "updateSkipTimingInMinutes": z.number().optional(),
     // Completely disable this instance and redirect to another url
-    "redirectUrl": z.string().optional()
+    "redirectUrl": z.string().optional(),
+    "sentryDsnApi": z.string().optional()
 });
 
 const envConfiguration = zEnvConfiguration.parse({
@@ -34,13 +35,14 @@ const envConfiguration = zEnvConfiguration.parse({
     "port": parseInt(process.env.API_PORT ?? ""),
     "appUrl": process.env.APP_URL,
     "isDevEnvironnement": process.env.IS_DEV_ENVIRONNEMENT?.toLowerCase() === "true",
-    "environment": process.env.VITE_ENVIRONMENT,
+    "environment": process.env.ENVIRONMENT,
     "importDataSourceOrigin": process.env.IMPORT_DATA_SOURCE_ORIGIN,
     "redirectUrl": process.env.REDIRECT_URL,
     "databaseUrl": process.env.DATABASE_URL,
     "botUserEmail": process.env?.BOT_USER_EMAIL,
     "listToImport": process.env?.IMPORT_DATA_IDS?.split(","),
-    "updateSkipTimingInMinutes": process.env?.UPDATE_SKIP_TIMING ? parseInt(process.env.UPDATE_SKIP_TIMING) : undefined
+    "updateSkipTimingInMinutes": process.env?.UPDATE_SKIP_TIMING ? parseInt(process.env.UPDATE_SKIP_TIMING) : undefined,
+    "sentryDsnApi": process.env.SENTRY_DSN_API
 });
 
 export const env = {

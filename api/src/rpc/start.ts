@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import * as Sentry from "@sentry/node";
 import * as trpcExpress from "@trpc/server/adapters/express";
 import compression from "compression";
 import cors from "cors";
@@ -75,13 +76,14 @@ export async function startRpcService(params: {
         uiConfig
     });
 
-    express()
-        .use(
-            cors({
-                origin: "http://localhost:3000",
-                credentials: true
-            })
-        )
+    const app = express();
+
+    app.use(
+        cors({
+            origin: "http://localhost:3000",
+            credentials: true
+        })
+    )
         .use(compression() as any)
         .use(cookieParser())
         .use((req, _res, next) => (console.log("⬅", req.method, req.path, req.body ?? req.query), next()))
@@ -94,6 +96,7 @@ export async function startRpcService(params: {
 
                 res.redirect(authUrl);
             } catch (error: any) {
+                Sentry.captureException(error);
                 console.error("Login error: ", error?.message);
                 console.error(error);
                 res.status(500).json({ error: "Authentication failed" });
@@ -127,6 +130,7 @@ export async function startRpcService(params: {
                 const redirectUrl = session.redirectUrl || defaultRedirectUrl;
                 res.redirect(redirectUrl);
             } catch (error) {
+                Sentry.captureException(error);
                 console.error("Callback error:", error);
                 res.status(500).json({ error: "Authentication callback failed" });
             }
@@ -145,6 +149,7 @@ export async function startRpcService(params: {
                 res.clearCookie("sessionId");
                 res.redirect(logoutUrl);
             } catch (error) {
+                Sentry.captureException(error);
                 console.error("Logout error:", error);
                 res.status(500).json({ error: "Logout failed" });
             }
@@ -190,6 +195,9 @@ export async function startRpcService(params: {
                     return trpcMiddleware(proxyReq, res, next);
                 };
             })()
-        )
-        .listen(port, () => console.log(`Listening on port ${port}`));
+        );
+
+    Sentry.setupExpressErrorHandler(app);
+
+    app.listen(port, () => console.log(`Listening on port ${port}`));
 }
