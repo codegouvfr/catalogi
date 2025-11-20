@@ -319,6 +319,17 @@ const { filterBySearchMemoized } = (() => {
                 },
                 cache: 100,
                 tokenize: "full",
+                charset: {
+                    split: /\s+/,
+                    rtl: false,
+                    encode: (str: string): string[] => {
+                        const normalized = str
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .toLowerCase();
+                        return [normalized];
+                    }
+                },
                 context: {
                     resolution: 9,
                     depth: 2,
