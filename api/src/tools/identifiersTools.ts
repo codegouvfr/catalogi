@@ -235,31 +235,39 @@ export const identifersUtils = {
             additionalType: "Repo"
         };
     },
-    // TODO
-    makeRepoGitLabIdentifer: (params: { orcidId: string; additionalType?: string }): SchemaIdentifier => {
-        const { orcidId, additionalType } = params;
+    makeRepoGitLabIdentifer: (params: {
+        gitLabUrl: string;
+        projectId: number;
+        projectName?: string;
+    }): SchemaIdentifier => {
+        const { gitLabUrl, projectId, projectName } = params;
         return {
             "@type": "PropertyValue" as const,
-            value: orcidId,
-            url: `https://orcid.org/${orcidId}`,
+            value: projectId.toString(),
+            ...(projectName ? { valueReference: projectName } : {}),
+            url: `${gitLabUrl}/${projectName}`,
             subjectOf: {
                 "@type": "Website" as const,
-                name: "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
-                url: new URL("https://github.com/"),
-                additionalType: "GitHub"
+                name: "GitLab instance",
+                url: new URL(gitLabUrl),
+                additionalType: "GitLab"
             },
-            ...(additionalType ? { additionalType: additionalType } : {})
+            additionalType: "Repo"
         };
     },
-    // TODO
-    makeUserGitLabIdentifer: (params: { username: string; userId: number }): SchemaIdentifier => {
-        const { username, userId } = params;
+    makeUserGitLabIdentifer: (params: { gitLabUrl: string; username: string; userId: number }): SchemaIdentifier => {
+        const { gitLabUrl, username, userId } = params;
         return {
             "@type": "PropertyValue" as const,
             value: username,
             valueReference: userId.toString(),
-            url: `https://github.com/${username}`,
-            subjectOf: gitHubSource,
+            url: `${gitLabUrl}/${username}`, // TODO TO check
+            subjectOf: {
+                "@type": "Website" as const,
+                name: "GitLab instance",
+                url: new URL(gitLabUrl),
+                additionalType: "GitLab"
+            },
             additionalType: "User"
         };
     }
