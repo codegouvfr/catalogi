@@ -794,24 +794,32 @@
   resolved "https://registry.yarnpkg.com/@eslint/js/-/js-8.57.1.tgz#de633db3ec2ef6a3c89e2f19038063e8a122e2c2"
   integrity sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==
 
-"@gitbeaker/core@^42.1.0":
-  version "42.5.0"
-  resolved "https://registry.yarnpkg.com/@gitbeaker/core/-/core-42.5.0.tgz#ffd7cdda33e2e34d5b0a3ab28d65911b3ede5b29"
-  integrity sha512-rMWpOPaZi1iLiifnOIoVO57p2EmQQdfIwP4txqNyMvG4WjYP5Ez0U7jRD9Nra41x6K5kTPBZkuQcAdxVWRJcEQ==
+"@gitbeaker/core@^43.4.0":
+  version "43.4.0"
+  resolved "https://registry.yarnpkg.com/@gitbeaker/core/-/core-43.4.0.tgz#4d39548b88ce5144aa615877cc0341a55efeeae7"
+  integrity sha512-SN7/2raXQa99i/koOV5voQ3q5Pz9F8TkyECBDmY8lDrgufgf5QLfRvTVc1uRU/As543KCrPi2s/Hn+vZgwLdYw==
   dependencies:
-    "@gitbeaker/requester-utils" "^42.5.0"
-    qs "^6.12.2"
+    "@gitbeaker/requester-utils" "^43.4.0"
+    qs "^6.14.0"
     xcase "^2.0.1"
 
-"@gitbeaker/requester-utils@^42.5.0":
-  version "42.5.0"
-  resolved "https://registry.yarnpkg.com/@gitbeaker/requester-utils/-/requester-utils-42.5.0.tgz#6244f4894e37470528afd211a62fa0df0ce78e65"
-  integrity sha512-HLdLS9LPBMVQumvroQg/4qkphLDtwDB+ygEsrD2u4oYCMUtXV4V1xaVqU4yTXjbTJ5sItOtdB43vYRkBcgueBw==
+"@gitbeaker/requester-utils@^43.4.0":
+  version "43.4.0"
+  resolved "https://registry.yarnpkg.com/@gitbeaker/requester-utils/-/requester-utils-43.4.0.tgz#ece399e13dd0e86d110db342b1ac49544963974c"
+  integrity sha512-W15fZbLzEonMdqzz+/H3KmIByI3neUE2+HjnvnyMl5g4CHZuPCkj0boTkGRBH1c6ax1Fmdhz5vPv7OjRF274gQ==
   dependencies:
     picomatch-browser "^2.2.6"
-    qs "^6.12.2"
+    qs "^6.14.0"
     rate-limiter-flexible "^4.0.1"
     xcase "^2.0.1"
+
+"@gitbeaker/rest@^43.4.0":
+  version "43.4.0"
+  resolved "https://registry.yarnpkg.com/@gitbeaker/rest/-/rest-43.4.0.tgz#91cd16de16e62c28b97fe6d34ccf4c18655a049f"
+  integrity sha512-SmyBcC16+wNuAT77vcqk1gQr5ITC0yD4ln5/s7qplEC4U3hQtII/NKvpiygapMDrFF4GGA3GTCQAPQuUk22onw==
+  dependencies:
+    "@gitbeaker/core" "^43.4.0"
+    "@gitbeaker/requester-utils" "^43.4.0"
 
 "@humanwhocodes/config-array@^0.13.0":
   version "0.13.0"
@@ -7250,7 +7258,7 @@ qs@6.13.0:
   dependencies:
     side-channel "^1.0.6"
 
-qs@^6.12.2:
+qs@^6.14.0:
   version "6.14.0"
   resolved "https://registry.yarnpkg.com/qs/-/qs-6.14.0.tgz#c63fa40680d2c5c941412a0e899c89af60c0a930"
   integrity sha512-YWWTjgABSKcvs/nWBi9PycY/JiPJqOD4JA6o9Sej2AtvSGarXxKC3OQSk4pAarbdQlKAh5D4FCQkJNkW+GAn3w==
