@@ -10,6 +10,7 @@ import { comptoirDuLibreSourceGateway } from "./comptoirDuLibre";
 import { zenodoSourceGateway } from "./zenodo";
 import { cnllSourceGateway } from "./CNLL";
 import { gitHubSourceGateway } from "./GitHub";
+import { gitLabSourceGateway } from "./GitLab";
 
 export const resolveAdapterFromSource = (
     source: DatabaseDataType.SourceRow
@@ -28,7 +29,7 @@ export const resolveAdapterFromSource = (
         case "GitHub":
             return gitHubSourceGateway;
         case "GitLab":
-            throw new Error("Not implemented yet");
+            return gitLabSourceGateway;
         default:
             const unreachableCase: never = source.kind;
             throw new Error(`Unreachable case: ${unreachableCase}`);

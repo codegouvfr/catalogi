@@ -2,9 +2,11 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { Gitlab } from "@gitbeaker/rest";
 import { SchemaIdentifier } from "../core/adapters/dbApi/kysely/kysely.database";
 import { repoGitHubEndpointMaker } from "../core/adapters/GitHub/api/repo";
 import { identifersUtils } from "./identifiersTools";
+import { repoUrlToCleanUrl, resolveExternalReferenceToProject } from "../core/adapters/GitLab/api/utils";
 
 export type RepoType = "GitHub" | "GitLab";
 
@@ -54,6 +56,24 @@ export const repoUrlToIdentifer = async (params: {
                 repoId: repo.id
             });
         case "GitLab":
+            const clean = repoUrlToCleanUrl(repoUrl);
+            const parsedUrl = new URL(clean);
+            const gitLabApi = new Gitlab({
+                host: parsedUrl.origin
+            });
+
+            const externalId = parsedUrl.pathname?.substring(1);
+            if (!externalId || externalId === "") return;
+
+            const project = await resolveExternalReferenceToProject({ gitLabApi, externalId });
+            if (!project) return;
+
+            return identifersUtils.makeRepoGitLabIdentifer({
+                gitLabUrl: parsedUrl.origin,
+                projectId: project.id,
+                projectName: project.path_with_namespace
+            });
+
         default:
             console.info("This type repo is unkown or not supported.");
             return undefined;
