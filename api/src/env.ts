@@ -20,6 +20,9 @@ const zEnvConfiguration = z.object({
     "botUserEmail": z.string().optional(),
     "listToImport": z.array(z.string()).optional(),
     "updateSkipTimingInMinutes": z.number().optional(),
+    // Only for increasing the rate limit on GitHub API
+    // we use the GitHub API for pre filling the version when adding a software
+    "githubPersonalAccessTokenForApiRateLimit": z.string().optional(),
     // Completely disable this instance and redirect to another url
     "redirectUrl": z.string().optional(),
     "sentryDsnApi": z.string().optional()
@@ -42,6 +45,7 @@ const envConfiguration = zEnvConfiguration.parse({
     "botUserEmail": process.env?.BOT_USER_EMAIL,
     "listToImport": process.env?.IMPORT_DATA_IDS?.split(","),
     "updateSkipTimingInMinutes": process.env?.UPDATE_SKIP_TIMING ? parseInt(process.env.UPDATE_SKIP_TIMING) : undefined,
+    "githubPersonalAccessTokenForApiRateLimit": process.env.GITHUB_TOKEN,
     "sentryDsnApi": process.env.SENTRY_DSN_API
 });
 
