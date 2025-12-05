@@ -26,7 +26,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
             softwareLogoUrl,
             softwareMinimalVersion,
             customAttributes,
-            similarSoftwareExternalDataIds,
+            similarSoftwareExternalDataItems,
             softwareType,
             externalIdForSource,
             sourceSlug,
@@ -59,9 +59,8 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
         await dbApi.software.saveSimilarSoftwares([
             {
                 softwareId,
-                externalIds: similarSoftwareExternalDataIds.map(externalId => ({
-                    externalId,
-                    sourceSlug
+                softwareExternalDataItems: similarSoftwareExternalDataItems.map(similarSoftwareExternalData => ({
+                    ...similarSoftwareExternalData
                 }))
             }
         ]);

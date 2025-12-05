@@ -38,7 +38,7 @@ const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, sourc
         sourceSlug: source.slug,
         softwareLicense: recordSoftwareItem.metadata.license?.id ?? "Copyright",
         softwareMinimalVersion: undefined,
-        similarSoftwareExternalDataIds: [],
+        similarSoftwareExternalDataItems: [],
         softwareLogoUrl: undefined,
         softwareKeywords: recordSoftwareItem.metadata.keywords ?? [],
 

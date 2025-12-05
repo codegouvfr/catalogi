@@ -25,6 +25,7 @@ import type { OptionalIfCanBeUndefined } from "../tools/OptionalIfCanBeUndefined
 import type { Context } from "./context";
 import type { OidcParams } from "../core/usecases/auth/oidcClient";
 import { resolveAdapterFromSource } from "../core/adapters/resolveAdapter";
+import { softwareExternalDataOptionSchema } from "../core/ports/GetSoftwareExternalDataOptions";
 
 export type UseCasesUsedOnRouter = Pick<
     UseCases,
@@ -477,7 +478,7 @@ const zSoftwareFormData = (() => {
         "softwareDescription": z.string(),
         "softwareLicense": z.string(),
         "softwareMinimalVersion": z.string().optional(),
-        "similarSoftwareExternalDataIds": z.array(z.string()),
+        "similarSoftwareExternalDataItems": z.array(softwareExternalDataOptionSchema),
         "softwareLogoUrl": z.string().optional(),
         "softwareKeywords": z.array(z.string()),
         "customAttributes": z.record(z.string(), z.any()).optional()

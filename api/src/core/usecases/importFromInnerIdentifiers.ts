@@ -98,7 +98,7 @@ export const makeImportFromInnerIdentifiers = (
         const insertFlatten = instertions.flat();
         if (insertFlatten.length === 0) return true;
 
-        await dbApi.softwareExternalData.saveIds(insertFlatten);
+        await dbApi.softwareExternalData.saveMany(insertFlatten);
 
         console.timeEnd(useCaseLogTimer);
 

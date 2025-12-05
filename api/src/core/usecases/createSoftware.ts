@@ -72,7 +72,7 @@ const resolveExistingSoftwareId = async ({
             logTitle,
             ` Importing  ${softwareName}(${externalIdForSource}) from ${source.slug}: Adding externalData to software #${savedIdentifers[externalIdForSource]}`
         );
-        await dbApi.softwareExternalData.saveIds([
+        await dbApi.softwareExternalData.saveMany([
             {
                 softwareId: savedIdentifers[externalIdForSource],
                 sourceSlug: source.slug,
@@ -111,7 +111,7 @@ const resolveOrCreateSoftwareId = async ({
 export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
     (dbApi: DbApiV2) =>
     async ({ formData, userId }) => {
-        const { softwareName, similarSoftwareExternalDataIds, externalIdForSource, sourceSlug } = formData;
+        const { softwareName, similarSoftwareExternalDataItems, externalIdForSource, sourceSlug } = formData;
         const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
         console.time(`${logTitle} 💾 Saved`);
@@ -136,7 +136,7 @@ export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
             }
 
             if (!savedExternalData) {
-                await dbApi.softwareExternalData.saveIds([
+                await dbApi.softwareExternalData.saveMany([
                     {
                         externalId: externalIdForSource,
                         sourceSlug,
@@ -149,25 +149,20 @@ export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
             // Do nothing when exist and already linked to software
         }
 
-        if (similarSoftwareExternalDataIds && similarSoftwareExternalDataIds.length > 0) {
-            // Add and update table if similar software
-            await dbApi.softwareExternalData.saveIds(
-                similarSoftwareExternalDataIds.map(externalSimiliarId => ({
-                    sourceSlug,
-                    externalId: externalSimiliarId
-                }))
-            );
-
+        if (similarSoftwareExternalDataItems && similarSoftwareExternalDataItems.length > 0) {
             await dbApi.software.saveSimilarSoftwares([
                 {
                     softwareId,
-                    externalIds: similarSoftwareExternalDataIds.map(similarId => ({
-                        externalId: similarId,
-                        sourceSlug: sourceSlug
+                    softwareExternalDataItems: similarSoftwareExternalDataItems.map(similarSoftwareExternalData => ({
+                        externalId: similarSoftwareExternalData.externalId,
+                        sourceSlug: sourceSlug,
+                        label: similarSoftwareExternalData.label,
+                        description: similarSoftwareExternalData.description,
+                        isLibreSoftware: similarSoftwareExternalData.isLibreSoftware
                     }))
                 }
             ]);
-            console.log(`${logTitle} 💾 Saved externalDataIds [${similarSoftwareExternalDataIds}]`);
+            console.log(`${logTitle} 💾 Saved externalDataIds [${similarSoftwareExternalDataItems}]`);
         }
 
         console.timeEnd(`${logTitle} 💾 Saved`);

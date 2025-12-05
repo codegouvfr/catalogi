@@ -30,7 +30,15 @@ const craSoftwareFormData = {
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
     softwareMinimalVersion: "1.0.0",
-    similarSoftwareExternalDataIds: ["Q111590996" /* viteJS */],
+    similarSoftwareExternalDataItems: [
+        {
+            externalId: "Q111590996" /* viteJS */,
+            sourceSlug: "wikidata",
+            label: "Vite JS",
+            description: "Vite JS is a build tool for modern web development.",
+            isLibreSoftware: true
+        }
+    ],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
     customAttributes: {
@@ -99,6 +107,8 @@ describe("Create software, than updates it adding a similar software", () => {
             }
         });
 
+        const viteOption = craSoftwareFormData.similarSoftwareExternalDataItems[0]!;
+
         const initialExternalSoftwarePackagesBeforeFetching = [
             emptyExternalData({
                 externalId: "Q118629387",
@@ -107,7 +117,10 @@ describe("Create software, than updates it adding a similar software", () => {
             }),
             emptyExternalData({
                 externalId: "Q111590996",
-                sourceSlug: "wikidata"
+                sourceSlug: "wikidata",
+                label: viteOption.label,
+                description: viteOption.description,
+                isLibreSoftware: viteOption.isLibreSoftware
             })
         ];
 
@@ -127,7 +140,22 @@ describe("Create software, than updates it adding a similar software", () => {
         // than update the software, adding a similar software:
         const formDataWithAnNewSimilarSoftware: SoftwareFormData = {
             ...craSoftwareFormData,
-            similarSoftwareExternalDataIds: ["Q111590996" /* vite js */, "Q56062435" /* Next.js */]
+            similarSoftwareExternalDataItems: [
+                {
+                    externalId: "Q111590996" /* vite js */,
+                    sourceSlug: "wikidata",
+                    label: "Vite JS",
+                    description: "Vite JS is a build tool for modern web development.",
+                    isLibreSoftware: true
+                },
+                {
+                    externalId: "Q56062435" /* Next.js */,
+                    sourceSlug: "wikidata",
+                    label: "Next.js",
+                    description: "Next.js is a framework for building server-side rendered React applications.",
+                    isLibreSoftware: true
+                }
+            ]
         };
         await updateSoftware({
             formData: formDataWithAnNewSimilarSoftware,
@@ -150,7 +178,7 @@ describe("Create software, than updates it adding a similar software", () => {
         // than update the software again, removing all similar software:
         const formDataWithNoSimilarSoftware: SoftwareFormData = {
             ...craSoftwareFormData,
-            similarSoftwareExternalDataIds: []
+            similarSoftwareExternalDataItems: []
         };
         await updateSoftware({
             formData: formDataWithNoSimilarSoftware,

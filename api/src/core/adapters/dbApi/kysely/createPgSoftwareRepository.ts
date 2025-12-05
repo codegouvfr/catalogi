@@ -168,10 +168,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .executeTakeFirstOrThrow();
         },
         saveSimilarSoftwares: async params => {
-            const dataToInsert = params.flatMap(({ softwareId, externalIds }) => {
-                return externalIds.map(({ externalId, sourceSlug }) => ({
-                    similarExternalId: externalId,
-                    sourceSlug,
+            const dataToInsert = params.flatMap(({ softwareId, softwareExternalDataItems }) => {
+                return softwareExternalDataItems.map(softwareExternalData => ({
+                    ...softwareExternalData,
                     softwareId
                 }));
             });
@@ -180,11 +179,12 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 await db
                     .insertInto("software_external_datas")
                     .values(
-                        dataToInsert.map(({ similarExternalId, sourceSlug }) => ({
-                            externalId: similarExternalId,
+                        dataToInsert.map(({ externalId, sourceSlug, label, description, isLibreSoftware }) => ({
+                            externalId,
                             sourceSlug,
-                            label: JSON.stringify(""),
-                            description: JSON.stringify(""),
+                            label: JSON.stringify(label),
+                            description: JSON.stringify(description),
+                            isLibreSoftware: isLibreSoftware ?? null,
                             developers: JSON.stringify([])
                         }))
                     )
@@ -205,7 +205,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 if (dataToInsert.length > 0) {
                     await trx
                         .insertInto("softwares__similar_software_external_datas")
-                        .values(dataToInsert)
+                        .values(
+                            dataToInsert.map(({ externalId, sourceSlug, softwareId }) => ({
+                                softwareId,
+                                similarExternalId: externalId,
+                                sourceSlug
+                            }))
+                        )
                         .onConflict(oc => oc.columns(["softwareId", "sourceSlug", "similarExternalId"]).doNothing())
                         .execute();
                 }

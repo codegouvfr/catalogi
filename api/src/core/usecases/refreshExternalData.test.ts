@@ -19,6 +19,15 @@ import type { Database } from "../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../adapters/dbApi/kysely/kysely.dialect";
 import { makeCreateSofware } from "./createSoftware";
 import { makeRefreshExternalDataForSoftware } from "./refreshExternalData";
+import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
+
+const viteOption: SoftwareExternalDataOption = {
+    externalId: "Q111590996" /* viteJS */,
+    sourceSlug: "wikidata",
+    label: "Vite JS",
+    description: "Vite JS is a build tool for modern web development.",
+    isLibreSoftware: true
+};
 
 const craSoftwareFormData = {
     softwareType: {
@@ -30,7 +39,7 @@ const craSoftwareFormData = {
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
     softwareMinimalVersion: "1.0.0",
-    similarSoftwareExternalDataIds: ["Q111590996" /* viteJS */],
+    similarSoftwareExternalDataItems: [viteOption],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
     customAttributes: {
@@ -80,8 +89,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             sourceSlug: "wikidata",
             softwareId: apacheSoftwareId,
             developers: JSON.stringify([]),
-            label: JSON.stringify({}),
-            description: JSON.stringify({})
+            label: JSON.stringify(""),
+            description: JSON.stringify("")
         })
         .execute();
 };
@@ -122,8 +131,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             sourceSlug: "wikidata",
             softwareId: acceleroId,
             developers: JSON.stringify([]),
-            label: JSON.stringify({}),
-            description: JSON.stringify({})
+            label: JSON.stringify(""),
+            description: JSON.stringify("")
         })
         .execute();
 
@@ -185,7 +194,10 @@ describe("fetches software extra data (from different providers)", () => {
             }),
             emptyExternalData({
                 externalId: "Q111590996",
-                sourceSlug: "wikidata"
+                sourceSlug: "wikidata",
+                label: viteOption.label,
+                description: viteOption.description,
+                isLibreSoftware: viteOption.isLibreSoftware
             })
         ];
 
@@ -429,7 +441,10 @@ describe("fetches software extra data (from different providers)", () => {
                 }),
                 emptyExternalDataCleaned({
                     externalId: "Q111590996",
-                    sourceSlug: "wikidata"
+                    sourceSlug: "wikidata",
+                    label: viteOption.label,
+                    description: viteOption.description,
+                    isLibreSoftware: viteOption.isLibreSoftware
                 })
             ]);
         },

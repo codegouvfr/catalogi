@@ -24,5 +24,5 @@ export const importCnllSillOnly = async (dbApi: DbApiV2): Promise<void> => {
         softwareId: provider.sill_id
     }));
 
-    await dbApi.softwareExternalData.saveIds(toInsert);
+    await dbApi.softwareExternalData.saveMany(toInsert);
 };

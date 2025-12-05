@@ -50,7 +50,7 @@ export const halRawSoftwareToSoftwareForm = async (
         sourceSlug: source.slug,
         softwareLicense: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright
         softwareMinimalVersion: undefined,
-        similarSoftwareExternalDataIds: [],
+        similarSoftwareExternalDataItems: [],
         softwareLogoUrl: undefined,
         softwareKeywords: halSoftware.keyword_s || [],
         customAttributes: undefined

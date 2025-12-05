@@ -18,6 +18,16 @@ import {
 } from "../../tools/test.helpers";
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
+import { makeGetPopulatedSoftware } from "./getPopulatedSoftware";
+import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
+
+const viteOption: SoftwareExternalDataOption = {
+    externalId: "Q111590996" /* viteJS */,
+    sourceSlug: testSource.slug,
+    label: "Vite JS",
+    description: "Vite JS is a build tool for modern web development.",
+    isLibreSoftware: true
+};
 
 const craSoftwareFormData = {
     softwareType: {
@@ -29,7 +39,7 @@ const craSoftwareFormData = {
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
     softwareMinimalVersion: "1.0.0",
-    similarSoftwareExternalDataIds: ["Q111590996" /* viteJS */],
+    similarSoftwareExternalDataItems: [viteOption],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
     customAttributes: {
@@ -44,7 +54,7 @@ describe("Create software - Trying all the cases", () => {
     let db: Kysely<Database>;
     let craSoftwareId: number;
     let userId: number;
-    let useCaseCreate: CreateSoftware;
+    let createSoftware: CreateSoftware;
 
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
@@ -60,19 +70,34 @@ describe("Create software - Trying all the cases", () => {
             sub: null
         });
 
-        useCaseCreate = makeCreateSofware(dbApi);
+        createSoftware = makeCreateSofware(dbApi);
     });
 
     it("should insert into three tables", async () => {
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
 
-        const softwareList = await db.selectFrom("softwares").selectAll().execute();
+        const getAllSoftware = makeGetPopulatedSoftware(dbApi);
 
-        expectToEqual(softwareList.length, 1);
-        expectToMatchObject(softwareList[0], {
+        const softwareListFromApi = await getAllSoftware();
+
+        expectToEqual(softwareListFromApi.length, 1);
+        expectToMatchObject(softwareListFromApi[0], {
+            softwareName: "Create react app",
+            similarSoftwares: [
+                {
+                    ...viteOption,
+                    registered: false
+                }
+            ]
+        });
+
+        const softwareListFromDb = await db.selectFrom("softwares").selectAll().execute();
+
+        expectToEqual(softwareListFromDb.length, 1);
+        expectToMatchObject(softwareListFromDb[0], {
             "addedByUserId": userId,
             "categories": [],
             "dereferencing": null,
@@ -103,6 +128,7 @@ describe("Create software - Trying all the cases", () => {
                 softwareId: craSoftwareId
             }),
             emptyExternalData({
+                ...viteOption,
                 externalId: "Q111590996",
                 sourceSlug: "wikidata"
             })
@@ -125,12 +151,12 @@ describe("Create software - Trying all the cases", () => {
     });
 
     it("Insert two software with the same name, should not duplicate the software", async () => {
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
 
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
@@ -140,12 +166,12 @@ describe("Create software - Trying all the cases", () => {
     });
 
     it("Insert two software with the same name but different external Id, should create a new externalData linked with the saved software package", async () => {
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
 
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: {
                 ...craSoftwareFormData,
                 externalIdForSource: "Q118629388"
@@ -164,7 +190,7 @@ describe("Create software - Trying all the cases", () => {
     });
 
     it("Insert a software when externalData is already saved with no related software, should not create another externalData and linked the existing one to the new software", async () => {
-        await dbApi.softwareExternalData.saveIds([
+        await dbApi.softwareExternalData.saveMany([
             {
                 sourceSlug: testSource.slug,
                 externalId: "Q118629387"
@@ -174,7 +200,7 @@ describe("Create software - Trying all the cases", () => {
         const externdalDataListBefore = await db.selectFrom("software_external_datas").selectAll().execute();
         expectToEqual(externdalDataListBefore.length, 1);
 
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
@@ -191,7 +217,7 @@ describe("Create software - Trying all the cases", () => {
     });
 
     it("Insert a software when externalData is already saved with related software, should not create another software neither new externalData", async () => {
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
@@ -204,7 +230,7 @@ describe("Create software - Trying all the cases", () => {
             softwareName: "Create react app 2"
         };
 
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: alteredNameForm,
             userId
         });
@@ -221,7 +247,7 @@ describe("Create software - Trying all the cases", () => {
     });
 
     it("Insert a software when similarExternalData is already saved, should linked the existing externalData to the new software row", async () => {
-        await dbApi.softwareExternalData.saveIds([
+        await dbApi.softwareExternalData.saveMany([
             {
                 sourceSlug: testSource.slug,
                 externalId: "Q111590996"
@@ -231,7 +257,7 @@ describe("Create software - Trying all the cases", () => {
         const externdalDataListBefore = await db.selectFrom("software_external_datas").selectAll().execute();
         expectToEqual(externdalDataListBefore.length, 1);
 
-        craSoftwareId = await useCaseCreate({
+        craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
@@ -248,7 +274,7 @@ describe("Create software - Trying all the cases", () => {
     });
 
     it("Insert a software with multiples similarExternalData with one already existing, should create one and update the other one", async () => {
-        await dbApi.softwareExternalData.saveIds([
+        await dbApi.softwareExternalData.saveMany([
             {
                 sourceSlug: testSource.slug,
                 externalId: "Q111590996"
@@ -258,8 +284,26 @@ describe("Create software - Trying all the cases", () => {
         const externdalDataListBefore = await db.selectFrom("software_external_datas").selectAll().execute();
         expectToEqual(externdalDataListBefore.length, 1);
 
-        craSoftwareId = await useCaseCreate({
-            formData: { ...craSoftwareFormData, similarSoftwareExternalDataIds: ["Q111590996", "Q111590997"] },
+        craSoftwareId = await createSoftware({
+            formData: {
+                ...craSoftwareFormData,
+                similarSoftwareExternalDataItems: [
+                    {
+                        externalId: "Q111590996",
+                        sourceSlug: testSource.slug,
+                        label: "Vite JS",
+                        description: "Vite JS is a build tool for modern web development.",
+                        isLibreSoftware: true
+                    },
+                    {
+                        externalId: "Q111590997",
+                        sourceSlug: testSource.slug,
+                        label: "Vite JS 2",
+                        description: "Vite JS 2 is a build tool for modern web development.",
+                        isLibreSoftware: true
+                    }
+                ]
+            },
             userId
         });
 
@@ -274,8 +318,26 @@ describe("Create software - Trying all the cases", () => {
         });
         expectToEqual(similarExternalData?.length, 2);
 
-        craSoftwareId = await useCaseCreate({
-            formData: { ...craSoftwareFormData, similarSoftwareExternalDataIds: ["Q111590996", "Q111590998"] },
+        craSoftwareId = await createSoftware({
+            formData: {
+                ...craSoftwareFormData,
+                similarSoftwareExternalDataItems: [
+                    {
+                        externalId: "Q111590996",
+                        sourceSlug: testSource.slug,
+                        label: "Vite JS",
+                        description: "Vite JS is a build tool for modern web development.",
+                        isLibreSoftware: true
+                    },
+                    {
+                        externalId: "Q111590998",
+                        sourceSlug: testSource.slug,
+                        label: "Vite JS 3",
+                        description: "Vite JS 3 is a build tool for modern web development.",
+                        isLibreSoftware: true
+                    }
+                ]
+            },
             userId
         });
 

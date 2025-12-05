@@ -39,18 +39,21 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .where("sourceSlug", "=", sourceSlug)
             .execute();
     },
-    saveIds: async externalDataIds => {
+    saveMany: async externalDataItems => {
         await db
             .insertInto("software_external_datas")
             .values(
-                externalDataIds.map(({ externalId, sourceSlug, softwareId = null }) => ({
-                    externalId,
-                    sourceSlug,
-                    softwareId,
-                    developers: JSON.stringify([]),
-                    label: JSON.stringify({}),
-                    description: JSON.stringify({})
-                }))
+                externalDataItems.map(
+                    ({ externalId, sourceSlug, softwareId = null, label = "", description = "", isLibreSoftware }) => ({
+                        externalId,
+                        sourceSlug,
+                        softwareId,
+                        developers: JSON.stringify([]),
+                        label: JSON.stringify(label),
+                        description: JSON.stringify(description),
+                        isLibreSoftware: isLibreSoftware ?? null
+                    })
+                )
             )
             .onConflict(oc => oc.columns(["sourceSlug", "externalId"]).doNothing())
             .executeTakeFirst();

@@ -67,7 +67,7 @@ export const getWikidataForm: GetSoftwareFormData = async ({
             sourceSlug: source.slug,
             softwareLicense: license?.label ?? "Copyright",
             softwareMinimalVersion: undefined,
-            similarSoftwareExternalDataIds: [],
+            similarSoftwareExternalDataItems: [],
             softwareLogoUrl: `https://upload.wikimedia.org/wikipedia/commons/6/69/${logoName?.replace(" ", "_") ?? ""}`,
             softwareKeywords: [],
             customAttributes: undefined

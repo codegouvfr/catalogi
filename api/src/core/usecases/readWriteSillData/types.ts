@@ -11,6 +11,7 @@ import {
     ScholarlyArticle
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
+import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
 
 export type Software = {
     logoUrl: string | undefined;
@@ -127,7 +128,7 @@ export type SoftwareFormData = {
     sourceSlug: string;
     softwareLicense: string;
     softwareMinimalVersion: string | undefined;
-    similarSoftwareExternalDataIds: string[];
+    similarSoftwareExternalDataItems: SoftwareExternalDataOption[];
     softwareLogoUrl: string | undefined;
     softwareKeywords: string[];
     customAttributes: CustomAttributes | undefined;

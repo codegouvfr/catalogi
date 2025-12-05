@@ -212,8 +212,20 @@ export const thunks = {
                 softwareLicense: step2.softwareLicense,
                 softwareMinimalVersion: step2.softwareMinimalVersion ?? "",
                 customAttributes: step3,
-                similarSoftwareExternalDataIds: formDataStep4.similarSoftwares.map(
-                    ({ externalId }) => externalId
+                similarSoftwareExternalDataItems: formDataStep4.similarSoftwares.map(
+                    ({
+                        externalId,
+                        sourceSlug,
+                        label,
+                        description,
+                        isLibreSoftware
+                    }) => ({
+                        externalId,
+                        sourceSlug,
+                        label,
+                        description,
+                        isLibreSoftware
+                    })
                 ),
                 softwareLogoUrl: step2.softwareLogoUrl,
                 softwareKeywords: step2.softwareKeywords

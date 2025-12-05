@@ -10,6 +10,7 @@ import type { CompiledData } from "./CompileData";
 
 import type { SoftwareExternalData } from "./GetSoftwareExternalData";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
+import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
 
 export type WithUserId = { userId: number };
 
@@ -61,7 +62,7 @@ export interface SoftwareRepository {
     saveSimilarSoftwares: (
         params: {
             softwareId: number;
-            externalIds: { sourceSlug: string; externalId: string }[];
+            softwareExternalDataItems: SoftwareExternalDataOption[];
         }[]
     ) => Promise<void>;
     getSimilarSoftwareExternalDataPks: (params: {
@@ -96,7 +97,11 @@ export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow &
     Pick<DatabaseDataType.SourceRow, "url" | "kind" | "slug" | "priority">;
 
 export interface SoftwareExternalDataRepository {
-    saveIds: (params: { sourceSlug: string; externalId: string; softwareId?: number }[]) => Promise<void>;
+    saveMany: (
+        params: Array<
+            { sourceSlug: string; externalId: string; softwareId?: number } & Partial<SoftwareExternalDataOption>
+        >
+    ) => Promise<void>;
     update: (params: {
         sourceSlug: string;
         externalId: string;

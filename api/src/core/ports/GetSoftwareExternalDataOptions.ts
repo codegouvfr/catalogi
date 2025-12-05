@@ -2,16 +2,34 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { z } from "zod";
 import { Source } from "../usecases/readWriteSillData";
-import type { Language } from "./GetSoftwareExternalData";
+import { LocalizedString, type Language } from "./GetSoftwareExternalData";
 
 export type SoftwareExternalDataOption = {
     externalId: string;
-    label: string;
-    description: string;
+    label: LocalizedString;
+    description: LocalizedString;
     isLibreSoftware: boolean;
     sourceSlug: string;
 };
+
+const localizedStringSchema = z.string().or(
+    z
+        .object({
+            fr: z.string().optional(),
+            en: z.string().optional()
+        })
+        .partial()
+);
+
+export const softwareExternalDataOptionSchema = z.object({
+    externalId: z.string(),
+    label: localizedStringSchema,
+    description: localizedStringSchema,
+    isLibreSoftware: z.boolean(),
+    sourceSlug: z.string()
+});
 
 export type GetSoftwareExternalDataOptions = (params: {
     queryString: string;

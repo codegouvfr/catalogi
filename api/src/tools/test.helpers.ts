@@ -6,7 +6,7 @@ import { expect } from "vitest";
 import { DeclarationFormData, InstanceFormData, SoftwareFormData, Source } from "../core/usecases/readWriteSillData";
 import { Kysely } from "kysely";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
-import { ExternalDataOriginKind } from "../lib/ApiTypes";
+import { ExternalDataOriginKind, SoftwareExternalDataOption } from "../lib/ApiTypes";
 
 export const testPgUrl = "postgresql://catalogi:pg_password@localhost:5432/db";
 
@@ -54,7 +54,15 @@ export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
     softwareDescription: "Some software description",
     softwareLicense: "Some software license",
     softwareMinimalVersion: "1.0.0",
-    similarSoftwareExternalDataIds: ["some-external-id"],
+    similarSoftwareExternalDataItems: [
+        {
+            externalId: "some-external-id",
+            sourceSlug: "some-source-slug",
+            label: "Some label",
+            description: "Some description",
+            isLibreSoftware: true
+        }
+    ],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["some", "keywords"],
     customAttributes: {
@@ -71,14 +79,16 @@ export const createInstanceFormData = makeObjectFactory<InstanceFormData>({
     isPublic: true
 });
 
-export const emptyExternalData = (params: { softwareId?: number; externalId: string; sourceSlug: string }) => {
-    const { softwareId = null, externalId, sourceSlug } = params;
+export const emptyExternalData = (
+    params: { softwareId?: number; externalId: string; sourceSlug: string } & Partial<SoftwareExternalDataOption>
+) => {
+    const { softwareId = null, externalId, sourceSlug, label = "", description = "", isLibreSoftware = null } = params;
     return {
         externalId,
         developers: [],
-        label: {},
-        description: {},
-        isLibreSoftware: null,
+        label,
+        description,
+        isLibreSoftware,
         logoUrl: null,
         websiteUrl: null,
         sourceUrl: null,
@@ -98,14 +108,23 @@ export const emptyExternalData = (params: { softwareId?: number; externalId: str
     };
 };
 
-export const emptyExternalDataCleaned = (params: { softwareId?: number; externalId: string; sourceSlug: string }) => {
-    const { softwareId = undefined, externalId, sourceSlug } = params;
+export const emptyExternalDataCleaned = (
+    params: { softwareId?: number; externalId: string; sourceSlug: string } & Partial<SoftwareExternalDataOption>
+) => {
+    const {
+        softwareId = undefined,
+        externalId,
+        sourceSlug,
+        label = "",
+        description = "",
+        isLibreSoftware = undefined
+    } = params;
     return {
         externalId,
         developers: [],
-        label: {},
-        description: {},
-        isLibreSoftware: undefined,
+        label,
+        description,
+        isLibreSoftware,
         logoUrl: undefined,
         websiteUrl: undefined,
         sourceUrl: undefined,

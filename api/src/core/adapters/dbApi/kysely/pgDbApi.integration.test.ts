@@ -14,14 +14,24 @@ import { createPgDialect } from "./kysely.dialect";
 import { makeCreateSofware } from "../../../usecases/createSoftware";
 import { identifersUtils } from "../../../../tools/identifiersTools";
 import { makeGetPopulatedSoftware } from "../../../usecases/getPopulatedSoftware";
+import { SoftwareExternalDataOption } from "../../../ports/GetSoftwareExternalDataOptions";
 
 const externalIdForSource = "external-id-111";
 
 const similarExternalId = "external-id-222";
+
+const similarSoftExternalDataOption: SoftwareExternalDataOption = {
+    externalId: similarExternalId,
+    sourceSlug: testSource.slug,
+    label: "Some similar software",
+    description: "Some similar software description",
+    isLibreSoftware: true
+};
+
 const softwareFormData: SoftwareFormData = {
     externalIdForSource,
     sourceSlug: testSource.slug,
-    similarSoftwareExternalDataIds: [similarExternalId],
+    similarSoftwareExternalDataItems: [similarSoftExternalDataOption],
     softwareDescription: "Super software",
     softwareKeywords: ["bob", "l'éponge"],
     softwareLicense: "MIT",
@@ -476,8 +486,8 @@ describe("pgDbApi", () => {
 
         const userId = await dbApi.user.add(insertedUser);
 
-        const makeSoftware = makeCreateSofware(dbApi);
-        const softwareId = await makeSoftware({
+        const createSoftware = makeCreateSofware(dbApi);
+        const softwareId = await createSoftware({
             formData: softwareFormData,
             userId
         });

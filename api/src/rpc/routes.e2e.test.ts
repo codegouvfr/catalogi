@@ -158,11 +158,11 @@ describe("RPC e2e tests", () => {
                     .selectAll()
                     .execute();
 
-                expect(similarSoftsInDb).toHaveLength(softwareFormData.similarSoftwareExternalDataIds.length);
-                softwareFormData.similarSoftwareExternalDataIds.forEach(similarExternalId => {
+                expect(similarSoftsInDb).toHaveLength(softwareFormData.similarSoftwareExternalDataItems.length);
+                softwareFormData.similarSoftwareExternalDataItems.forEach(similarExternalData => {
                     expectToMatchObject(similarSoftsInDb[0], {
                         softwareId: actualSoftwareId,
-                        similarExternalId
+                        similarExternalId: similarExternalData.externalId
                     });
                 });
             },
