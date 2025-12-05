@@ -364,7 +364,8 @@ export const PreviewTab = (props: Props) => {
                                 <span>
                                     {useFormattedDate({
                                         time: repoMetadata.healthCheck.lastClosedIssue,
-                                        showTime: false
+                                        showTime: false,
+                                        doAlwaysShowYear: true
                                     })}
                                 </span>
                             </p>
@@ -379,7 +380,8 @@ export const PreviewTab = (props: Props) => {
                                     {useFormattedDate({
                                         time: repoMetadata.healthCheck
                                             .lastClosedIssuePullRequest,
-                                        showTime: false
+                                        showTime: false,
+                                        doAlwaysShowYear: true
                                     })}
                                 </span>
                             </p>
@@ -392,7 +394,8 @@ export const PreviewTab = (props: Props) => {
                                 <span>
                                     {useFormattedDate({
                                         time: repoMetadata.healthCheck.lastCommit,
-                                        showTime: false
+                                        showTime: false,
+                                        doAlwaysShowYear: true
                                     })}
                                 </span>
                             </p>
