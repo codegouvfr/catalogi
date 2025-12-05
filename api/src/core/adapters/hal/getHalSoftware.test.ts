@@ -68,7 +68,7 @@ describe("HAL", () => {
                     "healthCheck": {
                         "lastClosedIssue": undefined,
                         "lastClosedIssuePullRequest": undefined,
-                        "lastCommit": 1729459216000
+                        "lastCommit": new Date(1729459216000)
                     }
                 },
                 "identifiers": [
@@ -99,7 +99,6 @@ describe("HAL", () => {
                     }
                 ],
                 "publicationTime": new Date(1521545908000),
-                "repoMetadata": undefined,
                 "providers": []
             });
         });
