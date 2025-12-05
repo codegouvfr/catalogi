@@ -103,6 +103,7 @@ export const emptyExternalData = (
         sourceSlug,
         softwareId,
         lastDataFetchAt: null,
+        repoMetadata: null,
         providers: null
     };
 };
@@ -139,6 +140,7 @@ export const emptyExternalDataCleaned = (
         sourceSlug,
         softwareId,
         lastDataFetchAt: undefined,
+        repoMetadata: undefined,
         providers: undefined
     };
 };
