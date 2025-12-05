@@ -11,7 +11,8 @@ export type {
     SchemaIdentifier as Identifier,
     SchemaPerson as Person,
     SchemaOrganization as Organization,
-    ScholarlyArticle
+    ScholarlyArticle,
+    RepoMetadata
 } from "../core/adapters/dbApi/kysely/kysely.database";
 
 export type {

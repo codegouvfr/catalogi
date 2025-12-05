@@ -8,7 +8,7 @@ import { useLang } from "ui/i18n";
 import { useTranslation } from "react-i18next";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
-import { shortEndMonthDate, monthDate } from "ui/datetimeUtils";
+import { shortEndMonthDate, monthDate, useFormattedDate } from "ui/datetimeUtils";
 import { capitalize } from "tsafe/capitalize";
 import { useCoreState } from "../../../core";
 import { SupportedPlatforms } from "../../../core/usecases/softwareCatalog";
@@ -18,6 +18,7 @@ import { SoftwareTypeTable } from "ui/shared/SoftwareTypeTable";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { ApiTypes } from "api";
 import { CustomAttributeDetails } from "./CustomAttributeDetails";
+import { Chip } from "@mui/material";
 
 //TODO: Do not use optional props (?) use ( | undefined ) instead
 // so we are sure that we don't forget to provide some props
@@ -35,9 +36,10 @@ export type Props = {
     programmingLanguages: string[];
     keywords?: string[];
     applicationCategories: string[];
-    softwareType: SoftwareType;
-    identifiers: Identifier[];
+    softwareType: ApiTypes.SoftwareType;
+    identifiers: ApiTypes.Identifier[];
     officialWebsiteUrl?: string;
+    repoMetadata?: ApiTypes.RepoMetadata;
 };
 export const PreviewTab = (props: Props) => {
     const {
@@ -55,7 +57,8 @@ export const PreviewTab = (props: Props) => {
         applicationCategories,
         softwareType,
         identifiers,
-        officialWebsiteUrl
+        officialWebsiteUrl,
+        repoMetadata
     } = props;
     const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main")!;
 
@@ -63,6 +66,13 @@ export const PreviewTab = (props: Props) => {
 
     const { t } = useTranslation();
     const { lang } = useLang();
+
+    const scoreToLabel = (score: number) => {
+        if (score < 0.1) return "error";
+        if (score < 0.34) return "warning";
+        if (score < 0.67) return "info";
+        return "success";
+    };
 
     const usefulLinks = identifiers
         .filter(identifier => {
@@ -317,6 +327,48 @@ export const PreviewTab = (props: Props) => {
                                 />
                             );
                         })}
+                    </div>
+                )}
+                {repoMetadata && (
+                    <div className={classes.section}>
+                        {repoMetadata?.healthCheck?.lastClosedIssue && (
+                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
+                                <span className={classes.labelDetail}>
+                                    {t("previewTab.repoLastClosedIssue")} :{" "}
+                                </span>
+                                <span>
+                                    {useFormattedDate({
+                                        time: repoMetadata.healthCheck.lastClosedIssue
+                                    })}
+                                </span>
+                            </p>
+                        )}
+                        {repoMetadata?.healthCheck?.lastClosedIssuePullRequest && (
+                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
+                                <span className={classes.labelDetail}>
+                                    {t("previewTab.repoLastClosedIssuePullRequest")}{" "}
+                                    :{" "}
+                                </span>
+                                <span>
+                                    {useFormattedDate({
+                                        time: repoMetadata.healthCheck
+                                            .lastClosedIssuePullRequest
+                                    })}
+                                </span>
+                            </p>
+                        )}
+                        {repoMetadata?.healthCheck?.lastCommit && (
+                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
+                                <span className={classes.labelDetail}>
+                                    {t("previewTab.repoLastCommit")} :{" "}
+                                </span>
+                                <span>
+                                    {useFormattedDate({
+                                        time: repoMetadata.healthCheck.lastCommit
+                                    })}
+                                </span>
+                            </p>
+                        )}
                     </div>
                 )}
             </section>

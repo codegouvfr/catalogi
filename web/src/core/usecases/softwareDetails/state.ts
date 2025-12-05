@@ -93,6 +93,7 @@ export namespace State {
         referencePublications?: ApiTypes.ScholarlyArticle[];
         softwareType: ApiTypes.SoftwareType;
         identifiers: ApiTypes.Identifier[];
+        repoMetadata?: ApiTypes.RepoMetadata;
     };
 }
 
