@@ -67,13 +67,6 @@ export const PreviewTab = (props: Props) => {
     const { t } = useTranslation();
     const { lang } = useLang();
 
-    const scoreToLabel = (score: number) => {
-        if (score < 0.1) return "error";
-        if (score < 0.34) return "warning";
-        if (score < 0.67) return "info";
-        return "success";
-    };
-
     const usefulLinks = identifiers
         .filter(identifier => {
             const identifierURLString = identifier?.url?.toString();
