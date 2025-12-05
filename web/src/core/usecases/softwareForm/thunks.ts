@@ -221,7 +221,7 @@ export const thunks = {
                         isLibreSoftware
                     }) => ({
                         externalId,
-                        sourceSlug,
+                        sourceSlug: sourceSlug ?? mainSource.slug,
                         label,
                         description,
                         isLibreSoftware

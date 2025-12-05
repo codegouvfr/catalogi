@@ -10,7 +10,7 @@ export type SoftwareExternalDataOption = {
     externalId: string;
     label: LocalizedString;
     description: LocalizedString;
-    isLibreSoftware: boolean;
+    isLibreSoftware: boolean | undefined;
     sourceSlug: string;
 };
 

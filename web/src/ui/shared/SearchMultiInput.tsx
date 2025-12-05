@@ -148,17 +148,22 @@ export function SearchMultiInput<T extends string | Record<string, unknown>>(
                                             }
                                         }),
                                     onKeyDown: (...args) => {
-                                        {
-                                            const [event] = args;
+                                        const [event] = args;
 
-                                            if (
-                                                event.key === "Backspace" &&
-                                                (event.target as { value?: unknown })
-                                                    ?.value === ""
-                                            ) {
-                                                event.preventDefault();
-                                                event.stopPropagation();
-                                                return;
+                                        if (
+                                            event.key === "Backspace" &&
+                                            (event.target as { value?: unknown })
+                                                ?.value === ""
+                                        ) {
+                                            event.preventDefault();
+                                            event.stopPropagation();
+                                            return;
+                                        }
+
+                                        if (event.key === "Enter" && isOpen) {
+                                            event.preventDefault();
+                                            if (options.length === 0) {
+                                                onClose();
                                             }
                                         }
 
