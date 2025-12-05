@@ -220,9 +220,7 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                         healthCheck: {
                             lastCommit: lastGLCommit ? new Date(lastGLCommit.created_at) : undefined,
                             lastClosedIssue:
-                                lastFLIssue && lastFLIssue.closed_at
-                                    ? new Date(lastFLIssue.closed_at)
-                                    : undefined,
+                                lastFLIssue && lastFLIssue.closed_at ? new Date(lastFLIssue.closed_at) : undefined,
                             lastClosedIssuePullRequest: lastGLMergeRequest
                                 ? new Date(lastGLMergeRequest.updated_at)
                                 : undefined
