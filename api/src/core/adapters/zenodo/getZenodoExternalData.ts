@@ -108,6 +108,7 @@ const formatRecordToExternalData = (
                 ? [identifersUtils.makeSWHIdentifier({ swhId: recordSoftwareItem.swh.swhid })]
                 : [])
         ],
+        repoMetadata: undefined,
         providers: []
     };
 };

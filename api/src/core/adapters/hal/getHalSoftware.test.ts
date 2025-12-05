@@ -92,6 +92,7 @@ describe("HAL", () => {
                     }
                 ],
                 "publicationTime": new Date(1521545908000),
+                "repoMetadata": undefined,
                 "providers": []
             });
         });

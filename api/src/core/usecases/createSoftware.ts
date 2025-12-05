@@ -2,7 +2,8 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
+import { DatabaseDataType, DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
+import { SoftwareExternalData } from "../ports/GetSoftwareExternalData";
 import { SoftwareFormData } from "./readWriteSillData";
 
 export type CreateSoftware = (
@@ -107,6 +108,31 @@ const resolveOrCreateSoftwareId = async ({
     });
 };
 
+const formatToDate = (val: DatabaseDataType.SoftwareExternalDataRow): SoftwareExternalData => {
+    const { repoMetadata, ...rest } = val;
+
+    const castRepoData = (healthCheck?: {
+        lastCommit?: number;
+        lastClosedIssue?: number;
+        lastClosedIssuePullRequest?: number;
+    }) => {
+        return {
+            ...(healthCheck?.lastCommit ? { lastCommit: new Date(healthCheck.lastCommit) } : {}),
+            ...(healthCheck?.lastClosedIssue ? { lastClosedIssue: new Date(healthCheck.lastClosedIssue) } : {}),
+            ...(healthCheck?.lastClosedIssuePullRequest
+                ? { lastClosedIssuePullRequest: new Date(healthCheck.lastClosedIssuePullRequest) }
+                : {})
+        };
+    };
+
+    return {
+        ...rest,
+        ...(val.repoMetadata?.healthCheck
+            ? { repoMetadata: { healthCheck: castRepoData(val.repoMetadata.healthCheck) } }
+            : { repoMetadata: undefined })
+    };
+};
+
 export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
     (dbApi: DbApiV2) =>
     async ({ formData, userId }) => {
@@ -129,7 +155,7 @@ export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
                     externalId: externalIdForSource,
                     softwareId,
                     lastDataFetchAt: savedExternalData?.lastDataFetchAt,
-                    softwareExternalData: savedExternalData
+                    softwareExternalData: formatToDate(savedExternalData)
                 });
                 console.log(`${logTitle} 💾 ${externalIdForSource} now binded with this software`);
             }

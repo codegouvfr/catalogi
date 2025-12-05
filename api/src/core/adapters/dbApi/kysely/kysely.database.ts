@@ -176,6 +176,13 @@ export type SoftwareExternalDatasTable = {
     identifiers: JSONColumnType<SchemaIdentifier[]> | null;
     lastDataFetchAt: Date | null;
     providers: JSONColumnType<Array<SchemaOrganization>> | null;
+    repoMetadata: JSONColumnType<{
+        healthCheck?: {
+            lastCommit?: number;
+            lastClosedIssue?: number;
+            lastClosedIssuePullRequest?: number;
+        };
+    }> | null;
 };
 
 type SoftwareType =
