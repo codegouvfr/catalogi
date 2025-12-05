@@ -40,13 +40,14 @@ export const { getFormattedDate } = (() => {
 export function useFormattedDate(params: {
     time: number;
     doAlwaysShowYear?: boolean;
+    showTime?: boolean;
 }): string {
-    const { time, doAlwaysShowYear } = params;
+    const { time, doAlwaysShowYear, showTime } = params;
 
     const { lang } = useLang();
 
     return useMemo(
-        () => getFormattedDate({ time, lang, doAlwaysShowYear }),
+        () => getFormattedDate({ time, lang, doAlwaysShowYear, showTime }),
         [time, lang]
     );
 }
