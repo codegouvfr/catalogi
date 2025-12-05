@@ -107,6 +107,7 @@ const formatCDLSoftwareToExternalData = (
                   ]
                 : [])
         ],
+        repoMetadata: undefined,
         providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers)
     };
 };
