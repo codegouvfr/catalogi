@@ -265,10 +265,10 @@
         "softwareType-stack": "Stack",
         "softwareType-cloud": "Cloud Hosted App",
         "supportedOS": "Supported OS",
-        "repoMetadata": "Metadata From Repository",
-        "repoLastCommit": "Last Commit",
-        "repoLastClosedIssuePullRequest": "Last Merged Request",
-        "repoLastClosedIssue": "Last Close Issue"
+        "repoMetadata": "Metadata from repository",
+        "repoLastCommit": "Last commit",
+        "repoLastClosedIssuePullRequest": "Last merged request",
+        "repoLastClosedIssue": "Last closed issue"
     },
     "referencedInstancesTab": {
         "publicInstanceCount": "{{instanceCount}} maintained public $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) by {{organizationCount}} public $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} })",
