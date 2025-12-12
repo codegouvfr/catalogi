@@ -718,8 +718,11 @@ const programmingLanguageOptions = createSelector(
     }
 );
 
+const softwareList = (rootState: RootState) => rootState[name].softwareList;
+
 const main = createSelector(
     softwares,
+    softwareList,
     sortOptions,
     organizationOptions,
     categoryOptions,
@@ -728,6 +731,7 @@ const main = createSelector(
     attributeNameFilterOptions,
     (
         softwares,
+        softwareList,
         sortOptions,
         organizationOptions,
         categoryOptions,
@@ -736,6 +740,7 @@ const main = createSelector(
         attributeNameFilterOptions
     ) => ({
         softwares,
+        softwareList,
         sortOptions,
         organizationOptions,
         categoryOptions,

@@ -17,10 +17,11 @@ import { useWindowInnerSize } from "powerhooks/useWindowInnerSize";
 import { useBreakpointsValues } from "@codegouvfr/react-dsfr/useBreakpointsValues";
 import { SelectNext } from "ui/shared/SelectNext";
 import { LocalizedString } from "../../i18n";
+import { ApiTypes } from "api";
 
 export type Props = {
     className?: string;
-    softwares: SoftwareCatalogState.Software.External[];
+    softwares: ApiTypes.SoftwareInList[];
     linksBySoftwareName: Record<
         string,
         Record<"softwareDetails" | "declareUsageForm" | "softwareUsersAndReferents", Link>
@@ -178,20 +179,15 @@ export function SoftwareCatalogControlled(props: Props) {
                 {softwares.length === 0 ? (
                     <h1>{t("softwareCatalogControlled.noSoftwareFound")}</h1>
                 ) : (
-                    <RowVirtualizerDynamicWindow
-                        softwares={softwares}
-                        linksBySoftwareName={linksBySoftwareName}
-                    />
+                    <RowVirtualizerDynamicWindow softwares={softwares} />
                 )}
             </div>
         </div>
     );
 }
 
-function RowVirtualizerDynamicWindow(
-    props: Pick<Props, "softwares" | "linksBySoftwareName">
-) {
-    const { softwares, linksBySoftwareName } = props;
+function RowVirtualizerDynamicWindow(props: Pick<Props, "softwares">) {
+    const { softwares } = props;
 
     const { columnCount } = (function useClosure() {
         const { breakpointsValues } = useBreakpointsValues();
@@ -214,11 +210,10 @@ function RowVirtualizerDynamicWindow(
     })();
 
     const softwaresGroupedByLine = useMemo(() => {
-        const groupedSoftwares: (SoftwareCatalogState.Software.External | undefined)[][] =
-            [];
+        const groupedSoftwares: (ApiTypes.SoftwareInList | undefined)[][] = [];
 
         for (let i = 0; i < softwares.length; i += columnCount) {
-            const row: SoftwareCatalogState.Software.External[] = [];
+            const row: ApiTypes.SoftwareInList[] = [];
 
             for (let j = 0; j < columnCount; j++) {
                 row.push(softwares[i + j]);
@@ -291,24 +286,11 @@ function RowVirtualizerDynamicWindow(
                                             return <div key={i} />;
                                         }
 
-                                        const { softwareName } = software;
-
-                                        const {
-                                            softwareDetails,
-                                            declareUsageForm,
-                                            softwareUsersAndReferents
-                                        } = linksBySoftwareName[softwareName];
-
                                         return (
                                             <SoftwareCatalogCard
+                                                key={software.id}
                                                 className={css({ minHeight: height })}
-                                                key={softwareName}
-                                                declareFormLink={declareUsageForm}
-                                                softwareDetailsLink={softwareDetails}
-                                                softwareUsersAndReferentsLink={
-                                                    softwareUsersAndReferents
-                                                }
-                                                {...software}
+                                                software={software}
                                             />
                                         );
                                     }

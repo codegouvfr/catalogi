@@ -83,6 +83,7 @@ export const SimilarSoftwareTab = (props: Props) => {
 
                     return (
                         <SoftwareCatalogCard
+                            key={softwareName}
                             className={css({
                                 maxWidth: 600,
                                 ...fr.spacing("margin", {
@@ -90,19 +91,13 @@ export const SimilarSoftwareTab = (props: Props) => {
                                     topBottom: "6v"
                                 })
                             })}
-                            key={softwareName}
-                            logoUrl={logoUrl}
-                            softwareName={softwareName}
-                            latestVersion={latestVersion}
-                            softwareDescription={softwareDescription}
-                            customAttributes={customAttributes}
-                            userCount={userCount}
-                            referentCount={referentCount}
-                            declareFormLink={declarationForm}
-                            softwareDetailsLink={softwareDetails}
-                            softwareUsersAndReferentsLink={softwareUsersAndReferents}
-                            searchHighlight={undefined}
-                            userDeclaration={userDeclaration}
+                            software={{
+                                softwareDetailsLink: softwareDetails,
+                                declareFormLink: declarationForm,
+                                softwareUsersAndReferentsLink: softwareUsersAndReferents,
+                                ...software,
+                                name: softwareName
+                            }}
                         />
                     );
                 })}

@@ -156,6 +156,7 @@ export const protectedThunks = {
                 dispatch(
                     actions.initialized({
                         softwares,
+                        softwareList: [],
                         userEmail,
                         defaultSort: getDefaultSort({ userEmail })
                     })

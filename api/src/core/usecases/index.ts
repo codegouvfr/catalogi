@@ -11,7 +11,6 @@ import type { GetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./g
 import type { CreateSoftware } from "./createSoftware";
 import type { UpdateSoftware } from "./updateSoftware";
 import { ImportFromSource } from "./importFromSource";
-import { GetPopulatedSoftware } from "./getPopulatedSoftware";
 import { InitiateAuth } from "./auth/initiateAuth";
 import { HandleAuthCallback } from "./auth/handleAuthCallback";
 import { InitiateLogout } from "./auth/logout";
@@ -31,5 +30,4 @@ export type UseCases = {
     importFromSource: ImportFromSource;
     createSoftware: CreateSoftware;
     updateSoftware: UpdateSoftware;
-    getPopulateSoftware: GetPopulatedSoftware;
 };

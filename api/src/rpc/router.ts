@@ -34,7 +34,6 @@ export type UseCasesUsedOnRouter = Pick<
     | "createSoftware"
     | "updateSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
-    | "getPopulateSoftware"
     | "auth"
 >;
 
@@ -124,9 +123,12 @@ export function createRouter(params: {
             attributeDefinitions: await dbApi.attributeDefinition.getAll()
         })),
         "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
-        "getSoftwares": loggedProcedure.query(() => {
-            return useCases.getPopulateSoftware();
+        "getSoftwareList": loggedProcedure.query(() => {
+            return dbApi.software.getFullList();
         }),
+        "getSoftwareDetails": loggedProcedure
+            .input(z.object({ softwareId: z.number() }))
+            .query(({ input }) => dbApi.software.getDetails(input.softwareId)),
         "getInstances": loggedProcedure.query(() => dbApi.instance.getAll()),
         "getIsUserProfilePublic": loggedProcedure
             .input(
