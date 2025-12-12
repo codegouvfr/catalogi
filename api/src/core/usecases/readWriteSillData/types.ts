@@ -13,6 +13,24 @@ import {
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
 
+export type SoftwareInList = {
+    id: number;
+    softwareName: string;
+    softwareDescription: string;
+    logoUrl: string | undefined;
+    latestVersion: { semVer: string | undefined; publicationTime: number | undefined } | undefined;
+    addedTime: number;
+    updateTime: number;
+    applicationCategories: string[];
+    keywords: string[];
+    softwareType: SoftwareType;
+    customAttributes: CustomAttributes | undefined;
+    programmingLanguages: string[];
+    authors: Array<{ name: string }>;
+    userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
+    similarSoftwares: Array<{ softwareName: string | undefined; label: LocalizedString | undefined }>;
+};
+
 export type Software = {
     logoUrl: string | undefined;
     softwareId: number;

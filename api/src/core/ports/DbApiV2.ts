@@ -4,7 +4,14 @@
 
 import type { Database, DatabaseRowOutput } from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
-import type { CreateUserParams, Instance, InstanceFormData, UserWithId } from "../usecases/readWriteSillData";
+import type {
+    CreateUserParams,
+    Instance,
+    InstanceFormData,
+    Software,
+    SoftwareInList,
+    UserWithId
+} from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
@@ -49,6 +56,8 @@ export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow &
     Pick<DatabaseDataType.SoftwareRow, "referencedSinceTime">;
 
 export interface SoftwareRepository {
+    getFullList: () => Promise<SoftwareInList[]>;
+    getDetails: (softwareId: number) => Promise<Software | undefined>;
     create: (params: { software: SoftwareExtrinsicCreation }) => Promise<number>;
     update: (params: { softwareId: number; software: SoftwareExtrinsicRow }) => Promise<void>;
     getSoftwareIdByExternalIdAndSlug: (params: {
@@ -68,17 +77,6 @@ export interface SoftwareRepository {
     getSimilarSoftwareExternalDataPks: (params: {
         softwareId: number;
     }) => Promise<{ sourceSlug: string; externalId: string; softwareId: number | undefined }[]>;
-    // Secondary
-    // getAll: () => Promise<Software[]>;
-    // getById: (id: number) => Promise<Software | undefined>;
-    // getByIdWithLinkedSoftwaresExternalIds: (id: number) => Promise<
-    //     | {
-    //           software: Software;
-    //           similarSoftwaresExternalIds: string[];
-    //       }
-    //     | undefined
-    // >;
-    // getByName: (name: string) => Promise<Software | undefined>;
     countAddedByUser: (params: { userId: number }) => Promise<number>;
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
@@ -133,10 +131,10 @@ export interface SoftwareExternalDataRepository {
     delete: (params: { sourceSlug: string; externalId: string }) => Promise<boolean>;
     getSimilarSoftwareId: (params: { externalId: string; sourceSlug: string }) => Promise<{ softwareId: number }[]>;
     getOtherIdentifierIdsBySourceURL: (params: { sourceURL: string }) => Promise<Record<string, number> | undefined>;
-    // Secondary
     getMergedBySoftwareId: (params: {
         softwareId: number;
     }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
+    getMergedForAllSoftwares: () => Promise<Record<number, DatabaseDataType.SoftwareExternalDataRow>>;
 }
 
 export interface InstanceRepository {

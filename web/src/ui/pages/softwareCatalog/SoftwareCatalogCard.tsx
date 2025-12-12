@@ -7,7 +7,6 @@ import type { ApiTypes } from "api";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 import { useResolveLocalizedString } from "ui/i18n";
-import type { Link } from "type-route";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { useFromNow } from "ui/datetimeUtils";
@@ -18,42 +17,17 @@ import softwareLogoPlaceholder from "ui/assets/software_logo_placeholder.png";
 import Markdown from "react-markdown";
 import { useCoreState } from "../../../core";
 import { CustomAttributesInCard } from "./CustomAttributeInCard";
+import { OmitFromExisting } from "api/dist/src/core/utils";
 
 export type Props = {
     className?: string;
-    logoUrl?: string;
-    softwareName: string;
-    customAttributes: ApiTypes.CustomAttributes | undefined;
-    isInstallableOnUserComputer?: boolean;
-    latestVersion?: {
-        semVer?: string;
-        publicationTime?: number;
-    };
-    softwareDescription: string;
-    userCount: number;
-    referentCount: number;
-    softwareUsersAndReferentsLink: Link;
-    declareFormLink: Link;
-    softwareDetailsLink: Link;
-    searchHighlight:
-        | {
-              searchChars: string[];
-              highlightedIndexes: number[];
-          }
-        | undefined;
-    userDeclaration:
-        | {
-              isUser: boolean;
-              isReferent: boolean;
-          }
-        | undefined;
+    software: OmitFromExisting<ApiTypes.SoftwareInList, "id">;
 };
 
-export const SoftwareCatalogCard = memo((props: Props) => {
+export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
     const {
-        className,
         logoUrl,
-        softwareName,
+        name: softwareName,
         customAttributes,
         isInstallableOnUserComputer,
         latestVersion,
@@ -66,7 +40,7 @@ export const SoftwareCatalogCard = memo((props: Props) => {
         searchHighlight,
         userDeclaration,
         ...rest
-    } = props;
+    } = software;
     const ui = useCoreState("uiConfig", "main");
 
     /** Assert to make sure all props are deconstructed */

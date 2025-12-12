@@ -104,7 +104,7 @@ describe("RPC e2e tests", () => {
             "adds a new software",
             async () => {
                 expect(await getSoftwareRows()).toHaveLength(0);
-                const initialSoftwares = await apiCaller.getSoftwares();
+                const initialSoftwares = await apiCaller.getSoftwareList();
                 expectToEqual(initialSoftwares, []);
 
                 await apiCaller.createSoftware({
@@ -179,7 +179,7 @@ describe("RPC e2e tests", () => {
         });
 
         it("gets the new software in the list", async () => {
-            const softwares = await apiCaller.getSoftwares();
+            const softwares = await apiCaller.getSoftwareList();
             expect(softwares).toHaveLength(1);
             expectToMatchObject(softwares[0], { softwareName: softwareFormData.softwareName });
         });

@@ -20,6 +20,7 @@ export type {
     Instance,
     Os,
     Software,
+    SoftwareInList,
     SoftwareFormData,
     DeclarationFormData,
     InstanceFormData,
