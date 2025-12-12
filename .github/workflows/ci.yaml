@@ -136,29 +136,51 @@ jobs:
         with:
           app_id: ${{ secrets.RELEASE_APP_ID }}
           private_key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           token: ${{ steps.generate_token.outputs.token }}
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+
+      - name: Setup gh-pages branch
+        run: |
+          git fetch origin
+
+          if git ls-remote --heads origin gh-pages | grep gh-pages; then
+            git checkout gh-pages
+          else
+            git checkout -b gh-pages
+          fi
+
+          git reset --hard origin/main
+
       - name: Install Helm
         uses: azure/setup-helm@v4
+
       - name: Create charts directory
         run: mkdir -p docs/charts
+
       - name: Download chart from release
         run: |
           gh release download v${TO_VERSION} --pattern "catalogi-*.tgz" --dir docs/charts/
         env:
           GH_TOKEN: ${{ github.token }}
+
       - name: Generate Helm repository index with merge
         run: |
           helm repo index docs/charts/ --url https://github.com/codegouvfr/catalogi/releases/download/v${TO_VERSION}/ --merge docs/charts/index.yaml
-      - name: Commit and push index.yaml
+
+      - name: Commit and push to gh-pages
         run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
           git add docs/charts/index.yaml
           git commit -m "chore: update Helm chart index for v${TO_VERSION}"
-          git push
+          git push origin gh-pages --force
 
   docker:
     name: Build and push Docker images
