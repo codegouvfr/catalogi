@@ -134,7 +134,6 @@ export interface SoftwareExternalDataRepository {
     getMergedBySoftwareId: (params: {
         softwareId: number;
     }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
-    getMergedForAllSoftwares: () => Promise<Record<number, DatabaseDataType.SoftwareExternalDataRow>>;
 }
 
 export interface InstanceRepository {
