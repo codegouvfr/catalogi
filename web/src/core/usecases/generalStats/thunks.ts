@@ -18,7 +18,7 @@ export const protectedThunks = {
                 const [{ referentCount }, softwares, registeredUserCount] =
                     await Promise.all([
                         sillApi.getTotalReferentCount(),
-                        sillApi.getSoftwares(),
+                        sillApi.getSoftwareList(),
                         sillApi.getRegisteredUserCount()
                     ]);
 
@@ -35,9 +35,7 @@ export const protectedThunks = {
                                 .flat()
                                 .reduce(...removeDuplicates()).length,
                             registeredUserCount,
-                            softwareCount: softwares.filter(
-                                software => software.dereferencing === undefined
-                            ).length
+                            softwareCount: softwares.length
                         }
                     })
                 );

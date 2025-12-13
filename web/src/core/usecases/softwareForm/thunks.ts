@@ -77,11 +77,16 @@ export const thunks = {
                     break;
                 case "update":
                     {
-                        const softwares = await sillApi.getSoftwares();
-
-                        const software = softwares.find(
-                            software => software.softwareName === params.softwareName
+                        const softwareList = await sillApi.getSoftwareList();
+                        const softwareFromList = softwareList.find(
+                            s => s.softwareName === params.softwareName
                         );
+
+                        assert(softwareFromList !== undefined);
+
+                        const software = await sillApi.getSoftwareDetails({
+                            softwareId: softwareFromList.id
+                        });
 
                         assert(software !== undefined);
 
@@ -108,26 +113,26 @@ export const thunks = {
                                                 if (!similarSoftware.registered) {
                                                     return similarSoftware;
                                                 } else {
-                                                    const software = softwares.find(
-                                                        software =>
-                                                            software.softwareName ===
-                                                            similarSoftware.softwareName
-                                                    );
+                                                    const foundSoftware =
+                                                        softwareList.find(
+                                                            s =>
+                                                                s.softwareName ===
+                                                                similarSoftware.softwareName
+                                                        );
 
-                                                    if (
-                                                        software === undefined ||
-                                                        software.externalId === undefined
-                                                    ) {
+                                                    if (foundSoftware === undefined) {
                                                         return undefined;
                                                     }
 
                                                     return {
-                                                        label: software.softwareName,
+                                                        label: foundSoftware.softwareName,
                                                         description:
-                                                            software.softwareDescription,
+                                                            foundSoftware.softwareDescription,
                                                         isLibreSoftware: true,
-                                                        externalId: software.externalId,
-                                                        sourceSlug: software.sourceSlug
+                                                        externalId:
+                                                            similarSoftware.externalId,
+                                                        sourceSlug:
+                                                            similarSoftware.sourceSlug
                                                     };
                                                 }
                                             })

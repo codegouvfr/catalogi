@@ -30,7 +30,8 @@ export default function SoftwareCatalog(props: Props) {
         organizationOptions,
         attributeNameFilterOptions,
         programmingLanguageOptions,
-        softwares,
+        // softwares,
+        softwareList,
         sortOptions
     } = useCoreState("softwareCatalog", "main");
 
@@ -147,24 +148,24 @@ export default function SoftwareCatalog(props: Props) {
     const linksBySoftwareName = useMemo(
         () =>
             Object.fromEntries(
-                softwares.map(({ softwareName }) => [
+                softwareList.map(({ softwareName, id }) => [
                     softwareName,
                     /* prettier-ignore */
                     {
-                        "softwareDetails": routes.softwareDetails({ "name": softwareName }).link,
+                        "softwareDetails": routes.softwareDetails({ "id": id }).link,
                         "declareUsageForm": routes.declarationForm({ "name": softwareName }).link,
                         "softwareUsersAndReferents": routes.softwareUsersAndReferents({ "name": softwareName }).link
                     }
                 ])
             ),
-        [softwares]
+        [softwareList]
     );
 
     return (
         /* prettier-ignore */
         <SoftwareCatalogControlled
             className={className}
-            softwares={softwares}
+            softwares={softwareList}
             linksBySoftwareName={linksBySoftwareName}
             sortOptions={sortOptions}
             sort={route.params.sort ?? softwareCatalog.getDefaultSort()}

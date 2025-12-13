@@ -3,32 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
-import { DatabaseDataType, PopulatedExternalData, SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
+import { SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
 import { Database, DatabaseRowOutput } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
-import { mergeArrays } from "../../../utils";
-import merge from "deepmerge";
+import { mergeExternalData } from "./mergeExternalData";
 
 const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) => transformNullToUndefined(row);
-
-const mergeExternalData = (externalData: PopulatedExternalData[]) => {
-    if (externalData.length === 0) return undefined;
-    if (externalData.length === 1) return stripExternalDataFromSource(externalData[0]);
-
-    externalData.sort((firstItem, secondItem) => secondItem.priority - firstItem.priority);
-
-    const mergedItem = merge.all<PopulatedExternalData>(externalData, { arrayMerge: mergeArrays });
-
-    return stripExternalDataFromSource(mergedItem);
-};
-
-const stripExternalDataFromSource = (
-    populatedExternalDataItem: PopulatedExternalData
-): DatabaseDataType.SoftwareExternalDataRow => {
-    const { slug, priority, kind, url, ...externalDataItem } = populatedExternalDataItem;
-
-    return externalDataItem;
-};
 
 export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): SoftwareExternalDataRepository => ({
     getSimilarSoftwareId: async ({ externalId, sourceSlug }) => {
@@ -209,7 +189,6 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             {} as Record<string, number>
         );
     },
-    // Secondary
     getMergedBySoftwareId: async ({ softwareId }) => {
         const result = await db
             .selectFrom("software_external_datas as ext")

@@ -17,7 +17,7 @@ import { appPath } from "urls";
 export const routeDefs = {
     softwareDetails: defineRoute(
         {
-            name: param.query.string,
+            id: param.query.number,
             autoOpenRemoveRoleModal: param.query.optional.boolean.default(false),
             tab: param.query.optional.ofType({
                 parse: raw => {

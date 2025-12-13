@@ -29,7 +29,7 @@ export const thunks = {
 
             dispatch(actions.initializationStarted());
 
-            const software = (await sillApi.getSoftwares()).find(
+            const software = (await sillApi.getSoftwareList()).find(
                 software => software.softwareName === softwareName
             );
 
@@ -40,7 +40,7 @@ export const thunks = {
                     software: {
                         logoUrl: software.logoUrl,
                         softwareName,
-                        softwareId: software.softwareId,
+                        softwareId: software.id,
                         referentCount: Object.values(
                             software.userAndReferentCountByOrganization
                         )

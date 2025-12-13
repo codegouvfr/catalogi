@@ -23,6 +23,10 @@ export default function Redirect(props: Props) {
 
     const softwareNameBySillId = useCoreState("redirect", "softwareNameBySillId");
 
+    const sillIdBySoftwareName = Object.fromEntries(
+        Object.entries(softwareNameBySillId).map(([id, name]) => [name, parseInt(id)])
+    );
+
     useEffect(() => {
         switch (route.name) {
             case "ogSill":
@@ -48,14 +52,12 @@ export default function Redirect(props: Props) {
 
                     const softwareName = softwareNameBySillId[softwareId];
 
-                    assert(softwareName !== undefined);
-
                     if (softwareName === undefined) {
                         routes.page404().replace();
                         return;
                     }
 
-                    routes.softwareDetails({ name: softwareName }).replace();
+                    routes.softwareDetails({ id: softwareId }).replace();
                 }
                 break;
             case "onyxiaUiSillCatalog":
@@ -71,12 +73,14 @@ export default function Redirect(props: Props) {
                 {
                     const { name } = route.params;
 
-                    if (Object.values(softwareNameBySillId).indexOf(name) === -1) {
+                    const softwareId = sillIdBySoftwareName[name];
+
+                    if (softwareId === undefined) {
                         routes.page404().replace();
                         return;
                     }
 
-                    routes.softwareDetails({ name }).replace();
+                    routes.softwareDetails({ id: softwareId }).replace();
                 }
                 break;
         }

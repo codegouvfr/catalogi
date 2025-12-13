@@ -19,6 +19,7 @@ export type SupportedPlatforms = {
 
 export type State = {
     softwares: State.Software.Internal[];
+    softwareList: ApiTypes.SoftwareInList[];
     search: string;
     searchResults:
         | {
@@ -138,15 +139,17 @@ export const { reducer, actions } = createUsecaseActions({
             }: {
                 payload: {
                     softwares: State.Software.Internal[];
+                    softwareList: ApiTypes.SoftwareInList[];
                     defaultSort: State.Sort;
                     userEmail: string | undefined;
                 };
             }
         ) => {
-            const { softwares, defaultSort, userEmail } = payload;
+            const { softwares, softwareList, defaultSort, userEmail } = payload;
 
             return {
                 softwares,
+                softwareList,
                 search: "",
                 searchResults: undefined,
                 sort: defaultSort,
