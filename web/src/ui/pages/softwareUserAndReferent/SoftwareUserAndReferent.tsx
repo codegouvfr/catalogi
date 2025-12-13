@@ -25,11 +25,17 @@ export type Props = {
 export default function SoftwareUserAndReferent(props: Props) {
     const { route, className } = props;
 
-    const { softwareDetails, softwareUserAndReferent } = useCore().functions;
+    const { softwareUserAndReferent } = useCore().functions;
 
     const { isReady, logoUrl, referents, users } = useCoreState(
         "softwareUserAndReferent",
         "main"
+    );
+
+    const { softwareList } = useCoreState("softwareCatalog", "main");
+
+    const softwareIdByName = Object.fromEntries(
+        softwareList.map(s => [s.softwareName, s.id])
     );
 
     useEffect(() => {
@@ -38,14 +44,6 @@ export default function SoftwareUserAndReferent(props: Props) {
         return () => {
             softwareUserAndReferent.clear();
         };
-    }, [route.params.name]);
-
-    useEffect(() => {
-        softwareDetails.initialize({
-            softwareName: route.params.name
-        });
-
-        return () => softwareDetails.clear();
     }, [route.params.name]);
 
     const { classes, cx } = useStyles();
@@ -178,8 +176,9 @@ export default function SoftwareUserAndReferent(props: Props) {
                             label: t("softwareUserAndReferent.catalog breadcrumb")
                         },
                         {
-                            linkProps: routes.softwareDetails({ name: softwareName })
-                                .link,
+                            linkProps: routes.softwareDetails({
+                                id: softwareIdByName[softwareName]
+                            }).link,
                             label: route.params.name
                         }
                     ]}
@@ -323,7 +322,8 @@ export default function SoftwareUserAndReferent(props: Props) {
                     iconId="fr-icon-eye-line"
                     priority="secondary"
                     className={classes.softwareDetails}
-                    {...routes.softwareDetails({ name: softwareName }).link}
+                    {...routes.softwareDetails({ id: softwareIdByName[softwareName] })
+                        .link}
                 >
                     {t("softwareUserAndReferent.softwareDetails")}
                 </Button>

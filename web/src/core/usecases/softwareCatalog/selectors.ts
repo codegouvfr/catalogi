@@ -854,9 +854,9 @@ function filterByAttributeName(params: {
     );
 }
 
-function apiSoftwareToInternalSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
-    softwareRef: SoftwareRef;
+function softwareInListToInternalSoftware(params: {
+    softwareList: ApiTypes.SoftwareInList[];
+    softwareName: string;
     userDeclaration:
         | {
               isUser: boolean;
@@ -864,19 +864,11 @@ function apiSoftwareToInternalSoftware(params: {
           }
         | undefined;
 }): State.Software.Internal | undefined {
-    const { apiSoftwares, softwareRef, userDeclaration } = params;
+    const { softwareList, softwareName: targetName, userDeclaration } = params;
 
-    // eslint-disable-next-line array-callback-return
-    const apiSoftware = apiSoftwares.find(apiSoftware => {
-        switch (softwareRef.type) {
-            case "name":
-                return apiSoftware.softwareName === softwareRef.softwareName;
-            case "externalId":
-                return apiSoftware.externalId === softwareRef.externalId;
-        }
-    });
+    const software = softwareList.find(s => s.softwareName === targetName);
 
-    if (apiSoftware === undefined) {
+    if (software === undefined) {
         return undefined;
     }
 
@@ -894,13 +886,12 @@ function apiSoftwareToInternalSoftware(params: {
         similarSoftwares,
         keywords,
         programmingLanguages,
-        referencePublications,
         authors
-    } = apiSoftware;
+    } = software;
 
     assert<
         Equals<
-            ApiTypes.Software["customAttributes"],
+            ApiTypes.SoftwareInList["customAttributes"],
             State.Software.Internal["customAttributes"]
         >
     >();
@@ -939,22 +930,17 @@ function apiSoftwareToInternalSoftware(params: {
                     ...applicationCategories,
                     softwareDescription,
                     ...authors.map(author => author.name),
-                    ...authors.map(author => {
-                        if (author["@type"] === "Organization") {
-                            return author.parentOrganizations?.map(orga => orga.name);
-                        }
-
-                        return author.affiliations?.map(orga => orga.name);
-                    }),
                     ...similarSoftwares
-                        .map(similarSoftware =>
-                            similarSoftware.registered
-                                ? similarSoftware.softwareName
-                                : resolveLocalizedString(similarSoftware.label)
+                        .map(
+                            similarSoftware =>
+                                similarSoftware.softwareName ??
+                                (similarSoftware.label
+                                    ? resolveLocalizedString(similarSoftware.label)
+                                    : undefined)
                         )
                         .map(name =>
                             name === "VSCodium"
-                                ? ["vscode", "tVisual Studio Code", "VSCodium"]
+                                ? ["vscode", "Visual Studio Code", "VSCodium"]
                                 : name
                         )
                         .flat()
@@ -966,8 +952,7 @@ function apiSoftwareToInternalSoftware(params: {
             return search;
         })(),
         userDeclaration,
-        programmingLanguages,
-        referencePublications
+        programmingLanguages
     };
 }
 
@@ -1029,26 +1014,15 @@ function internalSoftwareToExternalSoftware(params: {
     };
 }
 
-type SoftwareRef =
-    | {
-          type: "externalId";
-          sourceSlug: string;
-          externalId: string;
-      }
-    | {
-          type: "name";
-          softwareName: string;
-      };
-
-export function apiSoftwareToExternalCatalogSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
-    softwareRef: SoftwareRef;
+export function softwareInListToExternalCatalogSoftware(params: {
+    softwareList: ApiTypes.SoftwareInList[];
+    softwareName: string;
 }): State.Software.External | undefined {
-    const { apiSoftwares, softwareRef } = params;
+    const { softwareList, softwareName } = params;
 
-    const internalSoftware = apiSoftwareToInternalSoftware({
-        apiSoftwares,
-        softwareRef,
+    const internalSoftware = softwareInListToInternalSoftware({
+        softwareList,
+        softwareName,
         userDeclaration: undefined
     });
 

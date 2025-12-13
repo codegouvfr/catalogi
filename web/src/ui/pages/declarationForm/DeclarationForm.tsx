@@ -71,8 +71,7 @@ export default function DeclarationForm(props: Props) {
             evtDeclarationForm.attach(
                 action => action.action === "redirect",
                 ctx,
-                ({ softwareName }) =>
-                    routes.softwareDetails({ name: softwareName }).push()
+                ({ softwareId }) => routes.softwareDetails({ id: softwareId }).push()
             ),
         []
     );
@@ -111,7 +110,7 @@ export default function DeclarationForm(props: Props) {
                         {
                             linkProps: {
                                 ...routes.softwareDetails({
-                                    name: software.softwareName
+                                    id: software.softwareId
                                 }).link
                             },
                             label: software.softwareName

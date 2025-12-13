@@ -86,9 +86,10 @@ export function createSillApi(params: { url: string }): SillApi {
                 promise: true
             }
         ),
-        getSoftwares: memoize(() => trpcClient.getSoftwares.query(), {
+        getSoftwareList: memoize(() => trpcClient.getSoftwareList.query(), {
             promise: true
         }),
+        getSoftwareDetails: params => trpcClient.getSoftwareDetails.query(params),
         getInstances: memoize(() => trpcClient.getInstances.query(), {
             promise: true
         }),
@@ -103,7 +104,7 @@ export function createSillApi(params: { url: string }): SillApi {
                 .mutate(params)
                 .catch(errorHandler);
 
-            sillApi.getSoftwares.clear();
+            sillApi.getSoftwareList.clear();
 
             return out;
         },
@@ -112,7 +113,7 @@ export function createSillApi(params: { url: string }): SillApi {
                 .mutate(params)
                 .catch(errorHandler);
 
-            sillApi.getSoftwares.clear();
+            sillApi.getSoftwareList.clear();
 
             return out;
         },
@@ -123,7 +124,7 @@ export function createSillApi(params: { url: string }): SillApi {
 
             sillApi.getTotalReferentCount.clear();
             sillApi.getUsers.clear();
-            sillApi.getSoftwares.clear();
+            sillApi.getSoftwareList.clear();
 
             return out;
         },
@@ -134,7 +135,7 @@ export function createSillApi(params: { url: string }): SillApi {
 
             sillApi.getTotalReferentCount.clear();
             sillApi.getUsers.clear();
-            sillApi.getSoftwares.clear();
+            sillApi.getSoftwareList.clear();
 
             return out;
         },
@@ -182,7 +183,7 @@ export function createSillApi(params: { url: string }): SillApi {
         unreferenceSoftware: async params => {
             await trpcClient.unreferenceSoftware.mutate(params).catch(errorHandler);
 
-            sillApi.getSoftwares.clear();
+            sillApi.getSoftwareList.clear();
         }
     };
 

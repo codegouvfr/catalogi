@@ -82,7 +82,7 @@ export const thunks = {
                 }
             }
 
-            const software = (await sillApi.getSoftwares()).find(
+            const software = (await sillApi.getSoftwareList()).find(
                 software => software.softwareName === softwareName
             );
 

@@ -179,15 +179,20 @@ export function SoftwareCatalogControlled(props: Props) {
                 {softwares.length === 0 ? (
                     <h1>{t("softwareCatalogControlled.noSoftwareFound")}</h1>
                 ) : (
-                    <RowVirtualizerDynamicWindow softwares={softwares} />
+                    <RowVirtualizerDynamicWindow
+                        softwares={softwares}
+                        linksBySoftwareName={linksBySoftwareName}
+                    />
                 )}
             </div>
         </div>
     );
 }
 
-function RowVirtualizerDynamicWindow(props: Pick<Props, "softwares">) {
-    const { softwares } = props;
+function RowVirtualizerDynamicWindow(
+    props: Pick<Props, "softwares" | "linksBySoftwareName">
+) {
+    const { softwares, linksBySoftwareName } = props;
 
     const { columnCount } = (function useClosure() {
         const { breakpointsValues } = useBreakpointsValues();
@@ -286,11 +291,22 @@ function RowVirtualizerDynamicWindow(props: Pick<Props, "softwares">) {
                                             return <div key={i} />;
                                         }
 
+                                        const links =
+                                            linksBySoftwareName[software.softwareName];
+
                                         return (
                                             <SoftwareCatalogCard
                                                 key={software.id}
                                                 className={css({ minHeight: height })}
-                                                software={software}
+                                                software={{
+                                                    ...software,
+                                                    softwareDetailsLink:
+                                                        links?.softwareDetails,
+                                                    declareFormLink:
+                                                        links?.declareUsageForm,
+                                                    softwareUsersAndReferentsLink:
+                                                        links?.softwareUsersAndReferents
+                                                }}
                                             />
                                         );
                                     }

@@ -73,10 +73,8 @@ export default function InstanceForm(props: Props) {
             evtInstanceForm.attach(
                 action => action.action === "redirect",
                 ctx,
-                ({ softwareName }) =>
-                    routes
-                        .softwareDetails({ name: softwareName, tab: "instances" })
-                        .push()
+                ({ softwareId }) =>
+                    routes.softwareDetails({ id: softwareId, tab: "instances" }).push()
             ),
         []
     );

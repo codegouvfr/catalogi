@@ -30,6 +30,11 @@ export default function UserProfile(props: Props) {
 
     const { userProfile } = useCore().functions;
     const { isReady, profile, softwares } = useCoreState("userProfile", "main");
+    const { softwareList } = useCoreState("softwareCatalog", "main");
+
+    const softwareIdByName = Object.fromEntries(
+        softwareList.map(s => [s.softwareName, s.id])
+    );
 
     useEffect(() => {
         userProfile.initialize({ email: route.params.email });
@@ -106,7 +111,7 @@ export default function UserProfile(props: Props) {
                         <p>
                             <a
                                 {...routes.softwareDetails({
-                                    name: softwareName
+                                    id: softwareIdByName[softwareName]
                                 }).link}
                             >
                                 {softwareName}

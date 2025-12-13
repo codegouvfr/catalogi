@@ -9,7 +9,7 @@ import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import { exclude } from "tsafe/exclude";
 import FlexSearch from "flexsearch";
-import type { ApiTypes } from "api";
+import type { ApiTypes, SoftwareInList } from "api";
 import { createResolveLocalizedString } from "i18nifty";
 import { UpdateFilterParams } from "./state";
 import { name, actions, type State } from "./state";
@@ -95,8 +95,8 @@ export const protectedThunks = {
             const { currentUser } = state.userAuthentication;
 
             const initialize = async () => {
-                const [apiSoftwares, { email: userEmail }] = await Promise.all([
-                    sillApi.getSoftwares(),
+                const [softwareList, { email: userEmail }] = await Promise.all([
+                    sillApi.getSoftwareList(),
                     currentUser ?? { email: undefined }
                 ] as const);
 
@@ -104,59 +104,49 @@ export const protectedThunks = {
                     ? await sillApi.getUsers()
                     : { users: undefined };
 
-                const softwares = apiSoftwares
-                    .filter(({ dereferencing }) => dereferencing === undefined)
-                    .map(({ softwareName }) => {
-                        const software = apiSoftwareToInternalSoftware({
-                            apiSoftwares,
-                            softwareRef: {
-                                type: "name",
-                                softwareName
-                            },
-                            userDeclaration:
-                                users === undefined
-                                    ? undefined
-                                    : (():
-                                          | { isReferent: boolean; isUser: boolean }
-                                          | undefined => {
-                                          const agent = users.find(
-                                              agent => agent.email === userEmail
-                                          );
+                const softwares = softwareList.map(software => {
+                    const userDeclaration =
+                        users === undefined
+                            ? undefined
+                            : (() => {
+                                  const agent = users.find(
+                                      agent => agent.email === userEmail
+                                  );
 
-                                          if (agent === undefined) {
-                                              return undefined;
-                                          }
+                                  if (agent === undefined) {
+                                      return undefined;
+                                  }
 
-                                          return {
-                                              isReferent:
-                                                  agent.declarations.find(
-                                                      declaration =>
-                                                          declaration.declarationType ===
-                                                              "referent" &&
-                                                          declaration.softwareName ===
-                                                              softwareName
-                                                  ) !== undefined,
-                                              isUser:
-                                                  agent.declarations.find(
-                                                      declaration =>
-                                                          declaration.declarationType ===
-                                                              "user" &&
-                                                          declaration.softwareName ===
-                                                              softwareName
-                                                  ) !== undefined
-                                          };
-                                      })()
-                        });
+                                  return {
+                                      isReferent:
+                                          agent.declarations.find(
+                                              declaration =>
+                                                  declaration.declarationType ===
+                                                      "referent" &&
+                                                  declaration.softwareName ===
+                                                      software.softwareName
+                                          ) !== undefined,
+                                      isUser:
+                                          agent.declarations.find(
+                                              declaration =>
+                                                  declaration.declarationType ===
+                                                      "user" &&
+                                                  declaration.softwareName ===
+                                                      software.softwareName
+                                          ) !== undefined
+                                  };
+                              })();
 
-                        assert(software !== undefined);
-
-                        return software;
+                    return softwareInListToInternalSoftware({
+                        software,
+                        userDeclaration
                     });
+                });
 
                 dispatch(
                     actions.initialized({
                         softwares,
-                        softwareList: [],
+                        softwareList,
                         userEmail,
                         defaultSort: getDefaultSort({ userEmail })
                     })
@@ -187,39 +177,16 @@ function getDefaultSort(params: { userEmail: string | undefined }): State.Sort {
     return userEmail === undefined ? "referent_count" : "my_software";
 }
 
-function apiSoftwareToInternalSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
-    softwareRef:
-        | {
-              type: "wikidataId";
-              wikidataId: string;
-          }
-        | {
-              type: "name";
-              softwareName: string;
-          };
+function softwareInListToInternalSoftware(params: {
+    software: SoftwareInList;
     userDeclaration:
         | {
               isUser: boolean;
               isReferent: boolean;
           }
         | undefined;
-}): State.Software.Internal | undefined {
-    const { apiSoftwares, softwareRef, userDeclaration } = params;
-
-    // eslint-disable-next-line array-callback-return
-    const apiSoftware = apiSoftwares.find(apiSoftware => {
-        switch (softwareRef.type) {
-            case "name":
-                return apiSoftware.softwareName === softwareRef.softwareName;
-            case "wikidataId":
-                return apiSoftware.externalId === softwareRef.wikidataId;
-        }
-    });
-
-    if (apiSoftware === undefined) {
-        return undefined;
-    }
+}): State.Software.Internal {
+    const { software, userDeclaration } = params;
 
     const {
         softwareName,
@@ -236,11 +203,11 @@ function apiSoftwareToInternalSoftware(params: {
         keywords,
         programmingLanguages,
         authors
-    } = apiSoftware;
+    } = software;
 
     assert<
         Equals<
-            ApiTypes.Software["customAttributes"],
+            SoftwareInList["customAttributes"],
             State.Software.Internal["customAttributes"]
         >
     >();
@@ -279,22 +246,17 @@ function apiSoftwareToInternalSoftware(params: {
                     ...applicationCategories,
                     softwareDescription,
                     ...authors.map(author => author.name),
-                    ...authors.map(author => {
-                        if (author["@type"] === "Organization") {
-                            return author.parentOrganizations?.map(orga => orga.name);
-                        }
-
-                        return author.affiliations?.map(orga => orga.name);
-                    }),
                     ...similarSoftwares
-                        .map(similarSoftware =>
-                            similarSoftware.registered
-                                ? similarSoftware.softwareName
-                                : resolveLocalizedString(similarSoftware.label)
+                        .map(
+                            similarSoftware =>
+                                similarSoftware.softwareName ??
+                                (similarSoftware.label
+                                    ? resolveLocalizedString(similarSoftware.label)
+                                    : undefined)
                         )
                         .map(name =>
                             name === "VSCodium"
-                                ? ["vscode", "tVisual Studio Code", "VSCodium"]
+                                ? ["vscode", "Visual Studio Code", "VSCodium"]
                                 : name
                         )
                         .flat()

@@ -10,41 +10,90 @@ import { useResolveLocalizedString } from "ui/i18n";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { useFromNow } from "ui/datetimeUtils";
-import { assert } from "tsafe/assert";
-import type { Equals } from "tsafe";
 import { DetailUsersAndReferents } from "ui/shared/DetailUsersAndReferents";
 import softwareLogoPlaceholder from "ui/assets/software_logo_placeholder.png";
 import Markdown from "react-markdown";
 import { useCoreState } from "../../../core";
 import { CustomAttributesInCard } from "./CustomAttributeInCard";
-import { OmitFromExisting } from "api/dist/src/core/utils";
+
+import type { Link } from "type-route";
+
+type BaseSoftwareProps = {
+    logoUrl?: string;
+    softwareName: string;
+    softwareDescription: string;
+    customAttributes?: ApiTypes.CustomAttributes;
+    latestVersion?: {
+        semVer?: string;
+        publicationTime?: number;
+    };
+    softwareDetailsLink?: Link;
+    declareFormLink?: Link;
+    softwareUsersAndReferentsLink?: Link;
+    searchHighlight?: {
+        searchChars: string[];
+        highlightedIndexes: number[];
+    };
+    userDeclaration?: {
+        isUser: boolean;
+        isReferent: boolean;
+    };
+};
+
+type SoftwareWithCounts = BaseSoftwareProps & {
+    userCount: number;
+    referentCount: number;
+    softwareType?: ApiTypes.SoftwareType;
+};
+
+type SoftwareFromList = BaseSoftwareProps &
+    Pick<ApiTypes.SoftwareInList, "userAndReferentCountByOrganization" | "softwareType">;
 
 export type Props = {
     className?: string;
-    software: OmitFromExisting<ApiTypes.SoftwareInList, "id">;
+    software: SoftwareWithCounts | SoftwareFromList;
 };
+
+function isSoftwareFromList(
+    software: SoftwareWithCounts | SoftwareFromList
+): software is SoftwareFromList {
+    return "userAndReferentCountByOrganization" in software;
+}
 
 export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
     const {
         logoUrl,
-        name: softwareName,
+        softwareName,
         customAttributes,
-        isInstallableOnUserComputer,
         latestVersion,
         softwareDescription,
-        userCount,
-        referentCount,
         softwareUsersAndReferentsLink,
         softwareDetailsLink,
         declareFormLink,
         searchHighlight,
-        userDeclaration,
-        ...rest
+        userDeclaration
     } = software;
-    const ui = useCoreState("uiConfig", "main");
 
-    /** Assert to make sure all props are deconstructed */
-    assert<Equals<typeof rest, {}>>();
+    const userCount = isSoftwareFromList(software)
+        ? Object.values(software.userAndReferentCountByOrganization)
+              .map(({ userCount }) => userCount)
+              .reduce((prev, curr) => prev + curr, 0)
+        : software.userCount;
+
+    const referentCount = isSoftwareFromList(software)
+        ? Object.values(software.userAndReferentCountByOrganization)
+              .map(({ referentCount }) => referentCount)
+              .reduce((prev, curr) => prev + curr, 0)
+        : software.referentCount;
+
+    const softwareType = isSoftwareFromList(software)
+        ? software.softwareType
+        : software.softwareType;
+
+    const isInstallableOnUserComputer =
+        softwareType?.type === "desktop/mobile" &&
+        (softwareType.os.windows || softwareType.os.linux || softwareType.os.mac);
+    const ui = useCoreState("uiConfig", "main");
 
     const { t } = useTranslation();
     const { resolveLocalizedString } = useResolveLocalizedString();

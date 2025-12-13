@@ -41,12 +41,12 @@ export const thunks = {
 
             dispatch(actions.initializationStarted());
 
-            const softwares = await sillApi.getSoftwares();
+            const softwares = await sillApi.getSoftwareList();
 
             const allSillSoftwares = softwares.map(
-                ({ softwareName, softwareId, softwareDescription }) => ({
+                ({ softwareName, id, softwareDescription }) => ({
                     softwareDescription,
-                    softwareSillId: softwareId,
+                    softwareSillId: id,
                     softwareName
                 })
             );
@@ -96,8 +96,7 @@ export const thunks = {
                                     ? undefined
                                     : {
                                           type: "navigated from software form",
-                                          justRegisteredSoftwareSillId:
-                                              software.softwareId,
+                                          justRegisteredSoftwareSillId: software.id,
                                           userOrganization: user.organization
                                       }
                         })
@@ -182,8 +181,8 @@ export const thunks = {
                 ).instanceId;
             }
 
-            const software = (await sillApi.getSoftwares()).find(
-                software => software.softwareId === formData.mainSoftwareSillId
+            const software = (await sillApi.getSoftwareList()).find(
+                software => software.id === formData.mainSoftwareSillId
             );
 
             assert(software !== undefined);

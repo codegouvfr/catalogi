@@ -40,6 +40,11 @@ export default function SoftwareDetails(props: Props) {
     const { softwareDetails, userAuthentication } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
     const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
+    const { softwareList } = useCoreState("softwareCatalog", "main");
+
+    const softwareIdByName = Object.fromEntries(
+        softwareList.map(s => [s.softwareName, s.id])
+    );
 
     const { cx, classes } = useStyles();
 
@@ -50,18 +55,15 @@ export default function SoftwareDetails(props: Props) {
 
     useEffect(() => {
         softwareDetails.initialize({
-            softwareName: route.params.name
+            softwareId: route.params.id
         });
 
         return () => softwareDetails.clear();
-    }, [route.params.name]);
+    }, [route.params.id]);
 
     if (error) {
         return (
-            <SoftwareDetailsErrorFallback
-                error={error}
-                softwareName={route.params.name}
-            />
+            <SoftwareDetailsErrorFallback error={error} softwareId={route.params.id} />
         );
     }
 
@@ -230,7 +232,9 @@ export default function SoftwareDetails(props: Props) {
                                                           }).link,
                                                       softwareDetails:
                                                           routes.softwareDetails({
-                                                              name: softwareName
+                                                              id: softwareIdByName[
+                                                                  softwareName
+                                                              ]
                                                           }).link,
                                                       softwareUsersAndReferents:
                                                           routes.softwareUsersAndReferents(
@@ -433,10 +437,10 @@ const ServiceProviderRow = ({
 
 function SoftwareDetailsErrorFallback({
     error,
-    softwareName
+    softwareId: _softwareId
 }: {
     error: Error;
-    softwareName: string;
+    softwareId: number;
 }) {
     const { t } = useTranslation();
 
@@ -463,7 +467,7 @@ function SoftwareDetailsErrorFallback({
                 <Button
                     priority="primary"
                     onClick={() => {
-                        routes.softwareCatalog({ search: softwareName }).push();
+                        routes.softwareCatalog().push();
                     }}
                 >
                     {t("softwareDetails.error.searchInCatalog")}

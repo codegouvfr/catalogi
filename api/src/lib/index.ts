@@ -15,3 +15,5 @@ export type { ExternalDataOriginKind } from "../core/adapters/dbApi/kysely/kysel
 import type * as ApiTypes from "./ApiTypes";
 
 export type { ApiTypes };
+
+export type { SoftwareInList, Software } from "../core/usecases/readWriteSillData/types";
