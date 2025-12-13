@@ -5,18 +5,17 @@
 import type { Thunks } from "core/bootstrap";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import type { ApiTypes, Software } from "api";
 import { createUsecaseContextApi } from "redux-clean-architecture";
 import { Evt } from "evt";
-import { createResolveLocalizedString } from "i18nifty";
-import { apiSoftwareToExternalCatalogSoftware } from "core/usecases/softwareCatalog";
+import { softwareInListToExternalCatalogSoftware } from "core/usecases/softwareCatalog";
 import { name, actions, type State } from "./state";
 
 export const thunks = {
     initialize:
-        (params: { softwareName: string }) =>
+        (params: { softwareId: number }) =>
         async (...args) => {
-            const { softwareName } = params;
+            const { softwareId } = params;
 
             const [dispatch, getState, extraArg] = args;
 
@@ -49,7 +48,7 @@ export const thunks = {
                     () => {
                         dispatch(thunks.clear());
 
-                        dispatch(thunks.initialize({ softwareName }));
+                        dispatch(thunks.initialize({ softwareId }));
                     }
                 );
 
@@ -58,25 +57,26 @@ export const thunks = {
 
             dispatch(actions.initializationStarted());
 
-            const [mainSource, apiSoftwares, apiInstances] = await Promise.all([
-                sillApi.getMainSource(),
-                sillApi.getSoftwares(),
-                sillApi.getInstances()
+            const [apiSoftware, apiInstances, softwareList] = await Promise.all([
+                sillApi.getSoftwareDetails({ softwareId }),
+                sillApi.getInstances(),
+                sillApi.getSoftwareList()
             ]);
 
-            let software: State.Software;
-
-            try {
-                software = apiSoftwareToSoftware({
-                    apiSoftwares,
-                    apiInstances,
-                    softwareName,
-                    mainSource
-                });
-            } catch (error) {
-                dispatch(actions.initializationFailed({ error: error as Error }));
+            if (!apiSoftware) {
+                dispatch(
+                    actions.initializationFailed({
+                        error: new Error(`Software with id ${softwareId} not found`)
+                    })
+                );
                 return;
             }
+
+            const software = apiSoftwareToSoftware({
+                apiSoftware,
+                apiInstances,
+                softwareList
+            });
 
             const userDeclaration: { isReferent: boolean; isUser: boolean } | undefined =
                 await (async () => {
@@ -97,13 +97,13 @@ export const thunks = {
                         isReferent:
                             user.declarations.find(
                                 d =>
-                                    d.softwareName === softwareName &&
+                                    d.softwareName === apiSoftware.softwareName &&
                                     d.declarationType === "referent"
                             ) !== undefined,
                         isUser:
                             user.declarations.find(
                                 d =>
-                                    d.softwareName === softwareName &&
+                                    d.softwareName === apiSoftware.softwareName &&
                                     d.declarationType === "user"
                             ) !== undefined
                     };
@@ -165,23 +165,15 @@ const { getContext } = createUsecaseContextApi(() => ({
 }));
 
 function apiSoftwareToSoftware(params: {
-    apiSoftwares: ApiTypes.Software[];
+    apiSoftware: Software;
     apiInstances: ApiTypes.Instance[];
-    softwareName: string;
-    mainSource: ApiTypes.Source;
+    softwareList: ApiTypes.SoftwareInList[];
 }): State.Software {
-    const { apiSoftwares, apiInstances, softwareName } = params;
-
-    const apiSoftware = apiSoftwares.find(
-        apiSoftware => apiSoftware.softwareName === softwareName
-    );
-
-    if (!apiSoftware) {
-        throw new Error(`Software "${softwareName}" not found`);
-    }
+    const { apiSoftware, apiInstances, softwareList } = params;
 
     const {
         softwareId,
+        softwareName,
         logoUrl,
         authors,
         officialWebsiteUrl,
@@ -193,8 +185,6 @@ function apiSoftwareToSoftware(params: {
         dereferencing,
         customAttributes,
         similarSoftwares: similarSoftwares_api,
-        sourceSlug,
-        externalId,
         license,
         versionMin,
         softwareType,
@@ -242,37 +232,28 @@ function apiSoftwareToSoftware(params: {
                           isPublic: instance.isPublic
                       })),
         similarSoftwares: similarSoftwares_api.map(similarSoftware => {
-            const software = apiSoftwareToExternalCatalogSoftware({
-                apiSoftwares,
-                softwareRef: similarSoftware.registered
-                    ? {
-                          type: "name",
-                          softwareName: similarSoftware.softwareName
-                      }
-                    : {
-                          type: "externalId",
-                          externalId: similarSoftware.externalId,
-                          sourceSlug: similarSoftware.sourceSlug
-                      }
-            });
+            if (similarSoftware.registered) {
+                const externalSoftware = softwareInListToExternalCatalogSoftware({
+                    softwareList,
+                    softwareName: similarSoftware.softwareName
+                });
 
-            if (software === undefined) {
-                assert(!similarSoftware.registered);
-
-                return {
-                    registered: false,
-                    sourceSlug: similarSoftware.sourceSlug,
-                    externalId: similarSoftware.externalId,
-                    label: similarSoftware.label,
-                    description: similarSoftware.description,
-                    isLibreSoftware: similarSoftware.isLibreSoftware
-                } satisfies State.SimilarSoftwareNotRegistered;
+                if (externalSoftware !== undefined) {
+                    return {
+                        registered: true,
+                        software: externalSoftware
+                    };
+                }
             }
 
             return {
-                registered: true,
-                software
-            };
+                registered: false,
+                sourceSlug: similarSoftware.sourceSlug,
+                externalId: similarSoftware.externalId,
+                label: similarSoftware.label,
+                description: similarSoftware.description,
+                isLibreSoftware: similarSoftware.isLibreSoftware
+            } satisfies State.SimilarSoftwareNotRegistered;
         }),
         license,
         customAttributes,

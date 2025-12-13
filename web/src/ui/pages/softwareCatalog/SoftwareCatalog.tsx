@@ -148,13 +148,13 @@ export default function SoftwareCatalog(props: Props) {
     const linksBySoftwareName = useMemo(
         () =>
             Object.fromEntries(
-                softwareList.map(({ name }) => [
-                    name,
+                softwareList.map(({ softwareName, id }) => [
+                    softwareName,
                     /* prettier-ignore */
                     {
-                        "softwareDetails": routes.softwareDetails({ "name": name }).link,
-                        "declareUsageForm": routes.declarationForm({ "name": name }).link,
-                        "softwareUsersAndReferents": routes.softwareUsersAndReferents({ "name": name }).link
+                        "softwareDetails": routes.softwareDetails({ "id": id }).link,
+                        "declareUsageForm": routes.declarationForm({ "name": softwareName }).link,
+                        "softwareUsersAndReferents": routes.softwareUsersAndReferents({ "name": softwareName }).link
                     }
                 ])
             ),

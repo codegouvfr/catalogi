@@ -92,11 +92,10 @@ export const SimilarSoftwareTab = (props: Props) => {
                                 })
                             })}
                             software={{
+                                ...software,
                                 softwareDetailsLink: softwareDetails,
                                 declareFormLink: declarationForm,
-                                softwareUsersAndReferentsLink: softwareUsersAndReferents,
-                                ...software,
-                                name: softwareName
+                                softwareUsersAndReferentsLink: softwareUsersAndReferents
                             }}
                         />
                     );

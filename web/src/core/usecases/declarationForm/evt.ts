@@ -12,12 +12,12 @@ export const createEvt = (({ evtAction, getState }) => {
             ? [
                   {
                       action: "redirect" as const,
-                      softwareName: (() => {
+                      softwareId: (() => {
                           const state = getState()[name];
 
                           assert(state.stateDescription === "ready");
 
-                          return state.software.softwareName;
+                          return state.software.softwareId;
                       })()
                   }
               ]
