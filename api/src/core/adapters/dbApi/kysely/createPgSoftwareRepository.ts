@@ -3,15 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
-import merge from "deepmerge";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
-import { mergeArrays } from "../../../utils";
 import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
+import { mergeExternalData } from "./mergeExternalData";
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
 type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; label: LocalizedString };
@@ -46,78 +45,62 @@ const aggregateSimilars = (
         {} as Record<number, Array<{ softwareName: string | undefined; label: LocalizedString | undefined }>>
     );
 
-const mergeExternalData = (
-    externalData: PopulatedExternalData[]
-): DatabaseDataType.SoftwareExternalDataRow | undefined => {
-    if (externalData.length === 0) return undefined;
-    if (externalData.length === 1) {
-        const { slug, priority, kind, url, ...rest } = externalData[0];
-        return rest;
-    }
-    externalData.sort((a, b) => b.priority - a.priority);
-    const merged = merge.all<PopulatedExternalData>(externalData, { arrayMerge: mergeArrays });
-    const { slug, priority, kind, url, ...rest } = merged;
-    return rest;
-};
-
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     return {
         getFullList: async (): Promise<SoftwareInList[]> => {
-            // Query 1: All softwares (excluding dereferenced)
-            const softwareRows = await db
-                .selectFrom("softwares")
-                .selectAll()
-                .where("dereferencing", "is", null)
-                .execute();
+            const [softwareRows, userCountRows, referentCountRows, similarRows, externalRows] = await Promise.all([
+                db
+                    .selectFrom("softwares")
+                    .selectAll()
+                    .where("dereferencing", "is", null)
+                    .orderBy("name", "asc")
+                    .execute(),
 
-            // Query 2: User counts by organization
-            const userCountRows = await db
-                .selectFrom("software_users")
-                .innerJoin("users", "users.id", "software_users.userId")
-                .select([
-                    "software_users.softwareId",
-                    "users.organization",
-                    sql<string>`'userCount'`.as("countType"),
-                    ({ fn }) => fn.countAll<string>().as("count")
-                ])
-                .groupBy(["software_users.softwareId", "users.organization"])
-                .execute();
+                db
+                    .selectFrom("software_users")
+                    .innerJoin("users", "users.id", "software_users.userId")
+                    .select([
+                        "software_users.softwareId",
+                        "users.organization",
+                        sql<string>`'userCount'`.as("countType"),
+                        ({ fn }) => fn.countAll<string>().as("count")
+                    ])
+                    .groupBy(["software_users.softwareId", "users.organization"])
+                    .execute(),
 
-            // Query 3: Referent counts by organization
-            const referentCountRows = await db
-                .selectFrom("software_referents")
-                .innerJoin("users", "users.id", "software_referents.userId")
-                .select([
-                    "software_referents.softwareId",
-                    "users.organization",
-                    sql<string>`'referentCount'`.as("countType"),
-                    ({ fn }) => fn.countAll<string>().as("count")
-                ])
-                .groupBy(["software_referents.softwareId", "users.organization"])
-                .execute();
+                db
+                    .selectFrom("software_referents")
+                    .innerJoin("users", "users.id", "software_referents.userId")
+                    .select([
+                        "software_referents.softwareId",
+                        "users.organization",
+                        sql<string>`'referentCount'`.as("countType"),
+                        ({ fn }) => fn.countAll<string>().as("count")
+                    ])
+                    .groupBy(["software_referents.softwareId", "users.organization"])
+                    .execute(),
 
-            // Query 4: Similar softwares with joined software names
-            const similarRows = await db
-                .selectFrom("softwares__similar_software_external_datas as sim")
-                .innerJoin("software_external_datas as ext", join =>
-                    join
-                        .onRef("ext.externalId", "=", "sim.similarExternalId")
-                        .onRef("ext.sourceSlug", "=", "sim.sourceSlug")
-                )
-                .leftJoin("softwares as s", "s.id", "ext.softwareId")
-                .select(["sim.softwareId", "s.name as linkedSoftwareName", "ext.label"])
-                .execute();
+                db
+                    .selectFrom("softwares__similar_software_external_datas as sim")
+                    .innerJoin("software_external_datas as ext", join =>
+                        join
+                            .onRef("ext.externalId", "=", "sim.similarExternalId")
+                            .onRef("ext.sourceSlug", "=", "sim.sourceSlug")
+                    )
+                    .leftJoin("softwares as s", "s.id", "ext.softwareId")
+                    .select(["sim.softwareId", "s.name as linkedSoftwareName", "ext.label"])
+                    .execute(),
 
-            // Query 5: External data (merged by priority)
-            const externalRows = await db
-                .selectFrom("software_external_datas as ext")
-                .selectAll("ext")
-                .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
-                .select(["s.kind", "s.priority", "s.url", "s.slug"])
-                .where("ext.softwareId", "is not", null)
-                .orderBy("ext.softwareId", "asc")
-                .orderBy("s.priority", "desc")
-                .execute();
+                db
+                    .selectFrom("software_external_datas as ext")
+                    .selectAll("ext")
+                    .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
+                    .select(["s.kind", "s.priority", "s.url", "s.slug"])
+                    .where("ext.softwareId", "is not", null)
+                    .orderBy("ext.softwareId", "asc")
+                    .orderBy("s.priority", "desc")
+                    .execute()
+            ]);
 
             // Aggregate external data by softwareId
             const externalBySoftwareId = externalRows.reduce(
