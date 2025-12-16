@@ -71,26 +71,32 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
     for (const { sourceSlug, externalId } of ids) {
         console.time(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
         console.log(`[UC.refreshExternalData] 🚀 Update for ${externalId} on ${sourceSlug} : Starting 🚀`);
-        const source = sourceBySlug[sourceSlug];
 
-        const actualExternalDataRow = await dbApi.softwareExternalData.get({ sourceSlug, externalId });
+        try {
+            const source = sourceBySlug[sourceSlug];
 
-        const sourceGateway = resolveAdapterFromSource(source);
-        const externalData = await sourceGateway.softwareExternalData.getById({
-            externalId: externalId,
-            source: source
-        });
+            const actualExternalDataRow = await dbApi.softwareExternalData.get({ sourceSlug, externalId });
 
-        if (externalData) {
-            await dbApi.softwareExternalData.update({
-                sourceSlug: source.slug,
+            const sourceGateway = resolveAdapterFromSource(source);
+            const externalData = await sourceGateway.softwareExternalData.getById({
                 externalId: externalId,
-                lastDataFetchAt: new Date(),
-                softwareExternalData: externalData,
-                ...(actualExternalDataRow?.softwareId ? { softwareId: actualExternalDataRow.softwareId } : {})
+                source: source
             });
+
+            if (externalData) {
+                await dbApi.softwareExternalData.update({
+                    sourceSlug: source.slug,
+                    externalId: externalId,
+                    lastDataFetchAt: new Date(),
+                    softwareExternalData: externalData,
+                    ...(actualExternalDataRow?.softwareId ? { softwareId: actualExternalDataRow.softwareId } : {})
+                });
+            }
+            console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
+        } catch {
+            console.error(`[UC.refreshExternalData] 💥 Update for ${externalId} on ${sourceSlug} : Failed 💥`);
+            console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
         }
-        console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
     }
     console.timeEnd(useCaseLogTimer);
     return true;

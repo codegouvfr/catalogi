@@ -32,9 +32,7 @@ export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: project.avatar_url ?? undefined,
             softwareKeywords: project.topics || [],
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: undefined
         };
 
         return formData;

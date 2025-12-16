@@ -34,10 +34,7 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
             similarSoftwareExternalDataIds: [],
             softwareLogoUrl: undefined,
             softwareKeywords: repoData.topics || [],
-
-            isPresentInSupportContract: false,
-            isFromFrenchPublicService: false,
-            doRespectRgaa: null
+            customAttributes: undefined
         };
 
         return formData;
