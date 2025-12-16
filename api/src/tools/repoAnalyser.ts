@@ -44,6 +44,8 @@ export const repoUrlToIdentifer = async (params: {
     if (!repoUrl) return;
 
     const repoType = await repoAnalyser(repoUrl);
+    if (!repoType) return undefined;
+
     switch (repoType) {
         case "GitHub":
             const api = repoGitHubEndpointMaker();
@@ -65,7 +67,7 @@ export const repoUrlToIdentifer = async (params: {
             const externalId = parsedUrl.pathname?.substring(1);
             if (!externalId || externalId === "") return;
 
-            const project = await resolveExternalReferenceToProject({ gitLabApi, externalId });
+            const project = await resolveExternalReferenceToProject({ externalId, gitLabApi });
             if (!project) return;
 
             return identifersUtils.makeRepoGitLabIdentifer({
