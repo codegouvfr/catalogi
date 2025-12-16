@@ -1,6 +1,6 @@
 import type { Gitlab, ProjectSchema } from "@gitbeaker/core";
 
-export const repoUrlToAPIUrl = (projectUrl: string | URL): string => {
+export const repoUrlToCleanUrl = (projectUrl: string | URL): string => {
     let url = projectUrl;
 
     if (typeof url === "string") {
@@ -15,6 +15,16 @@ export const repoUrlToAPIUrl = (projectUrl: string | URL): string => {
     }
 
     const urlObj = typeof projectUrl === "string" ? URL.parse(url) : projectUrl;
+
+    if (url === "" || !urlObj) {
+        throw new Error("Bad URL");
+    }
+
+    return urlObj.toString();
+};
+
+export const repoUrlToAPIUrl = (projectUrl: string | URL): string => {
+    const urlObj = URL.parse(projectUrl);
 
     if (!urlObj) {
         throw new Error("Bad URL");
@@ -37,32 +47,36 @@ export const resolveExternalReferenceToProject = async (params: {
 }): Promise<ProjectSchema | undefined> => {
     const { externalId, gitLabApi } = params;
 
-    if (typeof Number(externalId) === "number") {
+    if (Number.isNaN(externalId)) {
         return gitLabApi.Projects.show(externalId);
     }
 
     const baseUrl = gitLabApi.url;
 
-    if (externalId.includes("https://")) {
-        const projectName = externalId.replace(baseUrl, "");
-        const projects = await gitLabApi.Projects.all({ search: projectName });
+    const searchCriteria = externalId.includes("https://")
+        ? externalId.replace(baseUrl, "")
+        : externalId.includes("/")
+          ? externalId.split("/")[1]
+          : undefined;
 
-        // Multiples
-        // One
-        // None
+    if (searchCriteria) {
+        try {
+            const projects = await gitLabApi.Projects.all({ search: searchCriteria });
 
-        return projects[0];
-    }
+            // Id not found
+            if (projects.length === 0) return undefined;
 
-    // This may be a project name
-    if (externalId.includes("/")) {
-        const projects = await gitLabApi.Projects.all({ search: externalId });
+            // TODO Multiples
+            if (projects.length > 1) {
+                console.warn(`TODO : ${externalId} research have mutiple results, it should be more precise.`);
+            }
 
-        // Multiples
-        // One
-        // None
-
-        return projects[0];
+            // One
+            return projects[0];
+        } catch (error) {
+            console.error(error);
+            return undefined;
+        }
     }
 
     return undefined;
