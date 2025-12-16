@@ -100,7 +100,22 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
             })
         );
 
-        const codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(halRawSoftware.uri_s);
+        // AUTOMATED CURATION - URL of Software Notice
+        // Isuse because of sub domain name in HAL
+        const codeMetaUrl = halRawSoftware.uri_s;
+        if (!codeMetaUrl.includes("hal.science"))
+            console.debug(`HAL Identifier doesn't point on HAL, see : ${codeMetaUrl}`);
+        const codeMetaUrlCurated = codeMetaUrl.includes("hal.science")
+            ? codeMetaUrl
+            : "https://hal.science/" + codeMetaUrl.split("/").slice(-1)[0];
+        // END OF AUTOMATED CURATION
+
+        let codemetaSoftware: HAL.SoftwareApplication | undefined;
+        try {
+            codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(codeMetaUrlCurated);
+        } catch (error) {
+            throw Error(`Error for doc : ${externalId} - (source: ${source.slug}) : ${error}`);
+        }
         if (!codemetaSoftware) {
             throw Error(`No codemeta found for doc : ${externalId} - (source: ${source.slug})`);
         }

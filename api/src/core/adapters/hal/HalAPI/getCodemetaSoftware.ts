@@ -20,7 +20,7 @@ export async function fetchCodeMetaSoftwareByURL(url: string): Promise<HAL.Softw
         return fetchCodeMetaSoftwareByURL(url);
     }
 
-    if (res.status === 404) {
+    if (res.status === 404 || res.status >= 500) {
         throw new HAL.API.FetchError(res.status);
     }
 
