@@ -50,8 +50,9 @@ export async function startRpcService(params: {
     isDevEnvironnement: boolean;
     redirectUrl?: string;
     databaseUrl: string;
+    appUrl: string;
 }) {
-    const { redirectUrl, oidcParams, port, isDevEnvironnement, databaseUrl, ...rest } = params;
+    const { redirectUrl, oidcParams, port, isDevEnvironnement, databaseUrl, appUrl, ...rest } = params;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -88,7 +89,7 @@ export async function startRpcService(params: {
 
     app.use(
         cors({
-            origin: "http://localhost:3000",
+            origin: appUrl,
             credentials: true
         })
     )
