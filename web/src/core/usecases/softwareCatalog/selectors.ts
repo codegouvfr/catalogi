@@ -13,7 +13,7 @@ import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
 import type { ApiTypes } from "api";
 import { LocalizedString } from "../../../ui/i18n";
-import { name, type State } from "./state";
+import { name, type State, type Software } from "./state";
 import { selectors as uiConfigSelectors } from "../uiConfig.slice";
 
 const internalSoftwares = (rootState: RootState) => {
@@ -67,7 +67,7 @@ const sortOptions = createSelector(
 );
 
 const getComputeds = memoize(
-    (software: State.Software) => {
+    (software: Software) => {
         const { userAndReferentCountByOrganization } = software;
 
         return {
@@ -161,17 +161,17 @@ const softwares = createSelector(
                 (() => {
                     switch (sort) {
                         case "added_time":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software => software.addedTime,
                                 order: "descending"
                             });
                         case "update_time":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software => software.updateTime,
                                 order: "descending"
                             });
                         case "latest_version_publication_date":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software =>
                                     software.latestVersion?.publicationTime ?? 0,
                                 order: "descending",
@@ -181,29 +181,29 @@ const softwares = createSelector(
                                 })
                             });
                         case "referent_count":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software =>
                                     getComputeds(software).referentCount,
                                 order: "descending"
                             });
                         case "referent_count_ASC":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software =>
                                     getComputeds(software).referentCount,
                                 order: "ascending"
                             });
                         case "user_count":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software => getComputeds(software).userCount,
                                 order: "descending"
                             });
                         case "user_count_ASC":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software => getComputeds(software).userCount,
                                 order: "ascending"
                             });
                         case "my_software":
-                            return createCompareFn<State.Software>({
+                            return createCompareFn<Software>({
                                 getWeight: software =>
                                     software.userDeclaration === undefined
                                         ? 0
@@ -608,40 +608,39 @@ const attributeNameFilterOptions = createSelector(
         }
 
         tmpSoftwares.forEach(({ customAttributes, softwareType }) => {
-            if (!customAttributes) return;
-            objectKeys(customAttributes)
-                .filter(attributeName => customAttributes[attributeName])
-                .forEach(attributeName => {
-                    const currentCount =
-                        softwareCountInCurrentFilterByAttributeName.get(attributeName);
+            if (customAttributes) {
+                objectKeys(customAttributes)
+                    .filter(attributeName => customAttributes[attributeName])
+                    .forEach(attributeName => {
+                        const currentCount =
+                            softwareCountInCurrentFilterByAttributeName.get(
+                                attributeName
+                            );
 
-                    assert(currentCount !== undefined);
-
-                    softwareCountInCurrentFilterByAttributeName.set(
-                        attributeName,
-                        currentCount + 1
-                    );
-                });
-
-            (["isInstallableOnUserComputer"] as const).forEach(attributeName => {
-                switch (attributeName) {
-                    case "isInstallableOnUserComputer":
-                        if (softwareType.type !== "desktop/mobile") {
-                            return;
+                        if (currentCount !== undefined) {
+                            softwareCountInCurrentFilterByAttributeName.set(
+                                attributeName,
+                                currentCount + 1
+                            );
                         }
-                        break;
-                }
+                    });
+            }
 
-                const currentCount =
-                    softwareCountInCurrentFilterByAttributeName.get(attributeName);
+            if (
+                softwareType.type === "desktop/mobile" &&
+                (softwareType.os.windows || softwareType.os.linux || softwareType.os.mac)
+            ) {
+                const currentCount = softwareCountInCurrentFilterByAttributeName.get(
+                    "isInstallableOnUserComputer"
+                );
 
                 assert(currentCount !== undefined);
 
                 softwareCountInCurrentFilterByAttributeName.set(
-                    attributeName,
+                    "isInstallableOnUserComputer",
                     currentCount + 1
                 );
-            });
+            }
         });
 
         const getLabel = (attributeName: string) =>
@@ -739,11 +738,9 @@ const programmingLanguageOptions = createSelector(
     }
 );
 
-const softwareList = (rootState: RootState) => rootState[name].softwareList;
-
 const main = createSelector(
     softwares,
-    softwareList,
+    internalSoftwares,
     sortOptions,
     organizationOptions,
     categoryOptions,
@@ -752,7 +749,7 @@ const main = createSelector(
     attributeNameFilterOptions,
     (
         softwares,
-        softwareList,
+        allSoftwares,
         sortOptions,
         organizationOptions,
         categoryOptions,
@@ -761,7 +758,7 @@ const main = createSelector(
         attributeNameFilterOptions
     ) => ({
         softwares,
-        softwareList,
+        allSoftwares,
         sortOptions,
         organizationOptions,
         categoryOptions,
@@ -775,7 +772,7 @@ export const selectors = { main };
 
 const { filterAndSortBySearch } = (() => {
     const getIndexBySoftwareName = memoize(
-        (softwares: State.Software[]) =>
+        (softwares: Software[]) =>
             Object.fromEntries(softwares.map(({ softwareName }, i) => [softwareName, i])),
         { max: 1 }
     );
@@ -785,7 +782,7 @@ const { filterAndSortBySearch } = (() => {
             softwareName: string;
             positions: number[];
         }[];
-        softwares: State.Software[];
+        softwares: Software[];
     }) {
         const { searchResults, softwares } = params;
 
@@ -802,10 +799,7 @@ const { filterAndSortBySearch } = (() => {
     return { filterAndSortBySearch };
 })();
 
-function filterByOrganization(params: {
-    softwares: State.Software[];
-    organization: string;
-}) {
+function filterByOrganization(params: { softwares: Software[]; organization: string }) {
     const { softwares, organization } = params;
 
     return softwares.filter(software =>
@@ -813,7 +807,7 @@ function filterByOrganization(params: {
     );
 }
 
-function filterByCategory(params: { softwares: State.Software[]; category: string }) {
+function filterByCategory(params: { softwares: Software[]; category: string }) {
     const { softwares, category } = params;
 
     return softwares.filter(({ applicationCategories }) =>
@@ -822,7 +816,7 @@ function filterByCategory(params: { softwares: State.Software[]; category: strin
 }
 
 function filterByProgrammingLanguage(params: {
-    softwares: State.Software[];
+    softwares: Software[];
     programmingLanguage: string;
 }) {
     const { softwares, programmingLanguage } = params;
@@ -832,7 +826,7 @@ function filterByProgrammingLanguage(params: {
 }
 
 function filterByEnvironnement(params: {
-    softwares: State.Software[];
+    softwares: Software[];
     environment: State.Environment;
 }) {
     const { softwares, environment } = params;
@@ -857,27 +851,30 @@ function filterByEnvironnement(params: {
 }
 
 function filterByAttributeName(params: {
-    softwares: State.Software[];
+    softwares: Software[];
     attributeName: State.AttributeName;
 }) {
     const { softwares, attributeName } = params;
 
-    return softwares.filter(
-        software =>
-            ({
-                ...software.customAttributes,
-                ...software.customAttributes
-            })[attributeName]
-    );
+    return softwares.filter(software => {
+        if (attributeName === "isInstallableOnUserComputer") {
+            return (
+                software.softwareType.type === "desktop/mobile" &&
+                (software.softwareType.os.windows ||
+                    software.softwareType.os.linux ||
+                    software.softwareType.os.mac)
+            );
+        }
+
+        return (software.customAttributes as any)?.[attributeName];
+    });
 }
 
 export function softwareInListToExternalCatalogSoftware(params: {
-    softwareList: ApiTypes.SoftwareInList[];
+    softwareList: Software[];
     softwareName: string;
-}): State.Software | undefined {
+}): Software | undefined {
     const { softwareList, softwareName: targetName } = params;
 
-    return softwareList.find(s => s.softwareName === targetName) as
-        | State.Software
-        | undefined;
+    return softwareList.find(s => s.softwareName === targetName);
 }

@@ -32,10 +32,10 @@ export default function SoftwareUserAndReferent(props: Props) {
         "main"
     );
 
-    const { softwareList } = useCoreState("softwareCatalog", "main");
+    const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
     const softwareIdByName = Object.fromEntries(
-        softwareList.map(s => [s.softwareName, s.id])
+        allSoftwares.map(s => [s.softwareName, s.id])
     );
 
     useEffect(() => {

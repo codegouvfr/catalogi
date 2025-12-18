@@ -8,8 +8,6 @@ import {
 } from "redux-clean-architecture";
 import type { ApiTypes } from "api";
 
-type OmitFromExisting<T, K extends keyof T> = Omit<T, K>;
-
 export const name = "softwareCatalog" as const;
 
 export type SupportedPlatforms = {
@@ -17,9 +15,21 @@ export type SupportedPlatforms = {
     isAvailableAsMobileApp?: boolean;
 };
 
+export type Software = ApiTypes.SoftwareInList & {
+    userDeclaration?: {
+        isUser: boolean;
+        isReferent: boolean;
+    };
+    searchHighlight?: {
+        searchChars: string[];
+        highlightedIndexes: number[];
+    };
+    /** String used for search indexing (concatenation of name, description, keywords, etc.) */
+    search?: string;
+};
+
 export type State = {
-    softwares: State.Software.Internal[];
-    softwareList: ApiTypes.SoftwareInList[];
+    softwares: Software[];
     search: string;
     searchResults:
         | {
@@ -63,25 +73,7 @@ export namespace State {
 
     export type AttributeName = string;
 
-    export type Software = ApiTypes.SoftwareInList & {
-        userDeclaration?: {
-            isUser: boolean;
-            isReferent: boolean;
-        };
-        searchHighlight?: {
-            searchChars: string[];
-            highlightedIndexes: number[];
-        };
-        /** String used for search indexing (concatenation of name, description, keywords, etc.) */
-        search?: string;
-    };
-
-    export namespace Software {
-        export type Internal = Software;
-        export type External = Software;
-    }
-
-    export type referentCount = number;
+    export type Software = import("./state").Software;
 }
 
 export type UpdateFilterParams<
@@ -103,7 +95,6 @@ export const { reducer, actions } = createUsecaseActions({
     initialState: createObjectThatThrowsIfAccessed<State>({
         debugMessage: "Software catalog usecase not initialized"
     }),
-    //"initialState": {} as any as State,
     reducers: {
         initialized: (
             _state,
@@ -111,18 +102,16 @@ export const { reducer, actions } = createUsecaseActions({
                 payload
             }: {
                 payload: {
-                    softwares: State.Software.Internal[];
-                    softwareList: ApiTypes.SoftwareInList[];
+                    softwares: Software[];
                     defaultSort: State.Sort;
                     userEmail: string | undefined;
                 };
             }
         ) => {
-            const { softwares, softwareList, defaultSort, userEmail } = payload;
+            const { softwares, defaultSort, userEmail } = payload;
 
             return {
                 softwares,
-                softwareList,
                 search: "",
                 searchResults: undefined,
                 sort: defaultSort,
@@ -132,8 +121,6 @@ export const { reducer, actions } = createUsecaseActions({
                 programmingLanguage: undefined,
                 environment: undefined,
                 filteredAttributeNames: [],
-                referentCount: undefined,
-                isRemovingUserOrReferent: false,
                 userEmail
             };
         },

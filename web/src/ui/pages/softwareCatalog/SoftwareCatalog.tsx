@@ -31,7 +31,7 @@ export default function SoftwareCatalog(props: Props) {
         attributeNameFilterOptions,
         programmingLanguageOptions,
         softwares,
-        softwareList,
+        allSoftwares,
         sortOptions
     } = useCoreState("softwareCatalog", "main");
 
@@ -148,7 +148,7 @@ export default function SoftwareCatalog(props: Props) {
     const linksBySoftwareName = useMemo(
         () =>
             Object.fromEntries(
-                softwareList.map(({ softwareName, id }) => [
+                allSoftwares.map(({ softwareName, id }) => [
                     softwareName,
                     /* prettier-ignore */
                     {
@@ -158,7 +158,7 @@ export default function SoftwareCatalog(props: Props) {
                     }
                 ])
             ),
-        [softwareList]
+        [allSoftwares]
     );
 
     return (

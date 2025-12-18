@@ -30,10 +30,10 @@ export default function UserProfile(props: Props) {
 
     const { userProfile } = useCore().functions;
     const { isReady, profile, softwares } = useCoreState("userProfile", "main");
-    const { softwareList } = useCoreState("softwareCatalog", "main");
+    const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
     const softwareIdByName = Object.fromEntries(
-        softwareList.map(s => [s.softwareName, s.id])
+        allSoftwares.map(s => [s.softwareName, s.id])
     );
 
     useEffect(() => {

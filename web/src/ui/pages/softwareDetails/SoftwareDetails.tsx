@@ -40,11 +40,11 @@ export default function SoftwareDetails(props: Props) {
     const { softwareDetails, userAuthentication } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
     const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
-    const { softwareList } = useCoreState("softwareCatalog", "main");
+    const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
     const softwareIdByName = useMemo(
-        () => new Map(softwareList.map(software => [software.softwareName, software.id])),
-        [softwareList]
+        () => new Map(allSoftwares.map(software => [software.softwareName, software.id])),
+        [allSoftwares]
     );
 
     const { t } = useTranslation();

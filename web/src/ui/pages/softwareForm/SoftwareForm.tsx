@@ -68,7 +68,7 @@ export default function SoftwareForm(props: Props) {
         return () => softwareForm.clear();
     }, [route.name]);
 
-    const { softwareList } = useCoreState("softwareCatalog", "main");
+    const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
     useEvt(
         ctx =>
@@ -76,7 +76,7 @@ export default function SoftwareForm(props: Props) {
                 action => action.action === "redirect",
                 ctx,
                 async ({ softwareName }) => {
-                    const software = softwareList.find(
+                    const software = allSoftwares.find(
                         s => s.softwareName === softwareName
                     );
                     if (software) {
@@ -86,7 +86,7 @@ export default function SoftwareForm(props: Props) {
                     }
                 }
             ),
-        [softwareList]
+        [allSoftwares]
     );
 
     const { classes } = useStyles({ step });

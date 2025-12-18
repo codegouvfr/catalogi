@@ -84,7 +84,7 @@ export namespace State {
         similarSoftwares: (
             | {
                   registered: true;
-                  software: SoftwareCatalogState.Software.External;
+                  software: SoftwareCatalogState.Software;
               }
             | SimilarSoftwareNotRegistered
         )[];

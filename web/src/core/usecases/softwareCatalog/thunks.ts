@@ -146,7 +146,6 @@ export const protectedThunks = {
                 dispatch(
                     actions.initialized({
                         softwares,
-                        softwareList,
                         userEmail,
                         defaultSort: getDefaultSort({ userEmail })
                     })
@@ -240,7 +239,7 @@ function softwareInListToInternalSoftware(params: {
 
 const { filterBySearchMemoized } = (() => {
     const getFlexSearch = memoize(
-        (softwares: State.Software.Internal[]) => {
+        (softwares: State.Software[]) => {
             const index = new FlexSearch.Document({
                 document: {
                     id: "softwareName",
@@ -293,7 +292,7 @@ const { filterBySearchMemoized } = (() => {
 
     const filterBySearchMemoized = memoize(
         async (
-            softwares: State.Software.Internal[],
+            softwares: State.Software[],
             search: string
         ): Promise<
             {
