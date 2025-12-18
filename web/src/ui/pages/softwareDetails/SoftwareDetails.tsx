@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Fragment, useEffect } from "react";
+import { Fragment, useEffect, useMemo } from "react";
 import { useCoreState, useCore } from "core";
 import { Breadcrumb } from "@codegouvfr/react-dsfr/Breadcrumb";
 import { tss } from "tss-react";
@@ -42,13 +42,14 @@ export default function SoftwareDetails(props: Props) {
     const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
     const { softwareList } = useCoreState("softwareCatalog", "main");
 
-    const softwareIdByName = Object.fromEntries(
-        softwareList.map(s => [s.softwareName, s.id])
+    const softwareIdByName = useMemo(
+        () => new Map(softwareList.map(software => [software.softwareName, software.id])),
+        [softwareList]
     );
 
-    const { cx, classes } = useStyles();
-
     const { t } = useTranslation();
+
+    const { classes, cx } = useStyles();
 
     const { isReady, error, software, userDeclaration, isUnreferencingOngoing } =
         useCoreState("softwareDetails", "main");
@@ -232,9 +233,9 @@ export default function SoftwareDetails(props: Props) {
                                                           }).link,
                                                       softwareDetails:
                                                           routes.softwareDetails({
-                                                              id: softwareIdByName[
+                                                              id: softwareIdByName.get(
                                                                   softwareName
-                                                              ]
+                                                              )!
                                                           }).link,
                                                       softwareUsersAndReferents:
                                                           routes.softwareUsersAndReferents(

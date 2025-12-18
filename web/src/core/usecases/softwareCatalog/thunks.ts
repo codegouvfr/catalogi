@@ -185,32 +185,17 @@ function softwareInListToInternalSoftware(params: {
               isReferent: boolean;
           }
         | undefined;
-}): State.Software.Internal {
+}): State.Software {
     const { software, userDeclaration } = params;
 
     const {
         softwareName,
-        logoUrl,
         softwareDescription,
-        latestVersion,
-        addedTime,
-        updateTime,
         applicationCategories,
-        customAttributes,
-        softwareType,
-        userAndReferentCountByOrganization,
         similarSoftwares,
         keywords,
-        programmingLanguages,
         authors
     } = software;
-
-    assert<
-        Equals<
-            SoftwareInList["customAttributes"],
-            State.Software.Internal["customAttributes"]
-        >
-    >();
 
     const { resolveLocalizedString } = createResolveLocalizedString({
         currentLanguage: "fr",
@@ -218,25 +203,8 @@ function softwareInListToInternalSoftware(params: {
     });
 
     return {
-        logoUrl,
-        softwareName,
-        softwareDescription,
-        latestVersion: {
-            semVer: latestVersion?.semVer ?? "",
-            publicationTime: latestVersion?.publicationTime
-        },
-        referentCount: Object.values(userAndReferentCountByOrganization)
-            .map(({ referentCount }) => referentCount)
-            .reduce((prev, curr) => prev + curr, 0),
-        userCount: Object.values(userAndReferentCountByOrganization)
-            .map(({ userCount }) => userCount)
-            .reduce((prev, curr) => prev + curr, 0),
-        addedTime,
-        updateTime,
-        applicationCategories,
-        organizations: objectKeys(userAndReferentCountByOrganization),
-        softwareType,
-        customAttributes,
+        ...software,
+        userDeclaration,
         search: (() => {
             const search =
                 softwareName +
@@ -266,9 +234,7 @@ function softwareInListToInternalSoftware(params: {
                 ")";
 
             return search;
-        })(),
-        userDeclaration,
-        programmingLanguages
+        })()
     };
 }
 
@@ -295,8 +261,8 @@ const { filterBySearchMemoized } = (() => {
                     logoUrl,
                     latestVersion,
                     userDeclaration,
-                    referencePublications,
                     customAttributes,
+                    similarSoftwares,
                     ...software
                 }) => index.add(software)
             );
@@ -361,7 +327,7 @@ const { filterBySearchMemoized } = (() => {
 
                                 assert(software !== undefined);
 
-                                return software.search;
+                                return software.search ?? "";
                             })(),
                             search
                         })

@@ -30,7 +30,7 @@ export default function SoftwareCatalog(props: Props) {
         organizationOptions,
         attributeNameFilterOptions,
         programmingLanguageOptions,
-        // softwares,
+        softwares,
         softwareList,
         sortOptions
     } = useCoreState("softwareCatalog", "main");
@@ -165,7 +165,7 @@ export default function SoftwareCatalog(props: Props) {
         /* prettier-ignore */
         <SoftwareCatalogControlled
             className={className}
-            softwares={softwareList}
+            softwares={softwares}
             linksBySoftwareName={linksBySoftwareName}
             sortOptions={sortOptions}
             sort={route.params.sort ?? softwareCatalog.getDefaultSort()}

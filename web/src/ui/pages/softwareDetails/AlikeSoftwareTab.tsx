@@ -69,8 +69,6 @@ export const SimilarSoftwareTab = (props: Props) => {
                         softwareName,
                         latestVersion,
                         softwareDescription,
-                        userCount,
-                        referentCount,
                         customAttributes,
                         userDeclaration
                     } = software;

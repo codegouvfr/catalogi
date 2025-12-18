@@ -63,49 +63,22 @@ export namespace State {
 
     export type AttributeName = string;
 
+    export type Software = ApiTypes.SoftwareInList & {
+        userDeclaration?: {
+            isUser: boolean;
+            isReferent: boolean;
+        };
+        searchHighlight?: {
+            searchChars: string[];
+            highlightedIndexes: number[];
+        };
+        /** String used for search indexing (concatenation of name, description, keywords, etc.) */
+        search?: string;
+    };
+
     export namespace Software {
-        type Common = {
-            logoUrl: string | undefined;
-            softwareName: string;
-            softwareDescription: string;
-            latestVersion:
-                | {
-                      semVer?: string;
-                      publicationTime?: number;
-                  }
-                | undefined;
-            referentCount: number;
-            userCount: number;
-            userDeclaration:
-                | {
-                      isUser: boolean;
-                      isReferent: boolean;
-                  }
-                | undefined;
-            programmingLanguages: string[];
-            applicationCategories: string[];
-            referencePublications?: ApiTypes.ScholarlyArticle[];
-        };
-
-        export type External = Common & {
-            customAttributes: ApiTypes.CustomAttributes | undefined;
-            supportedPlatforms: SupportedPlatforms;
-            searchHighlight:
-                | {
-                      searchChars: string[];
-                      highlightedIndexes: number[];
-                  }
-                | undefined;
-        };
-
-        export type Internal = Common & {
-            addedTime: number;
-            updateTime: number;
-            organizations: string[];
-            customAttributes: ApiTypes.CustomAttributes | undefined;
-            softwareType: ApiTypes.SoftwareType;
-            search: string;
-        };
+        export type Internal = Software;
+        export type External = Software;
     }
 
     export type referentCount = number;
