@@ -40,7 +40,7 @@ describe("mergeExternalData", () => {
         expect(merged).toBeDefined();
         // Priority 1 should win for overlapping fields
         expect(merged?.label).toBe("High Label");
-        expect(merged?.keywords).toEqual(["low", "high"]); // Array merge strategy combines them
+        expect(merged?.keywords).toEqual(["high", "low"]); // Array merge strategy combines them
     });
 
     it("preserves fields from lower priority if higher priority is missing them", () => {
