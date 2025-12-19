@@ -10,6 +10,29 @@ import { createPgDialect } from "./kysely.dialect";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 
 const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
+    let addedByUserId = overrides.addedByUserId;
+
+    if (addedByUserId === undefined) {
+        const user = await db.selectFrom("users").select("id").executeTakeFirst();
+
+        if (user) {
+            addedByUserId = user.id;
+        } else {
+            const { id } = await db
+                .insertInto("users")
+                .values({
+                    email: "creator@example.com",
+                    organization: "Creators",
+                    isPublic: true,
+                    about: null,
+                    sub: null
+                })
+                .returning("id")
+                .executeTakeFirstOrThrow();
+            addedByUserId = id;
+        }
+    }
+
     const { id } = await db
         .insertInto("softwares")
         .values({
@@ -25,11 +48,11 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
             workshopUrls: JSON.stringify([]),
             categories: JSON.stringify([]),
             keywords: JSON.stringify([]),
-            addedByUserId: null,
             logoUrl: null,
             dereferencing: null,
             generalInfoMd: null,
-            ...overrides
+            ...overrides,
+            addedByUserId
         })
         .returning("id")
         .executeTakeFirstOrThrow();
@@ -63,8 +86,8 @@ describe("createPgSoftwareRepository", () => {
         await db
             .insertInto("sources")
             .values([
-                { slug: "high_prio", priority: 1, kind: "wikidata", url: "", description: null },
-                { slug: "low_prio", priority: 10, kind: "wikidata", url: "", description: null }
+                { slug: "high_prio", priority: 2, kind: "wikidata", url: "", description: null },
+                { slug: "low_prio", priority: 3, kind: "wikidata", url: "", description: null }
             ])
             .execute();
     });
