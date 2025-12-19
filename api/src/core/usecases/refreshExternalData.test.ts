@@ -289,7 +289,10 @@ describe("fetches software extra data (from different providers)", () => {
                 },
                 {
                     applicationCategories: undefined,
-                    description: "open-source JavaScript module bundler",
+                    description: {
+                        "en": "open-source JavaScript module bundler",
+                        "fr": "Outil frontend"
+                    },
                     developers: [
                         {
                             "@type": "Person",
