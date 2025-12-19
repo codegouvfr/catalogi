@@ -3,13 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import type { Thunks } from "core/bootstrap";
-import { objectKeys } from "tsafe/objectKeys";
 import memoize from "memoizee";
 import { assert } from "tsafe/assert";
-import type { Equals } from "tsafe";
 import { exclude } from "tsafe/exclude";
 import FlexSearch from "flexsearch";
-import type { ApiTypes, SoftwareInList } from "api";
+import type { ApiTypes } from "api";
 import { createResolveLocalizedString } from "i18nifty";
 import { UpdateFilterParams } from "./state";
 import { name, actions, type State } from "./state";
@@ -177,7 +175,7 @@ function getDefaultSort(params: { userEmail: string | undefined }): State.Sort {
 }
 
 function softwareInListToInternalSoftware(params: {
-    software: SoftwareInList;
+    software: ApiTypes.SoftwareInList;
     userDeclaration:
         | {
               isUser: boolean;

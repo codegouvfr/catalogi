@@ -5,7 +5,7 @@
 import type { Thunks } from "core/bootstrap";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
-import type { ApiTypes, Software } from "api";
+import type { ApiTypes } from "api";
 import { createUsecaseContextApi } from "redux-clean-architecture";
 import { Evt } from "evt";
 import { softwareInListToExternalCatalogSoftware } from "core/usecases/softwareCatalog";
@@ -165,7 +165,7 @@ const { getContext } = createUsecaseContextApi(() => ({
 }));
 
 function apiSoftwareToSoftware(params: {
-    apiSoftware: Software;
+    apiSoftware: ApiTypes.Software;
     apiInstances: ApiTypes.Instance[];
     softwareList: ApiTypes.SoftwareInList[];
 }): State.Software {
