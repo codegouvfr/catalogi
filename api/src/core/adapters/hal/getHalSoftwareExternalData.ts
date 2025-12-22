@@ -148,17 +148,12 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                     };
                 }
 
+                let sourceBase = new URL(source.url);
+
                 if (id) {
-                    return {
-                        ...base,
-                        identifiers: [
-                            identifersUtils.makeHALIdentifier({
-                                halId: id,
-                                additionalType: "Person",
-                                url: `${source.url}/search/index/q/*/authIdHal_s/${id}`
-                            })
-                        ]
-                    };
+                    sourceBase.pathname = `search/index/q/*/authIdHal_s/${id}`;
+                } else {
+                    sourceBase.pathname = `search/index/q/*/authFullName_s/${author.givenName}+${author.familyName}`;
                 }
 
                 return {
@@ -167,7 +162,7 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                         identifersUtils.makeHALIdentifier({
                             halId: id ?? "",
                             additionalType: "Person",
-                            url: `${source.url}/search/index/q/*/authFullName_s/${author.givenName}+${author.familyName}`
+                            url: sourceBase.toString()
                         })
                     ]
                 };
