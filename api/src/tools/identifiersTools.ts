@@ -154,10 +154,11 @@ export const identifersUtils = {
     },
     makeHALIdentifier: (params: { halId: string; additionalType?: string; url?: string }): SchemaIdentifier => {
         const { halId, additionalType, url } = params;
+        const curatedHalId = !isNaN(Number(halId)) && halId ? `hal-0${halId}` : halId;
         return {
             "@type": "PropertyValue" as const,
             value: halId,
-            url: url ? url : `https://hal.science/hal-0${halId}`,
+            url: url ? url : `https://hal.science/${curatedHalId}`,
             subjectOf: halSource,
             ...(additionalType ? { additionalType: additionalType } : {})
         };
