@@ -29,7 +29,7 @@ export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
             sourceSlug: source.slug,
             softwareLicense: project.license.name ?? "undefined",
             softwareMinimalVersion: undefined,
-            similarSoftwareExternalDataIds: [],
+            similarSoftwareExternalDataItems: [],
             softwareLogoUrl: project.avatar_url ?? undefined,
             softwareKeywords: project.topics || [],
             customAttributes: undefined

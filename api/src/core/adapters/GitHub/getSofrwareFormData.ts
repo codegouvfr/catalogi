@@ -31,7 +31,7 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
             sourceSlug: source.slug,
             softwareLicense: repoData.license?.name ?? "undefined", // TODO 1 case to copyright
             softwareMinimalVersion: undefined,
-            similarSoftwareExternalDataIds: [],
+            similarSoftwareExternalDataItems: [],
             softwareLogoUrl: undefined,
             softwareKeywords: repoData.topics || [],
             customAttributes: undefined
