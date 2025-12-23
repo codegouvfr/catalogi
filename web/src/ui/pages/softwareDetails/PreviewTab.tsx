@@ -322,57 +322,75 @@ export const PreviewTab = (props: Props) => {
                         })}
                     </div>
                 )}
-                {uiConfig?.softwareDetails.repoMetadata.enabled && repoMetadata && (
-                    <div className={classes.section}>
-                        <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                            {t("previewTab.repoMetadata")}
-                        </p>
-                        {repoMetadata?.healthCheck?.lastClosedIssue && (
-                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
-                                <span className={classes.labelDetail}>
-                                    {t("previewTab.repoLastClosedIssue")} :{" "}
-                                </span>
-                                <span>
-                                    {useFormattedDate({
-                                        time: repoMetadata.healthCheck.lastClosedIssue,
-                                        showTime: false,
-                                        doAlwaysShowYear: true
-                                    })}
-                                </span>
+                {uiConfig?.softwareDetails.repoMetadata.enabled &&
+                    repoMetadata &&
+                    Object.keys(repoMetadata).length > 0 && (
+                        <div className={classes.section}>
+                            <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
+                                {t("previewTab.repoMetadata")}
                             </p>
-                        )}
-                        {repoMetadata?.healthCheck?.lastClosedIssuePullRequest && (
-                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
-                                <span className={classes.labelDetail}>
-                                    {t("previewTab.repoLastClosedIssuePullRequest")}{" "}
-                                    :{" "}
-                                </span>
-                                <span>
-                                    {useFormattedDate({
-                                        time: repoMetadata.healthCheck
-                                            .lastClosedIssuePullRequest,
-                                        showTime: false,
-                                        doAlwaysShowYear: true
-                                    })}
-                                </span>
-                            </p>
-                        )}
-                        {repoMetadata?.healthCheck?.lastCommit && (
-                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
-                                <span className={classes.labelDetail}>
-                                    {t("previewTab.repoLastCommit")} :{" "}
-                                </span>
-                                <span>
-                                    {useFormattedDate({
-                                        time: repoMetadata.healthCheck.lastCommit,
-                                        showTime: false,
-                                        doAlwaysShowYear: true
-                                    })}
-                                </span>
-                            </p>
-                        )}
-                    </div>
-                )}
+                            {repoMetadata?.healthCheck?.lastClosedIssue && (
+                                <p
+                                    className={cx(
+                                        fr.cx("fr-text--regular"),
+                                        classes.item
+                                    )}
+                                >
+                                    <span className={classes.labelDetail}>
+                                        {t("previewTab.repoLastClosedIssue")} :{" "}
+                                    </span>
+                                    <span>
+                                        {useFormattedDate({
+                                            time: repoMetadata.healthCheck
+                                                .lastClosedIssue,
+                                            showTime: false,
+                                            doAlwaysShowYear: true
+                                        })}
+                                    </span>
+                                </p>
+                            )}
+                            {repoMetadata?.healthCheck?.lastClosedIssuePullRequest && (
+                                <p
+                                    className={cx(
+                                        fr.cx("fr-text--regular"),
+                                        classes.item
+                                    )}
+                                >
+                                    <span className={classes.labelDetail}>
+                                        {t("previewTab.repoLastClosedIssuePullRequest")}{" "}
+                                        :{" "}
+                                    </span>
+                                    <span>
+                                        {useFormattedDate({
+                                            time: repoMetadata.healthCheck
+                                                .lastClosedIssuePullRequest,
+                                            showTime: false,
+                                            doAlwaysShowYear: true
+                                        })}
+                                    </span>
+                                </p>
+                            )}
+                            {repoMetadata?.healthCheck?.lastCommit && (
+                                <p
+                                    className={cx(
+                                        fr.cx("fr-text--regular"),
+                                        classes.item
+                                    )}
+                                >
+                                    <span className={classes.labelDetail}>
+                                        {t("previewTab.repoLastCommit")} :{" "}
+                                    </span>
+                                    <span>
+                                        {useFormattedDate({
+                                            time: repoMetadata.healthCheck.lastCommit,
+                                            showTime: false,
+                                            doAlwaysShowYear: true
+                                        })}
+                                    </span>
+                                </p>
+                            )}
+                        </div>
+                    )}
             </section>
             <CnllServiceProviderModal
                 softwareName={softwareName}
