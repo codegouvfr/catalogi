@@ -35,6 +35,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "updateSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
     | "auth"
+    | "getPopulatedSoftwareItem"
 >;
 
 export function createRouter(params: {
@@ -128,7 +129,7 @@ export function createRouter(params: {
         }),
         "getSoftwareDetails": loggedProcedure
             .input(z.object({ softwareId: z.number() }))
-            .query(({ input }) => dbApi.software.getDetails(input.softwareId)),
+            .query(({ input }) => useCases.getPopulatedSoftwareItem(input.softwareId, true)),
         "getInstances": loggedProcedure.query(() => dbApi.instance.getAll()),
         "getIsUserProfilePublic": loggedProcedure
             .input(

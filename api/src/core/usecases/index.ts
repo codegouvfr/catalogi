@@ -15,12 +15,14 @@ import { InitiateAuth } from "./auth/initiateAuth";
 import { HandleAuthCallback } from "./auth/handleAuthCallback";
 import { InitiateLogout } from "./auth/logout";
 import { RefreshSession } from "./auth/refreshSession";
+import { GetPopulatedSoftwareItem } from "./getPopulatedSoftware";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;
     fetchAndSaveExternalDataForAllSoftware: FetchAndSaveExternalDataForAllSoftware;
     fetchAndSaveExternalDataForOneSoftwarePackage: FetchAndSaveExternalDataForSoftware;
     getUser: GetUser;
+    getPopulatedSoftwareItem: GetPopulatedSoftwareItem;
     auth: {
         initiateAuth: InitiateAuth;
         handleAuthCallback: HandleAuthCallback;

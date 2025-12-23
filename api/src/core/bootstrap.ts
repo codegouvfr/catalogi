@@ -21,6 +21,7 @@ import rawUiConfig from "../customization/ui-config.json";
 import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
+import { makeGetPopulatedSoftwareItem } from "./usecases/getPopulatedSoftware";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -76,6 +77,7 @@ export async function bootstrapCore(
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
         createSoftware: makeCreateSofware(dbApi),
         updateSoftware: makeUpdateSoftware(dbApi),
+        getPopulatedSoftwareItem: makeGetPopulatedSoftwareItem(dbApi),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
             handleAuthCallback: makeHandleAuthCallback({
