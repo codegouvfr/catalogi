@@ -13,6 +13,7 @@ import { getScholarlyArticle } from "./getScholarlyArticle";
 import { SchemaIdentifier, SchemaOrganization, SchemaPerson, ScholarlyArticle } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { populateFromDOIIdentifiers } from "../doiResolver";
+import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 const buildParentOrganizationTree = async (
     structureIdArray: number[] | string[] | undefined
@@ -99,7 +100,22 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
             })
         );
 
-        const codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(halRawSoftware.uri_s);
+        // AUTOMATED CURATION - URL of Software Notice
+        // Isuse because of sub domain name in HAL
+        const codeMetaUrl = halRawSoftware.uri_s;
+        if (!codeMetaUrl.includes("hal.science"))
+            console.debug(`HAL Identifier doesn't point on HAL, see : ${codeMetaUrl}`);
+        const codeMetaUrlCurated = codeMetaUrl.includes("hal.science")
+            ? codeMetaUrl
+            : "https://hal.science/" + codeMetaUrl.split("/").slice(-1)[0];
+        // END OF AUTOMATED CURATION
+
+        let codemetaSoftware: HAL.SoftwareApplication | undefined;
+        try {
+            codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(codeMetaUrlCurated);
+        } catch (error) {
+            throw Error(`Error for doc : ${externalId} - (source: ${source.slug}) : ${error}`);
+        }
         if (!codemetaSoftware) {
             throw Error(`No codemeta found for doc : ${externalId} - (source: ${source.slug})`);
         }
@@ -174,8 +190,10 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
             })
         );
 
-        const identifiers: SchemaIdentifier[] =
-            codemetaSoftware?.identifier?.map(identifierItem => {
+        const repoIdentifier = await repoUrlToIdentifer({ repoUrl: halRawSoftware?.softCodeRepository_s?.[0] });
+
+        const identifiers: SchemaIdentifier[] = [
+            ...(codemetaSoftware?.identifier?.map(identifierItem => {
                 const base = {
                     "@type": "PropertyValue" as const,
                     value: identifierItem.value,
@@ -207,7 +225,9 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                     default:
                         return base;
                 }
-            }) ?? [];
+            }) ?? []),
+            ...(repoIdentifier ? [repoIdentifier] : [])
+        ];
 
         return {
             externalId: halRawSoftware.docid,
@@ -242,8 +262,9 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                         halRawSoftware.relatedPublication_s.map(id => buildReferencePublication(parseScolarId(id), id))
                     )
                 ).filter(val => val !== undefined),
-            identifiers: await populateFromDOIIdentifiers(identifiers),
-            providers: []
+            identifiers: [...(await populateFromDOIIdentifiers(identifiers))],
+            providers: [],
+            repoMetadata: {}
         };
     },
     {

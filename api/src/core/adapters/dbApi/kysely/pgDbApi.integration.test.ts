@@ -81,6 +81,7 @@ const softwareExternalData: SoftwareExternalData = {
     referencePublications: undefined,
     identifiers: undefined,
     publicationTime: new Date(1561566581000),
+    repoMetadata: undefined,
     providers: []
 };
 
@@ -110,6 +111,7 @@ const similarSoftwareExternalData: SoftwareExternalData = {
     referencePublications: undefined,
     identifiers: undefined,
     publicationTime: new Date(1561566581000),
+    repoMetadata: undefined,
     providers: []
 };
 
@@ -478,6 +480,7 @@ describe("pgDbApi", () => {
                     applicationCategories: JSON.stringify(softExtData.applicationCategories),
                     programmingLanguages: JSON.stringify(softExtData.programmingLanguages),
                     identifiers: JSON.stringify(softExtData.identifiers),
+                    repoMetadata: JSON.stringify(softExtData.repoMetadata),
                     referencePublications: JSON.stringify(softExtData.referencePublications),
                     providers: JSON.stringify(softExtData.providers)
                 }))

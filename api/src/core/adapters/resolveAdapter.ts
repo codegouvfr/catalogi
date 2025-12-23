@@ -9,6 +9,8 @@ import { wikidataSourceGateway } from "./wikidata";
 import { comptoirDuLibreSourceGateway } from "./comptoirDuLibre";
 import { zenodoSourceGateway } from "./zenodo";
 import { cnllSourceGateway } from "./CNLL";
+import { gitHubSourceGateway } from "./GitHub";
+import { gitLabSourceGateway } from "./GitLab";
 
 export const resolveAdapterFromSource = (
     source: DatabaseDataType.SourceRow
@@ -24,6 +26,10 @@ export const resolveAdapterFromSource = (
             return cnllSourceGateway;
         case "Zenodo":
             return zenodoSourceGateway;
+        case "GitHub":
+            return gitHubSourceGateway;
+        case "GitLab":
+            return gitLabSourceGateway;
         default:
             const unreachableCase: never = source.kind;
             throw new Error(`Unreachable case: ${unreachableCase}`);

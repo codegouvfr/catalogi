@@ -65,6 +65,15 @@ export type SchemaIdentifier = {
     additionalType?: string; // Organization | Article | Person | ...
 };
 
+// Created from nowhere
+export type RepoMetadata = {
+    healthCheck?: {
+        lastCommit?: number;
+        lastClosedIssue?: number;
+        lastClosedIssuePullRequest?: number;
+    };
+};
+
 export type Database = {
     users: UsersTable;
     software_referents: SoftwareReferentsTable;
@@ -121,7 +130,7 @@ type InstancesTable = {
 };
 
 type ExternalId = string;
-export type ExternalDataOriginKind = "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo";
+export type ExternalDataOriginKind = "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo" | "GitHub" | "GitLab";
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
@@ -176,6 +185,7 @@ export type SoftwareExternalDatasTable = {
     identifiers: JSONColumnType<SchemaIdentifier[]> | null;
     lastDataFetchAt: Date | null;
     providers: JSONColumnType<Array<SchemaOrganization>> | null;
+    repoMetadata: JSONColumnType<RepoMetadata> | null;
 };
 
 type SoftwareType =

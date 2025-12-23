@@ -194,7 +194,8 @@ function apiSoftwareToSoftware(params: {
         keywords,
         referencePublications,
         applicationCategories,
-        identifiers
+        identifiers,
+        repoMetadata
     } = apiSoftware;
 
     return {
@@ -272,6 +273,7 @@ function apiSoftwareToSoftware(params: {
         applicationCategories,
         referencePublications,
         softwareType,
-        identifiers: identifiers ?? []
+        identifiers: identifiers ?? [],
+        repoMetadata
     };
 }

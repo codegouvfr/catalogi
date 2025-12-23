@@ -61,6 +61,8 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
             return (await zenodoAPI.records.getAllSoftware()).hits.hits.map(item => item.id.toString());
         case "ComptoirDuLibre":
         case "wikidata":
+        case "GitHub":
+        case "GitLab":
             throw new Error("[UC:Import] Not Implemented, but you can specify the list of ids you want to import");
         // Secondary Sources
         case "CNLL":

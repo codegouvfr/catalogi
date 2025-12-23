@@ -268,7 +268,11 @@
         "softwareType-desktop/mobile": "Software / mobile app",
         "softwareType-stack": "Stack",
         "softwareType-cloud": "Cloud Hosted App",
-        "supportedOS": "Supported OS"
+        "supportedOS": "Supported OS",
+        "repoMetadata": "Metadata from repository",
+        "repoLastCommit": "Last commit",
+        "repoLastClosedIssuePullRequest": "Last merged request",
+        "repoLastClosedIssue": "Last closed issue"
     },
     "referencedInstancesTab": {
         "publicInstanceCount": "{{instanceCount}} maintained public $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) by {{organizationCount}} public $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} })",

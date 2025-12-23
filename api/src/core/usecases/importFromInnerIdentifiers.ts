@@ -14,7 +14,7 @@ type SaveIds = { sourceSlug: string; externalId: string; softwareId: number };
 
 export type ImportFromInnerIdentifers = () => Promise<boolean>;
 
-const useCaseLogTitle = "[UC.refreshExternalData]";
+const useCaseLogTitle = "[UC.Import cross saved identifers]";
 const useCaseLogTimer = `${useCaseLogTitle} Finsihed fetching external data`;
 
 export const makeImportFromInnerIdentifiers = (
@@ -96,11 +96,15 @@ export const makeImportFromInnerIdentifiers = (
         );
 
         const insertFlatten = instertions.flat();
-        if (insertFlatten.length === 0) return true;
+        if (insertFlatten.length === 0) {
+            console.info(`${useCaseLogTitle} Added 0 external data`);
+            return true;
+        }
 
         await dbApi.softwareExternalData.saveMany(insertFlatten);
 
         console.timeEnd(useCaseLogTimer);
+        console.info(`${useCaseLogTitle} - Added ${insertFlatten.length} external data`);
 
         return true;
     };

@@ -42,6 +42,13 @@ export type SoftwareExternalData = {
     referencePublications: ScholarlyArticle[];
     identifiers: SchemaIdentifier[];
     providers: Array<SchemaOrganization>;
+    repoMetadata: {
+        healthCheck?: {
+            lastCommit?: Date;
+            lastClosedIssue?: Date;
+            lastClosedIssuePullRequest?: Date;
+        };
+    };
 }>;
 
 export type SimilarSoftwareExternalData = Pick<

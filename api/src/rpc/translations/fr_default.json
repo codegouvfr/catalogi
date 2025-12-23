@@ -271,7 +271,11 @@
         "softwareType-desktop/mobile": "Logiciel Ordinateur / Application mobile",
         "softwareType-stack": "Stack",
         "softwareType-cloud": "Application cloud",
-        "supportedOS": "Système d'exploitation supporté"
+        "supportedOS": "Système d'exploitation supporté",
+        "repoMetadata": "Metadonnées de la forge logicielle",
+        "repoLastCommit": "Dernier commit",
+        "repoLastClosedIssuePullRequest": "Dernière demande de merge",
+        "repoLastClosedIssue": "Dernier ticket fermé"
     },
     "referencedInstancesTab": {
         "publicInstanceCount": "{{instanceCount}} $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) web $t(referencedInstancesTab.maintain, {\"count\": {{instanceCount}} }) par {{organizationCount}} $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} }) $t(referencedInstancesTab.public, {\"count\": {{organizationCount}} }",

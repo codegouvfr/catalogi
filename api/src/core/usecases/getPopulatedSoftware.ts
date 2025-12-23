@@ -177,6 +177,7 @@ type DataFromExternalRow = Pick<
     | "latestVersion"
     | "serviceProviders"
     | "sourceSlug"
+    | "repoMetadata"
 >;
 const formatExternalDataRowToUISoftware = (
     externalDataRow: DatabaseDataType.SoftwareExternalDataRow
@@ -204,7 +205,8 @@ const formatExternalDataRowToUISoftware = (
             publicationTime: dateParser(externalDataRow.publicationTime)
         },
         serviceProviders: externalDataRow.providers ?? [],
-        sourceSlug: externalDataRow.sourceSlug
+        sourceSlug: externalDataRow.sourceSlug,
+        repoMetadata: externalDataRow.repoMetadata
     };
 };
 
