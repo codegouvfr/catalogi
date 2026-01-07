@@ -57,6 +57,7 @@ export type WebSite = {
 // from https://schema.org/identifier & https://schema.org/PropertyValue
 export type SchemaIdentifier = {
     "@type": "PropertyValue";
+    propertyID?: string;
     name?: string; // Name of the property
     value: string; // Value of the property
     url?: string | URL; // Url to direct access to the element on the database

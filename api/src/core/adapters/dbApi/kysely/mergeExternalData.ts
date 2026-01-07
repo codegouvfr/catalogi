@@ -4,7 +4,7 @@
 
 import merge from "deepmerge";
 import { DatabaseDataType, PopulatedExternalData } from "../../../ports/DbApiV2";
-import { mergeArrays } from "../../../utils";
+import { appDeepMergeOptions } from "../../../utils";
 
 export const mergeExternalData = (
     externalData: PopulatedExternalData[]
@@ -15,7 +15,8 @@ export const mergeExternalData = (
         return rest;
     }
     externalData.sort((a, b) => b.priority - a.priority);
-    const merged = merge.all<PopulatedExternalData>(externalData, { arrayMerge: mergeArrays });
+
+    const merged = merge.all<PopulatedExternalData>(externalData, appDeepMergeOptions);
     const { slug, priority, kind, url, ...rest } = merged;
     return rest;
 };

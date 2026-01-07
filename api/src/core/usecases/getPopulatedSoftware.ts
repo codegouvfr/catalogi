@@ -4,7 +4,7 @@
 
 import merge from "deepmerge";
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
-import { mergeArrays, OmitFromExisting } from "../utils";
+import { appDeepMergeOptions, OmitFromExisting } from "../utils";
 import { Software } from "./readWriteSillData";
 
 export type MakeGetPopulatedSoftware = (dbApi: DbApiV2) => GetPopulatedSoftware;
@@ -100,7 +100,7 @@ export const makeGetPopulatedSoftwareItem: MakeGetPopulatedSoftwareItem = (dbApi
         if (mergedExternalDataItem) {
             return merge.all<Software>(
                 [missingData, formatExternalDataRowToUISoftware(mergedExternalDataItem), formatedSoftwareUI],
-                { arrayMerge: mergeArrays }
+                appDeepMergeOptions
             );
         }
 
@@ -118,7 +118,7 @@ export const makeGetPopulatedSoftwareItem: MakeGetPopulatedSoftwareItem = (dbApi
                 missingData,
                 formatedSoftwareUI
             ],
-            { arrayMerge: mergeArrays }
+            appDeepMergeOptions
         );
     };
 };
