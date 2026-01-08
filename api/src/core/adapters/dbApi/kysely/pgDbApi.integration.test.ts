@@ -34,7 +34,7 @@ const softwareFormData: SoftwareFormData = {
     softwareDescription: "Super software",
     softwareKeywords: ["bob", "l'éponge"],
     softwareLicense: "MIT",
-    softwareLogoUrl: "https://soft-logo-url.com/logo.png",
+    softwareLogoUrl: "https://external-software-logo-url.com/logo.png",
     softwareName: "",
     softwareType: {
         type: "desktop/mobile",
