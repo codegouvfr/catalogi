@@ -66,7 +66,7 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
         return acc;
     }, {});
 
-    console.log(`[UC.refreshExternalData] ${ids.length} software to update`);
+    console.log(`[UC.refreshExternalData] ${ids.length} software external data sheet to update`);
 
     for (const { sourceSlug, externalId } of ids) {
         console.time(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
