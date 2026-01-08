@@ -297,7 +297,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 programmingLanguages: extData?.programmingLanguages ?? [],
                 serviceProviders: extData?.providers ?? [],
                 referencePublications: extData?.referencePublications,
-                identifiers: extData?.identifiers
+                identifiers: extData?.identifiers,
+                repoMetadata: extData?.repoMetadata
             };
         },
         getBySoftwareId: async (softwareId: number) => {
