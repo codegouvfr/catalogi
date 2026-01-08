@@ -18,7 +18,6 @@ import {
 } from "../../tools/test.helpers";
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
-import { makeGetPopulatedSoftware } from "./getPopulatedSoftware";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
 
 const viteOption: SoftwareExternalDataOption = {
@@ -78,12 +77,12 @@ describe("Create software - Trying all the cases", () => {
             userId
         });
 
-        const getAllSoftware = makeGetPopulatedSoftware(dbApi);
-
-        const softwareListFromApi = await getAllSoftware();
+        const softwareListFromApi = await dbApi.software.getFullList();
 
         expectToEqual(softwareListFromApi.length, 1);
-        expectToMatchObject(softwareListFromApi[0], {
+
+        const softwareListFromApiItem = await dbApi.software.getDetails(softwareListFromApi[0].id);
+        expectToMatchObject(softwareListFromApiItem, {
             softwareName: "Create react app",
             similarSoftwares: [
                 {
