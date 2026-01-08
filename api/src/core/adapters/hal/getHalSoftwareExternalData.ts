@@ -173,7 +173,7 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
         const repoIdentifier = await repoUrlToIdentifer({ repoUrl: halRawSoftware?.softCodeRepository_s?.[0] });
 
         const identifiers: SchemaIdentifier[] = [
-            ...codemetaSoftware?.identifier?.map(identifierItem => {
+            ...(codemetaSoftware?.identifier?.map(identifierItem => {
                 const base = {
                     "@type": "PropertyValue" as const,
                     value: identifierItem.value,
@@ -205,10 +205,9 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                     default:
                         return base;
                 }
-            }) ?? [],
+            }) ?? []),
             ...(repoIdentifier ? [repoIdentifier] : [])
-        ]
-
+        ];
 
         return {
             externalId: halRawSoftware.docid,
@@ -243,10 +242,9 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
                         halRawSoftware.relatedPublication_s.map(id => buildReferencePublication(parseScolarId(id), id))
                     )
                 ).filter(val => val !== undefined),
-            identifiers: [
-                ... await populateFromDOIIdentifiers(identifiers)],
+            identifiers: [...(await populateFromDOIIdentifiers(identifiers))],
             providers: [],
-            repoMetadata: undefined
+            repoMetadata: {}
         };
     },
     {

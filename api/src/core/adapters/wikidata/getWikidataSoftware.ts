@@ -298,7 +298,7 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
                 identifersUtils.makeWikidataIdentifier({ wikidataId: externalId, additionalType: "Software" }),
                 ...(repoIdentifer ? [repoIdentifer] : [])
             ],
-            repoMetadata: undefined,
+            repoMetadata: {},
             providers: []
         };
     },

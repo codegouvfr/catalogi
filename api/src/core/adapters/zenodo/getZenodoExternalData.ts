@@ -116,7 +116,7 @@ const formatRecordToExternalData = (
                 : []),
             ...(repoIdentifier ? [repoIdentifier] : [])
         ],
-        repoMetadata: undefined,
+        repoMetadata: {},
         providers: []
     };
 };
