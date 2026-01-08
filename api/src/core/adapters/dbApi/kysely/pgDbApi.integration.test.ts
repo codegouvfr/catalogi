@@ -13,7 +13,6 @@ import { Database } from "./kysely.database";
 import { createPgDialect } from "./kysely.dialect";
 import { makeCreateSofware } from "../../../usecases/createSoftware";
 import { identifersUtils } from "../../../../tools/identifiersTools";
-import { makeGetPopulatedSoftware } from "../../../usecases/getPopulatedSoftware";
 import { SoftwareExternalDataOption } from "../../../ports/GetSoftwareExternalDataOptions";
 
 const externalIdForSource = "external-id-111";
@@ -35,7 +34,7 @@ const softwareFormData: SoftwareFormData = {
     softwareDescription: "Super software",
     softwareKeywords: ["bob", "l'éponge"],
     softwareLicense: "MIT",
-    softwareLogoUrl: "https://soft-logo-url.com/logo.png",
+    softwareLogoUrl: "https://external-software-logo-url.com/logo.png",
     softwareMinimalVersion: "",
     softwareName: "",
     softwareType: {
@@ -179,10 +178,9 @@ describe("pgDbApi", () => {
                 serviceUrl: "https://example.com"
             });
 
-            const getAllSoftware = makeGetPopulatedSoftware(dbApi);
-            const softwares = await getAllSoftware();
+            const softwares = await dbApi.software.getFullList();
 
-            const actualSoftware = softwares[0];
+            const actualSoftware = await dbApi.software.getDetails(softwares[0].id);
 
             expectToEqual(actualSoftware, {
                 addedTime: expect.any(Number),
@@ -272,9 +270,8 @@ describe("pgDbApi", () => {
         it("creates an instance, than gets it with getAll", async () => {
             console.log("------ instance scenario ------");
             const { userId } = await insertSoftwareExternalDataAndSoftwareAndUser();
-            const getAllSoftware = makeGetPopulatedSoftware(dbApi);
-            const softwares = await getAllSoftware();
-            const softwareId = softwares[0].softwareId;
+            const softwares = await dbApi.software.getFullList();
+            const softwareId = softwares[0].id;
             console.log("saving instance");
             await dbApi.instance.create({
                 userId,
@@ -394,10 +391,9 @@ describe("pgDbApi", () => {
             console.log("before -- setting up test with software and user");
             await insertSoftwareExternalDataAndSoftwareAndUser();
 
-            const getAllSoftware = makeGetPopulatedSoftware(dbApi);
-            const softwares = await getAllSoftware();
+            const softwares = await dbApi.software.getFullList();
 
-            softwareId = softwares[0].softwareId;
+            softwareId = softwares[0].id;
             userId = (await dbApi.user.getAll())[0].id;
         });
 
