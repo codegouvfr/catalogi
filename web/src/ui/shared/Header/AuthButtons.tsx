@@ -34,8 +34,6 @@ export function AuthButtons(props: Props) {
 
     const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
 
-    console.log("auth button", uiConfig?.header.menu.login.enabled);
-
     if (!uiConfig?.header.menu.login.enabled) {
         return;
     }

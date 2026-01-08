@@ -285,6 +285,7 @@ describe("fetches software extra data (from different providers)", () => {
                     softwareVersion: "5.0.1",
                     publicationTime: new Date("2022-04-12T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
+                    repoMetadata: undefined,
                     providers: []
                 },
                 {
@@ -338,6 +339,7 @@ describe("fetches software extra data (from different providers)", () => {
                     softwareVersion: expect.any(String),
                     publicationTime: expect.any(Date),
                     lastDataFetchAt: expect.any(Date),
+                    repoMetadata: undefined,
                     providers: []
                 }
             ]);
@@ -413,7 +415,7 @@ describe("fetches software extra data (from different providers)", () => {
                     license: "Apache License v2.0",
                     logoUrl:
                         "//upload.wikimedia.org/wikipedia/commons/thumb/1/10/Apache_HTTP_server_logo_%282019-present%29.svg/250px-Apache_HTTP_server_logo_%282019-present%29.svg.png",
-                    sourceUrl: "https://svn.apache.org/viewvc/httpd/httpd/",
+                    sourceUrl: "https://github.com/apache/httpd",
                     websiteUrl: "https://httpd.apache.org/",
                     referencePublications: undefined,
                     identifiers: [
@@ -435,6 +437,7 @@ describe("fetches software extra data (from different providers)", () => {
                     softwareVersion: "2.5.0-alpha",
                     publicationTime: new Date("2017-11-08T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
+                    repoMetadata: undefined,
                     providers: []
                 },
                 emptyExternalDataCleaned({

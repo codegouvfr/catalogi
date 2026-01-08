@@ -41,12 +41,18 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
     update: async params => {
         const { externalId, sourceSlug, softwareExternalData, softwareId = null, lastDataFetchAt = null } = params;
 
+        if (externalId !== softwareExternalData.externalId)
+            console.info(
+                `Attention : need to update or cure data [${externalId} !== ${softwareExternalData.externalId}]`
+            );
+
         await db
             .updateTable("software_external_datas")
             .where("externalId", "=", externalId)
             .where("sourceSlug", "=", sourceSlug)
             .set({
                 ...softwareExternalData,
+                externalId,
                 softwareId,
                 lastDataFetchAt,
                 developers: JSON.stringify(softwareExternalData.developers),
@@ -57,6 +63,7 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
                 referencePublications: JSON.stringify(softwareExternalData.referencePublications),
                 identifiers: JSON.stringify(softwareExternalData.identifiers),
                 description: JSON.stringify(softwareExternalData.description),
+                repoMetadata: JSON.stringify(softwareExternalData.repoMetadata),
                 providers: JSON.stringify(softwareExternalData.providers)
             })
             .executeTakeFirst();
@@ -72,6 +79,7 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             programmingLanguages: JSON.stringify(softwareExternalData.programmingLanguages),
             referencePublications: JSON.stringify(softwareExternalData.referencePublications),
             identifiers: JSON.stringify(softwareExternalData.identifiers),
+            repoMetadata: JSON.stringify(softwareExternalData.repoMetadata),
             description: JSON.stringify(softwareExternalData.description),
             providers: JSON.stringify(softwareExternalData.providers)
         };

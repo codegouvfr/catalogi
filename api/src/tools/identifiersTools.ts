@@ -60,6 +60,13 @@ const orcidSource: WebSite = {
     additionalType: "ORCID"
 };
 
+const gitHubSource: WebSite = {
+    "@type": "Website" as const,
+    name: "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+    url: new URL("https://github.com/"),
+    additionalType: "GitHub"
+};
+
 const nationalSIREN: WebSite = {
     "@type": "Website" as const,
     name: "L’Annuaire des Entreprises",
@@ -154,10 +161,11 @@ export const identifersUtils = {
     },
     makeHALIdentifier: (params: { halId: string; additionalType?: string; url?: string }): SchemaIdentifier => {
         const { halId, additionalType, url } = params;
+        const curatedHalId = !isNaN(Number(halId)) && halId ? `hal-0${halId}` : halId;
         return {
             "@type": "PropertyValue" as const,
             value: halId,
-            url: url ? url : `https://hal.science/hal-0${halId}`,
+            url: url ? url : `https://hal.science/${curatedHalId}`,
             subjectOf: halSource,
             ...(additionalType ? { additionalType: additionalType } : {})
         };
@@ -203,6 +211,64 @@ export const identifersUtils = {
             url: url,
             subjectOf: zenodoSource,
             ...(additionalType ? { additionalType: additionalType } : {})
+        };
+    },
+    makeUserGitHubIdentifer: (params: { username: string; userId: number }): SchemaIdentifier => {
+        const { username, userId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: username,
+            valueReference: userId.toString(),
+            url: `https://github.com/${username}`,
+            subjectOf: gitHubSource,
+            additionalType: "User"
+        };
+    },
+    makeRepoGitHubIdentifer: (params: { repoUrl: string; repoId: number }): SchemaIdentifier => {
+        const { repoUrl, repoId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: repoUrl,
+            url: repoUrl,
+            valueReference: repoId.toString(),
+            subjectOf: gitHubSource,
+            additionalType: "Repo"
+        };
+    },
+    makeRepoGitLabIdentifer: (params: {
+        gitLabUrl: string;
+        projectId: number;
+        projectName?: string;
+    }): SchemaIdentifier => {
+        const { gitLabUrl, projectId, projectName } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: projectId.toString(),
+            ...(projectName ? { valueReference: projectName } : {}),
+            url: `${gitLabUrl}/${projectName}`,
+            subjectOf: {
+                "@type": "Website" as const,
+                name: "GitLab instance",
+                url: new URL(gitLabUrl),
+                additionalType: "GitLab"
+            },
+            additionalType: "Repo"
+        };
+    },
+    makeUserGitLabIdentifer: (params: { gitLabUrl: string; username: string; userId: number }): SchemaIdentifier => {
+        const { gitLabUrl, username, userId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: username,
+            valueReference: userId.toString(),
+            url: `${gitLabUrl}/${username}`, // TODO TO check
+            subjectOf: {
+                "@type": "Website" as const,
+                name: "GitLab instance",
+                url: new URL(gitLabUrl),
+                additionalType: "GitLab"
+            },
+            additionalType: "User"
         };
     }
 };

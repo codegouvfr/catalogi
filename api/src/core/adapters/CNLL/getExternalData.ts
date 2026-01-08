@@ -81,5 +81,6 @@ const formatCNLLProvidersToExternalData = (
             cNNLId: cnllProdivers.sill_id.toString()
         })
     ],
+    repoMetadata: undefined,
     providers: cnllProdivers.prestataires.map(cnllProviderToCMProdivers)
 });

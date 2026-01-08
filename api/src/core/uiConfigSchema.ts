@@ -94,6 +94,9 @@ const softwareDetailsSchema = z.object({
             softwareType: z.boolean()
         })
     }),
+    repoMetadata: z.object({
+        enabled: z.boolean()
+    }),
     links: z.object({
         enabled: z.boolean()
     }),
