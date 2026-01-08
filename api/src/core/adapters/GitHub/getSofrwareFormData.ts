@@ -24,7 +24,10 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
             softwareName: repoData.full_name,
             softwareDescription: repoData?.description ? repoData.description : "",
             softwareType: resolveSoftwareType(repoData.topics ?? []), // Someting else to rely on ?
-            externalIdForSource: repoData.html_url,
+            externalIdForSource: repoData.html_url
+                .replace("https://github.com/", "")
+                .replace("git+", "")
+                .replace(".git", ""),
             sourceSlug: source.slug,
             softwareLicense: repoData.license?.name ?? "undefined", // TODO 1 case to copyright
             softwareMinimalVersion: undefined,

@@ -24,13 +24,15 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
         const gitHubApi = repoGitHubEndpointMaker();
         if (!gitHubApi) throw new Error("This GitHub url provided doesn't work.");
 
-        const repoData = await gitHubApi.repo.get({ repoUrl: externalId });
-        const repoDevs = await gitHubApi.repo.getContributors({ repoUrl: externalId });
-        const repoTags = await gitHubApi.repo.getTags({ repoUrl: externalId });
-        const repoLanguages = await gitHubApi.repo.getLanguages({ repoUrl: externalId });
-        const lastCommit = await gitHubApi.repo.commits.getLastCommit({ repoUrl: externalId });
-        const lastCloseIssue = await gitHubApi.repo.issues.getLastClosedIssue({ repoUrl: externalId });
-        const lastClosedPull = await gitHubApi.repo.mergeRequests.getLast({ repoUrl: externalId });
+        const repoUrl = externalId.includes("https://github.com") ? externalId : `https://github.com/${externalId}`;
+
+        const repoData = await gitHubApi.repo.get({ repoUrl });
+        const repoDevs = await gitHubApi.repo.getContributors({ repoUrl });
+        const repoTags = await gitHubApi.repo.getTags({ repoUrl });
+        const repoLanguages = await gitHubApi.repo.getLanguages({ repoUrl });
+        const lastCommit = await gitHubApi.repo.commits.getLastCommit({ repoUrl });
+        const lastCloseIssue = await gitHubApi.repo.issues.getLastClosedIssue({ repoUrl });
+        const lastClosedPull = await gitHubApi.repo.mergeRequests.getLast({ repoUrl });
 
         const devIds =
             repoDevs
@@ -47,13 +49,15 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
         if (!repoData || !filteredUserDevs || !repoTags || !repoLanguages) return undefined;
 
         const versionCommitSha = repoTags?.[0]?.commit?.sha;
-        const lastVersionCommit = versionCommitSha ? await gitHubApi.repo.commits.getBySha({
-            repoUrl: externalId,
-            commit_sha: versionCommitSha
-        }) : undefined;
+        const lastVersionCommit = versionCommitSha
+            ? await gitHubApi.repo.commits.getBySha({
+                  repoUrl: externalId,
+                  commit_sha: versionCommitSha
+              })
+            : undefined;
 
         return {
-            externalId: repoData.html_url,
+            externalId: repoData.html_url.replace("https://github.com/", "").replace("git+", "").replace(".git", ""),
             sourceSlug: source.slug,
             developers: filteredUserDevs.map(dev => ({
                 "@type": "Person",
