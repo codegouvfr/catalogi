@@ -34,7 +34,15 @@ const buildParentOrganizationTree = async (
                 "@type": "Organization",
                 "name": structure.name_s,
                 "url": structure.ror_s?.[0] ?? structure.ror_s ?? structure?.url_s,
-                "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i, halAPIGateway)
+                "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i, halAPIGateway),
+                identifiers: [
+                    ...(structure.ror_s?.[0] || structure.ror_s
+                        ? [identifersUtils.makeRorOrgaIdentifer({ rorId: structure.ror_s?.[0] ?? structure.ror_s })]
+                        : []),
+                    ...(structure.rnsr_s?.[0] || structure.rnsr_s
+                        ? [identifersUtils.makeRNSROrgaIdentifer({ rnrsId: structure.rnsr_s?.[0] ?? structure.rnsr_s })]
+                        : [])
+                ]
             };
         })
     );
@@ -148,11 +156,27 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
                                 return {
                                     "@type": "Organization" as const,
                                     "name": structure.name_s,
-                                    "url": structure.ror_s?.[0] ?? structure.ror_s ?? structure?.url_s,
+                                    "url": structure?.url_s ?? structure.ror_s?.[0] ?? structure.ror_s,
                                     "parentOrganizations": await buildParentOrganizationTree(
                                         structure.parentDocid_i,
                                         halAPIGateway
-                                    )
+                                    ),
+                                    identifiers: [
+                                        ...(structure.ror_s?.[0] || structure.ror_s
+                                            ? [
+                                                  identifersUtils.makeRorOrgaIdentifer({
+                                                      rorId: structure.ror_s?.[0] ?? structure.ror_s
+                                                  })
+                                              ]
+                                            : []),
+                                        ...(structure.rnsr_s?.[0] || structure.rnsr_s
+                                            ? [
+                                                  identifersUtils.makeRorOrgaIdentifer({
+                                                      rorId: structure.rnsr_s?.[0] ?? structure.rnsr_s
+                                                  })
+                                              ]
+                                            : [])
+                                    ]
                                 };
                             })
                     );
