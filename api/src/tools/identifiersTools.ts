@@ -95,6 +95,20 @@ const gravatarSource: WebSite = {
     additionalType: "Gravatar"
 };
 
+const rorSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Research Organization Registry",
+    url: new URL("https://ror.org/"),
+    additionalType: "ROR"
+};
+
+const rnsrSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Répertoire national des structures de recherche",
+    url: new URL("https://www.data.gouv.fr/datasets/repertoire-national-des-structures-de-recherche-rnsr"),
+    additionalType: "RNSR"
+};
+
 export const identifersUtils = {
     makeGenericIdentifier: (params: { value: string; url?: string | URL }): SchemaIdentifier => {
         const { value, url } = params;
@@ -314,6 +328,26 @@ export const identifersUtils = {
             subjectOf: orcidSource,
             ...(username ? { name: `ID on ${username}` } : {}),
             additionalType: "Person"
+        };
+    },
+    makeRorOrgaIdentifer: (params: { rorId: string }): SchemaIdentifier => {
+        const { rorId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: rorId,
+            url: `https://ror.org/${rorId}`,
+            subjectOf: rorSource,
+            additionalType: "Organization"
+        };
+    },
+    makeRNSROrgaIdentifer: (params: { rnrsId: string }): SchemaIdentifier => {
+        const { rnrsId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: rnrsId,
+            url: `https://appliweb.dgri.education.fr/rnsr/PresenteStruct.jsp?PUBLIC=OK&numNatStruct=${rnrsId}`,
+            subjectOf: rnsrSource,
+            additionalType: "Organization"
         };
     }
 };
