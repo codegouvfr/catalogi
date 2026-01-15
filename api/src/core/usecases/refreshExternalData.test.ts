@@ -413,7 +413,7 @@ describe("fetches software extra data (from different providers)", () => {
                     license: "Apache License v2.0",
                     logoUrl:
                         "//upload.wikimedia.org/wikipedia/commons/thumb/1/10/Apache_HTTP_server_logo_%282019-present%29.svg/250px-Apache_HTTP_server_logo_%282019-present%29.svg.png",
-                    sourceUrl: "https://svn.apache.org/viewvc/httpd/httpd/",
+                    sourceUrl: "https://github.com/apache/httpd",
                     websiteUrl: "https://httpd.apache.org/",
                     referencePublications: undefined,
                     identifiers: [
