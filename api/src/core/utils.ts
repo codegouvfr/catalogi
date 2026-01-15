@@ -63,6 +63,6 @@ export function mergeArrays(arr1: any[], arr2: any[]): any[] {
     const merged = [...arr1, ...arr2];
     return merged.reduce((acc, item) => {
         if (isDeepIncludedInArray(item, acc)) return acc;
-        return [item, ...acc];
+        return [...acc, item];
     }, []);
 }

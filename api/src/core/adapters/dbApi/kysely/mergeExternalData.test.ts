@@ -40,7 +40,24 @@ describe("mergeExternalData", () => {
         expect(merged).toBeDefined();
         // Priority 1 should win for overlapping fields
         expect(merged?.label).toBe("High Label");
-        expect(merged?.keywords).toEqual(["high", "low"]); // Array merge strategy combines them
+        expect(merged?.keywords).toEqual(["low", "high"]); // Low priority keywords first, then high priority appended
+    });
+
+    it("preserves keyword order when merging multiple items", () => {
+        const highPrioData = {
+            softwareId: 1,
+            priority: 1,
+            keywords: ["a", "b", "c"]
+        } as unknown as PopulatedExternalData;
+
+        const lowPrioData = {
+            softwareId: 1,
+            priority: 10,
+            keywords: ["d", "e"]
+        } as unknown as PopulatedExternalData;
+
+        const merged = mergeExternalData([highPrioData, lowPrioData]);
+        expect(merged?.keywords).toEqual(["d", "e", "a", "b", "c"]);
     });
 
     it("preserves fields from lower priority if higher priority is missing them", () => {

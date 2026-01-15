@@ -213,7 +213,7 @@ describe("pgDbApi", () => {
                 documentationUrl: softwareExternalData.documentationUrl,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
-                keywords: ["l'éponge", "bob"],
+                keywords: ["bob", "l'éponge"],
                 latestVersion: {
                     "publicationTime": 1561566581000,
                     "semVer": "1.0.0"
