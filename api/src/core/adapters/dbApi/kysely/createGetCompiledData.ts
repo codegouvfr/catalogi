@@ -5,9 +5,10 @@
 import { Kysely } from "kysely";
 import { CompiledData } from "../../../ports/CompileData";
 import { Db } from "../../../ports/DbApi";
-import type { SoftwareExternalData } from "../../../ports/GetSoftwareExternalData";
+import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
-import { stripNullOrUndefinedValues, isNotNull, jsonBuildObject, jsonStripNulls } from "./kysely.utils";
+import { stripNullOrUndefinedValues, isNotNull, transformNullToUndefined } from "./kysely.utils";
+import { mergeExternalData } from "./mergeExternalData";
 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
@@ -18,13 +19,32 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .then(users => users.reduce((acc, user) => ({ ...acc, [user.id]: user }), {}));
     console.timeEnd("agentById query");
 
+    console.time("externalData query");
+    const externalDataRows = await db
+        .selectFrom("software_external_datas as ext")
+        .selectAll("ext")
+        .innerJoin("sources as src", "src.slug", "ext.sourceSlug")
+        .select(["src.kind", "src.priority", "src.url", "src.slug"])
+        .where("ext.softwareId", "is not", null)
+        .orderBy("ext.softwareId", "asc")
+        .orderBy("src.priority", "desc")
+        .execute();
+
+    const externalDataBySoftwareId = externalDataRows.reduce(
+        (acc, row) => ({
+            ...acc,
+            [row.softwareId!]: [...(acc[row.softwareId!] ?? []), transformNullToUndefined(row)]
+        }),
+        {} as Record<number, PopulatedExternalData[]>
+    );
+    console.timeEnd("externalData query");
+
     console.time("softwares query");
     const compliedSoftwares = await db
         .selectFrom("softwares as s")
         .leftJoin("software_referents as referents", "s.id", "referents.softwareId")
         .leftJoin("software_users", "s.id", "software_users.softwareId")
         .leftJoin("instances", "s.id", "instances.mainSoftwareSillId")
-        .leftJoin("software_external_datas as ext", "ext.softwareId", "s.id")
         .leftJoin(
             "softwares__similar_software_external_datas",
             "softwares__similar_software_external_datas.softwareId",
@@ -35,7 +55,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             "softwares__similar_software_external_datas.similarExternalId",
             "similarExt.externalId"
         )
-        .groupBy(["s.id", "ext.externalId", "ext.sourceSlug"])
+        .groupBy(["s.id"])
         .select([
             "s.id",
             "s.addedByUserId",
@@ -54,30 +74,6 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             "s.updateTime",
             "s.versionMin",
             "s.workshopUrls",
-            ({ ref, ...qb }) =>
-                qb
-                    .case()
-                    .when("ext.externalId", "is not", null)
-                    .then(
-                        jsonStripNulls(
-                            jsonBuildObject({
-                                externalId: ref("ext.externalId"),
-                                sourceSlug: ref("ext.sourceSlug"),
-                                developers: ref("ext.developers"),
-                                label: ref("ext.label"),
-                                description: ref("ext.description"),
-                                isLibreSoftware: ref("ext.isLibreSoftware"),
-                                logoUrl: ref("ext.logoUrl"),
-                                websiteUrl: ref("ext.websiteUrl"),
-                                sourceUrl: ref("ext.sourceUrl"),
-                                documentationUrl: ref("ext.documentationUrl"),
-                                license: ref("ext.license"),
-                                providers: ref("ext.providers")
-                            })
-                        ).$castTo<SoftwareExternalData>()
-                    )
-                    .end()
-                    .as("softwareExternalData"),
             ({ fn }) => fn.jsonAgg("similarExt").distinct().as("similarExternalSoftwares"),
             ({ fn }) => fn.jsonAgg("software_users").distinct().as("users"),
             ({ fn }) => fn.jsonAgg("referents").distinct().as("referents"),
@@ -89,6 +85,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             console.time("software processing");
             const processedSoftwares = results.map(
                 ({
+                    id,
                     addedByUserId,
                     similarExternalSoftwares,
                     dereferencing,
@@ -96,11 +93,11 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     users,
                     referents,
                     instances,
-                    softwareExternalData,
                     updateTime,
                     referencedSinceTime,
                     ...software
                 }): CompiledData.Software<"private"> => {
+                    const softwareExternalData = mergeExternalData(externalDataBySoftwareId[id] ?? []);
                     const version =
                         softwareExternalData?.softwareVersion && softwareExternalData?.publicationTime
                             ? {
@@ -109,6 +106,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                               }
                             : undefined;
                     return {
+                        id,
                         ...stripNullOrUndefinedValues(software),
                         addedByUserEmail: agentById[addedByUserId].email,
                         updateTime: new Date(+updateTime).getTime(),
