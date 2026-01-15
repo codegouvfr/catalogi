@@ -25,6 +25,12 @@ export const routeDefs = {
             name: param.query.string
         },
         () => appPath + `/software`
+    ),
+    softwareDetailsByName: defineRoute(
+        {
+            name: param.query.string
+        },
+        () => appPath + `/detail`
     )
 };
 

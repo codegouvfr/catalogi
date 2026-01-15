@@ -83,6 +83,20 @@ export default function Redirect(props: Props) {
                     routes.softwareDetails({ id: softwareId }).replace();
                 }
                 break;
+            case "softwareDetailsByName":
+                {
+                    const { name } = route.params;
+
+                    const softwareId = sillIdBySoftwareName[name];
+
+                    if (softwareId === undefined) {
+                        routes.page404().replace();
+                        return;
+                    }
+
+                    routes.softwareDetails({ id: softwareId }).replace();
+                }
+                break;
         }
     }, []);
 
