@@ -10,13 +10,11 @@ Créer une architecture de types unifiée basée sur Schema.org/CodeMeta pour le
 
 ## Nouveaux types TypeScript
 
-### Types de base
+### Types de base (nouveaux)
 
 ```typescript
 type Os = "windows" | "linux" | "mac" | "android" | "ios";
 type RuntimePlatform = "cloud" | "mobile" | "desktop";
-
-type LocalizedString = string | { fr: string; en: string };
 
 type Dereferencing = {
     reason: string | undefined;
@@ -24,6 +22,22 @@ type Dereferencing = {
     lastRecommendedVersion: string | undefined;
 };
 ```
+
+### Types réutilisés (existants)
+
+Ces types existent déjà et sont réutilisés sans modification:
+
+| Type | Source | Notes |
+|------|--------|-------|
+| `LocalizedString` | `GetSoftwareExternalData.ts` | Type i18nifty existant |
+| `SchemaPerson` | `kysely.database.ts` | Schema.org Person |
+| `SchemaOrganization` | `kysely.database.ts` | Schema.org Organization |
+| `SchemaIdentifier` | `kysely.database.ts` | Schema.org PropertyValue |
+| `ScholarlyArticle` | `kysely.database.ts` | Schema.org ScholarlyArticle |
+| `CustomAttributes` | `attributeTypes.ts` | Attributs personnalisés |
+| `Instance` | `readWriteSillData/types.ts` | Instances de logiciel |
+
+> **Note**: Les types DB (`kysely.database.ts`) et les types domaine (`SoftwareTypes.ts`) sont volontairement séparés pour éviter les effets de bord. On redéfinit `Os` et `RuntimePlatform` dans `SoftwareTypes.ts` même s'ils existent ailleurs.
 
 ### SoftwareData (données communes)
 
@@ -114,50 +128,17 @@ type SoftwarePublic = SoftwareInternal & {
 };
 ```
 
-### Types auxiliaires
+### SimilarSoftware (nouveau)
 
 ```typescript
-type SchemaPerson = {
-    "@type": "Person";
-    name: string;
-    givenName?: string;
-    familyName?: string;
-    email?: string;
-    url?: string;
-    affiliation?: SchemaOrganization;
-    identifiers?: SchemaIdentifier[];
-};
-
-type SchemaOrganization = {
-    "@type": "Organization";
-    name: string;
-    url?: string;
-    logo?: string;
-    identifiers?: SchemaIdentifier[];
-};
-
-type SchemaIdentifier = {
-    "@type": "PropertyValue";
-    propertyID: string;   // "SIREN", "ORCID", "DOI", "HAL", "SWH", etc.
-    value: string;
-};
-
-type ScholarlyArticle = {
-    "@type": "ScholarlyArticle";
-    name: string;
-    url?: string;
-    identifiers?: SchemaIdentifier[];
-    authors?: Array<SchemaPerson | SchemaOrganization>;
-};
-
 type SimilarSoftware = {
     externalId: string;
     sourceSlug: string;
     name: LocalizedString;
     description: LocalizedString;
     isLibreSoftware: boolean | undefined;
-    isInSill: boolean;
-    softwareId: number | undefined;  // si dans le SILL
+    isInCatalogi: boolean;
+    softwareId: number | undefined;  // si dans Catalogi
 };
 ```
 
@@ -189,18 +170,20 @@ type SimilarSoftware = {
 
 ## Plan d'implémentation par phases
 
-### Phase 0: Migration versionMin → customAttributes
+### Phase 0: Migration versionMin → customAttributes ✅
 
-- [ ] **Objectif**: Nettoyer versionMin sans toucher aux types
+- [x] **Objectif**: Nettoyer versionMin sans toucher aux types
 
 **Tâches**:
-- [ ] Créer migration Kysely pour:
-  - [ ] Lire `version_min` de chaque software
-  - [ ] L'ajouter dans `custom_attributes` sous la clé `versionMin`
-  - [ ] Supprimer la colonne `version_min`
-- [ ] Adapter `createSoftware.ts` et `updateSoftware.ts` pour lire/écrire `versionMin` depuis `customAttributes`
-- [ ] Adapter le formulaire web si nécessaire
-- [ ] Mettre à jour les tests
+- [x] Créer migration Kysely pour:
+  - [x] Lire `version_min` de chaque software
+  - [x] L'ajouter dans `custom_attributes` sous la clé `versionMin`
+  - [x] Supprimer la colonne `version_min`
+- [x] Adapter `createSoftware.ts` et `updateSoftware.ts` pour lire/écrire `versionMin` depuis `customAttributes`
+- [x] Adapter le formulaire web si nécessaire
+- [x] Mettre à jour les tests
+
+**Commits**: `2e273116`, `a1069cb0`
 
 **Fichiers impactés**:
 - `api/src/core/adapters/dbApi/kysely/migrations/` (nouvelle migration)
@@ -219,17 +202,20 @@ type SimilarSoftware = {
 
 **Tâches**:
 - [ ] Créer `api/src/core/types/SoftwareTypes.ts` avec:
-  - [ ] `SoftwareData`
-  - [ ] `SoftwareInternal`
+  - [ ] Types de base: `Os`, `RuntimePlatform`, `Dereferencing`
+  - [ ] `SimilarSoftware` (nouveau type)
+  - [ ] `SoftwareData` (importe types existants: `LocalizedString`, `SchemaPerson`, `SchemaOrganization`, `SchemaIdentifier`, `ScholarlyArticle`)
+  - [ ] `SoftwareInternal` (importe `CustomAttributes` existant)
   - [ ] `SoftwareExternal`
-  - [ ] `SoftwarePublic`
-  - [ ] Types auxiliaires mis à jour
+  - [ ] `SoftwarePublic` (référence `Instance` existant)
+- [ ] Créer `api/src/core/types/index.ts` (barrel export)
 - [ ] Exporter depuis `api/src/lib/index.ts`
-- [ ] Ne pas encore utiliser ces types (coexistence)
+- [ ] Ne pas encore utiliser ces types (coexistence avec les anciens)
 
 **Fichiers impactés**:
 - `api/src/core/types/SoftwareTypes.ts` (nouveau)
-- `api/src/lib/index.ts`
+- `api/src/core/types/index.ts` (nouveau)
+- `api/src/lib/index.ts` (ajout exports)
 
 **Point d'arrêt**: Code compile, nouveaux types disponibles mais pas utilisés
 
@@ -408,3 +394,5 @@ Chaque phase doit passer:
 - **versionMin**: Migré vers `customAttributes` en Phase 0
 - **softwareType**: Séparé en `operatingSystems` + `runtimePlatforms`
 - **Données calculées**: `userAndReferentCountByOrganization`, `hasExpertReferent` restent calculées (pas stockées)
+- **Isolation types DB/domaine**: Les types DB (`kysely.database.ts`) et domaine (`SoftwareTypes.ts`) sont séparés pour éviter les effets de bord lors d'éditions
+- **Réutilisation types Schema.org**: `SchemaPerson`, `SchemaOrganization`, `SchemaIdentifier`, `ScholarlyArticle` sont importés depuis `kysely.database.ts` (pas redéfinis)
