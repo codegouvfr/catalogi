@@ -208,7 +208,7 @@ const formatExternalDataRowToUISoftware = (
 
 const formatToSimularNotRegisteredSoftware = (
     externalData: DatabaseDataType.SoftwareExternalDataRow
-): Software.SimilarSoftware.SimilarSoftwareNotRegistered => {
+): Software.LegacySimilarSoftware.SimilarSoftwareNotRegistered => {
     return {
         registered: false,
         sourceSlug: externalData.sourceSlug,

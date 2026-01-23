@@ -15,7 +15,7 @@ import type { UseCases } from "../core/usecases";
 import {
     DeclarationFormData,
     InstanceFormData,
-    Os,
+    LegacyOs,
     SoftwareFormData,
     SoftwareType,
     UserWithId
@@ -466,7 +466,7 @@ const zOs = z.enum(["windows", "linux", "mac", "android", "ios"]);
 
 {
     type Got = ReturnType<(typeof zOs)["parse"]>;
-    type Expected = Os;
+    type Expected = LegacyOs;
 
     assert<Equals<Got, Expected>>();
 }

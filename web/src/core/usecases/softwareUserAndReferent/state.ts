@@ -27,7 +27,7 @@ export namespace State {
         organization: string | null;
         usecaseDescription: string;
         /** NOTE: undefined if the software is not of type desktop/mobile */
-        os: ApiTypes.Os | undefined;
+        os: ApiTypes.LegacyOs | undefined;
         version: string;
         /** NOTE: Defined only when software is cloud */
         serviceUrl: string | undefined;

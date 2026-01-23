@@ -252,7 +252,7 @@ function apiSoftwareToSoftware(params: {
                 label: similarSoftware.label,
                 description: similarSoftware.description,
                 isLibreSoftware: similarSoftware.isLibreSoftware
-            } satisfies State.SimilarSoftwareNotRegistered;
+            } as State.SimilarSoftwareNotRegistered;
         }),
         license,
         customAttributes,

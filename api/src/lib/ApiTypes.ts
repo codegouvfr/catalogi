@@ -18,7 +18,7 @@ export type {
     CreateUserParams,
     UserWithId,
     Instance,
-    Os,
+    LegacyOs,
     Software,
     SoftwareInList,
     SoftwareFormData,
@@ -37,5 +37,16 @@ export type {
 } from "../core/usecases/readWriteSillData/attributeTypes";
 
 export type { UiConfig, ConfigurableUseCaseName } from "../core/uiConfigSchema";
+
+export type {
+    Os,
+    RuntimePlatform,
+    Dereferencing,
+    SimilarSoftware,
+    SoftwareData,
+    SoftwareInternal,
+    SoftwareExternal,
+    SoftwarePublic
+} from "../core/types";
 
 export type Translations = { translations: typeof import("../rpc/translations/en_default.json") };

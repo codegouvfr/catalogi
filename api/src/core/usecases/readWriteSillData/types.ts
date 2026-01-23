@@ -63,7 +63,7 @@ export type Software = {
     externalId: string | undefined;
     sourceSlug: string | undefined;
     softwareType: SoftwareType;
-    similarSoftwares: Software.SimilarSoftware[];
+    similarSoftwares: Software.LegacySimilarSoftware[];
     keywords: string[];
     programmingLanguages: string[];
     referencePublications?: ScholarlyArticle[];
@@ -73,11 +73,11 @@ export type Software = {
 export type Source = DatabaseDataType.SourceRow;
 
 export namespace Software {
-    export type SimilarSoftware =
-        | SimilarSoftware.SimilarSoftwareNotRegistered
-        | SimilarSoftware.SimilarRegisteredSoftware;
+    export type LegacySimilarSoftware =
+        | LegacySimilarSoftware.SimilarSoftwareNotRegistered
+        | LegacySimilarSoftware.SimilarRegisteredSoftware;
 
-    export namespace SimilarSoftware {
+    export namespace LegacySimilarSoftware {
         export type SimilarSoftwareNotRegistered = {
             registered: false;
             sourceSlug: string;
@@ -123,7 +123,7 @@ export type SoftwareType = SoftwareType.Desktop | SoftwareType.CloudNative | Sof
 export namespace SoftwareType {
     export type Desktop = {
         type: "desktop/mobile";
-        os: Record<Os, boolean>;
+        os: Record<LegacyOs, boolean>;
     };
 
     export type CloudNative = {
@@ -135,7 +135,7 @@ export namespace SoftwareType {
     };
 }
 
-export type Os = "windows" | "linux" | "mac" | "android" | "ios";
+export type LegacyOs = "windows" | "linux" | "mac" | "android" | "ios";
 
 export type SoftwareFormData = {
     softwareName: string;
@@ -157,7 +157,7 @@ export namespace DeclarationFormData {
         declarationType: "user";
         usecaseDescription: string;
         /** NOTE: undefined if the software is not of type desktop/mobile */
-        os: Os | undefined;
+        os: LegacyOs | undefined;
         version: string;
         /** NOTE: Defined only when software is cloud */
         serviceUrl: string | undefined;

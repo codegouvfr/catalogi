@@ -227,7 +227,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             );
 
             // Format similar softwares
-            const similarSoftwares: Software.SimilarSoftware[] = similarSoftwareRows.map(row => {
+            const similarSoftwares: Software.LegacySimilarSoftware[] = similarSoftwareRows.map(row => {
                 if (row.linkedSoftwareId && row.linkedSoftwareDereferencing === null) {
                     return {
                         registered: true,
