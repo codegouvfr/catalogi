@@ -12,7 +12,6 @@ type AutoFillData = {
     softwareName: string | undefined;
     softwareDescription: string | undefined;
     softwareLicense: string | undefined;
-    softwareMinimalVersion: string | undefined;
     softwareLogoUrl: string | undefined;
     keywords: string[];
 };
@@ -47,7 +46,6 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
                 softwareDescription: undefined,
                 softwareLicense: undefined,
                 softwareLogoUrl: undefined,
-                softwareMinimalVersion: undefined,
                 softwareName: undefined
             };
         }
@@ -91,7 +89,6 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
                     ? undefined
                     : resolveLocalizedString(softwareExternalData.description),
             "softwareLicense": softwareExternalData.license ?? comptoirDuLibreSoftware?.licence,
-            "softwareMinimalVersion": undefined,
             "softwareLogoUrl": softwareExternalData.logoUrl ?? comptoirDuLibreLogoUrl,
             "keywords": comptoirDuLibreKeywords ?? []
         };

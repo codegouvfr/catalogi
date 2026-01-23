@@ -36,7 +36,6 @@ export namespace Db {
         softwareType: SoftwareType;
         //Lien vers catalogue.numerique.gouv.fr
         /* cspell: disable-next-line */
-        versionMin: string | undefined;
         workshopUrls: string[];
         categories: string[];
         generalInfoMd: string | undefined;

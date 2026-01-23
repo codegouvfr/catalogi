@@ -112,7 +112,6 @@ const amdSoftwareForm = {
     externalIdForSource: "15479049",
     sourceSlug: "zenodo",
     softwareLicense: "gpl-3.0",
-    softwareMinimalVersion: undefined,
     similarSoftwareExternalDataIds: [],
     softwareLogoUrl: undefined,
     softwareKeywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"]

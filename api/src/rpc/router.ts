@@ -479,7 +479,6 @@ const zSoftwareFormData = (() => {
         "softwareName": z.string(),
         "softwareDescription": z.string(),
         "softwareLicense": z.string(),
-        "softwareMinimalVersion": z.string().optional(),
         "similarSoftwareExternalDataItems": z.array(softwareExternalDataOptionSchema),
         "softwareLogoUrl": z.string().optional(),
         "softwareKeywords": z.array(z.string()),
