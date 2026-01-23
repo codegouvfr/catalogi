@@ -14,7 +14,7 @@ export type State = State.NotReady | State.Ready | State.Error;
 
 export namespace State {
     export type SimilarSoftwareNotRegistered =
-        ApiTypes.Software.SimilarSoftware.SimilarSoftwareNotRegistered;
+        ApiTypes.Software.LegacySimilarSoftware.SimilarSoftwareNotRegistered;
 
     export type NotReady = {
         stateDescription: "not ready";

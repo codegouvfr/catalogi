@@ -65,7 +65,7 @@ export namespace Db {
         softwareId: number;
         agentEmail: string;
         useCaseDescription: string;
-        os: Os | undefined;
+        os: LegacyOs | undefined;
         version: string;
         /** NOTE: Can be not undefined only if cloud */
         serviceUrl: string | undefined;
@@ -83,14 +83,14 @@ export namespace Db {
     };
 }
 
-export type Os = "windows" | "linux" | "mac" | "android" | "ios";
+export type LegacyOs = "windows" | "linux" | "mac" | "android" | "ios";
 
 export type SoftwareType = SoftwareType.Desktop | SoftwareType.CloudNative | SoftwareType.Stack;
 
 export namespace SoftwareType {
     export type Desktop = {
         type: "desktop/mobile";
-        os: Record<Os, boolean>;
+        os: Record<LegacyOs, boolean>;
     };
 
     export type CloudNative = {
