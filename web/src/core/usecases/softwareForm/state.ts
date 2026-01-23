@@ -36,7 +36,6 @@ export type FormData = {
         softwareName: string;
         softwareDescription: string;
         softwareLicense: string;
-        softwareMinimalVersion: string | undefined;
         softwareLogoUrl: string | undefined;
         softwareKeywords: string[];
     };
@@ -79,7 +78,6 @@ export const { reducer, actions } = createUsecaseActions({
                     softwareName: string;
                     softwareDescription: string;
                     softwareLicense: string;
-                    softwareMinimalVersion: string;
                     softwareLogoUrl: string | undefined;
                     softwareKeywords: string[];
                 };
@@ -90,7 +88,6 @@ export const { reducer, actions } = createUsecaseActions({
                 softwareName,
                 softwareDescription,
                 softwareLicense,
-                softwareMinimalVersion,
                 softwareLogoUrl,
                 softwareKeywords
             } = payload;
@@ -103,7 +100,6 @@ export const { reducer, actions } = createUsecaseActions({
                         softwareName,
                         softwareDescription,
                         softwareLicense,
-                        softwareMinimalVersion,
                         softwareLogoUrl,
                         softwareKeywords
                     }

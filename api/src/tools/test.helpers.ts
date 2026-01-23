@@ -53,7 +53,6 @@ export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
     softwareName: "Some software",
     softwareDescription: "Some software description",
     softwareLicense: "Some software license",
-    softwareMinimalVersion: "1.0.0",
     similarSoftwareExternalDataItems: [
         {
             externalId: "some-external-id",

@@ -288,7 +288,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 officialWebsiteUrl: extData?.websiteUrl ?? undefined,
                 codeRepositoryUrl: extData?.sourceUrl ?? undefined,
                 documentationUrl: extData?.documentationUrl ?? undefined,
-                versionMin: softwareRow.versionMin ?? undefined,
                 license: extData?.license ?? softwareRow.license,
                 externalId: extData?.externalId,
                 sourceSlug: extData?.sourceSlug,
@@ -324,7 +323,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 description,
                 license,
                 logoUrl,
-                versionMin,
                 referencedSinceTime,
                 isStillInObservation,
                 dereferencing,
@@ -350,16 +348,15 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         description,
                         license,
                         logoUrl,
-                        versionMin,
                         referencedSinceTime,
                         updateTime: now,
                         dereferencing: JSON.stringify(dereferencing),
-                        isStillInObservation, // Legacy field from SILL imported
+                        isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
                         softwareType: JSON.stringify(softwareType),
-                        workshopUrls: JSON.stringify(workshopUrls), // Legacy field from SILL imported
-                        categories: JSON.stringify(categories), // Legacy field from SILL imported
-                        generalInfoMd, // Legacy field from SILL imported
+                        workshopUrls: JSON.stringify(workshopUrls),
+                        categories: JSON.stringify(categories),
+                        generalInfoMd,
                         addedByUserId,
                         keywords: JSON.stringify(keywords)
                     })
@@ -375,7 +372,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 description,
                 license,
                 logoUrl,
-                versionMin,
                 dereferencing,
                 isStillInObservation,
                 customAttributes,
@@ -398,7 +394,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     description,
                     license,
                     logoUrl: logoUrl ?? null,
-                    versionMin,
                     dereferencing: JSON.stringify(dereferencing),
                     updateTime: now,
                     isStillInObservation: false,
@@ -439,11 +434,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             return +count;
         },
         unreference: async ({ softwareId, reason, time }) => {
-            const { versionMin } = await db
+            const row = await db
                 .selectFrom("softwares")
-                .select("versionMin")
+                .select("customAttributes")
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();
+
+            const versionMin = row.customAttributes?.versionMin;
 
             await db
                 .updateTable("softwares")

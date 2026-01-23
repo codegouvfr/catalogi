@@ -67,11 +67,10 @@ const seed = async () => {
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "MIT",
-            softwareMinimalVersion: "18.0.0",
             similarSoftwareExternalDataItems: [],
             softwareLogoUrl: "https://react.dev/favicon.ico",
             softwareKeywords: ["javascript", "ui", "frontend", "library"],
-            customAttributes: {}
+            customAttributes: { versionMin: "18.0.0" }
         },
         {
             softwareName: "Git",
@@ -83,11 +82,10 @@ const seed = async () => {
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "GPL-2.0",
-            softwareMinimalVersion: "2.0.0",
             similarSoftwareExternalDataItems: [],
             softwareLogoUrl: "https://git-scm.com/images/logos/downloads/Git-Icon-1788C.png",
             softwareKeywords: ["vcs", "version control", "git", "scm"],
-            customAttributes: {}
+            customAttributes: { versionMin: "2.0.0" }
         },
         {
             softwareName: "OpenOffice",
@@ -100,11 +98,10 @@ const seed = async () => {
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "Apache-2.0",
-            softwareMinimalVersion: "4.1.0",
             similarSoftwareExternalDataItems: [],
             softwareLogoUrl: "https://www.openoffice.org/images/AOO_logos/AOO_Logo_FullColor.svg",
             softwareKeywords: ["office", "suite", "word", "spreadsheet", "presentation"],
-            customAttributes: {}
+            customAttributes: { versionMin: "4.1.0" }
         },
         {
             softwareName: "VLC media player",
@@ -116,11 +113,10 @@ const seed = async () => {
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "GPL-2.0",
-            softwareMinimalVersion: "3.0.0",
             similarSoftwareExternalDataItems: [],
             softwareLogoUrl: "https://www.videolan.org/images/favicon.png",
             softwareKeywords: ["media", "player", "video", "audio", "vlc"],
-            customAttributes: {}
+            customAttributes: { versionMin: "3.0.0" }
         },
         {
             softwareName: "GIMP",
@@ -132,11 +128,10 @@ const seed = async () => {
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "GPL-3.0",
-            softwareMinimalVersion: "2.10.0",
             similarSoftwareExternalDataItems: [],
             softwareLogoUrl: "https://www.gimp.org/images/wilber-big.png",
             softwareKeywords: ["image", "editor", "graphics", "gimp"],
-            customAttributes: {}
+            customAttributes: { versionMin: "2.10.0" }
         },
         {
             softwareName: "Onyxia",
@@ -148,12 +143,11 @@ const seed = async () => {
             externalIdForSource: "Q110492908",
             sourceSlug: "wikidata",
             softwareLicense: "MIT",
-            softwareMinimalVersion: "0.26.25",
             similarSoftwareExternalDataItems: [],
             softwareLogoUrl:
                 "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/Onyxia.svg/250px-Onyxia.svg.png",
             softwareKeywords: ["hébergement", "hosting", "plateforme", "platform", "cloud", "nuage"],
-            customAttributes: {}
+            customAttributes: { versionMin: "0.26.25" }
         }
     ];
 

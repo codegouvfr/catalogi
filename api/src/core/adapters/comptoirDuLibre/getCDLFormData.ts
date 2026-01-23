@@ -26,7 +26,6 @@ const formatCDLSoftwareToExternalData = async (
         externalIdForSource: comptoirSoftware.id.toString(),
         sourceSlug: source.slug,
         softwareLicense: comptoirSoftware.licence,
-        softwareMinimalVersion: undefined,
         similarSoftwareExternalDataItems: [],
         softwareLogoUrl: logoUrl,
         softwareKeywords: keywords,

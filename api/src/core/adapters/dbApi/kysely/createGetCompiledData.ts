@@ -72,7 +72,6 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             "s.referencedSinceTime",
             "s.softwareType",
             "s.updateTime",
-            "s.versionMin",
             "s.workshopUrls",
             ({ fn }) => fn.jsonAgg("similarExt").distinct().as("similarExternalSoftwares"),
             ({ fn }) => fn.jsonAgg("software_users").distinct().as("users"),

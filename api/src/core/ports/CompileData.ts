@@ -37,7 +37,6 @@ export namespace CompiledData {
             | "isStillInObservation"
             | "license"
             | "softwareType"
-            | "versionMin"
             | "workshopUrls"
             | "categories"
             | "generalInfoMd"
@@ -103,7 +102,6 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             softwareType,
             latestVersion,
             updateTime,
-            versionMin,
             workshopUrls,
             softwareExternalData,
             similarExternalSoftwares,
@@ -127,7 +125,6 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             softwareType,
             latestVersion,
             updateTime,
-            versionMin,
             workshopUrls,
             softwareExternalData,
             similarExternalSoftwares,

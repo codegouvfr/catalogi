@@ -28,7 +28,6 @@ export type Props = {
     softwareDateCurrentVersion?: number;
     softwareDescription: string;
     registerDate?: number;
-    minimalVersionRequired?: string;
     license?: string;
     serviceProviders: ApiTypes.Organization[];
     supportedPlatforms: SupportedPlatforms;
@@ -56,8 +55,7 @@ export const PreviewTab = (props: Props) => {
         applicationCategories,
         softwareType,
         identifiers,
-        officialWebsiteUrl,
-        minimalVersionRequired
+        officialWebsiteUrl
     } = props;
     const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main")!;
 
@@ -158,33 +156,6 @@ export const PreviewTab = (props: Props) => {
                                         {t("previewTab.register")}
                                     </span>
                                     {capitalize(monthDate({ time: registerDate, lang }))}
-                                </p>
-                            )}
-
-                        {uiConfig?.softwareDetails.details.fields
-                            .minimalVersionRequired &&
-                            minimalVersionRequired && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.minimal version")}
-                                    </span>
-                                    <span
-                                        className={cx(
-                                            fr.cx(
-                                                "fr-badge",
-                                                "fr-badge--yellow-tournesol",
-                                                "fr-badge--sm"
-                                            ),
-                                            classes.badgeVersion
-                                        )}
-                                    >
-                                        {minimalVersionRequired}
-                                    </span>
                                 </p>
                             )}
 

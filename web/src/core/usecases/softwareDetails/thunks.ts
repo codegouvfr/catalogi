@@ -186,7 +186,6 @@ function apiSoftwareToSoftware(params: {
         customAttributes,
         similarSoftwares: similarSoftwares_api,
         license,
-        versionMin,
         softwareType,
         userAndReferentCountByOrganization,
         serviceProviders,
@@ -266,7 +265,6 @@ function apiSoftwareToSoftware(params: {
                 softwareType.type === "desktop/mobile" &&
                 (softwareType.os.android || softwareType.os.ios)
         },
-        versionMin,
         programmingLanguages,
         keywords,
         applicationCategories,

@@ -39,7 +39,6 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
             name: "Test Software",
             description: "Description",
             license: "MIT",
-            versionMin: "1.0.0",
             referencedSinceTime: new Date(),
             updateTime: new Date(),
             isStillInObservation: false,

@@ -132,7 +132,6 @@ type DataFromSofwareRow = Pick<
     | "addedTime"
     | "logoUrl"
     | "applicationCategories"
-    | "versionMin"
     | "license"
     | "keywords"
     | "softwareType"
@@ -152,7 +151,6 @@ const formatSoftwareRowToUISoftware = (
         addedTime: software.referencedSinceTime.getTime(),
         logoUrl: software.logoUrl,
         applicationCategories: software.categories,
-        versionMin: software.versionMin,
         license: software.license,
         keywords: software.keywords,
         softwareType: software.softwareType,

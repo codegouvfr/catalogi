@@ -36,7 +36,6 @@ const softwareFormData: SoftwareFormData = {
     softwareKeywords: ["bob", "l'éponge"],
     softwareLicense: "MIT",
     softwareLogoUrl: "https://soft-logo-url.com/logo.png",
-    softwareMinimalVersion: "",
     softwareName: "",
     softwareType: {
         type: "desktop/mobile",
@@ -256,8 +255,7 @@ describe("pgDbApi", () => {
                         userCount: 1,
                         referentCount: 0
                     }
-                },
-                versionMin: ""
+                }
             });
 
             console.log("getting all sill software external ids");

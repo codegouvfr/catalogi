@@ -58,7 +58,6 @@ export const thunks = {
                             softwareDescription,
                             softwareLicense,
                             softwareLogoUrl,
-                            softwareMinimalVersion,
                             softwareName
                         } = await dispatch(thunks.getAutofillData({ externalId }));
 
@@ -68,7 +67,6 @@ export const thunks = {
                                 softwareName: softwareName ?? "",
                                 softwareDescription: softwareDescription ?? "",
                                 softwareLicense: softwareLicense ?? "",
-                                softwareMinimalVersion: softwareMinimalVersion ?? "",
                                 softwareLogoUrl,
                                 softwareKeywords: keywords
                             })
@@ -96,7 +94,6 @@ export const thunks = {
                                         externalId: software.externalId,
                                         softwareDescription: software.softwareDescription,
                                         softwareLicense: software.license,
-                                        softwareMinimalVersion: software.versionMin,
                                         softwareName: software.softwareName,
                                         softwareLogoUrl: software.logoUrl,
                                         softwareKeywords: software.keywords
@@ -210,7 +207,7 @@ export const thunks = {
                 softwareName: step2.softwareName,
                 softwareDescription: step2.softwareDescription,
                 softwareLicense: step2.softwareLicense,
-                softwareMinimalVersion: step2.softwareMinimalVersion ?? "",
+
                 customAttributes: step3,
                 similarSoftwareExternalDataItems: formDataStep4.similarSoftwares.map(
                     ({

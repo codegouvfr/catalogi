@@ -38,7 +38,6 @@ const craSoftwareFormData = {
     softwareName: "Create react app",
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
-    softwareMinimalVersion: "1.0.0",
     similarSoftwareExternalDataItems: [viteOption],
     softwareLogoUrl: "https://example.com/logo.png",
     softwareKeywords: ["Productivity", "Task", "Management"],
@@ -112,7 +111,6 @@ describe("Create software - Trying all the cases", () => {
             "softwareType": {
                 "type": "stack"
             },
-            "versionMin": "1.0.0",
             "workshopUrls": [],
             "customAttributes": {
                 "isFromFrenchPublicService": true,

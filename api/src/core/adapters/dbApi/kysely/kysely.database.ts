@@ -201,7 +201,6 @@ type SoftwaresTable = {
     customAttributes: JSONColumnType<Record<string, any>> | null;
     license: string;
     softwareType: JSONColumnType<SoftwareType>;
-    versionMin: string | null;
     workshopUrls: JSONColumnType<string[]>;
     categories: JSONColumnType<string[]>;
     generalInfoMd: string | null;

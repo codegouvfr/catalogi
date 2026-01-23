@@ -115,15 +115,21 @@ const CustomAttributeDetail = ({
                         <p className={cx(fr.cx("fr-text--md"), classes.label)}>
                             {label}
                             {inlineValue && (
-                                <span
-                                    className={cx(
-                                        fr.cx("fr-text--sm"),
-                                        classes.inlineValue
-                                    )}
-                                >
+                                <>
                                     {" : "}
-                                    {inlineValue}
-                                </span>
+                                    <span
+                                        className={cx(
+                                            fr.cx(
+                                                "fr-badge",
+                                                "fr-badge--yellow-tournesol",
+                                                "fr-badge--sm"
+                                            ),
+                                            classes.badgeValue
+                                        )}
+                                    >
+                                        {inlineValue}
+                                    </span>
+                                </>
                             )}
                         </p>
                     </>
@@ -163,6 +169,9 @@ const useStyles = tss.withName({ CustomAttributeDetail }).create({
     },
     inlineValue: {
         color: fr.colors.decisions.text.default.grey.default
+    },
+    badgeValue: {
+        ...fr.spacing("margin", { left: "2v" })
     },
     valueRow: {
         ...fr.spacing("padding", {

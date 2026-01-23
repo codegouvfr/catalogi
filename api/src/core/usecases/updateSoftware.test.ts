@@ -29,7 +29,6 @@ const craSoftwareFormData = {
     softwareName: "Create react app",
     softwareDescription: "To create React apps.",
     softwareLicense: "MIT",
-    softwareMinimalVersion: "1.0.0",
     similarSoftwareExternalDataItems: [
         {
             externalId: "Q111590996" /* viteJS */,
@@ -98,7 +97,6 @@ describe("Create software, than updates it adding a similar software", () => {
             "softwareType": {
                 "type": "stack"
             },
-            "versionMin": "1.0.0",
             "workshopUrls": [],
             "customAttributes": {
                 "isPresentInSupportContract": true,

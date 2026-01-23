@@ -56,7 +56,6 @@ export namespace State {
               }
             | undefined;
         addedTime: number;
-        versionMin: string | undefined;
         license: string;
         dereferencing:
             | {

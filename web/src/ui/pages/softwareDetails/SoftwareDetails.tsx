@@ -130,7 +130,6 @@ export default function SoftwareDetails(props: Props) {
                                         license={software.license}
                                         supportedPlatforms={software.supportedPlatforms}
                                         customAttributes={software.customAttributes}
-                                        minimalVersionRequired={software.versionMin}
                                         registerDate={software.addedTime}
                                         softwareDateCurrentVersion={
                                             software.latestVersion?.publicationTime

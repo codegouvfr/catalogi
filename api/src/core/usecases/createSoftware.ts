@@ -16,7 +16,6 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
     description: softwareForm.softwareDescription,
     license: softwareForm.softwareLicense,
     logoUrl: softwareForm.softwareLogoUrl,
-    versionMin: softwareForm.softwareMinimalVersion,
     referencedSinceTime: new Date(),
     dereferencing: undefined,
     isStillInObservation: false,

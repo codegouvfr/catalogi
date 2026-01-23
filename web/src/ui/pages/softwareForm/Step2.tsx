@@ -66,7 +66,6 @@ export function SoftwareFormStep2(props: Step2Props) {
         softwareName: string;
         softwareDescription: string;
         softwareLicense: string;
-        softwareMinimalVersion: string;
         softwareLogoUrl: string;
         keywordsInputValue: string;
     }>({
@@ -127,7 +126,6 @@ export function SoftwareFormStep2(props: Step2Props) {
                     softwareName,
                     softwareDescription,
                     softwareLicense,
-                    softwareMinimalVersion,
                     softwareLogoUrl
                 } = await getAutofillDataFromWikidata({
                     externalId: wikiDataEntry.externalId
@@ -152,10 +150,6 @@ export function SoftwareFormStep2(props: Step2Props) {
 
                 if (softwareLicense !== undefined) {
                     setValue("softwareLicense", softwareLicense);
-                }
-
-                if (softwareMinimalVersion !== undefined) {
-                    setValue("softwareMinimalVersion", softwareMinimalVersion);
                 }
 
                 if (softwareName !== undefined) {
@@ -376,29 +370,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                     />
                 )}
             />
-            <CircularProgressWrapper
-                isInProgress={isAutocompleteInProgress}
-                renderChildren={({ style }) => (
-                    <Input
-                        disabled={isAutocompleteInProgress}
-                        style={{
-                            ...style,
-                            marginTop: fr.spacing("4v")
-                        }}
-                        label={t("softwareFormStep2.minimal version")}
-                        hintText={t("softwareFormStep2.minimal version hint")}
-                        nativeInputProps={{
-                            ...register("softwareMinimalVersion", { required: false })
-                        }}
-                        state={
-                            errors.softwareMinimalVersion !== undefined
-                                ? "error"
-                                : undefined
-                        }
-                        stateRelatedMessage={t("app.required")}
-                    />
-                )}
-            />
+
             <Input
                 disabled={isAutocompleteInProgress}
                 style={{

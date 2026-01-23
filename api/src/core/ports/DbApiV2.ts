@@ -28,7 +28,6 @@ export type SoftwareExtrinsicRow = Pick<
     | "description"
     | "license"
     | "logoUrl"
-    | "versionMin"
     | "dereferencing"
     | "isStillInObservation"
     | "customAttributes"

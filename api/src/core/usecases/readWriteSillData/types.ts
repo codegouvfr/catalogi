@@ -59,7 +59,6 @@ export type Software = {
     officialWebsiteUrl: string | undefined;
     codeRepositoryUrl: string | undefined;
     documentationUrl: string | undefined;
-    versionMin: string | undefined;
     license: string;
     externalId: string | undefined;
     sourceSlug: string | undefined;
@@ -145,7 +144,6 @@ export type SoftwareFormData = {
     externalIdForSource: string | undefined;
     sourceSlug: string;
     softwareLicense: string;
-    softwareMinimalVersion: string | undefined;
     similarSoftwareExternalDataItems: SoftwareExternalDataOption[];
     softwareLogoUrl: string | undefined;
     softwareKeywords: string[];
