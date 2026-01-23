@@ -48,9 +48,9 @@ export default function DeclarationForm(props: Props) {
     );
 
     useEffect(() => {
-        declarationForm.initialize({ softwareName: route.params.name });
+        declarationForm.initialize({ softwareId: route.params.id });
         return () => declarationForm.clear();
-    }, []);
+    }, [route.params.id]);
 
     useEffect(() => {
         const { declarationType } = route.params;
@@ -157,7 +157,7 @@ export default function DeclarationForm(props: Props) {
                             )}
                             seeUserAndReferent={
                                 routes.softwareUsersAndReferents({
-                                    name: software.softwareName
+                                    id: software.softwareId
                                 }).link
                             }
                             referentCount={software.referentCount}

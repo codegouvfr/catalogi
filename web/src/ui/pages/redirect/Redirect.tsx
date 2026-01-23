@@ -27,6 +27,14 @@ export default function Redirect(props: Props) {
         Object.entries(softwareNameBySillId).map(([id, name]) => [name, parseInt(id)])
     );
 
+    const getSoftwareIdByNameOrRedirect404 = (name: string): number | undefined => {
+        const softwareId = sillIdBySoftwareName[name];
+        if (softwareId === undefined) {
+            routes.page404().replace();
+        }
+        return softwareId;
+    };
+
     useEffect(() => {
         switch (route.name) {
             case "ogSill":
@@ -71,30 +79,64 @@ export default function Redirect(props: Props) {
                 break;
             case "onyxiaUiSillCard":
                 {
-                    const { name } = route.params;
-
-                    const softwareId = sillIdBySoftwareName[name];
-
-                    if (softwareId === undefined) {
-                        routes.page404().replace();
-                        return;
-                    }
+                    const softwareId = getSoftwareIdByNameOrRedirect404(
+                        route.params.name
+                    );
+                    if (softwareId === undefined) return;
 
                     routes.softwareDetails({ id: softwareId }).replace();
                 }
                 break;
             case "softwareDetailsByName":
                 {
-                    const { name } = route.params;
-
-                    const softwareId = sillIdBySoftwareName[name];
-
-                    if (softwareId === undefined) {
-                        routes.page404().replace();
-                        return;
-                    }
+                    const softwareId = getSoftwareIdByNameOrRedirect404(
+                        route.params.name
+                    );
+                    if (softwareId === undefined) return;
 
                     routes.softwareDetails({ id: softwareId }).replace();
+                }
+                break;
+            case "softwareUsersAndReferentsByName":
+                {
+                    const softwareId = getSoftwareIdByNameOrRedirect404(
+                        route.params.name
+                    );
+                    if (softwareId === undefined) return;
+
+                    routes.softwareUsersAndReferents({ id: softwareId }).replace();
+                }
+                break;
+            case "declarationFormByName":
+                {
+                    const { declarationType } = route.params;
+
+                    const softwareId = getSoftwareIdByNameOrRedirect404(
+                        route.params.name
+                    );
+                    if (softwareId === undefined) return;
+
+                    routes.declarationForm({ id: softwareId, declarationType }).replace();
+                }
+                break;
+            case "softwareUpdateFormByName":
+                {
+                    const softwareId = getSoftwareIdByNameOrRedirect404(
+                        route.params.name
+                    );
+                    if (softwareId === undefined) return;
+
+                    routes.softwareUpdateForm({ id: softwareId }).replace();
+                }
+                break;
+            case "instanceCreationFormBySoftwareName":
+                {
+                    const softwareId = getSoftwareIdByNameOrRedirect404(
+                        route.params.softwareName
+                    );
+                    if (softwareId === undefined) return;
+
+                    routes.instanceCreationForm({ softwareId }).replace();
                 }
                 break;
         }

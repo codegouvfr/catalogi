@@ -10,10 +10,7 @@ export const routeDefs = {
         { externalId: param.query.optional.string },
         () => appPath + "/add"
     ),
-    softwareUpdateForm: defineRoute(
-        { name: param.query.string },
-        () => appPath + "/update"
-    )
+    softwareUpdateForm: defineRoute({ id: param.query.number }, () => appPath + "/update")
 };
 
 export const routeGroup = createGroup(Object.values(createRouter(routeDefs).routes));

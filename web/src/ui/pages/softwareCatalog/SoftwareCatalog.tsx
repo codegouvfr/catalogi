@@ -153,8 +153,8 @@ export default function SoftwareCatalog(props: Props) {
                     /* prettier-ignore */
                     {
                         "softwareDetails": routes.softwareDetails({ "id": id }).link,
-                        "declareUsageForm": routes.declarationForm({ "name": softwareName }).link,
-                        "softwareUsersAndReferents": routes.softwareUsersAndReferents({ "name": softwareName }).link
+                        "declareUsageForm": routes.declarationForm({ "id": id }).link,
+                        "softwareUsersAndReferents": routes.softwareUsersAndReferents({ "id": id }).link
                     }
                 ])
             ),

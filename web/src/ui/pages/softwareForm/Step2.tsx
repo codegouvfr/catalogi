@@ -253,7 +253,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                                         ),
                                         exampleUrl: (
                                             <a
-                                                href="https://code.gouv.fr/sill/detail?name=Keycloakify"
+                                                href="https://code.gouv.fr/sill/detail?id=243"
                                                 target="_blank"
                                                 rel="noreferrer"
                                             >

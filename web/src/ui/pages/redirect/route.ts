@@ -2,7 +2,15 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { createGroup, defineRoute, createRouter, param, type Route } from "type-route";
+import {
+    createGroup,
+    defineRoute,
+    createRouter,
+    param,
+    type Route,
+    noMatch
+} from "type-route";
+import { z } from "zod";
 import { appPath } from "urls";
 
 export const routeDefs = {
@@ -31,6 +39,42 @@ export const routeDefs = {
             name: param.query.string
         },
         () => appPath + `/detail`
+    ),
+    softwareUsersAndReferentsByName: defineRoute(
+        {
+            name: param.query.string
+        },
+        () => appPath + `/users-and-referents`
+    ),
+    declarationFormByName: defineRoute(
+        {
+            name: param.query.string,
+            declarationType: param.query.optional.ofType({
+                parse: raw => {
+                    const schema = z.union([z.literal("user"), z.literal("referent")]);
+
+                    try {
+                        return schema.parse(raw);
+                    } catch {
+                        return noMatch;
+                    }
+                },
+                stringify: value => value
+            })
+        },
+        () => appPath + `/declaration`
+    ),
+    softwareUpdateFormByName: defineRoute(
+        {
+            name: param.query.string
+        },
+        () => appPath + `/update`
+    ),
+    instanceCreationFormBySoftwareName: defineRoute(
+        {
+            softwareName: param.query.string
+        },
+        () => appPath + `/add-instance`
     )
 };
 

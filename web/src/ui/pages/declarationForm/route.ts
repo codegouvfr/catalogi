@@ -16,7 +16,7 @@ import { appPath } from "urls";
 export const routeDefs = {
     declarationForm: defineRoute(
         {
-            name: param.query.string,
+            id: param.query.number,
             declarationType: param.query.optional.ofType({
                 parse: raw => {
                     const schema = z.union([z.literal("user"), z.literal("referent")]);

@@ -9,9 +9,9 @@ import { name, actions, type State } from "./state";
 
 export const thunks = {
     initialize:
-        (params: { softwareName: string }) =>
+        (params: { softwareId: number }) =>
         async (...args) => {
-            const { softwareName } = params;
+            const { softwareId } = params;
 
             const [dispatch, getState, { sillApi }] = args;
 
@@ -24,6 +24,14 @@ export const thunks = {
             }
 
             dispatch(actions.initializationStarted());
+
+            const software = (await sillApi.getSoftwareList()).find(
+                software => software.id === softwareId
+            );
+
+            assert(software !== undefined);
+
+            const softwareName = software.softwareName;
 
             const { users } = await sillApi.getUsers();
 
@@ -82,14 +90,9 @@ export const thunks = {
                 }
             }
 
-            const software = (await sillApi.getSoftwareList()).find(
-                software => software.softwareName === softwareName
-            );
-
-            assert(software !== undefined);
-
             dispatch(
                 actions.initializationCompleted({
+                    softwareId,
                     softwareName,
                     logoUrl: software.logoUrl,
                     users: softwareUsers,

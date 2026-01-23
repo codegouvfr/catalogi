@@ -8,7 +8,7 @@ import { appPath } from "urls";
 export const routeDefs = {
     softwareUsersAndReferents: defineRoute(
         {
-            name: param.query.string
+            id: param.query.number
         },
         () => appPath + `/users-and-referents`
     )

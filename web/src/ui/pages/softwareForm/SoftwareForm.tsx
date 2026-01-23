@@ -59,14 +59,14 @@ export default function SoftwareForm(props: Props) {
                     case "softwareUpdateForm":
                         return {
                             scenario: "update",
-                            softwareName: route.params.name
+                            softwareId: route.params.id
                         };
                 }
             })()
         );
 
         return () => softwareForm.clear();
-    }, [route.name]);
+    }, [route.name, route.params]);
 
     const { allSoftwares } = useCoreState("softwareCatalog", "main");
 

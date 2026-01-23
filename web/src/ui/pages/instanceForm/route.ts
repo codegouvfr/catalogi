@@ -8,7 +8,7 @@ import { appPath } from "urls";
 export const routeDefs = {
     instanceCreationForm: defineRoute(
         {
-            softwareName: param.query.optional.string
+            softwareId: param.query.optional.number
         },
         () => appPath + "/add-instance"
     ),

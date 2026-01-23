@@ -54,7 +54,7 @@ export default function InstanceForm(props: Props) {
                     case "instanceCreationForm":
                         return {
                             type: "create",
-                            softwareName: route.params.softwareName
+                            softwareId: route.params.softwareId
                         };
                     case "instanceUpdateForm":
                         return {
@@ -66,7 +66,7 @@ export default function InstanceForm(props: Props) {
         );
 
         return () => instanceForm.clear();
-    }, [route.name]);
+    }, [route.name, route.params]);
 
     useEvt(
         ctx =>

@@ -8,9 +8,9 @@ import { name, actions, type State, type FormData } from "./state";
 
 export const thunks = {
     initialize:
-        (params: { softwareName: string }) =>
+        (params: { softwareId: number }) =>
         async (...args) => {
-            const { softwareName } = params;
+            const { softwareId } = params;
 
             const [dispatch, getState, { sillApi }] = args;
 
@@ -30,7 +30,7 @@ export const thunks = {
             dispatch(actions.initializationStarted());
 
             const software = (await sillApi.getSoftwareList()).find(
-                software => software.softwareName === softwareName
+                software => software.id === softwareId
             );
 
             assert(software !== undefined);
@@ -39,7 +39,7 @@ export const thunks = {
                 actions.initializationCompleted({
                     software: {
                         logoUrl: software.logoUrl,
-                        softwareName,
+                        softwareName: software.softwareName,
                         softwareId: software.id,
                         referentCount: Object.values(
                             software.userAndReferentCountByOrganization

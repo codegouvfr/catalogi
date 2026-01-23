@@ -20,7 +20,7 @@ export const thunks = {
                   }
                 | {
                       scenario: "update";
-                      softwareName: string;
+                      softwareId: number;
                   }
         ) =>
         async (...args) => {
@@ -77,18 +77,13 @@ export const thunks = {
                     break;
                 case "update":
                     {
-                        const softwareList = await sillApi.getSoftwareList();
-                        const softwareFromList = softwareList.find(
-                            s => s.softwareName === params.softwareName
-                        );
-
-                        assert(softwareFromList !== undefined);
-
                         const software = await sillApi.getSoftwareDetails({
-                            softwareId: softwareFromList.id
+                            softwareId: params.softwareId
                         });
 
                         assert(software !== undefined);
+
+                        const softwareList = await sillApi.getSoftwareList();
 
                         dispatch(
                             actions.initializedForUpdate({

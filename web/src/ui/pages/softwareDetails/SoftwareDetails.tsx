@@ -164,8 +164,7 @@ export default function SoftwareDetails(props: Props) {
                                                   instanceList={software.instances}
                                                   createInstanceLink={
                                                       routes.instanceCreationForm({
-                                                          softwareName:
-                                                              software.softwareName
+                                                          softwareId: software.softwareId
                                                       }).link
                                                   }
                                               />
@@ -226,24 +225,28 @@ export default function SoftwareDetails(props: Props) {
                                                   similarSoftwares={
                                                       software.similarSoftwares
                                                   }
-                                                  getLinks={({ softwareName }) => ({
-                                                      declarationForm:
-                                                          routes.declarationForm({
-                                                              name: softwareName
-                                                          }).link,
-                                                      softwareDetails:
-                                                          routes.softwareDetails({
-                                                              id: softwareIdByName.get(
-                                                                  softwareName
-                                                              )!
-                                                          }).link,
-                                                      softwareUsersAndReferents:
-                                                          routes.softwareUsersAndReferents(
-                                                              {
-                                                                  name: softwareName
-                                                              }
-                                                          ).link
-                                                  })}
+                                                  getLinks={({ softwareName }) => {
+                                                      const softwareId =
+                                                          softwareIdByName.get(
+                                                              softwareName
+                                                          )!;
+                                                      return {
+                                                          declarationForm:
+                                                              routes.declarationForm({
+                                                                  id: softwareId
+                                                              }).link,
+                                                          softwareDetails:
+                                                              routes.softwareDetails({
+                                                                  id: softwareId
+                                                              }).link,
+                                                          softwareUsersAndReferents:
+                                                              routes.softwareUsersAndReferents(
+                                                                  {
+                                                                      id: softwareId
+                                                                  }
+                                                              ).link
+                                                      };
+                                                  }}
                                                   getAddWikipediaSoftwareToSillLink={({
                                                       externalId
                                                   }) =>
@@ -285,7 +288,7 @@ export default function SoftwareDetails(props: Props) {
                             seeUserAndReferent={
                                 software.referentCount > 0 || software.userCount > 0
                                     ? routes.softwareUsersAndReferents({
-                                          name: software.softwareName
+                                          id: software.softwareId
                                       }).link
                                     : undefined
                             }
@@ -330,7 +333,7 @@ export default function SoftwareDetails(props: Props) {
                                 priority="secondary"
                                 linkProps={
                                     routes.softwareUpdateForm({
-                                        name: software.softwareName
+                                        id: software.softwareId
                                     }).link
                                 }
                             >
@@ -348,7 +351,7 @@ export default function SoftwareDetails(props: Props) {
                                         <Button
                                             linkProps={
                                                 routes.declarationForm({
-                                                    name: software.softwareName
+                                                    id: software.softwareId
                                                 }).link
                                             }
                                         >
@@ -379,7 +382,7 @@ export default function SoftwareDetails(props: Props) {
                                             <Button
                                                 linkProps={
                                                     routes.declarationForm({
-                                                        name: software.softwareName,
+                                                        id: software.softwareId,
                                                         declarationType: "referent"
                                                     }).link
                                                 }

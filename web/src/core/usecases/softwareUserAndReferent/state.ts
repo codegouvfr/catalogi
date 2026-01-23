@@ -16,6 +16,7 @@ export namespace State {
 
     export type Ready = {
         stateDescription: "ready";
+        softwareId: number;
         softwareName: string;
         logoUrl: string | undefined;
         users: SoftwareUser[];
@@ -61,6 +62,7 @@ export const { reducer, actions } = createUsecaseActions({
                 payload
             }: {
                 payload: {
+                    softwareId: number;
                     softwareName: string;
                     logoUrl: string | undefined;
                     users: State.SoftwareUser[];
@@ -68,10 +70,11 @@ export const { reducer, actions } = createUsecaseActions({
                 };
             }
         ) => {
-            const { softwareName, logoUrl, users, referents } = payload;
+            const { softwareId, softwareName, logoUrl, users, referents } = payload;
 
             return {
                 stateDescription: "ready",
+                softwareId,
                 softwareName,
                 logoUrl,
                 users,

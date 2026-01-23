@@ -17,7 +17,7 @@ export const thunks = {
                   }
                 | {
                       type: "create";
-                      softwareName: string | undefined;
+                      softwareId: number | undefined;
                   }
         ) =>
         async (...args) => {
@@ -77,11 +77,10 @@ export const thunks = {
                     break;
                 case "create":
                     const software =
-                        params.softwareName === undefined
+                        params.softwareId === undefined
                             ? undefined
                             : softwares.find(
-                                  software =>
-                                      software.softwareName === params.softwareName
+                                  software => software.id === params.softwareId
                               );
 
                     assert(currentUser);

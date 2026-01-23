@@ -27,32 +27,24 @@ export default function SoftwareUserAndReferent(props: Props) {
 
     const { softwareUserAndReferent } = useCore().functions;
 
-    const { isReady, logoUrl, referents, users } = useCoreState(
+    const { isReady, logoUrl, referents, users, softwareId, softwareName } = useCoreState(
         "softwareUserAndReferent",
         "main"
     );
 
-    const { allSoftwares } = useCoreState("softwareCatalog", "main");
-
-    const softwareIdByName = Object.fromEntries(
-        allSoftwares.map(s => [s.softwareName, s.id])
-    );
-
     useEffect(() => {
-        softwareUserAndReferent.initialize({ softwareName: route.params.name });
+        softwareUserAndReferent.initialize({ softwareId: route.params.id });
 
         return () => {
             softwareUserAndReferent.clear();
         };
-    }, [route.params.name]);
+    }, [route.params.id]);
 
     const { classes, cx } = useStyles();
 
     const { t } = useTranslation();
 
     const [activeMenu, setActiveMenu] = useState(0);
-
-    const softwareName = route.params.name;
 
     const { getOrganizationFullName } = useGetOrganizationFullName();
 
@@ -177,9 +169,9 @@ export default function SoftwareUserAndReferent(props: Props) {
                         },
                         {
                             linkProps: routes.softwareDetails({
-                                id: softwareIdByName[softwareName]
+                                id: softwareId
                             }).link,
-                            label: route.params.name
+                            label: softwareName
                         }
                     ]}
                     currentPageLabel={t(
@@ -322,8 +314,7 @@ export default function SoftwareUserAndReferent(props: Props) {
                     iconId="fr-icon-eye-line"
                     priority="secondary"
                     className={classes.softwareDetails}
-                    {...routes.softwareDetails({ id: softwareIdByName[softwareName] })
-                        .link}
+                    {...routes.softwareDetails({ id: softwareId }).link}
                 >
                     {t("softwareUserAndReferent.softwareDetails")}
                 </Button>
@@ -331,7 +322,7 @@ export default function SoftwareUserAndReferent(props: Props) {
                     priority="primary"
                     linkProps={
                         routes.declarationForm({
-                            name: route.params.name,
+                            id: softwareId,
                             declarationType: activeMenu === 0 ? "referent" : "user"
                         }).link
                     }
