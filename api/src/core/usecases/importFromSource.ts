@@ -61,7 +61,7 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
     switch (source.kind) {
         case "HAL":
             const halAPIGateway = makeHalAPIGateway(source);
-            return (await halAPIGateway.software.getAll({ SWHFilter: true })).map(doc => doc.docid);
+            return (await halAPIGateway.software.getAllIds({ SWHFilter: true })).map(doc => doc.docid);
         case "Zenodo":
             const zenodoAPI = makeZenodoApi(source);
             return (await zenodoAPI.records.getAllSoftware()).hits.hits.map(item => item.id.toString());

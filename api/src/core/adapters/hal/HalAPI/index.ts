@@ -8,6 +8,8 @@ import { HAL } from "./types/HAL";
 
 const HAL_API_TIMEOUT = 60000;
 
+type HALID = Pick<HAL.API.Software, "docid">;
+
 export type HALAPIGateway = {
     software: {
         getById: (halDocid: string) => Promise<HAL.API.Software | undefined>;
@@ -15,6 +17,7 @@ export type HALAPIGateway = {
             queryString?: string | undefined;
             SWHFilter?: boolean | undefined;
         }) => Promise<HAL.API.Software[]>;
+        getAllIds: (params: { queryString?: string | undefined; SWHFilter?: boolean | undefined }) => Promise<HALID[]>;
         getCodemetaByUrl: (urlSoftwareDoc: string) => Promise<HAL.SoftwareApplication | undefined>;
     };
     domain: {
@@ -103,6 +106,22 @@ export const makeHalAPIGateway = (source?: Source): HALAPIGateway => {
             getAll: async (params: { queryString?: string; SWHFilter?: boolean }) => {
                 const { queryString, SWHFilter } = params;
                 let url = `https://api.archives-ouvertes.fr/search/?fq=docType_s:SOFTWARE&rows=10000&fl=${halSoftwareFieldsToReturnAsString}`;
+
+                if (queryString) {
+                    url = url + `&q=${encodeURIComponent(queryString)}`;
+                }
+
+                // Filter only software who have an swhidId to filter clean data on https://hal.science, TODO remove and set it as an option to be generic
+                if (SWHFilter) {
+                    url = url + `&fq=swhidId_s:["" TO *]`;
+                }
+
+                const json = await getHalApiRequest<HAL.API.Software>(url);
+                return json?.response?.docs ?? [];
+            },
+            getAllIds: async (params: { queryString?: string; SWHFilter?: boolean }) => {
+                const { queryString, SWHFilter } = params;
+                let url = `https://api.archives-ouvertes.fr/search/?fq=docType_s:SOFTWARE&rows=10000&fl:docid`;
 
                 if (queryString) {
                     url = url + `&q=${encodeURIComponent(queryString)}`;
