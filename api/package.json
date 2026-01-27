@@ -9,7 +9,7 @@
     "main": "dist/src/lib/index.js",
     "types": "dist/src/lib/index.d.ts",
     "scripts": {
-        "test": "dotenv -e ../.env -- vitest --watch=false --no-file-parallelism",
+        "test": "vitest --watch=false --no-file-parallelism",
         "dev": "yarn build && yarn start",
         "generate-translation-schema": "node scripts/generate-translation-schema.js",
         "build": "tsc && cp -r src/customization dist/src/",
