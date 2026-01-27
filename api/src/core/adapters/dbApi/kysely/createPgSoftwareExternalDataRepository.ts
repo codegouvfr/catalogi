@@ -6,19 +6,10 @@ import { Kysely } from "kysely";
 import { SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
 import { Database, DatabaseRowOutput } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
-import { mergeExternalData } from "./mergeExternalData";
 
 const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) => transformNullToUndefined(row);
 
 export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): SoftwareExternalDataRepository => ({
-    getSimilarSoftwareId: async ({ externalId, sourceSlug }) => {
-        return db
-            .selectFrom("softwares__similar_software_external_datas")
-            .select("softwareId")
-            .where("similarExternalId", "=", externalId)
-            .where("sourceSlug", "=", sourceSlug)
-            .execute();
-    },
     saveMany: async externalDataItems => {
         await db
             .insertInto("software_external_datas")
@@ -103,36 +94,11 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
 
         return request.execute().then(rows => rows.map(row => stripNullOrUndefinedValues(row)));
     },
-    getBySoftwareIdAndSource: async ({ softwareId, sourceSlug }) => {
-        return db
-            .selectFrom("software_external_datas")
-            .selectAll()
-            .where("softwareId", "=", softwareId)
-            .where("sourceSlug", "=", sourceSlug)
-            .executeTakeFirst()
-            .then(row => (row ? cleanDataForExternalData(row) : undefined));
-    },
     getBySoftwareId: async ({ softwareId }) => {
         return db
             .selectFrom("software_external_datas")
             .selectAll()
             .where("softwareId", "=", softwareId)
-            .execute()
-            .then(rows => rows.map(cleanDataForExternalData));
-    },
-    getIdsBySource: async ({ sourceSlug }) => {
-        return db
-            .selectFrom("software_external_datas")
-            .select("externalId")
-            .where("sourceSlug", "=", sourceSlug)
-            .execute()
-            .then(rows => rows.map(row => row.externalId));
-    },
-    getBySource: async ({ sourceSlug }) => {
-        return db
-            .selectFrom("software_external_datas")
-            .selectAll()
-            .where("sourceSlug", "=", sourceSlug)
             .execute()
             .then(rows => rows.map(cleanDataForExternalData));
     },
@@ -188,19 +154,5 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             },
             {} as Record<string, number>
         );
-    },
-    getMergedBySoftwareId: async ({ softwareId }) => {
-        const result = await db
-            .selectFrom("software_external_datas as ext")
-            .selectAll("ext")
-            .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
-            .select(["s.kind", "s.priority", "s.url", "s.slug"])
-            .where("softwareId", "=", softwareId)
-            .execute();
-        const cleanResult = result.map(row => transformNullToUndefined(row));
-
-        if (!cleanResult) return undefined;
-
-        return mergeExternalData(cleanResult);
     }
 });

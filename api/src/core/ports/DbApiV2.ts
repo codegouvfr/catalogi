@@ -63,7 +63,6 @@ export interface SoftwareRepository {
         externalId: string;
         sourceSlug: string;
     }) => Promise<number | undefined>;
-    getAllO: () => Promise<DatabaseDataType.SoftwareRow[]>;
     getBySoftwareId: (id: number) => Promise<DatabaseDataType.SoftwareRow | undefined>;
     getByName: (params: { softwareName: string }) => Promise<DatabaseDataType.SoftwareRow | undefined>;
     // Save = insert or update
@@ -79,15 +78,6 @@ export interface SoftwareRepository {
     countAddedByUser: (params: { userId: number }) => Promise<number>;
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
-    getUserAndReferentCountByOrganization: (params: { softwareId: number }) => Promise<
-        Record<
-            string,
-            {
-                userCount: number;
-                referentCount: number;
-            }
-        >
-    >;
 }
 
 export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow &
@@ -117,22 +107,12 @@ export interface SoftwareExternalDataRepository {
             externalId: string;
         }[]
     >;
-    getBySoftwareIdAndSource: (params: {
-        sourceSlug: string;
-        softwareId: number;
-    }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
     getBySoftwareId: (params: {
         softwareId: number;
     }) => Promise<DatabaseDataType.SoftwareExternalDataRow[] | undefined>;
-    getBySource: (params: { sourceSlug: string }) => Promise<DatabaseDataType.SoftwareExternalDataRow[] | undefined>;
-    getIdsBySource: (params: { sourceSlug: string }) => Promise<string[] | undefined>;
     getAll: () => Promise<DatabaseDataType.SoftwareExternalDataRow[] | undefined>;
     delete: (params: { sourceSlug: string; externalId: string }) => Promise<boolean>;
-    getSimilarSoftwareId: (params: { externalId: string; sourceSlug: string }) => Promise<{ softwareId: number }[]>;
     getOtherIdentifierIdsBySourceURL: (params: { sourceURL: string }) => Promise<Record<string, number> | undefined>;
-    getMergedBySoftwareId: (params: {
-        softwareId: number;
-    }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
 }
 
 export interface InstanceRepository {

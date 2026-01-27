@@ -300,10 +300,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 identifiers: extData?.identifiers
             };
         },
-        getAllO: async () => {
-            const rows = await db.selectFrom("softwares").selectAll().execute();
-            return rows.map(row => stripNullOrUndefinedValues(row));
-        },
         getBySoftwareId: async (softwareId: number) => {
             const row = await db.selectFrom("softwares").selectAll().where("id", "=", softwareId).executeTakeFirst();
             if (!row) return;
@@ -517,53 +513,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 sourceSlug,
                 softwareId: softwareId ?? undefined
             }));
-        },
-        getUserAndReferentCountByOrganization: async ({ softwareId }) => {
-            const softwareUserCount = await db
-                .selectFrom("software_users")
-                .innerJoin("users", "users.id", "software_users.userId")
-                .select([
-                    "users.organization",
-                    ({ fn }) => fn.countAll<string>().as("count"),
-                    sql<"userCount">`'userCount'`.as("type")
-                ])
-                .groupBy(["users.organization"])
-                .where("software_users.softwareId", "=", softwareId)
-                .execute();
-
-            const softwareReferentCount = await db
-                .selectFrom("software_referents as r")
-                .innerJoin("users as u", "u.id", "r.userId")
-                .select([
-                    "u.organization",
-                    ({ fn }) => fn.countAll<string>().as("count"),
-                    sql<"referentCount">`'referentCount'`.as("type")
-                ])
-                .groupBy(["u.organization"])
-                .where("r.softwareId", "=", softwareId)
-                .execute();
-
-            return [...softwareUserCount, ...softwareReferentCount].reduce(
-                (acc, { organization, type, count }) => {
-                    const orga = organization ?? "NO_ORGANIZATION";
-
-                    return {
-                        ...acc,
-                        [orga]: {
-                            ...defaultCount,
-                            ...acc[orga],
-                            [type]: +count
-                        }
-                    };
-                },
-                {} as Record<
-                    string,
-                    {
-                        userCount: number;
-                        referentCount: number;
-                    }
-                >
-            );
         }
     };
 };
@@ -572,8 +521,3 @@ export type UserAndReferentCountByOrganizationBySoftwareId = Record<
     string,
     Record<string, { userCount: number; referentCount: number }>
 >;
-
-const defaultCount = {
-    userCount: 0,
-    referentCount: 0
-};
