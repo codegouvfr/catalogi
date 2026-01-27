@@ -51,7 +51,10 @@ export const repoUrlToIdentifer = async (params: {
             const api = repoGitHubEndpointMaker();
             const repo = await api.repo.get({ repoUrl });
 
-            if (!repo) return;
+            if (!repo) {
+                console.warn(`repoUrlToIdentifer:: We couln't resolve repository of ${repoUrl}`);
+                return;
+            }
 
             return identifersUtils.makeRepoGitHubIdentifer({
                 repoUrl: repoUrl.toString(),
@@ -77,7 +80,7 @@ export const repoUrlToIdentifer = async (params: {
             });
 
         default:
-            console.info("This type repo is unkown or not supported.");
+            console.info("repoUrlToIdentifer:: This type repo is unkown or not supported.");
             return undefined;
     }
 };

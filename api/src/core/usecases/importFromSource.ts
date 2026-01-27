@@ -34,7 +34,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                   sub: null
               });
 
-        const getSoftwareForm = sourceGateway.softwareForm.getById;
+        console.log(`[UC:Import] Getting list of ids to import from ${source.slug}`);
         let result = [];
 
         const softwareIds =
@@ -43,6 +43,8 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                 : await resolveAllIdsAccordingToSource(source);
 
         console.info(`[UC:Import] Importing  ${softwareIds.length} software packages from ${source.slug}`);
+
+        const getSoftwareForm = sourceGateway.softwareForm.getById;
 
         for (const externalId of softwareIds) {
             const newId = await checkSoftware(dbApi, source, externalId, getSoftwareForm, userId);
@@ -53,6 +55,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
 };
 
 const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]> => {
+    console.log(`Getting from all ids from ${source.url} (${source.slug})[${source.kind}]`);
     switch (source.kind) {
         case "HAL":
             return (await halAPIGateway.software.getAll({ SWHFilter: true })).map(doc => doc.docid);

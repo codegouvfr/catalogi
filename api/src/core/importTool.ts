@@ -36,9 +36,11 @@ export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
 
     if (!botUserEmail) throw new Error("[Loader:Import] No bot agent email provided");
+    console.log("[Loader:Import] Config Loaded");
 
     const source = await dbApi.source.getByName({ name: sourceSlug });
     if (!source) throw new Error("[Loader:Import] Couldn't find the source to connect to");
+    console.debug(`[Loader:Import] Found source ${source.slug}`);
 
     const loggerTime = `[Loader:Import] Feeded database with software packages from ${source.slug}`;
 
