@@ -2068,9 +2068,11 @@
     "@types/serve-static" "*"
 
 "@types/flexsearch@^0.7.3":
-  version "0.7.6"
-  resolved "https://registry.yarnpkg.com/@types/flexsearch/-/flexsearch-0.7.6.tgz#240c11d16825c56833ec0c66eb1de3ea0e162a49"
-  integrity sha512-H5IXcRn96/gaDmo+rDl2aJuIJsob8dgOXDqf8K0t8rWZd1AFNaaspmRsElESiU+EWE33qfbFPgI0OC/B1g9FCA==
+  version "0.7.42"
+  resolved "https://registry.yarnpkg.com/@types/flexsearch/-/flexsearch-0.7.42.tgz#4c3a551f4c78db330a9a1d9e419eb8f100f80bbb"
+  integrity sha512-FdKaw3dPgcCvqU9w8SGgqx8PrxFF2EKySRhEj1nc45HNe/2cBLff3pF52C67hzeUbNhq49t7XRIIibBd41vcIg==
+  dependencies:
+    flexsearch "*"
 
 "@types/hast@^2.0.0":
   version "2.3.10"
@@ -4320,7 +4322,7 @@ flatted@^3.2.9:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.3.3.tgz#67c8fad95454a7c7abebf74bb78ee74a44023358"
   integrity sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg==
 
-flexsearch@^0.8.212:
+flexsearch@*, flexsearch@^0.8.212:
   version "0.8.212"
   resolved "https://registry.yarnpkg.com/flexsearch/-/flexsearch-0.8.212.tgz#b9509af778a991b938292e36fe0809a4ece4b940"
   integrity sha512-wSyJr1GUWoOOIISRu+X2IXiOcVfg9qqBRyCPRUdLMIGJqPzMo+jMRlvE83t14v1j0dRMEaBbER/adQjp6Du2pw==
