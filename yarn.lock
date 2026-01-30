@@ -2125,9 +2125,9 @@
     "@types/unist" "*"
 
 "@types/memoizee@^0.4.4", "@types/memoizee@^0.4.7":
-  version "0.4.11"
-  resolved "https://registry.yarnpkg.com/@types/memoizee/-/memoizee-0.4.11.tgz#da8897f0064bff3e845b5185e2a323bbd5c8d0a3"
-  integrity sha512-2gyorIBZu8GoDr9pYjROkxWWcFtHCquF7TVbN2I+/OvgZhnIGQS0vX5KJz4lXNKb8XOSfxFOSG5OLru1ESqLUg==
+  version "0.4.12"
+  resolved "https://registry.yarnpkg.com/@types/memoizee/-/memoizee-0.4.12.tgz#4e467a34a2e0c09647ac71be43bc8be3afe084a6"
+  integrity sha512-EdtpwNYNhe3kZ+4TlXj/++pvBoU0KdrAICMzgI7vjWgu9sIvvUhu9XR8Ks4L6Wh3sxpZ22wkZR7yCLAqUjnZuQ==
 
 "@types/mime@^1":
   version "1.3.5"
