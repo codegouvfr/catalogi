@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { castToSoftwareExternalData } from "../adapters/dbApi/kysely/mergeExternalData";
+import { castToSoftwareExternalData } from "../adapters/dbApi/kysely/createPgSoftwareExternalDataRepository";
 import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
 import { SoftwareFormData } from "./readWriteSillData";
 

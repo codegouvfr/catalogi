@@ -8,7 +8,8 @@ import { Db } from "../../../ports/DbApi";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
 import { stripNullOrUndefinedValues, isNotNull, transformNullToUndefined } from "./kysely.utils";
-import { castToSoftwareExternalData, mergeExternalData } from "./mergeExternalData";
+import { mergeExternalData } from "./mergeExternalData";
+import { castToSoftwareExternalData } from "./createPgSoftwareExternalDataRepository";
 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
