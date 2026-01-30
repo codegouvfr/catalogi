@@ -15,7 +15,7 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
 
-        const gitHubApi = repoGitHubEndpointMaker();
+        const gitHubApi = repoGitHubEndpointMaker({});
 
         const repoData = await gitHubApi.repo.get({ repoUrl: externalId });
         if (!repoData) throw new Error(`This GitHub url (${externalId}) provided doesn't work.`);

@@ -5,8 +5,6 @@
 import { Octokit } from "@octokit/rest";
 import { Endpoints } from "@octokit/types";
 
-import { env } from "../../../../env";
-
 export namespace GitHubAPI {
     export type Commit = Endpoints["GET /repos/{owner}/{repo}/commits/{ref}"]["response"]["data"];
     export type Repo = Endpoints["GET /repos/{owner}/{repo}"]["response"]["data"];
@@ -34,9 +32,10 @@ const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
     };
 };
 
-export const repoGitHubEndpointMaker = () => {
+export const repoGitHubEndpointMaker = (params: { githubPersonalAccessTokenForApiRateLimit?: string }) => {
+    const { githubPersonalAccessTokenForApiRateLimit } = params;
     const octokit = new Octokit({
-        auth: env.githubPersonalAccessTokenForApiRateLimit
+        auth: githubPersonalAccessTokenForApiRateLimit
     });
 
     return {
