@@ -168,7 +168,23 @@ export function createRouter(params: {
                 const data = await dbApi.software.getSoftwareIdsByDeveloper({ search: input });
                 return data;
             }),
-
+        "getSoftwareIdsByOrganisation": loggedProcedure
+            .input(
+                z
+                    .object({
+                        name: z.string().optional(),
+                        identifier: z
+                            .object({
+                                key: z.string().optional(),
+                                value: z.string()
+                            })
+                            .optional()
+                    })
+                    .optional()
+            )
+            .query(async ({ input }) => {
+                return dbApi.software.getSoftwareIdsByOrganisation({ search: input });
+            }),
         // -------------- PROTECTED PROCEDURES --------------
         "getExternalSoftwareOptions": protectedProcedure
             .input(

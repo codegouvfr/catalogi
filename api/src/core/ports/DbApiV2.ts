@@ -88,9 +88,7 @@ export interface SoftwareRepository {
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
     // Alternative index
     getSoftwareIdsByDeveloper: (params: { search?: SearchOptions }) => Promise<Record<string, number[]>>;
-    // getUserBySoftware: (params: { identifierSearch: string; identifierPropertyID?: string; }) => Promise<Record<string, number[]>>;
-    // getOrganizationsBySoftware: () => Promise<Record<string, number[]>>;
-    // getOrganizationBySoftware: () => Promise<Record<string, number[]>>;
+    getSoftwareIdsByOrganisation: (params: { search?: SearchOptions }) => Promise<Record<string, number[]>>;
 }
 
 export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow &

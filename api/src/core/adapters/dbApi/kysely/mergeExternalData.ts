@@ -25,7 +25,7 @@ export const mergeExternalData = (
 const isIdentifierInArray = (identifier: SchemaIdentifier, identifiersArray: SchemaIdentifier[]): boolean => {
     return identifiersArray.some(
         item =>
-            item.subjectOf === identifier.subjectOf &&
+            item.subjectOf?.url === identifier.subjectOf?.url &&
             item.value === identifier.value &&
             identifier.additionalType === item.additionalType
     );
@@ -66,7 +66,10 @@ export const mergePersons = (personA: SchemaPerson, personB: SchemaPerson): Sche
     };
 };
 
-export const mergePersonArrays = (personListA: SchemaPerson[] | undefined, personListB: SchemaPerson[] | undefined): SchemaPerson[] => {
+export const mergePersonArrays = (
+    personListA: SchemaPerson[] | undefined,
+    personListB: SchemaPerson[] | undefined
+): SchemaPerson[] => {
     // If both arrays are empty or undefined, return an empty array
     if (!personListA?.length && !personListB?.length) {
         return [];
@@ -83,7 +86,7 @@ export const mergePersonArrays = (personListA: SchemaPerson[] | undefined, perso
     // Create a copy of the first array to avoid modifying it directly
     const mergedArray = [...personListA];
 
-    for (const personB of personListB) {
+    personListB.forEach(personB => {
         // Check if the person already exists in the merged array
         const existingIndex = mergedArray.findIndex(personA => isSamePerson(personA, personB));
 
@@ -94,15 +97,15 @@ export const mergePersonArrays = (personListA: SchemaPerson[] | undefined, perso
             // Otherwise, add the person to the array
             mergedArray.push(personB);
         }
-    }
+    });
 
     return mergedArray;
 };
 
 /* Organization */
-const isSameOrganization = (orgA: SchemaOrganization, orgB: SchemaOrganization): boolean => {
-    if (orgA.name !== orgB.name) {
-        return false;
+export const isSameOrganization = (orgA: SchemaOrganization, orgB: SchemaOrganization): boolean => {
+    if (orgA.name === orgB.name) {
+        return true;
     }
     if (!orgA.identifiers || !orgB.identifiers) {
         return false;
@@ -110,17 +113,22 @@ const isSameOrganization = (orgA: SchemaOrganization, orgB: SchemaOrganization):
     return orgA.identifiers.some(identifierA => isIdentifierInArray(identifierA, orgB.identifiers!));
 };
 
-const mergeOrganizations = (orgA: SchemaOrganization, orgB: SchemaOrganization): SchemaOrganization => {
+export const mergeOrganizations = (orgA: SchemaOrganization, orgB: SchemaOrganization): SchemaOrganization => {
     // Merge identifiers without duplicates
-    const mergedIdentifiers = [...(orgA.identifiers || [])];
-    for (const identifierB of orgB.identifiers || []) {
+    const mergedIdentifiers = [...(orgA.identifiers ?? [])];
+    for (const identifierB of orgB.identifiers ?? []) {
         if (!isIdentifierInArray(identifierB, mergedIdentifiers)) {
             mergedIdentifiers.push(identifierB);
         }
     }
 
     // Merge parent organizations without duplicates (optional, depending on your needs)
-    const mergedParentOrganizations = [...(orgA.parentOrganizations || []), ...(orgB.parentOrganizations || [])];
+    const mergedParentOrganizations = orgA.parentOrganizations ?? [];
+    orgB.parentOrganizations?.forEach(orgParentB => {
+        if (!mergedParentOrganizations.some(item => isSameOrganization(item, orgParentB))) {
+            mergedParentOrganizations.push(orgParentB);
+        }
+    });
 
     return {
         "@type": "Organization",
