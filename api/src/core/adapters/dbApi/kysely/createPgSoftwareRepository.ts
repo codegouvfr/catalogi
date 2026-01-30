@@ -10,7 +10,7 @@ import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
-import { mergeExternalData } from "./mergeExternalData";
+import { isSamePerson, mergeExternalData, mergePersons } from "./mergeExternalData";
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
 type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; label: LocalizedString };
@@ -514,6 +514,87 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 sourceSlug,
                 softwareId: softwareId ?? undefined
             }));
+        },
+        // Alternative index
+        getSoftwareIdsByDeveloper: async ({ search }) => {
+            type ResultQ = {
+                softwareId: number | null;
+                developer: SchemaOrganization | SchemaPerson;
+            }[];
+            type ResultFunction = {
+                developer: SchemaOrganization | SchemaPerson;
+                softwareIds: number[];
+            };
+            const resultQuery = await db
+                .selectFrom("software_external_datas")
+                .select([
+                    "software_external_datas.softwareId as softwareId",
+                    sql<
+                        SchemaOrganization | SchemaPerson
+                    >`jsonb_array_elements("software_external_datas"."developers")`.as("developer")
+                ])
+                .execute();
+
+            const result: ResultFunction[] = [];
+
+            while (resultQuery.length !== 0) {
+                let personA: ResultFunction = {
+                    developer: resultQuery[0].developer,
+                    softwareIds: [Number(resultQuery[0].softwareId)]
+                };
+                resultQuery.splice(0, 1);
+
+                if (personA.developer["@type"] === "Person") {
+                    resultQuery.reduce(
+                        (
+                            acc: ResultQ,
+                            val: { softwareId: number | null; developer: SchemaOrganization | SchemaPerson },
+                            index: number
+                        ) => {
+                            if (val.developer["@type"] === "Person" && personA.developer["@type"] === "Person") {
+                                if (isSamePerson(val.developer, personA.developer)) {
+                                    personA.developer = mergePersons(personA.developer, val.developer);
+                                    personA.softwareIds.push(Number(val.softwareId));
+                                    resultQuery.splice(index, 1);
+                                }
+                                return acc;
+                            }
+                            // If Orga or not the same
+                            acc.push(val);
+                            return acc;
+                        },
+                        []
+                    );
+                }
+
+                result.push(personA);
+            }
+
+            if (search) {
+                if (search.name) {
+                    const searchCrit = search.name;
+                    result.filter(row => row.developer.name.includes(searchCrit));
+                }
+                if (search.identifier) {
+                    const searchCritValue = search.identifier.value;
+                    if (search.identifier.key) {
+                        const searchCritKey = search.identifier.key;
+                        result.filter(row =>
+                            row.developer.identifiers?.some(
+                                id =>
+                                    id.subjectOf?.additionalType?.includes(searchCritKey) &&
+                                    id.value.includes(searchCritValue)
+                            )
+                        );
+                    } else {
+                        result.filter(row => row.developer.identifiers?.some(id => id.value.includes(searchCritValue)));
+                    }
+                }
+            }
+
+            const map = new Map(result.map(row => [row.developer.name, row.softwareIds]));
+
+            return Object.fromEntries(map);
         }
     };
 };
