@@ -274,10 +274,10 @@
         "repoLastClosedIssue": "Dernier ticket fermé"
     },
     "referencedInstancesTab": {
-        "publicInstanceCount": "{{instanceCount}} $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) web $t(referencedInstancesTab.maintain, {\"count\": {{instanceCount}} }) par {{organizationCount}} $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} }) $t(referencedInstancesTab.public, {\"count\": {{organizationCount}} }",
+        "publicInstanceCount": "{{instanceCount}} $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) web $t(referencedInstancesTab.maintain, {\"count\": {{instanceCount}} }) par {{organizationCount}} $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} }) $t(referencedInstancesTab.public, {\"count\": {{organizationCount}} })",
         "privateInstanceCount": "{{instanceCount}} $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) en accès restreint $t(referencedInstancesTab.maintain, {\"count\": {{instanceCount}} }) par {{organizationCount}} $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} })",
-        "instance_one": "instance web maintenue",
-        "instance_other": "instances web maintenues",
+        "instance_one": "instance",
+        "instance_other": "instances",
         "maintain_one": "maintenue",
         "maintain_other": "maintenues",
         "organization_one": "organisation",
