@@ -10,7 +10,13 @@ import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
-import { isSamePerson, mergeExternalData, mergePersons } from "./mergeExternalData";
+import {
+    isSameOrganization,
+    isSamePerson,
+    mergeExternalData,
+    mergeOrganizations,
+    mergePersons
+} from "./mergeExternalData";
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
 type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; label: LocalizedString };
@@ -593,6 +599,96 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             }
 
             const map = new Map(result.map(row => [row.developer.name, row.softwareIds]));
+
+            return Object.fromEntries(map);
+        },
+        getSoftwareIdsByOrganisation: async ({ search }) => {
+            type OrganizationRow = {
+                organization: SchemaOrganization;
+                softwareId: number;
+            };
+
+            const test = sql<OrganizationRow>`WITH RECURSIVE FlattenedOrganizations AS (
+    -- Base case: Select the root affiliations
+    SELECT
+        jsonb_array_elements(developer->'affiliations') AS orga,
+        software_external_datas."softwareId" AS "softwareId"
+    FROM
+        software_external_datas,
+        jsonb_array_elements(software_external_datas.developers) AS developer
+        
+        UNION ALL
+
+    -- Recursive case: Select parent organizations
+    SELECT
+        jsonb_array_elements(fo.orga->'parentOrganizations') AS orga,
+        fo."softwareId"
+    FROM
+        FlattenedOrganizations AS fo
+    WHERE
+        fo.orga->'parentOrganizations' IS NOT NULL
+       
+        
+)
+
+SELECT DISTINCT
+    orga AS organization,
+    "softwareId"
+FROM
+    FlattenedOrganizations;`;
+
+            const resultQuery = await test.execute(db);
+            const resultArray = resultQuery.rows;
+
+            type ResultFunction = {
+                organization: SchemaOrganization;
+                softwareIds: number[];
+            };
+            const result: ResultFunction[] = [];
+
+            while (resultArray.length !== 0) {
+                let orgaRowA: ResultFunction = {
+                    organization: resultArray[0].organization,
+                    softwareIds: [Number(resultArray[0].softwareId)]
+                };
+                resultArray.splice(0, 1);
+
+                resultArray.forEach((val: OrganizationRow, index: number) => {
+                    if (isSameOrganization(val.organization, orgaRowA.organization)) {
+                        orgaRowA.organization = mergeOrganizations(orgaRowA.organization, val.organization);
+                        orgaRowA.softwareIds.push(Number(val.softwareId));
+                        resultArray.splice(index, 1);
+                    }
+                });
+                delete orgaRowA.organization.parentOrganizations;
+                result.push(orgaRowA);
+            }
+
+            if (search) {
+                if (search.name) {
+                    const searchCrit = search.name;
+                    result.filter(row => row.organization.name.includes(searchCrit));
+                }
+                if (search.identifier) {
+                    const searchCritValue = search.identifier.value;
+                    if (search.identifier.key) {
+                        const searchCritKey = search.identifier.key;
+                        result.filter(row =>
+                            row.organization.identifiers?.some(
+                                id =>
+                                    id.subjectOf?.additionalType?.includes(searchCritKey) &&
+                                    id.value.includes(searchCritValue)
+                            )
+                        );
+                    } else {
+                        result.filter(row =>
+                            row.organization.identifiers?.some(id => id.value.includes(searchCritValue))
+                        );
+                    }
+                }
+            }
+
+            const map = new Map(result.map(row => [row.organization.name, row.softwareIds]));
 
             return Object.fromEntries(map);
         }
