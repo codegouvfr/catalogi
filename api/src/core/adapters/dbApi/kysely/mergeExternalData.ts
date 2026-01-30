@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: MIT
 import merge from "deepmerge";
 import { DatabaseDataType, PopulatedExternalData } from "../../../ports/DbApiV2";
-import { SchemaIdentifier, SchemaOrganization } from "./kysely.database";
-import { Person } from "../../../../lib/ApiTypes";
+import { SchemaIdentifier, SchemaOrganization, SchemaPerson } from "./kysely.database";
 import { mergeArrays } from "../../../utils";
 import { SoftwareExternalData } from "../../../ports/GetSoftwareExternalData";
 
@@ -65,7 +64,7 @@ const isIdentifierInArray = (identifier: SchemaIdentifier, identifiersArray: Sch
     );
 };
 
-const isSamePerson = (personA: Person, personB: Person): boolean => {
+export const isSamePerson = (personA: SchemaPerson, personB: SchemaPerson): boolean => {
     if (personA.name.toLowerCase() === personB.name.toLowerCase()) return true;
 
     // Is email an id?
@@ -78,7 +77,7 @@ const isSamePerson = (personA: Person, personB: Person): boolean => {
 };
 
 // Function to merge two Person objects
-function mergePersons(personA: Person, personB: Person): Person {
+export const mergePersons = (personA: SchemaPerson, personB: SchemaPerson): SchemaPerson => {
     // Merge identifiers without duplicates
     const mergedIdentifiers = [...(personA.identifiers || [])];
     for (const identifierB of personB.identifiers || []) {
@@ -98,9 +97,9 @@ function mergePersons(personA: Person, personB: Person): Person {
         url: personA.url || personB.url, // Take the URL of whoever has one
         affiliations: mergedAffiliations
     };
-}
+};
 
-export const mergePersonArrays = (personListA: Person[] | undefined, personListB: Person[] | undefined): Person[] => {
+export const mergePersonArrays = (personListA: SchemaPerson[] | undefined, personListB: SchemaPerson[] | undefined): SchemaPerson[] => {
     // If both arrays are empty or undefined, return an empty array
     if (!personListA?.length && !personListB?.length) {
         return [];
