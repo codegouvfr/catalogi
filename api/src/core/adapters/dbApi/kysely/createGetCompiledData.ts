@@ -8,7 +8,7 @@ import { Db } from "../../../ports/DbApi";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
 import { stripNullOrUndefinedValues, isNotNull, transformNullToUndefined } from "./kysely.utils";
-import { mergeExternalData } from "./mergeExternalData";
+import { castToSoftwareExternalData, mergeExternalData } from "./mergeExternalData";
 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
@@ -111,7 +111,9 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         updateTime: new Date(+updateTime).getTime(),
                         referencedSinceTime: new Date(+referencedSinceTime).getTime(),
                         customAttributes,
-                        softwareExternalData: softwareExternalData ?? undefined,
+                        softwareExternalData: softwareExternalData
+                            ? castToSoftwareExternalData(softwareExternalData)
+                            : undefined,
                         latestVersion: version,
                         dereferencing: dereferencing ?? undefined,
                         serviceProviders: softwareExternalData?.providers ?? [],

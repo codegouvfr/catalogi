@@ -277,12 +277,25 @@ describe("fetches software extra data (from different providers)", () => {
                             },
                             "url": "https://www.wikidata.org/wiki/Q118629387",
                             "value": "Q118629387"
+                        },
+                        {
+                            "@type": "PropertyValue",
+                            "additionalType": "Repo",
+                            "subjectOf": {
+                                "@type": "Website",
+                                "additionalType": "GitHub",
+                                "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+                                "url": new URL("https://github.com/")
+                            },
+                            "url": "https://github.com/facebook/create-react-app",
+                            "value": "https://github.com/facebook/create-react-app",
+                            "valueReference": "63537249"
                         }
                     ],
                     softwareVersion: "5.0.1",
                     publicationTime: new Date("2022-04-12T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
-                    repoMetadata: undefined,
+                    repoMetadata: {},
                     providers: []
                 },
                 {
@@ -331,12 +344,25 @@ describe("fetches software extra data (from different providers)", () => {
                             },
                             "url": "https://www.wikidata.org/wiki/Q111590996",
                             "value": "Q111590996"
+                        },
+                        {
+                            "@type": "PropertyValue",
+                            "additionalType": "Repo",
+                            "subjectOf": {
+                                "@type": "Website",
+                                "additionalType": "GitHub",
+                                "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+                                "url": new URL("https://github.com/")
+                            },
+                            "url": "https://github.com/vitejs/vite",
+                            "value": "https://github.com/vitejs/vite",
+                            "valueReference": "257485422"
                         }
                     ],
                     softwareVersion: expect.any(String),
                     publicationTime: expect.any(Date),
                     lastDataFetchAt: expect.any(Date),
-                    repoMetadata: undefined,
+                    repoMetadata: {},
                     providers: []
                 }
             ]);
@@ -428,13 +454,26 @@ describe("fetches software extra data (from different providers)", () => {
                             },
                             "url": "https://www.wikidata.org/wiki/Q11354",
                             "value": "Q11354"
+                        },
+                        {
+                            "@type": "PropertyValue",
+                            "additionalType": "Repo",
+                            "subjectOf": {
+                                "@type": "Website",
+                                "additionalType": "GitHub",
+                                "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+                                "url": new URL("https://github.com/")
+                            },
+                            "url": "https://github.com/apache/httpd",
+                            "value": "https://github.com/apache/httpd",
+                            "valueReference": "205423"
                         }
                     ],
                     programmingLanguages: ["C"],
                     softwareVersion: "2.5.0-alpha",
                     publicationTime: new Date("2017-11-08T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
-                    repoMetadata: undefined,
+                    repoMetadata: {},
                     providers: []
                 },
                 emptyExternalDataCleaned({

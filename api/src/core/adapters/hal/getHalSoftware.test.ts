@@ -64,13 +64,7 @@ describe("HAL", () => {
                 "programmingLanguages": undefined,
                 "applicationCategories": ["Computer Science [cs]"],
                 "referencePublications": undefined,
-                "repoMetadata": {
-                    "healthCheck": {
-                        "lastClosedIssue": undefined,
-                        "lastClosedIssuePullRequest": undefined,
-                        "lastCommit": new Date(1729459216000)
-                    }
-                },
+                "repoMetadata": {},
                 "identifiers": [
                     {
                         "@type": "PropertyValue",
@@ -96,6 +90,19 @@ describe("HAL", () => {
                         "url": "https://archive.softwareheritage.org/swh:1:dir:424f2533fe51aa8a49d891f8413dd089995cc851;origin=https://hal.archives-ouvertes.fr/hal-01715545;visit=swh:1:snp:9f3237e88d818d975a63da2d5e04d9ad38b42581;anchor=swh:1:rev:8b71800feca2e28cc0f7f78d248e49244b554875;path=/",
                         "value":
                             "swh:1:dir:424f2533fe51aa8a49d891f8413dd089995cc851;origin=https://hal.archives-ouvertes.fr/hal-01715545;visit=swh:1:snp:9f3237e88d818d975a63da2d5e04d9ad38b42581;anchor=swh:1:rev:8b71800feca2e28cc0f7f78d248e49244b554875;path=/"
+                    },
+                    {
+                        "@type": "PropertyValue",
+                        "additionalType": "Repo",
+                        "subjectOf": {
+                            "@type": "Website",
+                            "additionalType": "GitHub",
+                            "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
+                            "url": new URL("https://github.com/")
+                        },
+                        "url": "https://github.com/moranegg/Battleship",
+                        "value": "https://github.com/moranegg/Battleship",
+                        "valueReference": "17635873"
                     }
                 ],
                 "publicationTime": new Date(1521545908000),
