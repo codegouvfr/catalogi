@@ -45,7 +45,7 @@ const envConfiguration = zEnvConfiguration.parse({
     "botUserEmail": process.env?.BOT_USER_EMAIL,
     "listToImport": process.env?.IMPORT_DATA_IDS?.split(","),
     "updateSkipTimingInMinutes": process.env?.UPDATE_SKIP_TIMING ? parseInt(process.env.UPDATE_SKIP_TIMING) : undefined,
-    "githubPersonalAccessTokenForApiRateLimit": process.env.GITHUB_TOKEN,
+    "githubPersonalAccessTokenForApiRateLimit": process.env?.GITHUB_TOKEN,
     "sentryDsnApi": process.env.SENTRY_DSN_API
 });
 
