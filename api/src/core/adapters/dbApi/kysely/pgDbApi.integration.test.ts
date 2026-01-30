@@ -226,6 +226,7 @@ describe("pgDbApi", () => {
                     isPresentInSupportContract: true
                 },
                 programmingLanguages: ["C++"],
+                repoMetadata: {},
                 serviceProviders: [],
                 similarSoftwares: [
                     {
