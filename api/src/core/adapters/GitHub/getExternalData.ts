@@ -27,7 +27,8 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         const repoLanguages = await gitHubApi.repo.getLanguages({ repoUrl });
         const devIds =
             repoDevs
-                ?.map(dev => dev.id)
+                ?.filter(dev => dev && dev.type === "User") // FILTER BOT
+                .map(dev => dev.id)
                 .filter(a => {
                     return a !== undefined;
                 }) ?? [];
@@ -61,9 +62,21 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
                 "@type": "Person",
                 name: dev.name ?? dev.login,
                 identifiers: [
-                    identifersUtils.makeUserGitHubIdentifer({ username: dev.name ?? dev.login, userId: dev.id })
+                    identifersUtils.makeUserGitHubIdentifer({
+                        name: dev.name ?? dev.login,
+                        userId: dev.id,
+                        url: dev.html_url
+                    }),
+                    ...(dev.twitter_username
+                        ? [identifersUtils.makeTwitterPersonIdentifer({ username: dev.twitter_username })]
+                        : []),
+                    ...(dev.gravatar_id
+                        ? [identifersUtils.makeGravatarPersonIdentifer({ gravatarId: dev.gravatar_id })]
+                        : [])
+                    // TODO Orcid when available
                 ],
-                url: dev.blog ?? undefined,
+                ...(dev.email ? { email: dev.email } : {}),
+                url: dev.blog ?? dev.html_url,
                 affiliations: dev.company
                     ? [
                           {
