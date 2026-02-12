@@ -81,6 +81,20 @@ const zenodoSource: WebSite = {
     additionalType: "Zenodo"
 };
 
+const twitterSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Twitter",
+    url: new URL("https://x.com/"),
+    additionalType: "Twitter"
+};
+
+const gravatarSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Gravatar",
+    url: new URL("https://gravatar.com/"),
+    additionalType: "Gravatar"
+};
+
 export const identifersUtils = {
     makeGenericIdentifier: (params: { value: string; url?: string | URL }): SchemaIdentifier => {
         const { value, url } = params;
@@ -213,13 +227,13 @@ export const identifersUtils = {
             ...(additionalType ? { additionalType: additionalType } : {})
         };
     },
-    makeUserGitHubIdentifer: (params: { username: string; userId: number }): SchemaIdentifier => {
-        const { username, userId } = params;
+    makeUserGitHubIdentifer: (params: { name: string; userId: number; url: string }): SchemaIdentifier => {
+        const { url, userId, name } = params;
         return {
             "@type": "PropertyValue" as const,
-            value: username,
+            value: name,
             valueReference: userId.toString(),
-            url: `https://github.com/${username}`,
+            url: url,
             subjectOf: gitHubSource,
             additionalType: "User"
         };
@@ -269,6 +283,37 @@ export const identifersUtils = {
                 additionalType: "GitLab"
             },
             additionalType: "User"
+        };
+    },
+    makeGravatarPersonIdentifer: (params: { gravatarId: string }): SchemaIdentifier => {
+        const { gravatarId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: gravatarId,
+            url: `https://www.gravatar.com/${gravatarId}`, // username or hash md5 of email address
+            subjectOf: gravatarSource,
+            additionalType: "Person"
+        };
+    },
+    makeTwitterPersonIdentifer: (params: { username: string }): SchemaIdentifier => {
+        const { username } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: username,
+            url: `https://twitter.com/${username}`,
+            subjectOf: twitterSource,
+            additionalType: "Person"
+        };
+    },
+    makeOrcidPersonIdentifer: (params: { orcidId: string; username?: string }): SchemaIdentifier => {
+        const { orcidId, username } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: orcidId,
+            url: `https://orcid.org/${orcidId}`,
+            subjectOf: orcidSource,
+            ...(username ? { name: `ID on ${username}` } : {}),
+            additionalType: "Person"
         };
     }
 };
