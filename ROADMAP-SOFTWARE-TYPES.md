@@ -1,10 +1,23 @@
 # Roadmap: Unification des types Software
 
 > Issue de suivi: https://github.com/codegouvfr/catalogi/issues/491
+> Source de vérité d'exécution: ce fichier + `docs/issue-491-plan.md` + `docs/issue-491-worklog.md` (la description GitHub sert surtout de contexte)
 
 ## Objectif
 
 Créer une architecture de types unifiée basée sur Schema.org/CodeMeta pour les données logicielles.
+
+---
+
+## Statut actuel (2026-02-13)
+
+- [x] Rebase terminé et branche stable
+- [x] Phase 0 terminée (migration `versionMin` -> `customAttributes`)
+- [x] Phase 1 terminée (nouveaux types + exports)
+- [x] Bootstrap modèle canonique unique (`Software` + variantes `internal|external|public`)
+- [ ] Phase 2+ non démarrées (mappers/normalisation + migration runtime)
+
+**Commits clés récents**: `d6f5df93`, `049deae4`, `21a99547`
 
 ---
 
@@ -37,7 +50,7 @@ Ces types existent déjà et sont réutilisés sans modification:
 | `CustomAttributes` | `attributeTypes.ts` | Attributs personnalisés |
 | `Instance` | `readWriteSillData/types.ts` | Instances de logiciel |
 
-> **Note**: Les types DB (`kysely.database.ts`) et les types domaine (`SoftwareTypes.ts`) sont volontairement séparés pour éviter les effets de bord. On redéfinit `Os` et `RuntimePlatform` dans `SoftwareTypes.ts` même s'ils existent ailleurs.
+> **Note**: L'isolation DB/domaine est partielle actuellement. Cible: finaliser la séparation via un module de types partagé neutre, tout en gardant `Os` et `RuntimePlatform` définis côté domaine.
 
 ### SoftwareData (données communes)
 
@@ -49,7 +62,7 @@ type SoftwareData = {
 
     // === Métadonnées de base (Schema.org) ===
     name: LocalizedString;                          // schema: name - requis
-    description: LocalizedString | undefined;       // schema: description - peut manquer
+    description: LocalizedString;                   // schema: description
     image: string | undefined;                      // schema: image
 
     // === URLs ===
@@ -70,7 +83,7 @@ type SoftwareData = {
     programmingLanguages: string[];                 // schema: programmingLanguage
 
     // === Plateformes ===
-    operatingSystems: Record<Os, boolean> | undefined;    // schema: operatingSystem - peut manquer
+    operatingSystems: Record<Os, boolean>;                // schema: operatingSystem
     runtimePlatforms: RuntimePlatform[];                  // cloud, mobile, desktop - [] si vide
 
     // === Acteurs ([] si vide) ===
@@ -127,6 +140,27 @@ type SoftwarePublic = SoftwareInternal & {
     instances: Instance[];
 };
 ```
+
+### Software (canonique, variabilité minimale)
+
+```typescript
+type Software = SoftwareData & {
+    variant: "internal" | "external" | "public";
+    id: number | undefined;
+    externalId: string | undefined;
+    sourceSlug: string | undefined;
+    dereferencing: Dereferencing | undefined;
+    customAttributes: CustomAttributes | undefined;
+    userAndReferentCountByOrganization: Record<string, {
+        userCount: number;
+        referentCount: number;
+    }> | undefined;
+    hasExpertReferent: boolean | undefined;
+    instances: Instance[] | undefined;
+};
+```
+
+`SoftwareInternal`, `SoftwareExternal` et `SoftwarePublic` sont conservés comme vues spécialisées du type canonique `Software`.
 
 ### SimilarSoftware (nouveau)
 
@@ -196,28 +230,51 @@ type SimilarSoftware = {
 
 ---
 
-### Phase 1: Définir les nouveaux types (sans les utiliser)
+### Phase 1: Définir les nouveaux types (sans les utiliser) ✅
 
-- [ ] **Objectif**: Ajouter les types sans casser l'existant
+- [x] **Objectif**: Ajouter les types sans casser l'existant
 
 **Tâches**:
-- [ ] Créer `api/src/core/types/SoftwareTypes.ts` avec:
-  - [ ] Types de base: `Os`, `RuntimePlatform`, `Dereferencing`
-  - [ ] `SimilarSoftware` (nouveau type)
-  - [ ] `SoftwareData` (importe types existants: `LocalizedString`, `SchemaPerson`, `SchemaOrganization`, `SchemaIdentifier`, `ScholarlyArticle`)
-  - [ ] `SoftwareInternal` (importe `CustomAttributes` existant)
-  - [ ] `SoftwareExternal`
-  - [ ] `SoftwarePublic` (référence `Instance` existant)
-- [ ] Créer `api/src/core/types/index.ts` (barrel export)
-- [ ] Exporter depuis `api/src/lib/index.ts`
-- [ ] Ne pas encore utiliser ces types (coexistence avec les anciens)
+- [x] Créer `api/src/core/types/SoftwareTypes.ts` avec:
+  - [x] Types de base: `Os`, `RuntimePlatform`, `Dereferencing`
+  - [x] `SimilarSoftware` (nouveau type)
+  - [x] `SoftwareData` (importe types existants: `LocalizedString`, `SchemaPerson`, `SchemaOrganization`, `SchemaIdentifier`, `ScholarlyArticle`)
+  - [x] `SoftwareInternal` (importe `CustomAttributes` existant)
+  - [x] `SoftwareExternal`
+  - [x] `SoftwarePublic` (référence `Instance` existant)
+- [x] Créer `api/src/core/types/index.ts` (barrel export)
+- [x] Exporter depuis `api/src/lib/index.ts`
+- [x] Coexistence maintenue avec les anciens types runtime
 
 **Fichiers impactés**:
 - `api/src/core/types/SoftwareTypes.ts` (nouveau)
 - `api/src/core/types/index.ts` (nouveau)
 - `api/src/lib/index.ts` (ajout exports)
+- `api/src/lib/ApiTypes.ts` (exports API)
 
 **Point d'arrêt**: Code compile, nouveaux types disponibles mais pas utilisés
+
+---
+
+### Phase 1.5: Bootstrap modèle canonique unique ✅
+
+- [x] **Objectif**: Introduire un seul modèle `Software` avec variabilité minimale explicite
+
+**Tâches**:
+- [x] Ajouter `SoftwareVariant` (`internal` | `external` | `public`)
+- [x] Créer `Software` canonique dans `SoftwareTypes.ts`
+- [x] Garder `SoftwareInternal`/`SoftwareExternal`/`SoftwarePublic` comme alias spécialisés
+- [x] Exposer `CanonicalSoftware` côté `ApiTypes`/`lib` sans casser l'alias legacy `Software`
+
+**Fichiers impactés**:
+- `api/src/core/types/SoftwareTypes.ts`
+- `api/src/core/types/index.ts`
+- `api/src/lib/ApiTypes.ts`
+- `api/src/lib/index.ts`
+
+**Commits**: `21a99547`
+
+**Point d'arrêt**: Typecheck OK, aucun changement de comportement runtime
 
 ---
 
@@ -226,6 +283,7 @@ type SimilarSoftware = {
 - [ ] **Objectif**: Remplacer le type des données externes
 
 **Tâches**:
+- [ ] Introduire des normaliseurs/mappers explicites `legacy <-> canonical` aux frontières (fonctions identitaires autorisées si la shape est déjà alignée)
 - [ ] Créer migration Kysely pour renommer colonnes dans `software_external_datas`:
   - [ ] `label` → `name`
   - [ ] `developers` → `authors`
@@ -254,6 +312,7 @@ type SimilarSoftware = {
 - `api/src/core/adapters/dbApi/kysely/kysely.database.ts`
 - `api/src/core/adapters/dbApi/kysely/createPgSoftwareExternalDataRepository.ts`
 - `api/src/core/adapters/dbApi/kysely/mergeExternalData.ts`
+- `api/src/core/types/` (mappers de normalisation)
 - `api/src/core/adapters/wikidata/getWikidataSoftware.ts`
 - `api/src/core/adapters/hal/getHalSoftwareExternalData.ts`
 - `api/src/core/adapters/zenodo/getZenodoExternalData.ts`
@@ -282,7 +341,6 @@ type SimilarSoftware = {
   - [ ] Retourner `SoftwareInternal` pour les données stockées
   - [ ] Retourner `SoftwarePublic` pour les endpoints API
 - [ ] Adapter les usecases:
-  - [ ] `getPopulatedSoftware.ts`
   - [ ] `createSoftware.ts`
   - [ ] `updateSoftware.ts`
 - [ ] Adapter `CompileData.ts`
@@ -294,7 +352,6 @@ type SimilarSoftware = {
 - `api/src/core/adapters/dbApi/kysely/kysely.database.ts`
 - `api/src/core/adapters/dbApi/kysely/createPgSoftwareRepository.ts`
 - `api/src/core/adapters/dbApi/kysely/createGetCompiledData.ts`
-- `api/src/core/usecases/getPopulatedSoftware.ts`
 - `api/src/core/usecases/createSoftware.ts`
 - `api/src/core/usecases/updateSoftware.ts`
 - `api/src/core/ports/CompileData.ts`
@@ -394,5 +451,6 @@ Chaque phase doit passer:
 - **versionMin**: Migré vers `customAttributes` en Phase 0
 - **softwareType**: Séparé en `operatingSystems` + `runtimePlatforms`
 - **Données calculées**: `userAndReferentCountByOrganization`, `hasExpertReferent` restent calculées (pas stockées)
-- **Isolation types DB/domaine**: Les types DB (`kysely.database.ts`) et domaine (`SoftwareTypes.ts`) sont séparés pour éviter les effets de bord lors d'éditions
+- **Isolation types DB/domaine**: Partielle actuellement (les types domaine réutilisent encore certains types de `kysely.database.ts`). Cible: module neutre partagé avant fin de Phase 3
 - **Réutilisation types Schema.org**: `SchemaPerson`, `SchemaOrganization`, `SchemaIdentifier`, `ScholarlyArticle` sont importés depuis `kysely.database.ts` (pas redéfinis)
+- **Mappers/normaliseurs**: requis uniquement aux frontières où la shape diffère; si shape identique, mapper minimal/identitaire accepté

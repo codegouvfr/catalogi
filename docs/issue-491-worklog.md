@@ -40,6 +40,19 @@ Track all implementation actions, findings, decisions, and validations for issue
 - Next:
   - Add explicit mappers between legacy `readWriteSillData` shapes and canonical `Software`.
 
+### 2026-02-13 - Roadmap sync
+- Step: align `ROADMAP-SOFTWARE-TYPES.md` with the actual branch status.
+- Changes:
+  - Added a status snapshot and marked completed phases (0, 1, 1.5).
+  - Added explicit canonical `Software` section (single model + variant specialization).
+  - Clarified mapper policy: minimal/identity mapper accepted when shapes already match.
+  - Removed stale references to deleted `getPopulatedSoftware.ts`.
+  - Updated architecture note to reflect current partial DB/domain type coupling.
+- Files:
+  - `/ROADMAP-SOFTWARE-TYPES.md`
+- Validation:
+  - Manual consistency check against commits and current source tree.
+
 ### Template for next entries
 - Date/time:
 - Step:
