@@ -59,7 +59,6 @@ export async function bootstrapCore(
     await Promise.all([
         dispatch(usecases.uiConfig.protectedThunks.initialize()),
         dispatch(usecases.sillApiVersion.protectedThunks.initialize()),
-        dispatch(usecases.externalDataOrigin.protectedThunks.initialize()),
         dispatch(usecases.source.protectedThunks.initialize()),
         dispatch(usecases.softwareCatalog.protectedThunks.initialize()),
         dispatch(usecases.generalStats.protectedThunks.initialize()),
