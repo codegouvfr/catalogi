@@ -7,40 +7,13 @@ import { DatabaseDataType, SoftwareExternalDataRepository } from "../../../ports
 import { Database, DatabaseRowOutput } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { SoftwareExternalData } from "../../../ports/GetSoftwareExternalData";
+import { toLegacySoftwareExternalData } from "../../../types/softwareExternalMappers";
 
 const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) => transformNullToUndefined(row);
 
 export const castToSoftwareExternalData = (
     externalSoftwareRow: DatabaseDataType.SoftwareExternalDataRow
-): SoftwareExternalData => {
-    if (externalSoftwareRow.repoMetadata?.healthCheck) {
-        return {
-            ...externalSoftwareRow,
-            repoMetadata: {
-                healthCheck: {
-                    ...(externalSoftwareRow.repoMetadata.healthCheck?.lastCommit
-                        ? { lastCommit: new Date(externalSoftwareRow.repoMetadata.healthCheck?.lastCommit) }
-                        : {}),
-                    ...(externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssue
-                        ? { lastClosedIssue: new Date(externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssue) }
-                        : {}),
-                    ...(externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssuePullRequest
-                        ? {
-                              lastClosedIssuePullRequest: new Date(
-                                  externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssuePullRequest
-                              )
-                          }
-                        : {})
-                }
-            }
-        };
-    }
-
-    return {
-        ...externalSoftwareRow,
-        repoMetadata: {}
-    };
-};
+): SoftwareExternalData => toLegacySoftwareExternalData(externalSoftwareRow);
 
 export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): SoftwareExternalDataRepository => ({
     saveMany: async externalDataItems => {

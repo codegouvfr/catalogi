@@ -15,7 +15,7 @@ Créer une architecture de types unifiée basée sur Schema.org/CodeMeta pour le
 - [x] Phase 0 terminée (migration `versionMin` -> `customAttributes`)
 - [x] Phase 1 terminée (nouveaux types + exports)
 - [x] Bootstrap modèle canonique unique (`Software` + variantes `internal|external|public`)
-- [ ] Phase 2+ non démarrées (mappers/normalisation + migration runtime)
+- [~] Phase 2 démarrée (normalisation externe explicite), migration DB/API non démarrée
 
 **Commits clés récents**: `d6f5df93`, `049deae4`, `21a99547`
 

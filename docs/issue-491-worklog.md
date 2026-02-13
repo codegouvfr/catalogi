@@ -53,6 +53,23 @@ Track all implementation actions, findings, decisions, and validations for issue
 - Validation:
   - Manual consistency check against commits and current source tree.
 
+### 2026-02-13 - Phase 2 kickoff (external normalization)
+- Step: start Phase 2 by centralizing external shape normalization.
+- Changes:
+  - Added explicit mapper module:
+    - `toLegacySoftwareExternalData` (legacy boundary mapper, mostly identity + date normalization)
+    - `toCanonicalSoftwareExternal` (canonical mapper with explicit defaults for missing external fields)
+  - Wired `createPgSoftwareExternalDataRepository.castToSoftwareExternalData` to the centralized mapper.
+  - Added mapper tests.
+- Files:
+  - `/api/src/core/types/softwareExternalMappers.ts`
+  - `/api/src/core/types/softwareExternalMappers.test.ts`
+  - `/api/src/core/adapters/dbApi/kysely/createPgSoftwareExternalDataRepository.ts`
+  - `/ROADMAP-SOFTWARE-TYPES.md`
+- Validation:
+  - `source ~/.nvm/nvm.sh && nvm use 22 && yarn --cwd api typecheck` ✅
+  - `source ~/.nvm/nvm.sh && nvm use 22 && yarn --cwd api test src/core/types/softwareExternalMappers.test.ts` ✅
+
 ### Template for next entries
 - Date/time:
 - Step:
