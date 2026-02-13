@@ -1499,6 +1499,9 @@
                     "type": "string",
                     "description": "Title text"
                 },
+                "devOrganizations": {
+                    "type": "string"
+                },
                 "navigation welcome": {
                     "type": "string"
                 },
