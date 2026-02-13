@@ -15,9 +15,9 @@ Créer une architecture de types unifiée basée sur Schema.org/CodeMeta pour le
 - [x] Phase 0 terminée (migration `versionMin` -> `customAttributes`)
 - [x] Phase 1 terminée (nouveaux types + exports)
 - [x] Bootstrap modèle canonique unique (`Software` + variantes `internal|external|public`)
-- [~] Phase 2 démarrée (normalisation externe explicite), migration DB/API non démarrée
+- [~] Phase 2 en cours (normalisation externe explicite + passerelle canonique source), migration DB non démarrée
 
-**Commits clés récents**: `d6f5df93`, `049deae4`, `21a99547`
+**Commits clés récents**: `049deae4`, `21a99547`, `ff5cafb6`
 
 ---
 
@@ -283,7 +283,9 @@ type SimilarSoftware = {
 - [ ] **Objectif**: Remplacer le type des données externes
 
 **Tâches**:
-- [ ] Introduire des normaliseurs/mappers explicites `legacy <-> canonical` aux frontières (fonctions identitaires autorisées si la shape est déjà alignée)
+- [x] Introduire des normaliseurs/mappers explicites `legacy <-> canonical` aux frontières (fonctions identitaires autorisées si la shape est déjà alignée)
+- [x] Exposer une passerelle canonique `softwareExternal.getById` sur tous les `SourceGateway` (compat legacy conservée via `softwareExternalData.getById`)
+- [x] Migrer `getSoftwareFormAutoFillDataFromExternalAndOtherSources.ts` vers les champs canoniques (`name`, `image`, `license`)
 - [ ] Créer migration Kysely pour renommer colonnes dans `software_external_datas`:
   - [ ] `label` → `name`
   - [ ] `developers` → `authors`

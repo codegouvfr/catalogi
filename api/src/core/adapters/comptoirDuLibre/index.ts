@@ -7,10 +7,16 @@ import { getCDLSoftwareExternalData } from "./getCDLExternalData";
 import { getCDLFormData } from "./getCDLFormData";
 import { PrimarySourceGateway } from "../../ports/SourceGateway";
 import { comptoirDuLibreApi } from "../comptoirDuLibreApi";
+import { toCanonicalSoftwareExternalGetter } from "../../types/softwareExternalMappers";
+
+const getCDLSoftwareExternal = toCanonicalSoftwareExternalGetter(getCDLSoftwareExternalData);
 
 export const comptoirDuLibreSourceGateway: PrimarySourceGateway = {
     sourceType: "ComptoirDuLibre",
     sourceProfile: "Primary",
+    softwareExternal: {
+        getById: getCDLSoftwareExternal
+    },
     softwareExternalData: {
         getById: getCDLSoftwareExternalData
     },

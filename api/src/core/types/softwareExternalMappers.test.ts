@@ -4,8 +4,12 @@
 
 import { describe, expect, it } from "vitest";
 import type { DatabaseDataType } from "../ports/DbApiV2";
-import type { SoftwareExternalData } from "../ports/GetSoftwareExternalData";
-import { toCanonicalSoftwareExternal, toLegacySoftwareExternalData } from "./softwareExternalMappers";
+import type { GetSoftwareExternalData, SoftwareExternalData } from "../ports/GetSoftwareExternalData";
+import {
+    toCanonicalSoftwareExternal,
+    toCanonicalSoftwareExternalGetter,
+    toLegacySoftwareExternalData
+} from "./softwareExternalMappers";
 
 describe("softwareExternalMappers", () => {
     it("maps legacy external data to canonical external software with explicit defaults", () => {
@@ -67,5 +71,53 @@ describe("softwareExternalMappers", () => {
         const got = toLegacySoftwareExternalData(row);
 
         expect(got.repoMetadata?.healthCheck?.lastCommit).toBeInstanceOf(Date);
+    });
+
+    it("wraps a legacy getter into a canonical getter and preserves clear", async () => {
+        const getLegacy: GetSoftwareExternalData = Object.assign(
+            async () =>
+                ({
+                    externalId: "pkg-3",
+                    sourceSlug: "zenodo",
+                    developers: [],
+                    label: { en: "Pkg 3" },
+                    description: { en: "Desc" },
+                    isLibreSoftware: undefined,
+                    logoUrl: undefined,
+                    websiteUrl: undefined,
+                    sourceUrl: undefined,
+                    documentationUrl: undefined,
+                    license: undefined,
+                    softwareVersion: undefined,
+                    keywords: undefined,
+                    programmingLanguages: undefined,
+                    applicationCategories: undefined,
+                    publicationTime: undefined,
+                    referencePublications: undefined,
+                    identifiers: undefined,
+                    providers: undefined,
+                    repoMetadata: undefined
+                }) as SoftwareExternalData,
+            {
+                clear: () => undefined
+            }
+        );
+
+        const getCanonical = toCanonicalSoftwareExternalGetter(getLegacy);
+        const result = await getCanonical({
+            externalId: "pkg-3",
+            source: {
+                slug: "zenodo",
+                kind: "Zenodo",
+                url: "https://zenodo.org/",
+                priority: 1,
+                description: {}
+            }
+        });
+
+        expect(result?.variant).toBe("external");
+        expect(result?.name).toEqual({ en: "Pkg 3" });
+        expect(result?.externalId).toBe("pkg-3");
+        expect(typeof getCanonical.clear).toBe("function");
     });
 });

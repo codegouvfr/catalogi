@@ -70,6 +70,41 @@ Track all implementation actions, findings, decisions, and validations for issue
   - `source ~/.nvm/nvm.sh && nvm use 22 && yarn --cwd api typecheck` ✅
   - `source ~/.nvm/nvm.sh && nvm use 22 && yarn --cwd api test src/core/types/softwareExternalMappers.test.ts` ✅
 
+### 2026-02-13 - Phase 2 progression (canonical source gateway + first usecase migration)
+- Step: continue Phase 2 by moving source-boundary reads to canonical `SoftwareExternal` while keeping legacy compatibility.
+- Changes:
+  - Added new canonical port `/api/src/core/ports/GetSoftwareExternal.ts`.
+  - Extended `/api/src/core/ports/SourceGateway.ts` with canonical `softwareExternal.getById` and kept `softwareExternalData.getById` as deprecated compatibility.
+  - Added `toCanonicalSoftwareExternalGetter` wrapper in `/api/src/core/types/softwareExternalMappers.ts`.
+  - Wired canonical getter across all source gateways (`hal`, `wikidata`, `zenodo`, `comptoirDuLibre`, `CNLL`, `GitHub`, `GitLab`).
+  - Migrated `/api/src/core/usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources.ts` to canonical fields (`name`, `description`, `image`, `license`).
+  - Added mapper test coverage for canonical getter wrapping behavior.
+- Files:
+  - `/api/src/core/ports/GetSoftwareExternal.ts`
+  - `/api/src/core/ports/SourceGateway.ts`
+  - `/api/src/core/types/softwareExternalMappers.ts`
+  - `/api/src/core/types/softwareExternalMappers.test.ts`
+  - `/api/src/core/adapters/hal/index.ts`
+  - `/api/src/core/adapters/wikidata/index.ts`
+  - `/api/src/core/adapters/zenodo/index.ts`
+  - `/api/src/core/adapters/comptoirDuLibre/index.ts`
+  - `/api/src/core/adapters/CNLL/index.ts`
+  - `/api/src/core/adapters/GitHub/index.ts`
+  - `/api/src/core/adapters/GitLab/index.ts`
+  - `/api/src/core/usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources.ts`
+  - `/ROADMAP-SOFTWARE-TYPES.md`
+- Validation:
+  - `source ~/.nvm/nvm.sh && nvm use 22 && yarn --cwd api typecheck` ✅
+  - `source ~/.nvm/nvm.sh && nvm use 22 && yarn --cwd api test src/core/types/softwareExternalMappers.test.ts` ✅
+- Findings:
+  - The canonical external shape is now consumable without changing existing source adapter implementations.
+- Decision:
+  - Keep dual gateway fields temporarily (`softwareExternal` canonical + `softwareExternalData` legacy) to unblock progressive migration.
+- Risks:
+  - Some usecases still depend on legacy external shape; full Phase 2 completion still requires DB/repository and remaining usecase migrations.
+- Next:
+  - Migrate `refreshExternalData.ts` and DB external repository contracts to canonical boundary objects.
+
 ### Template for next entries
 - Date/time:
 - Step:

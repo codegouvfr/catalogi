@@ -31,24 +31,14 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
 
         const mainSource = await context.dbApi.source.getMainSource();
 
-        const [softwareExternalData, comptoirDuLibre] = await Promise.all([
-            resolveAdapterFromSource(mainSource).softwareExternalData.getById({ externalId, source: mainSource }),
+        const [softwareExternal, comptoirDuLibre] = await Promise.all([
+            resolveAdapterFromSource(mainSource).softwareExternal.getById({ externalId, source: mainSource }),
             comptoirDuLibreApi.getComptoirDuLibre()
         ]);
 
-        assert(softwareExternalData !== undefined);
+        assert(softwareExternal !== undefined);
 
-        const { label: externalSoftwareLabel } = softwareExternalData;
-
-        if (externalSoftwareLabel === undefined) {
-            return {
-                keywords: [],
-                softwareDescription: undefined,
-                softwareLicense: undefined,
-                softwareLogoUrl: undefined,
-                softwareName: undefined
-            };
-        }
+        const { name: externalSoftwareName } = softwareExternal;
 
         const comptoirDuLibreSoftware = comptoirDuLibre.softwares.find(software => {
             const format = (name: string) =>
@@ -63,9 +53,7 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
                 "fallbackLanguage": "en"
             });
 
-            return format(software.name).includes(
-                format(resolveLocalizedString(externalSoftwareLabel)).substring(0, 8)
-            );
+            return format(software.name).includes(format(resolveLocalizedString(externalSoftwareName)).substring(0, 8));
         });
 
         const [comptoirDuLibreLogoUrl, comptoirDuLibreKeywords] =
@@ -82,14 +70,13 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
         });
 
         const autoFillData: AutoFillData = {
-            "softwareName":
-                externalSoftwareLabel === undefined ? undefined : resolveLocalizedString(externalSoftwareLabel),
+            "softwareName": resolveLocalizedString(externalSoftwareName),
             "softwareDescription":
-                softwareExternalData.description === undefined
+                softwareExternal.description === undefined
                     ? undefined
-                    : resolveLocalizedString(softwareExternalData.description),
-            "softwareLicense": softwareExternalData.license ?? comptoirDuLibreSoftware?.licence,
-            "softwareLogoUrl": softwareExternalData.logoUrl ?? comptoirDuLibreLogoUrl,
+                    : resolveLocalizedString(softwareExternal.description),
+            "softwareLicense": softwareExternal.license ?? comptoirDuLibreSoftware?.licence,
+            "softwareLogoUrl": softwareExternal.image ?? comptoirDuLibreLogoUrl,
             "keywords": comptoirDuLibreKeywords ?? []
         };
 

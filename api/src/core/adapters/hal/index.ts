@@ -6,10 +6,16 @@ import { getHalSoftwareOptions } from "./getHalSoftwareOptions";
 import { getHalSoftwareExternalData } from "./getHalSoftwareExternalData";
 import { getHalSoftwareForm } from "./getSoftwareForm";
 import { PrimarySourceGateway } from "../../ports/SourceGateway";
+import { toCanonicalSoftwareExternalGetter } from "../../types/softwareExternalMappers";
+
+const getHalSoftwareExternal = toCanonicalSoftwareExternalGetter(getHalSoftwareExternalData);
 
 export const halSourceGateway: PrimarySourceGateway = {
     sourceType: "HAL",
     sourceProfile: "Primary",
+    softwareExternal: {
+        getById: getHalSoftwareExternal
+    },
     softwareExternalData: {
         getById: getHalSoftwareExternalData
     },

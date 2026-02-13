@@ -6,10 +6,16 @@ import { PrimarySourceGateway } from "../../ports/SourceGateway";
 import { getWikidataForm } from "./getSoftwareForm";
 import { getWikidataSoftware } from "./getWikidataSoftware";
 import { getWikidataSoftwareOptions } from "./getWikidataSoftwareOptions";
+import { toCanonicalSoftwareExternalGetter } from "../../types/softwareExternalMappers";
+
+const getWikidataSoftwareExternal = toCanonicalSoftwareExternalGetter(getWikidataSoftware);
 
 export const wikidataSourceGateway: PrimarySourceGateway = {
     sourceType: "wikidata",
     sourceProfile: "Primary",
+    softwareExternal: {
+        getById: getWikidataSoftwareExternal
+    },
     softwareExternalData: {
         getById: getWikidataSoftware
     },

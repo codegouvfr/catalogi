@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ExternalDataOriginKind } from "../adapters/dbApi/kysely/kysely.database";
+import { GetSoftwareExternal } from "./GetSoftwareExternal";
 import { GetSoftwareExternalData } from "./GetSoftwareExternalData";
 import { GetSoftwareExternalDataOptions } from "./GetSoftwareExternalDataOptions";
 import { GetSoftwareFormData } from "./GetSoftwareFormData";
@@ -12,6 +13,8 @@ export type SoftwareLink = { externalId: string; softwareId: number; softwareNam
 export type BaseSourceGateway = {
     sourceProfile: "Primary" | "Secondary";
     sourceType: ExternalDataOriginKind;
+    softwareExternal: { getById: GetSoftwareExternal };
+    /** @deprecated Use `softwareExternal` (canonical) */
     softwareExternalData: { getById: GetSoftwareExternalData };
     discoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
 };

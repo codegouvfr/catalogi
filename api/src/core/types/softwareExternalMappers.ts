@@ -3,7 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import type { DatabaseDataType } from "../ports/DbApiV2";
+import type { GetSoftwareExternal } from "../ports/GetSoftwareExternal";
 import type { SoftwareExternalData as LegacySoftwareExternalData } from "../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternalData as GetLegacySoftwareExternalData } from "../ports/GetSoftwareExternalData";
 import type { SoftwareExternal } from "./SoftwareTypes";
 
 const emptyOperatingSystems: SoftwareExternal["operatingSystems"] = {
@@ -98,4 +100,18 @@ export const toCanonicalSoftwareExternal = (params: {
         hasExpertReferent: undefined,
         instances: undefined
     };
+};
+
+export const toCanonicalSoftwareExternalGetter = (
+    getLegacySoftwareExternalData: GetLegacySoftwareExternalData
+): GetSoftwareExternal => {
+    const getSoftwareExternal: GetSoftwareExternal = async params => {
+        const legacy = await getLegacySoftwareExternalData(params);
+        if (legacy === undefined) return undefined;
+        return toCanonicalSoftwareExternal({ legacy });
+    };
+
+    getSoftwareExternal.clear = externalId => getLegacySoftwareExternalData.clear(externalId);
+
+    return getSoftwareExternal;
 };

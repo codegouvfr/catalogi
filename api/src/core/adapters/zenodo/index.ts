@@ -6,10 +6,16 @@ import { PrimarySourceGateway } from "../../ports/SourceGateway";
 import { getZenodoExternalData } from "./getZenodoExternalData";
 import { getZenodoSoftwareFormData } from "./getZenodoSoftwareForm";
 import { getZenodoSoftwareOptions } from "./getZenodoSoftwareOptions";
+import { toCanonicalSoftwareExternalGetter } from "../../types/softwareExternalMappers";
+
+const getZenodoSoftwareExternal = toCanonicalSoftwareExternalGetter(getZenodoExternalData);
 
 export const zenodoSourceGateway: PrimarySourceGateway = {
     sourceType: "Zenodo",
     sourceProfile: "Primary",
+    softwareExternal: {
+        getById: getZenodoSoftwareExternal
+    },
     softwareExternalData: {
         getById: getZenodoExternalData
     },
