@@ -12,3 +12,5 @@ CLAUDE.md
 helm-charts/*/Chart.lock
 helm-charts/*/charts/
 docs/charts/*.tgz
+
+deploy-script-exemple.md
