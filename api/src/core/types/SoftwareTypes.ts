@@ -16,6 +16,8 @@ export type Os = "windows" | "linux" | "mac" | "android" | "ios";
 
 export type RuntimePlatform = "cloud" | "mobile" | "desktop";
 
+export type SoftwareVariant = "internal" | "external" | "public";
+
 export type Dereferencing = {
     reason: string | undefined;
     time: string;
@@ -36,7 +38,7 @@ export type SoftwareData = {
     addedTime: string;
     updateTime: string;
     name: LocalizedString;
-    description: LocalizedString | undefined;
+    description: LocalizedString;
     image: string | undefined;
     url: string | undefined;
     codeRepositoryUrl: string | undefined;
@@ -51,7 +53,7 @@ export type SoftwareData = {
     keywords: string[];
     applicationCategories: string[];
     programmingLanguages: string[];
-    operatingSystems: Record<Os, boolean> | undefined;
+    operatingSystems: Record<Os, boolean>;
     runtimePlatforms: RuntimePlatform[];
     authors: Array<SchemaPerson | SchemaOrganization>;
     providers: Array<SchemaOrganization>;
@@ -62,19 +64,48 @@ export type SoftwareData = {
     sameAs: SimilarSoftware[];
 };
 
-export type SoftwareInternal = SoftwareData & {
-    id: number;
+export type Software = SoftwareData & {
+    variant: SoftwareVariant;
+    id: number | undefined;
+    externalId: string | undefined;
+    sourceSlug: string | undefined;
     dereferencing: Dereferencing | undefined;
     customAttributes: CustomAttributes | undefined;
+    userAndReferentCountByOrganization:
+        | Record<
+              string,
+              {
+                  userCount: number;
+                  referentCount: number;
+              }
+          >
+        | undefined;
+    hasExpertReferent: boolean | undefined;
+    instances: Instance[] | undefined;
 };
 
-export type SoftwareExternal = SoftwareData & {
+export type SoftwareInternal = Software & {
+    variant: "internal";
+    id: number;
+    externalId: undefined;
+    sourceSlug: undefined;
+};
+
+export type SoftwareExternal = Software & {
+    variant: "external";
     externalId: string;
     sourceSlug: string;
     id: number | undefined;
+    dereferencing: undefined;
+    customAttributes: undefined;
+    userAndReferentCountByOrganization: undefined;
+    hasExpertReferent: undefined;
+    instances: undefined;
 };
 
-export type SoftwarePublic = SoftwareInternal & {
+export type SoftwarePublic = Software & {
+    variant: "public";
+    id: number;
     userAndReferentCountByOrganization: Record<
         string,
         {
@@ -82,6 +113,6 @@ export type SoftwarePublic = SoftwareInternal & {
             referentCount: number;
         }
     >;
-    hasExpertReferent: boolean;
+    hasExpertReferent: true | false;
     instances: Instance[];
 };

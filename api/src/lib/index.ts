@@ -19,9 +19,11 @@ export type { ApiTypes };
 export type {
     Os,
     RuntimePlatform,
+    SoftwareVariant,
     Dereferencing,
     SimilarSoftware,
     SoftwareData,
+    CanonicalSoftware,
     SoftwareInternal,
     SoftwareExternal,
     SoftwarePublic

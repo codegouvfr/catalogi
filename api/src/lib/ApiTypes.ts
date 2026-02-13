@@ -42,9 +42,11 @@ export type { UiConfig, ConfigurableUseCaseName } from "../core/uiConfigSchema";
 export type {
     Os,
     RuntimePlatform,
+    SoftwareVariant,
     Dereferencing,
     SimilarSoftware,
     SoftwareData,
+    CanonicalSoftware,
     SoftwareInternal,
     SoftwareExternal,
     SoftwarePublic

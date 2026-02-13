@@ -5,9 +5,12 @@
 export type {
     Os,
     RuntimePlatform,
+    SoftwareVariant,
     Dereferencing,
     SimilarSoftware,
     SoftwareData,
+    Software as CanonicalSoftware,
+    Software,
     SoftwareInternal,
     SoftwareExternal,
     SoftwarePublic
