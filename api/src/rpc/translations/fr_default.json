@@ -373,6 +373,7 @@
         "siteTitle": "République <br /> Française",
         "home title": "Accueil - Socle Interministériel des Logiciels Libres",
         "title": "Socle Interministériel des Logiciels Libres",
+        "devOrganizations": "Organizations développeuses",
         "navigation welcome": "Bienvenue sur le $t(common.appAccronym)",
         "navigation catalog": "Catalogue de logiciels",
         "navigation add software": "Ajouter un logiciel ou une instance ",

@@ -366,6 +366,7 @@
         "siteTitle": "République <br /> Française",
         "home title": "Home - Interministerial Free Software Catalog",
         "title": "Interministerial Free Software Catalog",
+        "devOrganizations": "Devloper Organizations",
         "navigation welcome": "Welcome to the $t(common.appAccronym)",
         "navigation catalog": "Software catalog",
         "navigation add software": "Add software or instance",
