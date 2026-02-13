@@ -30,10 +30,11 @@ export async function startUpdateService(params: {
     isDevEnvironnement: boolean;
     databaseUrl: string;
     updateSkipTimingInMinutes?: number;
+    updateSoftwareIds?: number[];
 }) {
     console.log("[RPC:Update] Starting fetching of external data on remote sources");
     console.time("[RPC:Update] Fetching of external data on remote sources: Done");
-    const { isDevEnvironnement, databaseUrl, updateSkipTimingInMinutes, ...rest } = params;
+    const { isDevEnvironnement, databaseUrl, updateSkipTimingInMinutes, updateSoftwareIds, ...rest } = params;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -48,7 +49,8 @@ export async function startUpdateService(params: {
 
     const refreshExternalData = await makeRefreshExternalDataAll({
         dbApi,
-        minuteSkipSince: updateSkipTimingInMinutes ?? 180
+        minuteSkipSince: updateSkipTimingInMinutes ?? 180,
+        softwareIdsToRefresh: updateSoftwareIds
     });
 
     await refreshExternalData();

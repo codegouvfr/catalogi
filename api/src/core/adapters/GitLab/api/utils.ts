@@ -1,5 +1,15 @@
 import type { Gitlab, ProjectSchema } from "@gitbeaker/core";
 
+const withTimeout = async <T>(params: { timeoutMs: number; promiseFactory: () => Promise<T> }): Promise<T> => {
+    const { timeoutMs, promiseFactory } = params;
+
+    const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error(`Timeout after ${timeoutMs}ms`)), timeoutMs);
+    });
+
+    return Promise.race([promiseFactory(), timeoutPromise]);
+};
+
 export const repoUrlToCleanUrl = (projectUrl: string | URL): string => {
     let url = projectUrl;
 
@@ -46,12 +56,14 @@ export const resolveExternalReferenceToProject = async (params: {
     gitLabApi: Gitlab<false>;
 }): Promise<ProjectSchema | undefined> => {
     const { externalId, gitLabApi } = params;
+    const baseUrl = gitLabApi.url;
 
     if (Number.isNaN(externalId)) {
-        return gitLabApi.Projects.show(externalId);
+        return withTimeout({
+            timeoutMs: 15_000,
+            promiseFactory: () => gitLabApi.Projects.show(externalId)
+        });
     }
-
-    const baseUrl = gitLabApi.url;
 
     const searchCriteria = externalId.includes("https://")
         ? externalId.replace(baseUrl, "")
@@ -61,7 +73,15 @@ export const resolveExternalReferenceToProject = async (params: {
 
     if (searchCriteria) {
         try {
-            const projects = await gitLabApi.Projects.all({ search: searchCriteria });
+            const projects = await withTimeout({
+                timeoutMs: 15_000,
+                promiseFactory: () =>
+                    gitLabApi.Projects.all({
+                        search: searchCriteria,
+                        maxPages: 1,
+                        perPage: 20
+                    })
+            });
 
             // Id not found
             if (projects.length === 0) return undefined;

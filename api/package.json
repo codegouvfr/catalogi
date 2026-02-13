@@ -16,7 +16,6 @@
         "start": "yarn db:up --no-outdated-check && dotenv -e ../.env -- node dist/src/entrypoints/start-api.js",
         "job:import": "dotenv -e ../.env -- node dist/src/entrypoints/import.js",
         "job:import-from-inner-identifiers": "dotenv -e ../.env -- node dist/src/entrypoints/import-from-inner-identifiers.js",
-        "job:import-cnll-sill-only": "dotenv -e ../.env -- node dist/src/entrypoints/import-cnll-sill-only-script.js",
         "job:update": "dotenv -e ../.env -- node dist/src/entrypoints/update.js",
         "update-then-wait": "./update-then-wait.sh",
         "_format": "prettier \"**/*.{ts,tsx,json,md}\"",

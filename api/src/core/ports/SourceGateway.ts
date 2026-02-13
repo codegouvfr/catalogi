@@ -7,10 +7,13 @@ import { GetSoftwareExternalData } from "./GetSoftwareExternalData";
 import { GetSoftwareExternalDataOptions } from "./GetSoftwareExternalDataOptions";
 import { GetSoftwareFormData } from "./GetSoftwareFormData";
 
+export type SoftwareLink = { externalId: string; softwareId: number; softwareName?: string };
+
 export type BaseSourceGateway = {
     sourceProfile: "Primary" | "Secondary";
     sourceType: ExternalDataOriginKind;
     softwareExternalData: { getById: GetSoftwareExternalData };
+    discoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
 };
 
 export type PrimarySourceGateway = BaseSourceGateway & {
