@@ -182,6 +182,10 @@ export type InstanceFormData = {
     isPublic: boolean;
 };
 
+export interface UIOrganization extends SchemaOrganization {
+    producer?: Array<string>;
+}
+
 /* Obselete data for Compile Data : TODO Remove that */
 
 export type ServiceProvider = {
