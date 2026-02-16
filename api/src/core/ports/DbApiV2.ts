@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { Database, DatabaseRowOutput } from "../adapters/dbApi/kysely/kysely.database";
+import type { Database, DatabaseRowOutput, SchemaPerson } from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
 import type {
     CreateUserParams,
@@ -10,6 +10,7 @@ import type {
     InstanceFormData,
     Software,
     SoftwareInList,
+    UIOrganization,
     UserWithId
 } from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
@@ -86,8 +87,8 @@ export interface SoftwareRepository {
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
     // Alternative index
-    getSoftwareIdsByDeveloper: (params: { search?: SearchOptions }) => Promise<Record<string, number[]>>;
-    getSoftwareIdsByOrganisation: (params: { search?: SearchOptions }) => Promise<Record<string, number[]>>;
+    getSoftwareIdsByDeveloper: (params: { search?: SearchOptions }) => Promise<Array<SchemaPerson | UIOrganization>>;
+    getSoftwareIdsByOrganisation: (params: { search?: SearchOptions }) => Promise<Array<UIOrganization>>;
 }
 
 export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow & {
