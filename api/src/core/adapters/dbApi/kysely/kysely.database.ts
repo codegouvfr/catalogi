@@ -43,6 +43,7 @@ export type SchemaPerson = {
     identifiers?: SchemaIdentifier[];
     url?: string;
     affiliations?: SchemaOrganization[];
+    producer?: Array<string>;
 };
 
 // from https://schema.org/WebSite
