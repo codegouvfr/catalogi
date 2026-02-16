@@ -770,9 +770,12 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 }
             }
 
-            const map = new Map(result.map(row => [row.developer.name, row.softwareIds]));
-
-            return Object.fromEntries(map);
+            return result.map(row => {
+                return {
+                    ...row.developer,
+                    producer: row.softwareIds.map(a => a.toString())
+                };
+            });
         },
         getSoftwareIdsByOrganisation: async ({ search }) => {
             type OrganizationRow = {
@@ -860,9 +863,12 @@ FROM
                 }
             }
 
-            const map = new Map(result.map(row => [row.organization.name, row.softwareIds]));
-
-            return Object.fromEntries(map);
+            return result.map(row => {
+                return {
+                    ...row.organization,
+                    producer: row.softwareIds.map(a => a.toString())
+                };
+            });
         }
     };
 };
