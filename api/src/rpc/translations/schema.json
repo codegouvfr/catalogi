@@ -702,6 +702,16 @@
                 "youAreReferent"
             ]
         },
+        "organizationCard": {
+            "type": "object",
+            "properties": {
+                "seeSoftwareDetails": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": []
+        },
         "softwareCatalogControlled": {
             "type": "object",
             "properties": {

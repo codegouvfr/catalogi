@@ -390,6 +390,9 @@
     "authorCard": {
         "affiliatedStructure": "Structures associées"
     },
+    "organizationCard": {
+        "seeSoftwareDetails": "Voir les {{count}} logiciels"
+    },
     "footer": {
         "contribute": "Contribuez"
     },
