@@ -120,6 +120,12 @@ export type SillApi = {
     unreferenceSoftware: (
         params: TrpcRouterInput["unreferenceSoftware"]
     ) => Promise<TrpcRouterOutput["unreferenceSoftware"]>;
+    getSoftwareIdsByDeveloper: (
+        params: TrpcRouterInput["getSoftwareIdsByDeveloper"]
+    ) => Promise<TrpcRouterOutput["getSoftwareIdsByDeveloper"]>;
+    getSoftwareIdsByOrganisation: (
+        params: TrpcRouterInput["getSoftwareIdsByOrganisation"]
+    ) => Promise<TrpcRouterOutput["getSoftwareIdsByOrganisation"]>;
 };
 
 //NOTE: We make sure we don't forget queries
