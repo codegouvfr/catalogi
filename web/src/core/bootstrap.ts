@@ -61,6 +61,7 @@ export async function bootstrapCore(
         dispatch(usecases.sillApiVersion.protectedThunks.initialize()),
         dispatch(usecases.source.protectedThunks.initialize()),
         dispatch(usecases.softwareCatalog.protectedThunks.initialize()),
+        dispatch(usecases.organizationList.thunks.initialize()), // move later ?
         dispatch(usecases.generalStats.protectedThunks.initialize()),
         dispatch(usecases.redirect.protectedThunks.initialize()),
         dispatch(usecases.userAuthentication.thunks.getCurrentUser())
