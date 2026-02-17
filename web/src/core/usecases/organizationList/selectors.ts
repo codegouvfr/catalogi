@@ -33,26 +33,35 @@ const error = createSelector(errorState, state => state?.error);
 
 const list = createSelector(readyState, readyState => readyState?.list);
 
-const main = createSelector(isReady, list, error, (isReady, list, error) => {
-    if (error) {
+const selected = createSelector(readyState, readyState => readyState?.selected);
+
+const main = createSelector(
+    isReady,
+    selected,
+    list,
+    error,
+    (isReady, selected, list, error) => {
+        if (error) {
+            return {
+                isReady: false as const,
+                error
+            };
+        }
+
+        if (!isReady) {
+            return {
+                isReady: false as const
+            };
+        }
+
+        assert(list !== undefined);
+
         return {
-            isReady: false as const,
-            error
+            isReady: true as const,
+            selected,
+            list
         };
     }
-
-    if (!isReady) {
-        return {
-            isReady: false as const
-        };
-    }
-
-    assert(list !== undefined);
-
-    return {
-        isReady: true as const,
-        list
-    };
-});
+);
 
 export const selectors = { main };

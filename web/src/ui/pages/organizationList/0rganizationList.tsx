@@ -6,7 +6,7 @@ import { ApiTypes } from "api";
 import { OrganizationCard } from "../../shared/OrganizationCard";
 import { OrganizationSearch } from "./OrganizationSearch";
 import type { PageRoute } from "./route";
-import { useCoreState } from "core";
+import { useCore, useCoreState } from "core";
 import { useLayoutEffect, useMemo, useRef } from "react";
 
 import { tss } from "tss-react";
@@ -47,13 +47,13 @@ export default function OrganizationList(props: Props) {
                 <div className={classes.header}>
                     <h6 className={classes.softwareCount}>
                         {t("softwareCatalogControlled.searchResults", {
-                            count: state.list?.length ?? 0
+                            count: state.list ? Object.values(state.list).length : 0
                         })}
                     </h6>
                 </div>
                 <div>
                     <RowVirtualizerDynamicWindow
-                        organizations={state.list ?? []}
+                        organizations={state.list ? Object.values(state.list) : []}
                     ></RowVirtualizerDynamicWindow>
                 </div>
             </div>
