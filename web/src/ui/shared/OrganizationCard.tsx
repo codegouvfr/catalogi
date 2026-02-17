@@ -15,6 +15,7 @@ import Markdown from "react-markdown";
 import type { Link } from "type-route";
 import { useCoreState } from "core";
 import { LogoURLButton } from "./LogoURLButton";
+import { routes } from "ui/routes";
 
 export type Props = {
     className?: string;
@@ -33,12 +34,13 @@ export const OrganizationCard = memo(({ className, organization }: Props) => {
         publicationTime: undefined
     };
 
+    const softwareDetailsLink = routes.organizationDetails({
+        key: organization.name
+    }).link;
+
     // TO GET
     const logoUrl = undefined;
     const softwareDescription = "";
-
-    // TO COMPUTE
-    const softwareDetailsLink = new URL("https://google.fr");
 
     const searchHighlight = undefined;
 

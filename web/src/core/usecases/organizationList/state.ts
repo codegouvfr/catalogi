@@ -11,9 +11,9 @@ import {
 export type State = {
     stateDescription: string;
     error: string | undefined;
-    selected: Organization | undefined; // TODO use a system of key
-    filtered: Array<Organization> | undefined; // TODO use a system of key
-    list: Array<Organization>;
+    selected: string | undefined;
+    filtered: Array<string>;
+    list: Record<string, Organization>;
 };
 
 export const name = "organizationList" as const;
@@ -22,6 +22,7 @@ export const { reducer, actions } = createUsecaseActions({
     name,
     initialState: createObjectThatThrowsIfAccessed<State>(),
     reducers: {
-        initialized: (_state, { payload }: { payload: State }) => payload
+        initialized: (_state, { payload }: { payload: State }) => payload,
+        selectOrganization: (_state, { payload }: { payload: State }) => payload
     }
 });
