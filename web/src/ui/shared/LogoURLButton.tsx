@@ -6,7 +6,20 @@ import { tss } from "tss-react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { ReactNode } from "react";
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
-import { ApiTypes } from "api";
+
+type LogoHandle =
+    | "GitLab"
+    | "HAL"
+    | "wikidata"
+    | "SWH"
+    | "Orcid"
+    | "doi"
+    | "GitHub"
+    | "ComptoirDuLibre"
+    | "FramaLibre"
+    | "CNLL"
+    | "Zenodo"
+    | "ROR";
 
 export type Props = {
     // from Button
@@ -18,7 +31,7 @@ export type Props = {
     url: URL | string | undefined;
     labelFromURL?: boolean;
     label?: string;
-    type?: ApiTypes.Catalogi.SourceKind;
+    type?: LogoHandle;
 };
 
 const resolveLogoFromURL = (
@@ -70,6 +83,10 @@ const resolveLogoFromURL = (
         return resolveLogoFromType("FramaLibre");
     }
 
+    if (urlString.includes("ror.org")) {
+        return resolveLogoFromType("ROR");
+    }
+
     return {
         URLlogo: undefined,
         textFromURL: new URL(urlString).hostname.replace("www.", "")
@@ -77,7 +94,7 @@ const resolveLogoFromURL = (
 };
 
 const resolveLogoFromType = (
-    sourceType: ApiTypes.Catalogi.SourceKind
+    sourceType: LogoHandle
 ): { URLlogo: URL | undefined; textFromURL: string | undefined } => {
     switch (sourceType) {
         case "HAL":
@@ -149,6 +166,11 @@ const resolveLogoFromType = (
             return {
                 URLlogo: new URL("https://cnll.fr/static/img/logo-cnll.svg"),
                 textFromURL: "CNLL"
+            };
+        case "ROR":
+            return {
+                URLlogo: new URL("https://ror.org/img/ror-logo.svg"),
+                textFromURL: "ROR"
             };
 
         default:
