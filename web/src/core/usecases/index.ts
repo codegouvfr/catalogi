@@ -17,6 +17,7 @@ import * as declarationRemoval from "./declarationRemoval";
 import * as userProfile from "./userProfile";
 import * as source from "./source.slice";
 import * as uiConfig from "./uiConfig.slice";
+import * as organizationList from "./organizationList";
 
 export const usecases = {
     source,
@@ -27,6 +28,7 @@ export const usecases = {
     declarationForm,
     instanceForm,
     userAccountManagement,
+    organizationList,
     sillApiVersion,
     softwareUserAndReferent,
     generalStats,

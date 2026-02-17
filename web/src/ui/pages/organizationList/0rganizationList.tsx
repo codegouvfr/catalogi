@@ -4,9 +4,7 @@
 
 import { OrganizationSearch } from "./OrganizationSearch";
 import type { PageRoute } from "./route";
-import { routes } from "ui/routes";
-import { useConst } from "powerhooks/useConst";
-import { useConstCallback } from "powerhooks/useConstCallback";
+import { useCoreState } from "core";
 
 type Props = {
     className?: string;
@@ -16,45 +14,22 @@ type Props = {
 export default function OrganizationList(props: Props) {
     const { className, route } = props;
 
-    let search: string = "";
+    let search = "";
 
     const searchRequest = (req: string) => {
         search = req;
         console.log(req);
     };
-    // Update URL
-    const { updateRouteParams } = (function useClosure() {
-        const refParams = useConst(() => ({
-            ref: id<Param0<(typeof routes)["organizationList"]>>(route.params)
-        }));
 
-        const updateRouteParams = useConstCallback(
-            (paramsToUpdate: (typeof refParams)["ref"]) => {
-                const params = { ...refParams.ref, ...paramsToUpdate };
-
-                if (params.search === "") {
-                    delete params.search;
-                }
-
-                if (params.attributeNames?.length === 0) {
-                    delete params.attributeNames;
-                }
-
-                refParams.ref = params;
-
-                return routes.organizationList(params);
-            }
-        );
-
-        return { updateRouteParams };
-    })();
+    const state = useCoreState("organizationList", "main");
+    console.log(state.list);
 
     return (
         <>
             <h1>Liste des organization développeuse</h1>
             <OrganizationSearch
                 search={search}
-                onSearchChange={updateRouteParams({ search }).replace()}
+                onSearchChange={searchRequest}
             ></OrganizationSearch>
             <div>Text Box</div>
             <div>List of orga</div>
