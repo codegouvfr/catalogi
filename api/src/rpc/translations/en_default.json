@@ -383,6 +383,9 @@
     "authorCard": {
         "affiliatedStructure": "Affiliated structures"
     },
+    "organizationCard": {
+        "seeSoftwareDetails": "See {{count}} software items"
+    },
     "footer": {
         "contribute": "Contribute"
     },
