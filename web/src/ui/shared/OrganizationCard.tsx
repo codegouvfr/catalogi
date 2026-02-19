@@ -29,7 +29,7 @@ export const OrganizationCard = memo(({ className, organization }: Props) => {
     const latestVersion = {
         semVer:
             identifiers?.[0]?.subjectOf?.additionalType === "ROR"
-                ? identifiers?.[0].value.split("/")[3]
+                ? identifiers?.[0].value
                 : undefined,
         publicationTime: undefined
     };
