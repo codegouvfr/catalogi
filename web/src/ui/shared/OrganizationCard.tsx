@@ -17,132 +17,147 @@ import { useCoreState } from "core";
 import { LogoURLButton } from "./LogoURLButton";
 import { routes } from "ui/routes";
 
+type RenderingCardOptions = {
+    showSoftwareDetailsButton?: boolean;
+};
+
 export type Props = {
     className?: string;
     organization: ApiTypes.Organization;
+    renderingOptions?: RenderingCardOptions;
 };
 
-export const OrganizationCard = memo(({ className, organization }: Props) => {
-    const { name, url, identifiers, producer } = organization;
+export const OrganizationCard = memo(
+    ({ className, organization, renderingOptions = {} }: Props) => {
+        const { name, url, identifiers, producer } = organization;
+        const { showSoftwareDetailsButton = true } = renderingOptions;
 
-    const softwareName = name;
-    const latestVersion = {
-        semVer:
-            identifiers?.[0]?.subjectOf?.additionalType === "ROR"
-                ? identifiers?.[0].value
-                : undefined,
-        publicationTime: undefined
-    };
+        const softwareName = name;
+        const latestVersion = {
+            semVer:
+                identifiers?.[0]?.subjectOf?.additionalType === "ROR"
+                    ? identifiers?.[0].value
+                    : undefined,
+            publicationTime: undefined
+        };
 
-    const softwareDetailsLink = routes.organizationDetails({
-        key: organization.name
-    }).link;
+        const softwareDetailsLink = routes.organizationDetails({
+            key: organization.name
+        }).link;
 
-    // TO GET
-    const logoUrl = undefined;
-    const softwareDescription = "";
+        // TO GET
+        const logoUrl = undefined;
+        const softwareDescription = "";
 
-    const searchHighlight = undefined;
+        const searchHighlight = undefined;
 
-    const ui = useCoreState("uiConfig", "main");
+        const ui = useCoreState("uiConfig", "main");
 
-    const { t } = useTranslation();
-    const { resolveLocalizedString } = useResolveLocalizedString();
-    const { classes, cx } = useStyles({
-        isSearchHighlighted:
-            searchHighlight !== undefined ||
-            !ui?.uiConfig.catalog.cardOptions.referentCount
-    });
-    const { fromNowText } = useFromNow({ dateTime: latestVersion?.publicationTime });
+        const { t } = useTranslation();
+        const { resolveLocalizedString } = useResolveLocalizedString();
+        const { classes, cx } = useStyles({
+            isSearchHighlighted:
+                searchHighlight !== undefined ||
+                !ui?.uiConfig.catalog.cardOptions.referentCount
+        });
+        const { fromNowText } = useFromNow({ dateTime: latestVersion?.publicationTime });
 
-    return (
-        <div className={cx(fr.cx("fr-card"), classes.root, className)}>
-            <div className={classes.cardBody}>
-                <a className={cx(classes.headerContainer)} {...softwareDetailsLink}>
-                    {(logoUrl || ui?.uiConfig.catalog.defaultLogo) && (
-                        <div className={classes.logoWrapper}>
-                            <img
-                                className={cx(classes.logo)}
-                                src={logoUrl ?? softwareLogoPlaceholder}
-                                alt={"software logo"}
-                            />
+        return (
+            <div className={cx(fr.cx("fr-card"), classes.root, className)}>
+                <div className={classes.cardBody}>
+                    <a className={cx(classes.headerContainer)} {...softwareDetailsLink}>
+                        {(logoUrl || ui?.uiConfig.catalog.defaultLogo) && (
+                            <div className={classes.logoWrapper}>
+                                <img
+                                    className={cx(classes.logo)}
+                                    src={logoUrl ?? softwareLogoPlaceholder}
+                                    alt={"software logo"}
+                                />
+                            </div>
+                        )}
+
+                        <div className={cx(classes.header)}>
+                            <div className={cx(classes.titleContainer)}>
+                                <h3 className={cx(classes.title)}>{softwareName}</h3>
+                                <div className={cx(classes.titleActionsContainer)}>
+                                    🇨🇵
+                                </div>
+                            </div>
+                            <div>
+                                {latestVersion !== undefined && (
+                                    <p
+                                        className={cx(
+                                            fr.cx("fr-card__detail"),
+                                            classes.softwareVersionContainer
+                                        )}
+                                    >
+                                        {latestVersion?.publicationTime &&
+                                            t("softwareCatalogCard.latestVersion", {
+                                                fromNowText
+                                            })}
+                                        {latestVersion?.semVer && (
+                                            <span
+                                                className={cx(
+                                                    fr.cx(
+                                                        "fr-badge--no-icon",
+                                                        "fr-badge--yellow-tournesol",
+                                                        "fr-badge",
+                                                        "fr-badge--sm"
+                                                    ),
+                                                    classes.badgeVersion
+                                                )}
+                                            >
+                                                {latestVersion?.semVer}
+                                            </span>
+                                        )}
+                                    </p>
+                                )}
+                            </div>
                         </div>
-                    )}
+                    </a>
 
-                    <div className={cx(classes.header)}>
-                        <div className={cx(classes.titleContainer)}>
-                            <h3 className={cx(classes.title)}>{softwareName}</h3>
-                            <div className={cx(classes.titleActionsContainer)}>🇨🇵</div>
-                        </div>
-                        <div>
-                            {latestVersion !== undefined && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-card__detail"),
-                                        classes.softwareVersionContainer
-                                    )}
-                                >
-                                    {latestVersion?.publicationTime &&
-                                        t("softwareCatalogCard.latestVersion", {
-                                            fromNowText
-                                        })}
-                                    {latestVersion?.semVer && (
-                                        <span
-                                            className={cx(
-                                                fr.cx(
-                                                    "fr-badge--no-icon",
-                                                    "fr-badge--yellow-tournesol",
-                                                    "fr-badge",
-                                                    "fr-badge--sm"
-                                                ),
-                                                classes.badgeVersion
-                                            )}
-                                        >
-                                            {latestVersion?.semVer}
-                                        </span>
-                                    )}
-                                </p>
-                            )}
-                        </div>
+                    <div className={cx(fr.cx("fr-card__desc"), classes.description)}>
+                        <Markdown>{resolveLocalizedString(softwareDescription)}</Markdown>
                     </div>
-                </a>
-
-                <div className={cx(fr.cx("fr-card__desc"), classes.description)}>
-                    <Markdown>{resolveLocalizedString(softwareDescription)}</Markdown>
                 </div>
-            </div>
-            <div className={classes.footer}>
-                <a
-                    className={cx(
-                        fr.cx("fr-btn", "fr-btn--secondary", "fr-text--sm"),
-                        classes.declareReferentOrUserButton
+                <div className={classes.footer}>
+                    {showSoftwareDetailsButton && (
+                        <a
+                            className={cx(
+                                fr.cx("fr-btn", "fr-btn--secondary", "fr-text--sm"),
+                                classes.declareReferentOrUserButton
+                            )}
+                            {...softwareDetailsLink}
+                        >
+                            {t("organizationCard.seeSoftwareDetails", {
+                                count: producer?.length
+                            })}
+                        </a>
                     )}
-                    {...softwareDetailsLink}
-                >
-                    {t("organizationCard.seeSoftwareDetails", {
-                        count: producer?.length
-                    })}
-                </a>
-                <LogoURLButton
-                    url={url}
-                    label={"Site"}
-                    priority="secondary"
-                ></LogoURLButton>
-                {identifiers?.[0]?.url && url !== identifiers?.[0]?.url && (
                     <LogoURLButton
-                        url={identifiers?.[0].url}
+                        url={url}
+                        label={"Site"}
                         priority="secondary"
                     ></LogoURLButton>
-                )}
-                <div className={cx(classes.footerActionsContainer)}>
-                    <a className={cx(classes.footerActionLink)} {...softwareDetailsLink}>
-                        <i className={fr.cx("fr-icon-arrow-right-line")} />
-                    </a>
+                    {identifiers?.[0]?.url && url !== identifiers?.[0]?.url && (
+                        <LogoURLButton
+                            url={identifiers?.[0].url}
+                            priority="secondary"
+                        ></LogoURLButton>
+                    )}
+                    <div className={cx(classes.footerActionsContainer)}>
+                        <a
+                            className={cx(classes.footerActionLink)}
+                            {...softwareDetailsLink}
+                        >
+                            <i className={fr.cx("fr-icon-arrow-right-line")} />
+                        </a>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
-});
+        );
+    }
+);
 
 const useStyles = tss
     .withName({ OrganizationCard })
