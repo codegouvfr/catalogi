@@ -9,6 +9,9 @@ import { useCoreState } from "core";
 import { tss } from "tss-react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
+import { routes } from "ui/routes";
+import { SoftwareRowVirtualizerDynamicWindow } from "../softwareCatalog/SoftwareCatalogControlled";
 
 type Props = {
     className?: string;
@@ -23,15 +26,34 @@ export default function organizationDetails(props: Props) {
 
     const key = route.params.key;
 
-    let search = "";
-
-    const searchRequest = (req: string) => {
-        search = req;
-        console.log(req);
-    };
-
     const state = useCoreState("organizationList", "main");
     const org = state?.list && key ? state.list[key] : undefined;
+
+    const { allSoftwares } = useCoreState("softwareCatalog", "main");
+
+    const filteredSoftware = Array.isArray(org?.producer)
+        ? allSoftwares.filter(softwareItem =>
+              org.producer.includes(softwareItem.id.toString())
+          )
+        : [];
+
+    const linksBySoftwareName = useMemo(
+        () =>
+            Object.fromEntries(
+                filteredSoftware.map(({ softwareName, id }) => [
+                    softwareName,
+                    /* prettier-ignore */
+                    {
+                        "softwareDetails": routes.softwareDetails({ "id": id }).link,
+                        "declareUsageForm": routes.declarationForm({ "id": id }).link,
+                        "softwareUsersAndReferents": routes.softwareUsersAndReferents({ "id": id }).link
+                    }
+                ])
+            ),
+        [filteredSoftware]
+    );
+
+    const renderingOptions = { showSoftwareDetailsButton: false };
 
     return (
         <>
@@ -40,11 +62,20 @@ export default function organizationDetails(props: Props) {
                     <h6 className={classes.softwareCount}>{key ?? "test"}</h6>
                 </div>
                 <div>
-                    {org && <OrganizationCard organization={org}></OrganizationCard>}
+                    {org && (
+                        <OrganizationCard
+                            organization={org}
+                            renderingOptions={renderingOptions}
+                        ></OrganizationCard>
+                    )}
                 </div>
 
                 <div>
                     <h6>List of software</h6>
+                    <SoftwareRowVirtualizerDynamicWindow
+                        softwares={filteredSoftware}
+                        linksBySoftwareName={linksBySoftwareName}
+                    />
                 </div>
             </div>
         </>
