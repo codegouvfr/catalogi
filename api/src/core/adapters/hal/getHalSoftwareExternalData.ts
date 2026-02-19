@@ -31,8 +31,6 @@ const buildParentOrganizationTree = async (
             if (!structure) throw new Error(`Couldn't get data for structure docid : ${structureId}`);
 
             const rorstring = Array.isArray(structure.ror_s) ? structure.ror_s?.[0] : structure.ror_s;
-            const cleanRORUrl = (output: string) =>
-                output.includes("https://ror.org") ? output.split("/")[3] : output;
 
             return {
                 "@type": "Organization",
@@ -40,7 +38,7 @@ const buildParentOrganizationTree = async (
                 "url": structure.ror_s?.[0] ?? structure.ror_s ?? structure?.url_s,
                 "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i, halAPIGateway),
                 identifiers: [
-                    ...(rorstring ? [identifersUtils.makeRorOrgaIdentifer({ rorId: cleanRORUrl(rorstring) })] : []),
+                    ...(rorstring ? [identifersUtils.makeRorOrgaIdentifer({ rorId: rorstring })] : []),
                     ...(structure.rnsr_s?.[0] || structure.rnsr_s
                         ? [identifersUtils.makeRNSROrgaIdentifer({ rnrsId: structure.rnsr_s?.[0] ?? structure.rnsr_s })]
                         : [])

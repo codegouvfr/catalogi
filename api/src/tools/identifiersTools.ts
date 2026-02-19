@@ -332,10 +332,12 @@ export const identifersUtils = {
     },
     makeRorOrgaIdentifer: (params: { rorId: string }): SchemaIdentifier => {
         const { rorId } = params;
+        const cleanRORUrl = (output: string) => (output.includes("https://ror.org") ? output.split("/")[3] : output);
+        const rorID = cleanRORUrl(rorId);
         return {
             "@type": "PropertyValue" as const,
-            value: rorId,
-            url: `https://ror.org/${rorId}`,
+            value: rorID,
+            url: `https://ror.org/${rorID}`,
             subjectOf: rorSource,
             additionalType: "Organization"
         };
