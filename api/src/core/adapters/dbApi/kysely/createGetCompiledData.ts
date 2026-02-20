@@ -4,10 +4,10 @@
 
 import { Kysely } from "kysely";
 import { CompiledData } from "../../../ports/CompileData";
-import { Db } from "../../../ports/DbApi";
+import { Db, SoftwareType } from "../../../ports/DbApi";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
-import { stripNullOrUndefinedValues, isNotNull, transformNullToUndefined } from "./kysely.utils";
+import { isNotNull, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 import { castToSoftwareExternalData } from "./createPgSoftwareExternalDataRepository";
 
@@ -60,20 +60,19 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .select([
             "s.id",
             "s.addedByUserId",
-            "s.categories",
+            "s.applicationCategories",
             "s.dereferencing",
             "s.description",
-            "s.generalInfoMd",
             "s.customAttributes",
             "s.isStillInObservation",
             "s.keywords",
             "s.license",
             "s.logoUrl",
             "s.name",
-            "s.referencedSinceTime",
-            "s.softwareType",
+            "s.addedTime",
+            "s.operatingSystems",
+            "s.runtimePlatforms",
             "s.updateTime",
-            "s.workshopUrls",
             ({ fn }) => fn.jsonAgg("similarExt").distinct().as("similarExternalSoftwares"),
             ({ fn }) => fn.jsonAgg("software_users").distinct().as("users"),
             ({ fn }) => fn.jsonAgg("referents").distinct().as("referents"),
@@ -94,8 +93,16 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     referents,
                     instances,
                     updateTime,
-                    referencedSinceTime,
-                    ...software
+                    addedTime,
+                    applicationCategories,
+                    operatingSystems,
+                    runtimePlatforms,
+                    description,
+                    name,
+                    isStillInObservation,
+                    keywords,
+                    license,
+                    logoUrl
                 }): CompiledData.Software<"private"> => {
                     const softwareExternalData = mergeExternalData(externalDataBySoftwareId[id] ?? []);
                     const version =
@@ -105,13 +112,40 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                                   publicationTime: softwareExternalData.dateCreated.valueOf()
                               }
                             : undefined;
+
+                    const softwareType: SoftwareType = runtimePlatforms?.includes("cloud")
+                        ? { type: "cloud" }
+                        : runtimePlatforms?.includes("desktop")
+                          ? {
+                                type: "desktop/mobile",
+                                os: {
+                                    windows: false,
+                                    linux: false,
+                                    mac: false,
+                                    android: false,
+                                    ios: false,
+                                    ...operatingSystems
+                                }
+                            }
+                          : { type: "stack" };
+
                     return {
                         id,
-                        ...stripNullOrUndefinedValues(software),
-                        addedByUserEmail: agentById[addedByUserId].email,
-                        updateTime: new Date(+updateTime).getTime(),
-                        referencedSinceTime: new Date(+referencedSinceTime).getTime(),
+                        name,
+                        description:
+                            typeof description === "string"
+                                ? description
+                                : ((description as Record<string, string>)?.fr ?? ""),
+                        referencedSinceTime: new Date(addedTime).getTime(),
+                        updateTime: new Date(updateTime).getTime(),
+                        isStillInObservation,
+                        license,
+                        logoUrl: logoUrl ?? undefined,
+                        keywords: keywords ?? [],
+                        categories: applicationCategories ?? [],
+                        softwareType,
                         customAttributes,
+                        addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData
                             ? castToSoftwareExternalData(softwareExternalData)
                             : undefined,

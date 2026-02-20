@@ -12,22 +12,37 @@ export type CreateSoftware = (
     } & WithUserId
 ) => Promise<number>;
 
-export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => ({
-    name: softwareForm.softwareName,
-    description: softwareForm.softwareDescription,
-    license: softwareForm.softwareLicense,
-    logoUrl: softwareForm.softwareLogoUrl,
-    referencedSinceTime: new Date(),
-    dereferencing: undefined,
-    isStillInObservation: false,
-    softwareType: softwareForm.softwareType,
-    workshopUrls: [],
-    categories: [],
-    generalInfoMd: undefined,
-    addedByUserId: userId,
-    keywords: softwareForm.softwareKeywords,
-    customAttributes: softwareForm.customAttributes
-});
+export const softwareTypeToCanonical = (
+    softwareType: SoftwareFormData["softwareType"]
+): { operatingSystems: Record<string, boolean>; runtimePlatforms: ("cloud" | "mobile" | "desktop")[] } => {
+    switch (softwareType.type) {
+        case "desktop/mobile":
+            return { operatingSystems: softwareType.os, runtimePlatforms: ["desktop"] };
+        case "cloud":
+            return { operatingSystems: {}, runtimePlatforms: ["cloud"] };
+        case "stack":
+            return { operatingSystems: {}, runtimePlatforms: [] };
+    }
+};
+
+export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => {
+    const { operatingSystems, runtimePlatforms } = softwareTypeToCanonical(softwareForm.softwareType);
+    return {
+        name: softwareForm.softwareName,
+        description: { fr: softwareForm.softwareDescription },
+        license: softwareForm.softwareLicense,
+        logoUrl: softwareForm.softwareLogoUrl,
+        addedTime: new Date().toISOString(),
+        dereferencing: undefined,
+        isStillInObservation: false,
+        operatingSystems,
+        runtimePlatforms,
+        applicationCategories: [],
+        addedByUserId: userId,
+        keywords: softwareForm.softwareKeywords,
+        customAttributes: softwareForm.customAttributes
+    };
+};
 
 const textUC = "CreateSoftware";
 

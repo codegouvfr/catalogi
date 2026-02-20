@@ -2,10 +2,8 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { assert } from "tsafe/assert";
-import type { Equals } from "tsafe";
-
 import { DbApiV2, WithUserId } from "../ports/DbApiV2";
+import { softwareTypeToCanonical } from "./createSoftware";
 import { SoftwareFormData } from "./readWriteSillData";
 
 export type UpdateSoftware = (
@@ -18,40 +16,26 @@ export type UpdateSoftware = (
 export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
     (dbApi: DbApiV2) =>
     async ({ formData, userId, softwareId }) => {
-        // Push in software
-        const {
-            softwareName,
-            softwareDescription,
-            softwareLicense,
-            softwareLogoUrl,
-            customAttributes,
-            similarSoftwareExternalDataItems,
-            softwareType,
-            externalIdForSource,
-            sourceSlug,
-            softwareKeywords,
-            ...rest
-        } = formData;
+        const { similarSoftwareExternalDataItems, ...formFields } = formData;
 
-        assert<Equals<typeof rest, {}>>();
+        const { operatingSystems, runtimePlatforms } = softwareTypeToCanonical(formFields.softwareType);
 
         await dbApi.software.update({
             software: {
-                name: softwareName,
-                description: softwareDescription,
-                license: softwareLicense,
-                logoUrl: softwareLogoUrl,
+                name: formFields.softwareName,
+                description: { fr: formFields.softwareDescription },
+                license: formFields.softwareLicense,
+                logoUrl: formFields.softwareLogoUrl,
                 dereferencing: undefined,
                 isStillInObservation: false,
-                customAttributes,
-                softwareType: softwareType,
-                workshopUrls: [],
-                categories: [],
-                generalInfoMd: undefined,
+                customAttributes: formFields.customAttributes,
+                operatingSystems,
+                runtimePlatforms,
+                applicationCategories: [],
                 addedByUserId: userId,
-                keywords: softwareKeywords
+                keywords: formFields.softwareKeywords
             },
-            softwareId: softwareId
+            softwareId
         });
 
         await dbApi.software.saveSimilarSoftwares([
@@ -63,5 +47,5 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
             }
         ]);
 
-        console.log(`software correctly updated, softwareId is : ${softwareId} (${softwareName})`);
+        console.log(`software correctly updated, softwareId is : ${softwareId} (${formFields.softwareName})`);
     };

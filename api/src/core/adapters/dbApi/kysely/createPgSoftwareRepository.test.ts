@@ -37,19 +37,18 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
         .insertInto("softwares")
         .values({
             name: "Test Software",
-            description: "Description",
+            description: JSON.stringify({ fr: "Description" }),
             license: "MIT",
-            referencedSinceTime: new Date(),
-            updateTime: new Date(),
+            addedTime: new Date().toISOString(),
+            updateTime: new Date().toISOString(),
             isStillInObservation: false,
             customAttributes: JSON.stringify({}),
-            softwareType: JSON.stringify({ type: "cloud" }),
-            workshopUrls: JSON.stringify([]),
-            categories: JSON.stringify([]),
+            operatingSystems: JSON.stringify({}),
+            runtimePlatforms: JSON.stringify(["cloud"]),
+            applicationCategories: JSON.stringify([]),
             keywords: JSON.stringify([]),
             logoUrl: null,
             dereferencing: null,
-            generalInfoMd: null,
             ...overrides,
             addedByUserId
         })

@@ -192,20 +192,12 @@ export type SoftwareExternalDatasTable = {
     runtimePlatforms: JSONColumnType<RuntimePlatform[]> | null;
 };
 
-type SoftwareType =
-    | { type: "cloud" }
-    | { type: "stack" }
-    | {
-          type: "desktop/mobile";
-          os: Record<Os, boolean>;
-      };
-
 type SoftwaresTable = {
     id: Generated<number>;
     name: string;
-    description: string;
-    referencedSinceTime: Date;
-    updateTime: Date;
+    description: JSONColumnType<LocalizedString>;
+    addedTime: string;
+    updateTime: string;
     dereferencing: JSONColumnType<{
         reason?: string;
         time: number;
@@ -214,10 +206,9 @@ type SoftwaresTable = {
     isStillInObservation: boolean;
     customAttributes: JSONColumnType<Record<string, any>> | null;
     license: string;
-    softwareType: JSONColumnType<SoftwareType>;
-    workshopUrls: JSONColumnType<string[]>;
-    categories: JSONColumnType<string[]>;
-    generalInfoMd: string | null;
+    operatingSystems: JSONColumnType<Partial<Record<Os, boolean>>>;
+    runtimePlatforms: JSONColumnType<RuntimePlatform[]>;
+    applicationCategories: JSONColumnType<string[]>;
     addedByUserId: number;
     logoUrl: string | null;
     keywords: JSONColumnType<string[]>;

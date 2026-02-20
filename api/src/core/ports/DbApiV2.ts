@@ -31,10 +31,9 @@ export type SoftwareExtrinsicRow = Pick<
     | "dereferencing"
     | "isStillInObservation"
     | "customAttributes"
-    | "softwareType"
-    | "workshopUrls"
-    | "categories"
-    | "generalInfoMd"
+    | "operatingSystems"
+    | "runtimePlatforms"
+    | "applicationCategories"
     | "keywords"
     | "addedByUserId"
 >;
@@ -51,8 +50,7 @@ export namespace DatabaseDataType {
     export type SourceRow = TransformRepoToCleanedRow<DatabaseRowOutput.Source>;
 }
 
-export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow &
-    Pick<DatabaseDataType.SoftwareRow, "referencedSinceTime">;
+export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow & Pick<DatabaseDataType.SoftwareRow, "addedTime">;
 
 export interface SoftwareRepository {
     getFullList: () => Promise<SoftwareInList[]>;

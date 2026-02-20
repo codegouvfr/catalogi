@@ -34,11 +34,7 @@ export namespace Db {
         //// https://www.data.gouv.fr/fr/pages/legal/licences/
         license: string;
         softwareType: SoftwareType;
-        //Lien vers catalogue.numerique.gouv.fr
-        /* cspell: disable-next-line */
-        workshopUrls: string[];
         categories: string[];
-        generalInfoMd: string | undefined;
         addedByAgentEmail: string;
         logoUrl: string | undefined;
         keywords: string[];

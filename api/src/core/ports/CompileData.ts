@@ -37,9 +37,7 @@ export namespace CompiledData {
             | "isStillInObservation"
             | "license"
             | "softwareType"
-            | "workshopUrls"
             | "categories"
-            | "generalInfoMd"
             | "logoUrl"
             | "keywords"
             | "externalId"
@@ -91,7 +89,6 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             dereferencing,
             description,
             customAttributes,
-            generalInfoMd,
             id,
             isStillInObservation,
             keywords,
@@ -102,7 +99,6 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             softwareType,
             latestVersion,
             updateTime,
-            workshopUrls,
             softwareExternalData,
             similarExternalSoftwares,
             serviceProviders
@@ -114,7 +110,6 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             dereferencing,
             description,
             customAttributes,
-            generalInfoMd,
             id,
             isStillInObservation,
             keywords,
@@ -125,7 +120,6 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             softwareType,
             latestVersion,
             updateTime,
-            workshopUrls,
             softwareExternalData,
             similarExternalSoftwares,
             "hasExpertReferent": referents.find(({ isExpert }) => isExpert) !== undefined,

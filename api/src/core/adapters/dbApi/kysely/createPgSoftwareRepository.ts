@@ -5,12 +5,33 @@
 import { Kysely, sql } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
+import { SoftwareType } from "../../../ports/DbApi";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
 import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
+
+const reconstructSoftwareType = (
+    operatingSystems: Partial<Record<string, boolean>> | null,
+    runtimePlatforms: string[] | null
+): SoftwareType => {
+    if (runtimePlatforms?.includes("cloud")) return { type: "cloud" };
+    if (runtimePlatforms?.includes("desktop"))
+        return {
+            type: "desktop/mobile",
+            os: {
+                windows: false,
+                linux: false,
+                mac: false,
+                android: false,
+                ios: false,
+                ...operatingSystems
+            }
+        };
+    return { type: "stack" };
+};
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
 type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; name: LocalizedString };
@@ -135,7 +156,10 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 return {
                     id: software.id,
                     softwareName: software.name,
-                    softwareDescription: software.description,
+                    softwareDescription:
+                        typeof software.description === "string"
+                            ? software.description
+                            : ((software.description as Record<string, string>)?.fr ?? ""),
                     logoUrl: extData?.image ?? software.logoUrl ?? undefined,
                     latestVersion: extData?.latestVersion
                         ? {
@@ -143,11 +167,14 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                               publicationTime: extData.dateCreated?.getTime()
                           }
                         : undefined,
-                    addedTime: software.referencedSinceTime.getTime(),
-                    updateTime: software.updateTime.getTime(),
-                    applicationCategories: [...(software.categories ?? []), ...(extData?.applicationCategories ?? [])],
+                    addedTime: new Date(software.addedTime).getTime(),
+                    updateTime: new Date(software.updateTime).getTime(),
+                    applicationCategories: [
+                        ...(software.applicationCategories ?? []),
+                        ...(extData?.applicationCategories ?? [])
+                    ],
                     keywords: software.keywords ?? [],
-                    softwareType: software.softwareType,
+                    softwareType: reconstructSoftwareType(software.operatingSystems, software.runtimePlatforms),
                     customAttributes: software.customAttributes ?? undefined,
                     programmingLanguages: extData?.programmingLanguages ?? [],
                     authors: (extData?.authors ?? []).map(dev => ({ name: dev.name })),
@@ -229,11 +256,14 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             // Format similar softwares
             const similarSoftwares: Software.LegacySimilarSoftware[] = similarSoftwareRows.map(row => {
                 if (row.linkedSoftwareId && row.linkedSoftwareDereferencing === null) {
+                    const desc = row.linkedSoftwareDescription;
+                    const descStr =
+                        typeof desc === "string" ? desc : ((desc as Record<string, string> | null)?.fr ?? "");
                     return {
                         registered: true,
                         softwareId: row.linkedSoftwareId,
                         softwareName: row.linkedSoftwareName!,
-                        softwareDescription: row.linkedSoftwareDescription!,
+                        softwareDescription: descStr,
                         externalId: row.externalId,
                         label: row.name,
                         description: row.description,
@@ -254,7 +284,10 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             return {
                 softwareId: softwareRow.id,
                 softwareName: softwareRow.name,
-                softwareDescription: softwareRow.description,
+                softwareDescription:
+                    typeof softwareRow.description === "string"
+                        ? softwareRow.description
+                        : ((softwareRow.description as Record<string, string>)?.fr ?? ""),
                 logoUrl: extData?.image ?? softwareRow.logoUrl ?? undefined,
                 latestVersion: extData?.latestVersion
                     ? {
@@ -262,10 +295,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                           publicationTime: extData.dateCreated?.getTime()
                       }
                     : undefined,
-                addedTime: softwareRow.referencedSinceTime.getTime(),
-                updateTime: softwareRow.updateTime.getTime(),
+                addedTime: new Date(softwareRow.addedTime).getTime(),
+                updateTime: new Date(softwareRow.updateTime).getTime(),
                 dereferencing: softwareRow.dereferencing ?? undefined,
-                applicationCategories: [...(softwareRow.categories ?? []), ...(extData?.applicationCategories ?? [])],
+                applicationCategories: [
+                    ...(softwareRow.applicationCategories ?? []),
+                    ...(extData?.applicationCategories ?? [])
+                ],
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 userAndReferentCountByOrganization,
                 authors: (extData?.authors ?? []).map((dev): SchemaPerson | SchemaOrganization =>
@@ -291,7 +327,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 license: extData?.license ?? softwareRow.license,
                 externalId: extData?.externalId,
                 sourceSlug: extData?.sourceSlug,
-                softwareType: softwareRow.softwareType,
+                softwareType: reconstructSoftwareType(softwareRow.operatingSystems, softwareRow.runtimePlatforms),
                 similarSoftwares,
                 keywords: softwareRow.keywords ?? [],
                 programmingLanguages: extData?.programmingLanguages ?? [],
@@ -320,14 +356,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 description,
                 license,
                 logoUrl,
-                referencedSinceTime,
+                addedTime,
                 isStillInObservation,
                 dereferencing,
                 customAttributes,
-                softwareType,
-                workshopUrls,
-                categories,
-                generalInfoMd,
+                operatingSystems,
+                runtimePlatforms,
+                applicationCategories,
                 keywords,
                 addedByUserId,
                 ...rest
@@ -335,25 +370,24 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             assert<Equals<typeof rest, {}>>();
 
-            const now = new Date();
+            const now = new Date().toISOString();
 
             return db.transaction().execute(async trx => {
                 const { softwareId } = await trx
                     .insertInto("softwares")
                     .values({
                         name,
-                        description,
+                        description: JSON.stringify(description),
                         license,
                         logoUrl,
-                        referencedSinceTime,
+                        addedTime,
                         updateTime: now,
                         dereferencing: JSON.stringify(dereferencing),
                         isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
-                        softwareType: JSON.stringify(softwareType),
-                        workshopUrls: JSON.stringify(workshopUrls),
-                        categories: JSON.stringify(categories),
-                        generalInfoMd,
+                        operatingSystems: JSON.stringify(operatingSystems),
+                        runtimePlatforms: JSON.stringify(runtimePlatforms),
+                        applicationCategories: JSON.stringify(applicationCategories),
                         addedByUserId,
                         keywords: JSON.stringify(keywords)
                     })
@@ -372,10 +406,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 dereferencing,
                 isStillInObservation,
                 customAttributes,
-                softwareType,
-                workshopUrls,
-                categories,
-                generalInfoMd,
+                operatingSystems,
+                runtimePlatforms,
+                applicationCategories,
                 keywords,
                 addedByUserId,
                 ...rest
@@ -383,22 +416,21 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             assert<Equals<typeof rest, {}>>();
 
-            const now = new Date();
+            const now = new Date().toISOString();
             await db
                 .updateTable("softwares")
                 .set({
                     name,
-                    description,
+                    description: JSON.stringify(description),
                     license,
                     logoUrl: logoUrl ?? null,
                     dereferencing: JSON.stringify(dereferencing),
                     updateTime: now,
                     isStillInObservation: false,
                     customAttributes: JSON.stringify(customAttributes),
-                    softwareType: JSON.stringify(softwareType),
-                    workshopUrls: JSON.stringify(workshopUrls),
-                    categories: JSON.stringify(categories),
-                    generalInfoMd: generalInfoMd,
+                    operatingSystems: JSON.stringify(operatingSystems),
+                    runtimePlatforms: JSON.stringify(runtimePlatforms),
+                    applicationCategories: JSON.stringify(applicationCategories),
                     addedByUserId,
                     keywords: JSON.stringify(keywords)
                 })

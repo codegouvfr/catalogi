@@ -84,20 +84,17 @@ describe("Create software, than updates it adding a similar software", () => {
         expectToEqual(softwareList.length, 1);
         expectToMatchObject(softwareList[0], {
             "addedByUserId": userId,
-            "categories": [],
+            "applicationCategories": [],
             "dereferencing": null,
-            "description": "To create React apps.",
-            "generalInfoMd": null,
+            "description": { "fr": "To create React apps." },
             "isStillInObservation": false,
             "keywords": ["Productivity", "Task", "Management"],
             "license": "MIT",
             "logoUrl": "https://example.com/logo.png",
             "name": "Create react app",
-            "referencedSinceTime": expect.any(Date),
-            "softwareType": {
-                "type": "stack"
-            },
-            "workshopUrls": [],
+            "addedTime": expect.any(String),
+            "operatingSystems": {},
+            "runtimePlatforms": [],
             "customAttributes": {
                 "isPresentInSupportContract": true,
                 "isFromFrenchPublicService": true,
