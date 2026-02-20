@@ -29,11 +29,8 @@ const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, sourc
     return {
         softwareName: recordSoftwareItem.title,
         softwareDescription: recordSoftwareItem.metadata.description ?? "",
-        softwareType: {
-            // Probably wrong
-            type: "desktop/mobile",
-            os: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false }
-        },
+        operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
+        runtimePlatforms: ["desktop"], // Probably wrong
         externalIdForSource: recordSoftwareItem.id.toString(),
         sourceSlug: source.slug,
         softwareLicense: recordSoftwareItem.metadata.license?.id ?? "Copyright",

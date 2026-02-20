@@ -4,8 +4,9 @@
 
 import { Kysely } from "kysely";
 import { CompiledData } from "../../../ports/CompileData";
-import { Db, SoftwareType } from "../../../ports/DbApi";
+import { Db } from "../../../ports/DbApi";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
+import type { Os, RuntimePlatform } from "../../../types";
 import { Database } from "./kysely.database";
 import { isNotNull, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
@@ -113,22 +114,6 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                               }
                             : undefined;
 
-                    const softwareType: SoftwareType = runtimePlatforms?.includes("cloud")
-                        ? { type: "cloud" }
-                        : runtimePlatforms?.includes("desktop")
-                          ? {
-                                type: "desktop/mobile",
-                                os: {
-                                    windows: false,
-                                    linux: false,
-                                    mac: false,
-                                    android: false,
-                                    ios: false,
-                                    ...operatingSystems
-                                }
-                            }
-                          : { type: "stack" };
-
                     return {
                         id,
                         name,
@@ -143,7 +128,8 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         logoUrl: logoUrl ?? undefined,
                         keywords: keywords ?? [],
                         categories: applicationCategories ?? [],
-                        softwareType,
+                        operatingSystems: (operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                        runtimePlatforms: (runtimePlatforms ?? []) as RuntimePlatform[],
                         customAttributes,
                         addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData

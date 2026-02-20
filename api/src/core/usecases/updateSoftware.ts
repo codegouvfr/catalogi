@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { DbApiV2, WithUserId } from "../ports/DbApiV2";
-import { softwareTypeToCanonical } from "./createSoftware";
 import { SoftwareFormData } from "./readWriteSillData";
 
 export type UpdateSoftware = (
@@ -18,8 +17,6 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
     async ({ formData, userId, softwareId }) => {
         const { similarSoftwareExternalDataItems, ...formFields } = formData;
 
-        const { operatingSystems, runtimePlatforms } = softwareTypeToCanonical(formFields.softwareType);
-
         await dbApi.software.update({
             software: {
                 name: formFields.softwareName,
@@ -29,8 +26,8 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 dereferencing: undefined,
                 isStillInObservation: false,
                 customAttributes: formFields.customAttributes,
-                operatingSystems,
-                runtimePlatforms,
+                operatingSystems: formFields.operatingSystems,
+                runtimePlatforms: formFields.runtimePlatforms,
                 applicationCategories: [],
                 addedByUserId: userId,
                 keywords: formFields.softwareKeywords

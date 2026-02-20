@@ -12,21 +12,7 @@ export type CreateSoftware = (
     } & WithUserId
 ) => Promise<number>;
 
-export const softwareTypeToCanonical = (
-    softwareType: SoftwareFormData["softwareType"]
-): { operatingSystems: Record<string, boolean>; runtimePlatforms: ("cloud" | "mobile" | "desktop")[] } => {
-    switch (softwareType.type) {
-        case "desktop/mobile":
-            return { operatingSystems: softwareType.os, runtimePlatforms: ["desktop"] };
-        case "cloud":
-            return { operatingSystems: {}, runtimePlatforms: ["cloud"] };
-        case "stack":
-            return { operatingSystems: {}, runtimePlatforms: [] };
-    }
-};
-
 export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => {
-    const { operatingSystems, runtimePlatforms } = softwareTypeToCanonical(softwareForm.softwareType);
     return {
         name: softwareForm.softwareName,
         description: { fr: softwareForm.softwareDescription },
@@ -35,8 +21,8 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
         addedTime: new Date().toISOString(),
         dereferencing: undefined,
         isStillInObservation: false,
-        operatingSystems,
-        runtimePlatforms,
+        operatingSystems: softwareForm.operatingSystems,
+        runtimePlatforms: softwareForm.runtimePlatforms,
         applicationCategories: [],
         addedByUserId: userId,
         keywords: softwareForm.softwareKeywords,

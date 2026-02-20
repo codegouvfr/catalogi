@@ -36,16 +36,14 @@ const softwareFormData: SoftwareFormData = {
     softwareLicense: "MIT",
     softwareLogoUrl: "https://external-software-logo-url.com/logo.png",
     softwareName: "",
-    softwareType: {
-        type: "desktop/mobile",
-        os: {
-            ios: true,
-            android: true,
-            mac: true,
-            linux: false,
-            windows: true
-        }
+    operatingSystems: {
+        ios: true,
+        android: true,
+        mac: true,
+        linux: false,
+        windows: true
     },
+    runtimePlatforms: ["desktop"],
     customAttributes: {
         isFromFrenchPublicService: false,
         isPresentInSupportContract: true,
@@ -241,16 +239,14 @@ describe("pgDbApi", () => {
                 softwareDescription: "Super software",
                 softwareId: expect.any(Number),
                 softwareName: softwareFormData.softwareName,
-                softwareType: {
-                    os: {
-                        android: true,
-                        ios: true,
-                        linux: false,
-                        mac: true,
-                        windows: true
-                    },
-                    type: "desktop/mobile"
+                operatingSystems: {
+                    android: true,
+                    ios: true,
+                    linux: false,
+                    mac: true,
+                    windows: true
                 },
+                runtimePlatforms: ["desktop"],
                 userAndReferentCountByOrganization: {
                     [insertedUser.organization]: {
                         userCount: 1,

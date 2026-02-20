@@ -91,7 +91,8 @@ export namespace State {
         keywords: string[];
         applicationCategories: string[];
         referencePublications?: ApiTypes.ScholarlyArticle[];
-        softwareType: ApiTypes.SoftwareType;
+        operatingSystems: Partial<Record<ApiTypes.Os, boolean>>;
+        runtimePlatforms: ApiTypes.RuntimePlatform[];
         identifiers: ApiTypes.Identifier[];
         repoMetadata?: ApiTypes.RepoMetadata;
     };

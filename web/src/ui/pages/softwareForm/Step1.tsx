@@ -38,11 +38,17 @@ export function SoftwareFormStep1(props: Step1Props) {
                 return undefined;
             }
 
+            const derivedType = initialFormData.runtimePlatforms.includes("cloud")
+                ? ("cloud" as const)
+                : initialFormData.runtimePlatforms.includes("desktop")
+                  ? ("desktop/mobile" as const)
+                  : ("stack" as const);
+
             return {
-                softwareType: initialFormData.softwareType.type,
+                softwareType: derivedType,
                 osCheckboxValues:
-                    initialFormData.softwareType.type === "desktop/mobile"
-                        ? Object.entries(initialFormData.softwareType.os)
+                    derivedType === "desktop/mobile"
+                        ? Object.entries(initialFormData.operatingSystems)
                               .filter(([, value]) => value)
                               .map(([key]) => key)
                         : undefined
@@ -74,23 +80,25 @@ export function SoftwareFormStep1(props: Step1Props) {
                               assert(osCheckboxValues !== undefined);
 
                               return {
-                                  softwareType: {
-                                      type: softwareType,
-                                      os: {
-                                          windows: osCheckboxValues.includes("windows"),
-                                          mac: osCheckboxValues.includes("mac"),
-                                          linux: osCheckboxValues.includes("linux"),
-                                          ios: osCheckboxValues.includes("ios"),
-                                          android: osCheckboxValues.includes("android")
-                                      }
-                                  }
+                                  operatingSystems: {
+                                      windows: osCheckboxValues.includes("windows"),
+                                      mac: osCheckboxValues.includes("mac"),
+                                      linux: osCheckboxValues.includes("linux"),
+                                      ios: osCheckboxValues.includes("ios"),
+                                      android: osCheckboxValues.includes("android")
+                                  },
+                                  runtimePlatforms: ["desktop" as const]
                               };
                           })()
-                        : {
-                              softwareType: {
-                                  type: softwareType
-                              }
-                          }
+                        : softwareType === "cloud"
+                          ? {
+                                operatingSystems: {},
+                                runtimePlatforms: ["cloud" as const]
+                            }
+                          : {
+                                operatingSystems: {},
+                                runtimePlatforms: []
+                            }
                 )
             )}
         >

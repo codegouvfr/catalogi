@@ -425,25 +425,28 @@ const environmentOptions = createSelector(
             Array.from(
                 new Set(
                     internalSoftwares
-                        // eslint-disable-next-line array-callback-return
-                        .map(({ softwareType }): State.Environment[] => {
-                            switch (softwareType.type) {
-                                case "cloud":
-                                    return ["browser"];
-                                case "stack":
-                                    return ["stack" as const];
-                                case "desktop/mobile":
-                                    return objectKeys(softwareType.os).filter(
-                                        os => softwareType.os[os]
-                                    );
+                        .map(
+                            ({
+                                runtimePlatforms,
+                                operatingSystems
+                            }): State.Environment[] => {
+                                const envs: State.Environment[] = [];
+                                if (runtimePlatforms.includes("cloud"))
+                                    envs.push("browser");
+                                if (runtimePlatforms.length === 0) envs.push("stack");
+                                if (runtimePlatforms.includes("desktop")) {
+                                    (objectKeys(operatingSystems) as State.Environment[])
+                                        .filter(
+                                            os =>
+                                                operatingSystems[
+                                                    os as keyof typeof operatingSystems
+                                                ]
+                                        )
+                                        .forEach(os => envs.push(os));
+                                }
+                                return envs;
                             }
-                            assert(
-                                false,
-                                `Unrecognized software type: ${JSON.stringify(
-                                    softwareType
-                                )}`
-                            );
-                        })
+                        )
                         .reduce((prev, curr) => [...prev, ...curr], [])
                 )
             ).map(environment => [environment, id<number>(0)] as const)
@@ -486,30 +489,28 @@ const environmentOptions = createSelector(
             });
         }
 
-        tmpSoftwares.forEach(({ softwareType }) => {
-            switch (softwareType.type) {
-                case "cloud":
-                    softwareCountInCurrentFilterByEnvironment.set(
-                        "browser",
-                        softwareCountInCurrentFilterByEnvironment.get("browser")! + 1
+        tmpSoftwares.forEach(({ runtimePlatforms, operatingSystems }) => {
+            if (runtimePlatforms.includes("cloud")) {
+                softwareCountInCurrentFilterByEnvironment.set(
+                    "browser",
+                    softwareCountInCurrentFilterByEnvironment.get("browser")! + 1
+                );
+            }
+            if (runtimePlatforms.length === 0) {
+                softwareCountInCurrentFilterByEnvironment.set(
+                    "stack",
+                    softwareCountInCurrentFilterByEnvironment.get("stack")! + 1
+                );
+            }
+            if (runtimePlatforms.includes("desktop")) {
+                (objectKeys(operatingSystems) as State.Environment[])
+                    .filter(os => operatingSystems[os as keyof typeof operatingSystems])
+                    .forEach(os =>
+                        softwareCountInCurrentFilterByEnvironment.set(
+                            os,
+                            softwareCountInCurrentFilterByEnvironment.get(os)! + 1
+                        )
                     );
-                    break;
-                case "stack":
-                    softwareCountInCurrentFilterByEnvironment.set(
-                        "stack",
-                        softwareCountInCurrentFilterByEnvironment.get("stack")! + 1
-                    );
-                    break;
-                case "desktop/mobile":
-                    objectKeys(softwareType.os)
-                        .filter(os => softwareType.os[os])
-                        .forEach(os =>
-                            softwareCountInCurrentFilterByEnvironment.set(
-                                os,
-                                softwareCountInCurrentFilterByEnvironment.get(os)! + 1
-                            )
-                        );
-                    break;
             }
         });
 
@@ -607,7 +608,7 @@ const attributeNameFilterOptions = createSelector(
             });
         }
 
-        tmpSoftwares.forEach(({ customAttributes, softwareType }) => {
+        tmpSoftwares.forEach(({ customAttributes, operatingSystems }) => {
             if (customAttributes) {
                 objectKeys(customAttributes)
                     .filter(attributeName => customAttributes[attributeName])
@@ -627,8 +628,9 @@ const attributeNameFilterOptions = createSelector(
             }
 
             if (
-                softwareType.type === "desktop/mobile" &&
-                (softwareType.os.windows || softwareType.os.linux || softwareType.os.mac)
+                operatingSystems.windows ||
+                operatingSystems.linux ||
+                operatingSystems.mac
             ) {
                 const currentCount = softwareCountInCurrentFilterByAttributeName.get(
                     "isInstallableOnUserComputer"
@@ -832,20 +834,18 @@ function filterByEnvironnement(params: {
     const { softwares, environment } = params;
 
     // eslint-disable-next-line array-callback-return
-    return softwares.filter(({ softwareType }) => {
+    return softwares.filter(({ runtimePlatforms, operatingSystems }) => {
         switch (environment) {
             case "linux":
             case "mac":
             case "windows":
             case "android":
             case "ios":
-                return (
-                    softwareType.type === "desktop/mobile" && softwareType.os[environment]
-                );
+                return operatingSystems[environment] === true;
             case "browser":
-                return softwareType.type === "cloud";
+                return runtimePlatforms.includes("cloud");
             case "stack":
-                return softwareType.type === "stack";
+                return runtimePlatforms.length === 0;
         }
     });
 }
@@ -859,10 +859,9 @@ function filterByAttributeName(params: {
     return softwares.filter(software => {
         if (attributeName === "isInstallableOnUserComputer") {
             return (
-                software.softwareType.type === "desktop/mobile" &&
-                (software.softwareType.os.windows ||
-                    software.softwareType.os.linux ||
-                    software.softwareType.os.mac)
+                software.operatingSystems.windows ||
+                software.operatingSystems.linux ||
+                software.operatingSystems.mac
             );
         }
 

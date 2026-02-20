@@ -52,14 +52,11 @@ export const thunks = {
                             .map(({ userCount }) => userCount)
                             .reduce((prev, curr) => prev + curr, 0),
                         softwareType: (() => {
-                            switch (software.softwareType.type) {
-                                case "cloud":
-                                    return "cloud";
-                                case "desktop/mobile":
-                                    return "desktop/mobile";
-                                case "stack":
-                                    return "other";
-                            }
+                            if (software.runtimePlatforms.includes("cloud"))
+                                return "cloud" as const;
+                            if (software.runtimePlatforms.includes("desktop"))
+                                return "desktop/mobile" as const;
+                            return "other" as const;
                         })()
                     }
                 })

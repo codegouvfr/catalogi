@@ -13,8 +13,8 @@ import { capitalize } from "tsafe/capitalize";
 import { useCoreState } from "../../../core";
 import { SupportedPlatforms } from "../../../core/usecases/softwareCatalog";
 import { CnllServiceProviderModal } from "./CnllServiceProviderModal";
-import { Identifier, SoftwareType } from "api/dist/src/lib/ApiTypes";
-import { SoftwareTypeTable } from "ui/shared/SoftwareTypeTable";
+import { Identifier } from "api/dist/src/lib/ApiTypes";
+import { OperatingSystemsTable } from "ui/shared/OperatingSystemsTable";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { ApiTypes } from "api";
 import { CustomAttributeDetails } from "./CustomAttributeDetails";
@@ -36,7 +36,8 @@ export type Props = {
     programmingLanguages: string[];
     keywords?: string[];
     applicationCategories: string[];
-    softwareType: ApiTypes.SoftwareType;
+    operatingSystems: Partial<Record<string, boolean>>;
+    runtimePlatforms: string[];
     identifiers: ApiTypes.Identifier[];
     officialWebsiteUrl?: string;
     repoMetadata?: ApiTypes.RepoMetadata;
@@ -55,7 +56,8 @@ export const PreviewTab = (props: Props) => {
         programmingLanguages,
         keywords,
         applicationCategories,
-        softwareType,
+        operatingSystems,
+        runtimePlatforms,
         identifiers,
         officialWebsiteUrl,
         repoMetadata
@@ -271,9 +273,9 @@ export const PreviewTab = (props: Props) => {
                                 </p>
                             )}
 
-                        {uiConfig.softwareDetails.metadata.fields.softwareType &&
-                            applicationCategories &&
-                            applicationCategories.length > 0 && (
+                        {uiConfig.softwareDetails.metadata.fields.runtimePlatforms &&
+                            (runtimePlatforms.length > 0 ||
+                                Object.keys(operatingSystems).length > 0) && (
                                 <p
                                     className={cx(
                                         fr.cx("fr-text--regular"),
@@ -284,14 +286,18 @@ export const PreviewTab = (props: Props) => {
                                         {t("previewTab.softwareType")} :{" "}
                                     </span>
                                     <span>
-                                        {t(
-                                            `previewTab.softwareType-${softwareType.type}`
-                                        )}
+                                        {runtimePlatforms.includes("cloud")
+                                            ? t("previewTab.softwareType-cloud")
+                                            : runtimePlatforms.includes("desktop")
+                                              ? t(
+                                                    "previewTab.softwareType-desktop/mobile"
+                                                )
+                                              : t("previewTab.softwareType-stack")}
                                     </span>
-                                    {softwareType?.type === "desktop/mobile" && (
-                                        <SoftwareTypeTable
+                                    {Object.values(operatingSystems).some(Boolean) && (
+                                        <OperatingSystemsTable
                                             title="Test"
-                                            softwareType={softwareType}
+                                            operatingSystems={operatingSystems}
                                         />
                                     )}
                                 </p>

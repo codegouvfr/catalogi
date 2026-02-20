@@ -240,7 +240,9 @@ export default function SoftwareForm(props: Props) {
                             formDataStep3: formData
                         });
                     }}
-                    isCloudNativeSoftware={formData.step1?.softwareType.type === "cloud"}
+                    isCloudNativeSoftware={
+                        formData.step1?.runtimePlatforms.includes("cloud") ?? false
+                    }
                     evtActionSubmit={evtActionSubmitStep.pipe(() => step === 3)}
                 />
                 <SoftwareFormStep4

@@ -23,7 +23,7 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
         const formData: SoftwareFormData = {
             softwareName: repoData.full_name,
             softwareDescription: repoData?.description ? repoData.description : "",
-            softwareType: resolveSoftwareType(repoData.topics ?? []), // Someting else to rely on ?
+            ...resolveSoftwareType(repoData.topics ?? []), // Someting else to rely on ?
             externalIdForSource: repoData.html_url
                 .replace("https://github.com/", "")
                 .replace("git+", "")

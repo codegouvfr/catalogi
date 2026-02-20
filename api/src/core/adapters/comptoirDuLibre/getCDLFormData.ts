@@ -19,10 +19,8 @@ const formatCDLSoftwareToExternalData = async (
     return {
         softwareName: comptoirSoftware.name,
         softwareDescription: "",
-        softwareType: {
-            type: "desktop/mobile",
-            os: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false }
-        }, // TODO Check Mandatory, Incorrect data
+        operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
+        runtimePlatforms: ["desktop"], // TODO Check Mandatory, Incorrect data
         externalIdForSource: comptoirSoftware.id.toString(),
         sourceSlug: source.slug,
         softwareLicense: comptoirSoftware.licence,

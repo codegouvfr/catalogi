@@ -58,11 +58,8 @@ export const getWikidataForm: GetSoftwareFormData = async ({
         return {
             softwareName: name,
             softwareDescription: description,
-            softwareType: {
-                // Todo // P306
-                type: "desktop/mobile",
-                os: { "linux": true, "windows": true, "android": false, "ios": false, "mac": false }
-            },
+            operatingSystems: { "linux": true, "windows": true, "android": false, "ios": false, "mac": false },
+            runtimePlatforms: ["desktop"],
             externalIdForSource: externalId,
             sourceSlug: source.slug,
             softwareLicense: license?.label ?? "Copyright",

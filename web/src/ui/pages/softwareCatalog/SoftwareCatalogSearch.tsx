@@ -267,7 +267,7 @@ export function SoftwareCatalogSearch(props: Props) {
                     />
                 )}
 
-                {uiConfig?.catalog.search.options.softwareType && (
+                {uiConfig?.catalog.search.options.runtimePlatforms && (
                     <SelectNext
                         className={classes.filterSelectGroup}
                         label={t("softwareCatalogSearch.environnement label")}

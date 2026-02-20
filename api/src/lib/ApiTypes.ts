@@ -19,13 +19,11 @@ export type {
     CreateUserParams,
     UserWithId,
     Instance,
-    LegacyOs,
     Software,
     SoftwareInList,
     SoftwareFormData,
     DeclarationFormData,
     InstanceFormData,
-    SoftwareType,
     ServiceProvider,
     Source
 } from "../core/usecases/readWriteSillData";

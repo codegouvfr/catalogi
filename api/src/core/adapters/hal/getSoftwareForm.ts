@@ -18,7 +18,7 @@ export const halRawSoftwareToSoftwareForm = async (
     const formData: SoftwareFormData = {
         softwareName: halSoftware.title_s[0],
         softwareDescription: halSoftware.abstract_s ? halSoftware.abstract_s[0] : "",
-        softwareType: resolveSoftwareType(halSoftware.softPlatform_s ?? []),
+        ...resolveSoftwareType(halSoftware.softPlatform_s ?? []),
         externalIdForSource: halSoftware.docid,
         sourceSlug: source.slug,
         softwareLicense: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright

@@ -2,20 +2,21 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { SoftwareType } from "api/dist/src/lib/ApiTypes";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
 
 type Props = {
     title?: string;
-    softwareType: SoftwareType;
+    operatingSystems: Partial<Record<string, boolean>>;
 };
 
-export function SoftwareTypeTable(props: Props) {
+export function OperatingSystemsTable(props: Props) {
     const { classes, cx } = useStyles();
 
     const { t } = useTranslation();
+
+    const { operatingSystems } = props;
 
     return (
         <div className="fr-table--sm fr-table fr-table" id="table-sm-component">
@@ -50,34 +51,19 @@ export function SoftwareTypeTable(props: Props) {
                             <tbody>
                                 <tr id="table-sm-row-key-1" data-row-key="1">
                                     <td style={{ textAlign: "center" }}>
-                                        {props?.softwareType?.type === "desktop/mobile" &&
-                                        props.softwareType.os.windows
-                                            ? "✅"
-                                            : "❌"}
+                                        {operatingSystems.windows ? "✅" : "❌"}
                                     </td>
                                     <td style={{ textAlign: "center" }}>
-                                        {props?.softwareType?.type === "desktop/mobile" &&
-                                        props.softwareType.os.linux
-                                            ? "✅"
-                                            : "❌"}
+                                        {operatingSystems.linux ? "✅" : "❌"}
                                     </td>
                                     <td style={{ textAlign: "center" }}>
-                                        {props?.softwareType?.type === "desktop/mobile" &&
-                                        props.softwareType.os.mac
-                                            ? "✅"
-                                            : "❌"}
+                                        {operatingSystems.mac ? "✅" : "❌"}
                                     </td>
                                     <td style={{ textAlign: "center" }}>
-                                        {props?.softwareType?.type === "desktop/mobile" &&
-                                        props.softwareType.os.ios
-                                            ? "✅"
-                                            : "❌"}
+                                        {operatingSystems.ios ? "✅" : "❌"}
                                     </td>
                                     <td style={{ textAlign: "center" }}>
-                                        {props?.softwareType?.type === "desktop/mobile" &&
-                                        props.softwareType.os.android
-                                            ? "✅"
-                                            : "❌"}
+                                        {operatingSystems.android ? "✅" : "❌"}
                                     </td>
                                 </tr>
                             </tbody>
@@ -89,7 +75,7 @@ export function SoftwareTypeTable(props: Props) {
     );
 }
 
-const useStyles = tss.withName({ SoftwareTypeTable }).create({
+const useStyles = tss.withName({ OperatingSystemsTable }).create({
     item: {
         "&:not(:last-of-type)": {
             marginBottom: fr.spacing("4v")

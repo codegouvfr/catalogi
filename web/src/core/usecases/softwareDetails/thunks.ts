@@ -186,7 +186,8 @@ function apiSoftwareToSoftware(params: {
         customAttributes,
         similarSoftwares: similarSoftwares_api,
         license,
-        softwareType,
+        operatingSystems,
+        runtimePlatforms,
         userAndReferentCountByOrganization,
         serviceProviders,
         programmingLanguages,
@@ -219,18 +220,17 @@ function apiSoftwareToSoftware(params: {
             .map(({ userCount }) => userCount)
             .reduce((prev, curr) => prev + curr, 0),
         addedTime,
-        instances:
-            softwareType.type !== "cloud"
-                ? undefined
-                : apiInstances
-                      .filter(instance => instance.mainSoftwareSillId === softwareId)
-                      .map(instance => ({
-                          id: instance.id,
-                          instanceUrl: instance.instanceUrl,
-                          organization: instance.organization,
-                          targetAudience: instance.targetAudience,
-                          isPublic: instance.isPublic
-                      })),
+        instances: !runtimePlatforms.includes("cloud")
+            ? undefined
+            : apiInstances
+                  .filter(instance => instance.mainSoftwareSillId === softwareId)
+                  .map(instance => ({
+                      id: instance.id,
+                      instanceUrl: instance.instanceUrl,
+                      organization: instance.organization,
+                      targetAudience: instance.targetAudience,
+                      isPublic: instance.isPublic
+                  })),
         similarSoftwares: similarSoftwares_api.map(similarSoftware => {
             if (similarSoftware.registered) {
                 const externalSoftware = softwareInListToExternalCatalogSoftware({
@@ -259,18 +259,20 @@ function apiSoftwareToSoftware(params: {
         customAttributes,
         supportedPlatforms: {
             isInstallableOnUserComputer:
-                softwareType.type === "stack"
+                runtimePlatforms.length === 0
                     ? undefined
-                    : softwareType.type === "desktop/mobile",
+                    : runtimePlatforms.includes("desktop"),
             isAvailableAsMobileApp:
-                softwareType.type === "desktop/mobile" &&
-                (softwareType.os.android || softwareType.os.ios)
+                runtimePlatforms.includes("mobile") ||
+                (runtimePlatforms.includes("desktop") &&
+                    (operatingSystems.android === true || operatingSystems.ios === true))
         },
         programmingLanguages,
         keywords,
         applicationCategories,
         referencePublications,
-        softwareType,
+        operatingSystems,
+        runtimePlatforms,
         identifiers: identifiers ?? [],
         repoMetadata
     };

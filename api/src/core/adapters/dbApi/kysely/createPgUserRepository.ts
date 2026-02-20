@@ -4,7 +4,8 @@
 
 import { Kysely, sql } from "kysely";
 import { UserRepository } from "../../../ports/DbApiV2";
-import { LegacyOs, UserWithId } from "../../../usecases/readWriteSillData";
+import { UserWithId } from "../../../usecases/readWriteSillData";
+import type { Os } from "../../../types";
 import type { Database } from "./kysely.database";
 import { jsonBuildObject, jsonStripNulls } from "./kysely.utils";
 
@@ -84,7 +85,7 @@ export const createPgUserRepository = (db: Kysely<Database>): UserRepository => 
                                                 "software_users.useCaseDescription"
                                             ).$castTo<string>(),
                                             version: ref("software_users.version").$castTo<string>(),
-                                            os: ref("software_users.os").$castTo<LegacyOs>(),
+                                            os: ref("software_users.os").$castTo<Os>(),
                                             softwareName: ref("us.name").$castTo<string>()
                                         })
                                     )
@@ -167,7 +168,7 @@ const makeGetUserBuilder = (db: Kysely<Database>) =>
                                         serviceUrl: ref("software_users.serviceUrl"),
                                         usecaseDescription: ref("software_users.useCaseDescription").$castTo<string>(),
                                         version: ref("software_users.version").$castTo<string>(),
-                                        os: ref("software_users.os").$castTo<LegacyOs>(),
+                                        os: ref("software_users.os").$castTo<Os>(),
                                         softwareName: ref("us.name").$castTo<string>()
                                     })
                                 )

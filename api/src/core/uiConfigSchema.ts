@@ -91,7 +91,7 @@ const softwareDetailsSchema = z.object({
             keywords: z.boolean(),
             programmingLanguages: z.boolean(),
             applicationCategories: z.boolean(),
-            softwareType: z.boolean()
+            runtimePlatforms: z.boolean()
         })
     }),
     repoMetadata: z.object({
@@ -111,7 +111,7 @@ const catalogSchema = z.object({
         options: z.object({
             organisation: z.boolean(),
             applicationCategories: z.boolean(),
-            softwareType: z.boolean(),
+            runtimePlatforms: z.boolean(),
             customAttributes: z.boolean(),
             programmingLanguages: z.boolean()
         })

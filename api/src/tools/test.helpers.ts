@@ -38,16 +38,14 @@ export const createDeclarationFormData = makeObjectFactory<DeclarationFormData>(
 });
 
 export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
-    softwareType: {
-        type: "desktop/mobile",
-        os: {
-            windows: true,
-            linux: true,
-            mac: true,
-            android: false,
-            ios: false
-        }
+    operatingSystems: {
+        windows: true,
+        linux: true,
+        mac: true,
+        android: false,
+        ios: false
     },
+    runtimePlatforms: ["desktop"],
     externalIdForSource: "Q171985",
     sourceSlug: "some-source-slug",
     softwareName: "Some software",

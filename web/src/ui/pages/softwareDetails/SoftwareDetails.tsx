@@ -144,7 +144,8 @@ export default function SoftwareDetails(props: Props) {
                                         applicationCategories={
                                             software?.applicationCategories
                                         }
-                                        softwareType={software?.softwareType}
+                                        operatingSystems={software?.operatingSystems}
+                                        runtimePlatforms={software?.runtimePlatforms}
                                         identifiers={software.identifiers}
                                         officialWebsiteUrl={software.officialWebsiteUrl}
                                         repoMetadata={software.repoMetadata}

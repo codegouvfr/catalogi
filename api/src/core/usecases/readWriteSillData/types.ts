@@ -13,6 +13,7 @@ import {
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
+import type { Os, RuntimePlatform } from "../../types";
 
 export type SoftwareInList = {
     id: number;
@@ -24,7 +25,8 @@ export type SoftwareInList = {
     updateTime: number;
     applicationCategories: string[];
     keywords: string[];
-    softwareType: SoftwareType;
+    operatingSystems: Partial<Record<Os, boolean>>;
+    runtimePlatforms: RuntimePlatform[];
     customAttributes: CustomAttributes | undefined;
     programmingLanguages: string[];
     authors: Array<{ name: string }>;
@@ -63,7 +65,8 @@ export type Software = {
     license: string;
     externalId: string | undefined;
     sourceSlug: string | undefined;
-    softwareType: SoftwareType;
+    operatingSystems: Partial<Record<Os, boolean>>;
+    runtimePlatforms: RuntimePlatform[];
     similarSoftwares: Software.LegacySimilarSoftware[];
     keywords: string[];
     programmingLanguages: string[];
@@ -120,29 +123,11 @@ export type Instance = {
     isPublic: boolean;
 };
 
-export type SoftwareType = SoftwareType.Desktop | SoftwareType.CloudNative | SoftwareType.Stack;
-
-export namespace SoftwareType {
-    export type Desktop = {
-        type: "desktop/mobile";
-        os: Record<LegacyOs, boolean>;
-    };
-
-    export type CloudNative = {
-        type: "cloud";
-    };
-
-    export type Stack = {
-        type: "stack";
-    };
-}
-
-export type LegacyOs = "windows" | "linux" | "mac" | "android" | "ios";
-
 export type SoftwareFormData = {
     softwareName: string;
     softwareDescription: string;
-    softwareType: SoftwareType;
+    operatingSystems: Partial<Record<Os, boolean>>;
+    runtimePlatforms: RuntimePlatform[];
     externalIdForSource: string | undefined;
     sourceSlug: string;
     softwareLicense: string;
@@ -159,7 +144,7 @@ export namespace DeclarationFormData {
         declarationType: "user";
         usecaseDescription: string;
         /** NOTE: undefined if the software is not of type desktop/mobile */
-        os: LegacyOs | undefined;
+        os: Os | undefined;
         version: string;
         /** NOTE: Defined only when software is cloud */
         serviceUrl: string | undefined;

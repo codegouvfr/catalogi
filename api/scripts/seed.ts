@@ -70,9 +70,8 @@ const seed = async () => {
         {
             softwareName: "React",
             softwareDescription: "A JavaScript library for building user interfaces.",
-            softwareType: {
-                type: "stack"
-            },
+            operatingSystems: {},
+            runtimePlatforms: [],
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "MIT",
@@ -84,10 +83,8 @@ const seed = async () => {
         {
             softwareName: "Git",
             softwareDescription: "A free and open source distributed version control system.",
-            softwareType: {
-                type: "desktop/mobile",
-                os: { mac: true, windows: true, linux: true, android: false, ios: false }
-            },
+            operatingSystems: { mac: true, windows: true, linux: true, android: false, ios: false },
+            runtimePlatforms: ["desktop"],
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "GPL-2.0",
@@ -100,10 +97,8 @@ const seed = async () => {
             softwareName: "OpenOffice",
             softwareDescription:
                 "An open-source office software suite for word processing, spreadsheets, presentations, graphics, databases and more.",
-            softwareType: {
-                type: "desktop/mobile",
-                os: { mac: true, windows: true, linux: true, android: false, ios: false }
-            },
+            operatingSystems: { mac: true, windows: true, linux: true, android: false, ios: false },
+            runtimePlatforms: ["desktop"],
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "Apache-2.0",
@@ -115,10 +110,8 @@ const seed = async () => {
         {
             softwareName: "VLC media player",
             softwareDescription: "A free and open source cross-platform multimedia player and framework.",
-            softwareType: {
-                type: "desktop/mobile",
-                os: { mac: true, windows: true, linux: true, android: true, ios: true }
-            },
+            operatingSystems: { mac: true, windows: true, linux: true, android: true, ios: true },
+            runtimePlatforms: ["desktop"],
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "GPL-2.0",
@@ -130,10 +123,8 @@ const seed = async () => {
         {
             softwareName: "GIMP",
             softwareDescription: "GNU Image Manipulation Program: a free and open source image editor.",
-            softwareType: {
-                type: "desktop/mobile",
-                os: { mac: true, windows: true, linux: true, android: false, ios: false }
-            },
+            operatingSystems: { mac: true, windows: true, linux: true, android: false, ios: false },
+            runtimePlatforms: ["desktop"],
             externalIdForSource: undefined,
             sourceSlug: "wikidata",
             softwareLicense: "GPL-3.0",
@@ -146,9 +137,8 @@ const seed = async () => {
             softwareName: "Onyxia",
             softwareDescription:
                 "Application web pour simplifier la configuration d'environnement datascience sur Kubernetes.",
-            softwareType: {
-                type: "cloud"
-            },
+            operatingSystems: {},
+            runtimePlatforms: ["cloud"],
             externalIdForSource: "Q110492908",
             sourceSlug: "wikidata",
             softwareLicense: "MIT",

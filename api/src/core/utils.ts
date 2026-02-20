@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { SoftwareType } from "./usecases/readWriteSillData";
+import type { Os, RuntimePlatform } from "./types";
 
 export type OmitFromExisting<T, K extends keyof T> = Omit<T, K>;
 
@@ -75,13 +75,13 @@ const stringOfArrayIncluded = (stringArray: Array<string>, text: string): boolea
     });
 };
 
-export const resolveSoftwareType = (keywords: string[]): SoftwareType => {
+export const resolveSoftwareType = (
+    keywords: string[]
+): { operatingSystems: Partial<Record<Os, boolean>>; runtimePlatforms: RuntimePlatform[] } => {
     const searchString = keywords.join("").toLocaleLowerCase();
 
     if (searchString.includes("docker")) {
-        return {
-            type: "cloud"
-        };
+        return { operatingSystems: {}, runtimePlatforms: ["cloud"] };
     }
 
     const linux = stringOfArrayIncluded(["linux", "ubuntu", "unix", "multiplatform", "all"], searchString);
@@ -92,7 +92,7 @@ export const resolveSoftwareType = (keywords: string[]): SoftwareType => {
     const ios = stringOfArrayIncluded(["ios", "os x", "unix", "Multiplatform", "all"], searchString);
 
     return {
-        type: "desktop/mobile",
-        os: { "linux": linux, "windows": windows, "android": android, "ios": ios, "mac": mac }
+        operatingSystems: { linux, windows, android, ios, mac },
+        runtimePlatforms: ["desktop"]
     };
 };

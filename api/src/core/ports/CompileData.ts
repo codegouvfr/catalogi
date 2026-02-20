@@ -36,7 +36,8 @@ export namespace CompiledData {
             | "dereferencing"
             | "isStillInObservation"
             | "license"
-            | "softwareType"
+            | "operatingSystems"
+            | "runtimePlatforms"
             | "categories"
             | "logoUrl"
             | "keywords"
@@ -96,7 +97,8 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             logoUrl,
             name,
             referencedSinceTime,
-            softwareType,
+            operatingSystems,
+            runtimePlatforms,
             latestVersion,
             updateTime,
             softwareExternalData,
@@ -117,7 +119,8 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             logoUrl,
             name,
             referencedSinceTime,
-            softwareType,
+            operatingSystems,
+            runtimePlatforms,
             latestVersion,
             updateTime,
             softwareExternalData,

@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
+import type { Os, RuntimePlatform } from "../types";
 
 export type Db = {
     softwareRows: Db.SoftwareRow[];
@@ -33,7 +34,8 @@ export namespace Db {
         //// https://spdx.org/licenses/:
         //// https://www.data.gouv.fr/fr/pages/legal/licences/
         license: string;
-        softwareType: SoftwareType;
+        operatingSystems: Partial<Record<Os, boolean>>;
+        runtimePlatforms: RuntimePlatform[];
         categories: string[];
         addedByAgentEmail: string;
         logoUrl: string | undefined;
@@ -61,7 +63,7 @@ export namespace Db {
         softwareId: number;
         agentEmail: string;
         useCaseDescription: string;
-        os: LegacyOs | undefined;
+        os: Os | undefined;
         version: string;
         /** NOTE: Can be not undefined only if cloud */
         serviceUrl: string | undefined;
@@ -76,24 +78,5 @@ export namespace Db {
         addedByAgentEmail: string;
         referencedSinceTime: number;
         updateTime: number;
-    };
-}
-
-export type LegacyOs = "windows" | "linux" | "mac" | "android" | "ios";
-
-export type SoftwareType = SoftwareType.Desktop | SoftwareType.CloudNative | SoftwareType.Stack;
-
-export namespace SoftwareType {
-    export type Desktop = {
-        type: "desktop/mobile";
-        os: Record<LegacyOs, boolean>;
-    };
-
-    export type CloudNative = {
-        type: "cloud";
-    };
-
-    export type Stack = {
-        type: "stack";
     };
 }

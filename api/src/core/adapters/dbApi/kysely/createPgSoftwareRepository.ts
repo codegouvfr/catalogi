@@ -5,33 +5,13 @@
 import { Kysely, sql } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
-import { SoftwareType } from "../../../ports/DbApi";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
 import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
+import type { Os, RuntimePlatform } from "../../../types";
 import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
-
-const reconstructSoftwareType = (
-    operatingSystems: Partial<Record<string, boolean>> | null,
-    runtimePlatforms: string[] | null
-): SoftwareType => {
-    if (runtimePlatforms?.includes("cloud")) return { type: "cloud" };
-    if (runtimePlatforms?.includes("desktop"))
-        return {
-            type: "desktop/mobile",
-            os: {
-                windows: false,
-                linux: false,
-                mac: false,
-                android: false,
-                ios: false,
-                ...operatingSystems
-            }
-        };
-    return { type: "stack" };
-};
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
 type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; name: LocalizedString };
@@ -174,7 +154,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         ...(extData?.applicationCategories ?? [])
                     ],
                     keywords: software.keywords ?? [],
-                    softwareType: reconstructSoftwareType(software.operatingSystems, software.runtimePlatforms),
+                    operatingSystems: (software.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                    runtimePlatforms: (software.runtimePlatforms ?? []) as RuntimePlatform[],
                     customAttributes: software.customAttributes ?? undefined,
                     programmingLanguages: extData?.programmingLanguages ?? [],
                     authors: (extData?.authors ?? []).map(dev => ({ name: dev.name })),
@@ -327,7 +308,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 license: extData?.license ?? softwareRow.license,
                 externalId: extData?.externalId,
                 sourceSlug: extData?.sourceSlug,
-                softwareType: reconstructSoftwareType(softwareRow.operatingSystems, softwareRow.runtimePlatforms),
+                operatingSystems: (softwareRow.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                runtimePlatforms: (softwareRow.runtimePlatforms ?? []) as RuntimePlatform[],
                 similarSoftwares,
                 keywords: softwareRow.keywords ?? [],
                 programmingLanguages: extData?.programmingLanguages ?? [],

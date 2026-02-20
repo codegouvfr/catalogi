@@ -30,9 +30,8 @@ const viteOption: SoftwareExternalDataOption = {
 };
 
 const craSoftwareFormData = {
-    softwareType: {
-        type: "stack"
-    },
+    operatingSystems: {},
+    runtimePlatforms: [],
     externalIdForSource: "Q118629387",
     sourceSlug: "wikidata",
     softwareName: "Create react app",

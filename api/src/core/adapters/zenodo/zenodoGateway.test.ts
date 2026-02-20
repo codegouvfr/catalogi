@@ -99,16 +99,14 @@ const amdSoftwareForm = {
     softwareName: "admtools",
     softwareDescription:
         "R package to estimate age-depth models and transform data between the time domain and the stratigraphic domain.",
-    softwareType: {
-        type: "desktop/mobile",
-        os: {
-            linux: false,
-            windows: false,
-            android: false,
-            ios: false,
-            mac: false
-        }
+    operatingSystems: {
+        linux: false,
+        windows: false,
+        android: false,
+        ios: false,
+        mac: false
     },
+    runtimePlatforms: ["desktop"],
     externalIdForSource: "15479049",
     sourceSlug: "zenodo",
     softwareLicense: "gpl-3.0",

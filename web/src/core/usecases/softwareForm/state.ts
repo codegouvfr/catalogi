@@ -29,7 +29,8 @@ namespace SoftwareFormState {
 
 export type FormData = {
     step1: {
-        softwareType: ApiTypes.SoftwareType;
+        operatingSystems: Partial<Record<ApiTypes.Os, boolean>>;
+        runtimePlatforms: ApiTypes.RuntimePlatform[];
     };
     step2: {
         externalId: string | undefined;

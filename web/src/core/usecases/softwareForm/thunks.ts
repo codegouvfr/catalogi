@@ -88,7 +88,8 @@ export const thunks = {
                                 softwareSillId: software.softwareId,
                                 formData: {
                                     step1: {
-                                        softwareType: software.softwareType
+                                        operatingSystems: software.operatingSystems,
+                                        runtimePlatforms: software.runtimePlatforms
                                     },
                                     step2: {
                                         externalId: software.externalId,
@@ -201,7 +202,8 @@ export const thunks = {
             assert(step3 !== undefined);
 
             const formData: ApiTypes.SoftwareFormData = {
-                softwareType: step1.softwareType,
+                operatingSystems: step1.operatingSystems,
+                runtimePlatforms: step1.runtimePlatforms,
                 externalIdForSource: step2.externalId,
                 sourceSlug: mainSource.slug,
                 softwareName: step2.softwareName,

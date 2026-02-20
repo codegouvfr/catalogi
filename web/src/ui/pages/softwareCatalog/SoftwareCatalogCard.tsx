@@ -43,11 +43,15 @@ type BaseSoftwareProps = {
 type SoftwareWithCounts = BaseSoftwareProps & {
     userCount: number;
     referentCount: number;
-    softwareType?: ApiTypes.SoftwareType;
+    operatingSystems?: Partial<Record<string, boolean>>;
+    runtimePlatforms?: string[];
 };
 
 type SoftwareFromList = BaseSoftwareProps &
-    Pick<ApiTypes.SoftwareInList, "userAndReferentCountByOrganization" | "softwareType">;
+    Pick<
+        ApiTypes.SoftwareInList,
+        "userAndReferentCountByOrganization" | "operatingSystems" | "runtimePlatforms"
+    >;
 
 export type Props = {
     className?: string;
@@ -86,13 +90,12 @@ export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
               .reduce((prev, curr) => prev + curr, 0)
         : software.referentCount;
 
-    const softwareType = isSoftwareFromList(software)
-        ? software.softwareType
-        : software.softwareType;
+    const operatingSystems = isSoftwareFromList(software)
+        ? software.operatingSystems
+        : software.operatingSystems;
 
     const isInstallableOnUserComputer =
-        softwareType?.type === "desktop/mobile" &&
-        (softwareType.os.windows || softwareType.os.linux || softwareType.os.mac);
+        operatingSystems?.windows || operatingSystems?.linux || operatingSystems?.mac;
     const ui = useCoreState("uiConfig", "main");
 
     const { t } = useTranslation();

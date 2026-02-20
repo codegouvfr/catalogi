@@ -15,11 +15,10 @@ import type { UseCases } from "../core/usecases";
 import {
     DeclarationFormData,
     InstanceFormData,
-    LegacyOs,
     SoftwareFormData,
-    SoftwareType,
     UserWithId
 } from "../core/usecases/readWriteSillData";
+import type { Os, RuntimePlatform } from "../core/types";
 import { projectVersion } from "../tools/projectVersion";
 import type { OptionalIfCanBeUndefined } from "../tools/OptionalIfCanBeUndefined";
 import type { Context } from "./context";
@@ -436,44 +435,28 @@ export function createRouter(params: {
 
 export type TrpcRouter = ReturnType<typeof createRouter>["router"];
 
-const zSoftwareType = z.union([
-    z.object({
-        "type": z.literal("desktop/mobile"),
-        "os": z.object({
-            "windows": z.boolean(),
-            "linux": z.boolean(),
-            "mac": z.boolean(),
-            "android": z.boolean(),
-            "ios": z.boolean()
-        })
-    }),
-    z.object({
-        "type": z.literal("cloud")
-    }),
-    z.object({
-        "type": z.literal("stack")
-    })
-]);
-
-{
-    type Got = ReturnType<(typeof zSoftwareType)["parse"]>;
-    type Expected = SoftwareType;
-
-    assert<Equals<Got, Expected>>();
-}
-
 const zOs = z.enum(["windows", "linux", "mac", "android", "ios"]);
 
 {
     type Got = ReturnType<(typeof zOs)["parse"]>;
-    type Expected = LegacyOs;
+    type Expected = Os;
+
+    assert<Equals<Got, Expected>>();
+}
+
+const zRuntimePlatform = z.enum(["cloud", "mobile", "desktop"]);
+
+{
+    type Got = ReturnType<(typeof zRuntimePlatform)["parse"]>;
+    type Expected = RuntimePlatform;
 
     assert<Equals<Got, Expected>>();
 }
 
 const zSoftwareFormData = (() => {
     const zOut: z.ZodType<OptionalIfCanBeUndefined<SoftwareFormData>> = z.object({
-        "softwareType": zSoftwareType,
+        "operatingSystems": z.record(zOs, z.boolean()),
+        "runtimePlatforms": z.array(zRuntimePlatform),
         "externalIdForSource": z.string().optional(),
         "sourceSlug": z.string(),
         "softwareName": z.string(),

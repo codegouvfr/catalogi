@@ -21,9 +21,8 @@ import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { makeUpdateSoftware, UpdateSoftware } from "./updateSoftware";
 
 const craSoftwareFormData = {
-    softwareType: {
-        type: "stack"
-    },
+    operatingSystems: {},
+    runtimePlatforms: [],
     externalIdForSource: "Q118629387",
     sourceSlug: testSource.slug,
     softwareName: "Create react app",
