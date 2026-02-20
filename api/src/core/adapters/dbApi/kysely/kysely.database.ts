@@ -163,29 +163,33 @@ type SoftwareAttributeDefinitionsTable = {
     updatedAt: Date;
 };
 
+type RuntimePlatform = "cloud" | "mobile" | "desktop";
+
 export type SoftwareExternalDatasTable = {
     externalId: ExternalId;
     sourceSlug: string;
     softwareId: number | null;
-    developers: JSONColumnType<Array<SchemaOrganization | SchemaPerson>>;
-    label: string | JSONColumnType<LocalizedString>;
+    authors: JSONColumnType<Array<SchemaOrganization | SchemaPerson>>;
+    name: string | JSONColumnType<LocalizedString>;
     description: string | JSONColumnType<LocalizedString>;
     isLibreSoftware: boolean | null;
-    logoUrl: string | null;
-    websiteUrl: string | null;
-    sourceUrl: string | null;
-    documentationUrl: string | null;
+    image: string | null;
+    url: string | null;
+    codeRepositoryUrl: string | null;
+    softwareHelp: string | null;
     license: string | null;
-    softwareVersion: string | null;
+    latestVersion: JSONColumnType<{ version: string | null; releaseDate: string | null }> | null;
     keywords: JSONColumnType<string[]> | null;
     programmingLanguages: JSONColumnType<string[]> | null;
     applicationCategories: JSONColumnType<string[]> | null;
     referencePublications: JSONColumnType<ScholarlyArticle[]> | null;
-    publicationTime: Date | null;
+    dateCreated: Date | null;
     identifiers: JSONColumnType<SchemaIdentifier[]> | null;
     lastDataFetchAt: Date | null;
     providers: JSONColumnType<Array<SchemaOrganization>> | null;
     repoMetadata: JSONColumnType<RepoMetadata> | null;
+    operatingSystems: JSONColumnType<Record<Os, boolean>> | null;
+    runtimePlatforms: JSONColumnType<RuntimePlatform[]> | null;
 };
 
 type SoftwareType =

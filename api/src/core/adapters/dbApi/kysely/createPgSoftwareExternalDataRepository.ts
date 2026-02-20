@@ -25,8 +25,8 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
                         externalId,
                         sourceSlug,
                         softwareId,
-                        developers: JSON.stringify([]),
-                        label: JSON.stringify(label),
+                        authors: JSON.stringify([]),
+                        name: JSON.stringify(label),
                         description: JSON.stringify(description),
                         isLibreSoftware: isLibreSoftware ?? null
                     })
@@ -48,18 +48,27 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .where("externalId", "=", externalId)
             .where("sourceSlug", "=", sourceSlug)
             .set({
-                ...softwareExternalData,
                 externalId,
                 softwareId,
                 lastDataFetchAt,
-                developers: JSON.stringify(softwareExternalData.developers),
-                label: JSON.stringify(softwareExternalData.label),
+                authors: JSON.stringify(softwareExternalData.developers),
+                name: JSON.stringify(softwareExternalData.label),
+                description: JSON.stringify(softwareExternalData.description),
+                isLibreSoftware: softwareExternalData.isLibreSoftware ?? null,
+                image: softwareExternalData.logoUrl ?? null,
+                url: softwareExternalData.websiteUrl ?? null,
+                codeRepositoryUrl: softwareExternalData.sourceUrl ?? null,
+                softwareHelp: softwareExternalData.documentationUrl ?? null,
+                license: softwareExternalData.license ?? null,
+                latestVersion: softwareExternalData.softwareVersion
+                    ? JSON.stringify({ version: softwareExternalData.softwareVersion, releaseDate: null })
+                    : null,
                 keywords: JSON.stringify(softwareExternalData.keywords),
                 applicationCategories: JSON.stringify(softwareExternalData.applicationCategories),
                 programmingLanguages: JSON.stringify(softwareExternalData.programmingLanguages),
                 referencePublications: JSON.stringify(softwareExternalData.referencePublications),
+                dateCreated: softwareExternalData.publicationTime ?? null,
                 identifiers: JSON.stringify(softwareExternalData.identifiers),
-                description: JSON.stringify(softwareExternalData.description),
                 repoMetadata: JSON.stringify(softwareExternalData.repoMetadata),
                 providers: JSON.stringify(softwareExternalData.providers)
             })
@@ -67,17 +76,28 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
     },
     save: async ({ softwareExternalData, softwareId }) => {
         const pgValues = {
-            ...softwareExternalData,
+            externalId: softwareExternalData.externalId,
+            sourceSlug: softwareExternalData.sourceSlug,
             softwareId,
-            developers: JSON.stringify(softwareExternalData.developers),
-            label: JSON.stringify(softwareExternalData.label),
+            authors: JSON.stringify(softwareExternalData.developers),
+            name: JSON.stringify(softwareExternalData.label),
+            description: JSON.stringify(softwareExternalData.description),
+            isLibreSoftware: softwareExternalData.isLibreSoftware ?? null,
+            image: softwareExternalData.logoUrl ?? null,
+            url: softwareExternalData.websiteUrl ?? null,
+            codeRepositoryUrl: softwareExternalData.sourceUrl ?? null,
+            softwareHelp: softwareExternalData.documentationUrl ?? null,
+            license: softwareExternalData.license ?? null,
+            latestVersion: softwareExternalData.softwareVersion
+                ? JSON.stringify({ version: softwareExternalData.softwareVersion, releaseDate: null })
+                : null,
             keywords: JSON.stringify(softwareExternalData.keywords),
             applicationCategories: JSON.stringify(softwareExternalData.applicationCategories),
             programmingLanguages: JSON.stringify(softwareExternalData.programmingLanguages),
             referencePublications: JSON.stringify(softwareExternalData.referencePublications),
+            dateCreated: softwareExternalData.publicationTime ?? null,
             identifiers: JSON.stringify(softwareExternalData.identifiers),
             repoMetadata: JSON.stringify(softwareExternalData.repoMetadata),
-            description: JSON.stringify(softwareExternalData.description),
             providers: JSON.stringify(softwareExternalData.providers)
         };
 

@@ -16,45 +16,50 @@ const emptyOperatingSystems: SoftwareExternal["operatingSystems"] = {
     ios: false
 };
 
+const mapRepoMetadataHealthCheck = (
+    healthCheck: NonNullable<NonNullable<DatabaseDataType.SoftwareExternalDataRow["repoMetadata"]>["healthCheck"]>
+) => ({
+    ...(healthCheck.lastCommit ? { lastCommit: new Date(healthCheck.lastCommit) } : {}),
+    ...(healthCheck.lastClosedIssue ? { lastClosedIssue: new Date(healthCheck.lastClosedIssue) } : {}),
+    ...(healthCheck.lastClosedIssuePullRequest
+        ? { lastClosedIssuePullRequest: new Date(healthCheck.lastClosedIssuePullRequest) }
+        : {})
+});
+
 /**
- * Legacy boundary mapper used by existing repository APIs.
- * Keep this mapper explicit even when fields are mostly aligned to avoid drift.
+ * Legacy boundary mapper: canonical DB row → legacy SoftwareExternalData shape.
+ * Maps renamed columns back to legacy field names.
  */
 export const toLegacySoftwareExternalData = (
-    externalSoftwareRow: DatabaseDataType.SoftwareExternalDataRow
-): LegacySoftwareExternalData => {
-    if (externalSoftwareRow.repoMetadata?.healthCheck) {
-        return {
-            ...externalSoftwareRow,
-            repoMetadata: {
-                healthCheck: {
-                    ...(externalSoftwareRow.repoMetadata.healthCheck?.lastCommit
-                        ? { lastCommit: new Date(externalSoftwareRow.repoMetadata.healthCheck?.lastCommit) }
-                        : {}),
-                    ...(externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssue
-                        ? { lastClosedIssue: new Date(externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssue) }
-                        : {}),
-                    ...(externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssuePullRequest
-                        ? {
-                              lastClosedIssuePullRequest: new Date(
-                                  externalSoftwareRow.repoMetadata.healthCheck?.lastClosedIssuePullRequest
-                              )
-                          }
-                        : {})
-                }
-            }
-        };
-    }
-
-    return {
-        ...externalSoftwareRow,
-        repoMetadata: {}
-    };
-};
+    row: DatabaseDataType.SoftwareExternalDataRow
+): LegacySoftwareExternalData => ({
+    externalId: row.externalId,
+    sourceSlug: row.sourceSlug,
+    developers: row.authors,
+    label: row.name,
+    description: row.description,
+    isLibreSoftware: row.isLibreSoftware,
+    logoUrl: row.image,
+    websiteUrl: row.url,
+    sourceUrl: row.codeRepositoryUrl,
+    documentationUrl: row.softwareHelp,
+    license: row.license,
+    softwareVersion: row.latestVersion?.version ?? undefined,
+    keywords: row.keywords,
+    programmingLanguages: row.programmingLanguages,
+    applicationCategories: row.applicationCategories,
+    publicationTime: row.dateCreated ? new Date(row.dateCreated) : undefined,
+    referencePublications: row.referencePublications,
+    identifiers: row.identifiers,
+    providers: row.providers,
+    repoMetadata: row.repoMetadata?.healthCheck
+        ? { healthCheck: mapRepoMetadataHealthCheck(row.repoMetadata.healthCheck) }
+        : {}
+});
 
 /**
  * Canonical mapper for Phase 2 migration.
- * This keeps conversions in one location; defaults are intentionally explicit.
+ * Converts legacy SoftwareExternalData → canonical SoftwareExternal.
  */
 export const toCanonicalSoftwareExternal = (params: {
     legacy: LegacySoftwareExternalData;

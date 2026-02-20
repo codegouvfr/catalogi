@@ -105,6 +105,58 @@ Track all implementation actions, findings, decisions, and validations for issue
 - Next:
   - Migrate `refreshExternalData.ts` and DB external repository contracts to canonical boundary objects.
 
+### 2026-02-20 - Phase 2 remaining: external data DB migration + column rename cascade
+
+- Step: rename `software_external_datas` columns to canonical names, cascade changes through all consumers.
+- Status: **ALMOST COMPLETE** — typecheck passes, 2 cleanup items remain (see Next).
+- Changes:
+  1. **Kysely migration** created via `yarn --cwd api kysely migrate make rename-external-data-columns-to-canonical`.
+     Two files exist — the properly-timestamped one (`1771584277207_...`) is an empty scaffold, the manually-created one (`1771583441843_...`) has the actual migration code. **TODO: copy content from old into new, delete old.**
+  2. **Kysely schema** (`kysely.database.ts`): `SoftwareExternalDatasTable` columns renamed: `label`→`name`, `developers`→`authors`, `websiteUrl`→`url`, `sourceUrl`→`codeRepositoryUrl`, `documentationUrl`→`softwareHelp`, `logoUrl`→`image`, `publicationTime`→`dateCreated`, `softwareVersion`→`latestVersion` (jsonb: `{version, releaseDate}`). Added `operatingSystems` (jsonb) and `runtimePlatforms` (jsonb).
+  3. **PopulatedExternalData** (`DbApiV2.ts`): changed from `Pick<SourceRow, "url" | ...>` to explicit `{ sourceUrl: string; ... }` to avoid name collision with the new canonical `url` column.
+  4. **softwareExternalMappers.ts**: rewrote `toLegacySoftwareExternalData` to explicitly map canonical DB row → legacy field names (no more spread).
+  5. **createPgSoftwareExternalDataRepository.ts**: all `saveMany`/`update`/`save` rewritten to map legacy `SoftwareExternalData` input → canonical DB column names.
+  6. **mergeExternalData.ts**: updated destructuring to use `sourceUrl` (from new `PopulatedExternalData` shape).
+  7. **createPgSoftwareRepository.ts**: updated `getFullList`/`getDetails` to use canonical column names (`image`, `authors`, `url`, `codeRepositoryUrl`, `softwareHelp`, `latestVersion`, `dateCreated`). SQL selects use `s.url as sourceUrl`.
+  8. **createGetCompiledData.ts**: updated `softwareVersion`→`latestVersion.version`, `publicationTime`→`dateCreated`, `similar.label`→`similar.name`, source join `s.url`→`s.url as sourceUrl`.
+  9. **test.helpers.ts**: `emptyExternalData`/`emptyExternalDataCleaned` updated to canonical column names + added `operatingSystems`/`runtimePlatforms`.
+  10. **Test files updated**: `mergeExternalData.test.ts`, `createPgSoftwareRepository.test.ts`, `pgDbApi.integration.test.ts`, `refreshExternalData.test.ts` — all legacy column names replaced with canonical.
+  11. **docs/issue-491-context.md**: created full context document.
+- Files changed:
+  - `api/src/core/adapters/dbApi/kysely/kysely.database.ts`
+  - `api/src/core/adapters/dbApi/kysely/migrations/1771583441843_rename-external-data-columns-to-canonical.ts` (OLD — to delete)
+  - `api/src/core/adapters/dbApi/kysely/migrations/1771584277207_rename-external-data-columns-to-canonical.ts` (NEW — empty scaffold)
+  - `api/src/core/adapters/dbApi/kysely/createPgSoftwareExternalDataRepository.ts`
+  - `api/src/core/adapters/dbApi/kysely/createPgSoftwareRepository.ts`
+  - `api/src/core/adapters/dbApi/kysely/createGetCompiledData.ts`
+  - `api/src/core/adapters/dbApi/kysely/mergeExternalData.ts`
+  - `api/src/core/ports/DbApiV2.ts`
+  - `api/src/core/types/softwareExternalMappers.ts`
+  - `api/src/tools/test.helpers.ts`
+  - `api/src/core/adapters/dbApi/kysely/mergeExternalData.test.ts`
+  - `api/src/core/adapters/dbApi/kysely/createPgSoftwareRepository.test.ts`
+  - `api/src/core/adapters/dbApi/kysely/pgDbApi.integration.test.ts`
+  - `api/src/core/usecases/refreshExternalData.test.ts`
+  - `docs/issue-491-context.md`
+- Validation:
+  - `yarn --cwd api typecheck` ✅ (passes)
+  - Tests NOT yet run (need DB up)
+- Findings:
+  - `PopulatedExternalData` had a `url` name collision after rename — resolved by introducing `sourceUrl` for the source's API URL.
+  - `latestVersion` migration: text→jsonb using `jsonb_build_object('version', old_value, 'releaseDate', NULL)`.
+- Decision:
+  - Use `yarn --cwd api kysely migrate make <name>` for migrations (proper timestamp).
+- Risks:
+  - Migration file needs consolidation (copy content from `1771583441843` → `1771584277207`, delete old).
+  - Integration tests not yet validated against real DB.
+
+## IMMEDIATE NEXT STEPS (for new session)
+
+1. **Fix migration files**: copy content from `1771583441843_rename-external-data-columns-to-canonical.ts` into `1771584277207_rename-external-data-columns-to-canonical.ts`, then delete the old file.
+2. **Run tests**: `yarn --cwd api dev:db && yarn --cwd api db:up && yarn --cwd api test`
+3. **Phase 2c-e still pending** per the plan: adapt source adapters to return canonical directly (currently use wrapper mapper), remove legacy external data types.
+4. **Phase 3+**: migrate `softwares` table, domain types, web. See `docs/issue-491-context.md` for full plan.
+
 ### Template for next entries
 - Date/time:
 - Step:

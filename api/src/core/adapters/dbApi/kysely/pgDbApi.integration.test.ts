@@ -466,17 +466,28 @@ describe("pgDbApi", () => {
             .insertInto("software_external_datas")
             .values(
                 [softwareExternalData, similarSoftwareExternalData].map(softExtData => ({
-                    ...softExtData,
+                    externalId: softExtData.externalId,
                     sourceSlug: testSource.slug,
-                    developers: JSON.stringify(softExtData.developers),
-                    label: JSON.stringify(softExtData.label),
+                    softwareId: null,
+                    authors: JSON.stringify(softExtData.developers),
+                    name: JSON.stringify(softExtData.label),
                     description: JSON.stringify(softExtData.description),
+                    isLibreSoftware: softExtData.isLibreSoftware ?? null,
+                    image: softExtData.logoUrl ?? null,
+                    url: softExtData.websiteUrl ?? null,
+                    codeRepositoryUrl: softExtData.sourceUrl ?? null,
+                    softwareHelp: softExtData.documentationUrl ?? null,
+                    license: softExtData.license ?? null,
+                    latestVersion: softExtData.softwareVersion
+                        ? JSON.stringify({ version: softExtData.softwareVersion, releaseDate: null })
+                        : null,
                     keywords: JSON.stringify(softExtData.keywords),
                     applicationCategories: JSON.stringify(softExtData.applicationCategories),
                     programmingLanguages: JSON.stringify(softExtData.programmingLanguages),
                     identifiers: JSON.stringify(softExtData.identifiers),
                     repoMetadata: JSON.stringify(softExtData.repoMetadata),
                     referencePublications: JSON.stringify(softExtData.referencePublications),
+                    dateCreated: softExtData.publicationTime ?? null,
                     providers: JSON.stringify(softExtData.providers)
                 }))
             )

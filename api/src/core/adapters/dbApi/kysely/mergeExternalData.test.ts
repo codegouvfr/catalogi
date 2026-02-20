@@ -12,10 +12,10 @@ describe("mergeExternalData", () => {
             softwareId: 1,
             externalId: "low",
             sourceSlug: "low_source",
-            priority: 10, // Low priority
+            priority: 10,
             kind: "regular",
-            url: "http://low",
-            label: "Low Label",
+            sourceUrl: "http://low",
+            name: "Low Label",
             description: "Low Description",
             keywords: ["low"]
         } as unknown as PopulatedExternalData;
@@ -24,23 +24,18 @@ describe("mergeExternalData", () => {
             softwareId: 1,
             externalId: "high",
             sourceSlug: "high_source",
-            priority: 1, // High priority
+            priority: 1,
             kind: "regular",
-            url: "http://high",
-            label: "High Label",
-            // Description undefined/missing in high prio -> should keep Low Description?
-            // Note: undefined fields are usually preserved from previous if using deepmerge correctly,
-            // but PopulatedExternalData might have explicit nulls/undefineds.
+            sourceUrl: "http://high",
+            name: "High Label",
             keywords: ["high"]
         } as unknown as PopulatedExternalData;
 
-        // The function sorts internally, so input order shouldn't matter
         const merged = mergeExternalData([highPrioData, lowPrioData]);
 
         expect(merged).toBeDefined();
-        // Priority 1 should win for overlapping fields
-        expect(merged?.label).toBe("High Label");
-        expect(merged?.keywords).toEqual(["low", "high"]); // Low priority keywords first, then high priority appended
+        expect(merged?.name).toBe("High Label");
+        expect(merged?.keywords).toEqual(["low", "high"]);
     });
 
     it("preserves keyword order when merging multiple items", () => {
@@ -64,19 +59,18 @@ describe("mergeExternalData", () => {
         const lowPrioData = {
             softwareId: 1,
             priority: 10,
-            documentationUrl: "http://docs.low"
+            softwareHelp: "http://docs.low"
         } as unknown as PopulatedExternalData;
 
         const highPrioData = {
             softwareId: 1,
             priority: 1,
-            // documentationUrl missing
-            websiteUrl: "http://web.high"
+            url: "http://web.high"
         } as unknown as PopulatedExternalData;
 
         const merged = mergeExternalData([highPrioData, lowPrioData]);
 
-        expect(merged?.documentationUrl).toBe("http://docs.low");
-        expect(merged?.websiteUrl).toBe("http://web.high");
+        expect(merged?.softwareHelp).toBe("http://docs.low");
+        expect(merged?.url).toBe("http://web.high");
     });
 });

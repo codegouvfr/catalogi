@@ -25,7 +25,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .selectFrom("software_external_datas as ext")
         .selectAll("ext")
         .innerJoin("sources as src", "src.slug", "ext.sourceSlug")
-        .select(["src.kind", "src.priority", "src.url", "src.slug"])
+        .select(["src.kind", "src.priority", "src.url as sourceUrl", "src.slug"])
         .where("ext.softwareId", "is not", null)
         .orderBy("ext.softwareId", "asc")
         .orderBy("src.priority", "desc")
@@ -99,10 +99,10 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                 }): CompiledData.Software<"private"> => {
                     const softwareExternalData = mergeExternalData(externalDataBySoftwareId[id] ?? []);
                     const version =
-                        softwareExternalData?.softwareVersion && softwareExternalData?.publicationTime
+                        softwareExternalData?.latestVersion?.version && softwareExternalData?.dateCreated
                             ? {
-                                  semVer: softwareExternalData.softwareVersion,
-                                  publicationTime: softwareExternalData.publicationTime.valueOf()
+                                  semVer: softwareExternalData.latestVersion.version,
+                                  publicationTime: softwareExternalData.dateCreated.valueOf()
                               }
                             : undefined;
                     return {
@@ -123,7 +123,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             .map(similar => ({
                                 "externalId": similar.externalId!,
                                 "sourceSlug": similar.sourceSlug!,
-                                "label": similar.label!,
+                                "label": similar.name!,
                                 "description": similar.description!,
                                 "isLibreSoftware": similar.isLibreSoftware!
                             }))

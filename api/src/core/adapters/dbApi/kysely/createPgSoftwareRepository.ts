@@ -13,7 +13,7 @@ import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.u
 import { mergeExternalData } from "./mergeExternalData";
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
-type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; label: LocalizedString };
+type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; name: LocalizedString };
 
 const aggregateCounts = (
     countRows: CountRow[]
@@ -39,7 +39,7 @@ const aggregateSimilars = (
             ...acc,
             [row.softwareId]: [
                 ...(acc[row.softwareId] ?? []),
-                { softwareName: row.linkedSoftwareName ?? undefined, label: row.label }
+                { softwareName: row.linkedSoftwareName ?? undefined, label: row.name }
             ]
         }),
         {} as Record<number, Array<{ softwareName: string | undefined; label: LocalizedString | undefined }>>
@@ -88,14 +88,14 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                             .onRef("ext.sourceSlug", "=", "sim.sourceSlug")
                     )
                     .leftJoin("softwares as s", "s.id", "ext.softwareId")
-                    .select(["sim.softwareId", "s.name as linkedSoftwareName", "ext.label"])
+                    .select(["sim.softwareId", "s.name as linkedSoftwareName", "ext.name"])
                     .execute(),
 
                 db
                     .selectFrom("software_external_datas as ext")
                     .selectAll("ext")
                     .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
-                    .select(["s.kind", "s.priority", "s.url", "s.slug"])
+                    .select(["s.kind", "s.priority", "s.url as sourceUrl", "s.slug"])
                     .where("ext.softwareId", "is not", null)
                     .orderBy("ext.softwareId", "asc")
                     .orderBy("s.priority", "desc")
@@ -136,11 +136,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     id: software.id,
                     softwareName: software.name,
                     softwareDescription: software.description,
-                    logoUrl: extData?.logoUrl ?? software.logoUrl ?? undefined,
-                    latestVersion: extData
+                    logoUrl: extData?.image ?? software.logoUrl ?? undefined,
+                    latestVersion: extData?.latestVersion
                         ? {
-                              semVer: extData.softwareVersion ?? undefined,
-                              publicationTime: extData.publicationTime?.getTime()
+                              semVer: extData.latestVersion.version ?? undefined,
+                              publicationTime: extData.dateCreated?.getTime()
                           }
                         : undefined,
                     addedTime: software.referencedSinceTime.getTime(),
@@ -150,7 +150,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     softwareType: software.softwareType,
                     customAttributes: software.customAttributes ?? undefined,
                     programmingLanguages: extData?.programmingLanguages ?? [],
-                    authors: (extData?.developers ?? []).map(dev => ({ name: dev.name })),
+                    authors: (extData?.authors ?? []).map(dev => ({ name: dev.name })),
                     userAndReferentCountByOrganization: countsMap[software.id] ?? {},
                     similarSoftwares: similarMap[software.id] ?? []
                 };
@@ -165,7 +165,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     .selectFrom("software_external_datas as ext")
                     .selectAll("ext")
                     .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
-                    .select(["s.kind", "s.priority", "s.url", "s.slug"])
+                    .select(["s.kind", "s.priority", "s.url as sourceUrl", "s.slug"])
                     .where("ext.softwareId", "=", softwareId)
                     .execute(),
 
@@ -200,7 +200,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         "linkedSoft.name as linkedSoftwareName",
                         "linkedSoft.description as linkedSoftwareDescription",
                         "linkedSoft.dereferencing as linkedSoftwareDereferencing",
-                        "ext.label",
+                        "ext.name",
                         "ext.description",
                         "ext.isLibreSoftware"
                     ])
@@ -235,7 +235,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         softwareName: row.linkedSoftwareName!,
                         softwareDescription: row.linkedSoftwareDescription!,
                         externalId: row.externalId,
-                        label: row.label,
+                        label: row.name,
                         description: row.description,
                         isLibreSoftware: row.isLibreSoftware ?? undefined,
                         sourceSlug: row.sourceSlug
@@ -246,7 +246,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     sourceSlug: row.sourceSlug,
                     externalId: row.externalId,
                     isLibreSoftware: row.isLibreSoftware ?? undefined,
-                    label: row.label,
+                    label: row.name,
                     description: row.description
                 };
             });
@@ -255,11 +255,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 softwareId: softwareRow.id,
                 softwareName: softwareRow.name,
                 softwareDescription: softwareRow.description,
-                logoUrl: extData?.logoUrl ?? softwareRow.logoUrl ?? undefined,
-                latestVersion: extData
+                logoUrl: extData?.image ?? softwareRow.logoUrl ?? undefined,
+                latestVersion: extData?.latestVersion
                     ? {
-                          semVer: extData.softwareVersion ?? undefined,
-                          publicationTime: extData.publicationTime?.getTime()
+                          semVer: extData.latestVersion.version ?? undefined,
+                          publicationTime: extData.dateCreated?.getTime()
                       }
                     : undefined,
                 addedTime: softwareRow.referencedSinceTime.getTime(),
@@ -268,7 +268,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 applicationCategories: [...(softwareRow.categories ?? []), ...(extData?.applicationCategories ?? [])],
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 userAndReferentCountByOrganization,
-                authors: (extData?.developers ?? []).map((dev): SchemaPerson | SchemaOrganization =>
+                authors: (extData?.authors ?? []).map((dev): SchemaPerson | SchemaOrganization =>
                     dev["@type"] === "Person"
                         ? {
                               "@type": "Person",
@@ -285,9 +285,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                               parentOrganizations: dev.parentOrganizations
                           }
                 ),
-                officialWebsiteUrl: extData?.websiteUrl ?? undefined,
-                codeRepositoryUrl: extData?.sourceUrl ?? undefined,
-                documentationUrl: extData?.documentationUrl ?? undefined,
+                officialWebsiteUrl: extData?.url ?? undefined,
+                codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
+                documentationUrl: extData?.softwareHelp ?? undefined,
                 license: extData?.license ?? softwareRow.license,
                 externalId: extData?.externalId,
                 sourceSlug: extData?.sourceSlug,
@@ -466,10 +466,10 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         dataToInsert.map(({ externalId, sourceSlug, label, description, isLibreSoftware }) => ({
                             externalId,
                             sourceSlug,
-                            label: JSON.stringify(label),
+                            name: JSON.stringify(label),
                             description: JSON.stringify(description),
                             isLibreSoftware: isLibreSoftware ?? null,
-                            developers: JSON.stringify([])
+                            authors: JSON.stringify([])
                         }))
                     )
                     .onConflict(oc => oc.doNothing())

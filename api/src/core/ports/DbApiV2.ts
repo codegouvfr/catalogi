@@ -80,8 +80,12 @@ export interface SoftwareRepository {
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
 }
 
-export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow &
-    Pick<DatabaseDataType.SourceRow, "url" | "kind" | "slug" | "priority">;
+export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow & {
+    sourceUrl: string;
+    kind: DatabaseDataType.SourceRow["kind"];
+    slug: string;
+    priority: number;
+};
 
 export interface SoftwareExternalDataRepository {
     saveMany: (

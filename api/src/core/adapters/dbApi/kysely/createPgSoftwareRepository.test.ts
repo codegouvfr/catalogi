@@ -148,10 +148,10 @@ describe("createPgSoftwareRepository", () => {
                     softwareId,
                     sourceSlug: "low_prio",
                     externalId: "ext_low",
-                    label: JSON.stringify("Low Label"),
+                    name: JSON.stringify("Low Label"),
                     description: JSON.stringify("Low Desc"),
                     isLibreSoftware: false,
-                    developers: JSON.stringify([])
+                    authors: JSON.stringify([])
                 })
                 .execute();
 
@@ -162,14 +162,10 @@ describe("createPgSoftwareRepository", () => {
                     softwareId,
                     sourceSlug: "high_prio",
                     externalId: "ext_high",
-                    label: JSON.stringify("High Label"), // Should win
-                    // description missing, should fall back to Low if merge logic supports it,
-                    // but mergeExternalData usually takes the whole object of highest priority if keys exist.
-                    // Wait, merge.all with arrayMerge strategy.
-                    // Let's verify if fields are overwritten.
+                    name: JSON.stringify("High Label"), // Should win
                     description: JSON.stringify("High Desc"),
                     isLibreSoftware: true,
-                    developers: JSON.stringify([])
+                    authors: JSON.stringify([])
                 })
                 .execute();
 

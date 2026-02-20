@@ -84,17 +84,17 @@ export const emptyExternalData = (
     const { softwareId = null, externalId, sourceSlug, label = "", description = "", isLibreSoftware = null } = params;
     return {
         externalId,
-        developers: [],
-        label,
+        authors: [],
+        name: label,
         description,
         isLibreSoftware,
-        logoUrl: null,
-        websiteUrl: null,
-        sourceUrl: null,
-        documentationUrl: null,
+        image: null,
+        url: null,
+        codeRepositoryUrl: null,
+        softwareHelp: null,
         license: null,
-        softwareVersion: null,
-        publicationTime: null,
+        latestVersion: null,
+        dateCreated: null,
         keywords: null,
         programmingLanguages: null,
         applicationCategories: null,
@@ -104,7 +104,9 @@ export const emptyExternalData = (
         softwareId,
         lastDataFetchAt: null,
         repoMetadata: null,
-        providers: null
+        providers: null,
+        operatingSystems: null,
+        runtimePlatforms: null
     };
 };
 
@@ -121,17 +123,17 @@ export const emptyExternalDataCleaned = (
     } = params;
     return {
         externalId,
-        developers: [],
-        label,
+        authors: [],
+        name: label,
         description,
         isLibreSoftware,
-        logoUrl: undefined,
-        websiteUrl: undefined,
-        sourceUrl: undefined,
-        documentationUrl: undefined,
+        image: undefined,
+        url: undefined,
+        codeRepositoryUrl: undefined,
+        softwareHelp: undefined,
         license: undefined,
-        softwareVersion: undefined,
-        publicationTime: undefined,
+        latestVersion: undefined,
+        dateCreated: undefined,
         keywords: undefined,
         programmingLanguages: undefined,
         applicationCategories: undefined,
@@ -141,7 +143,9 @@ export const emptyExternalDataCleaned = (
         softwareId,
         lastDataFetchAt: undefined,
         repoMetadata: undefined,
-        providers: undefined
+        providers: undefined,
+        operatingSystems: undefined,
+        runtimePlatforms: undefined
     };
 };
 

@@ -86,8 +86,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             externalId: "Q11354",
             sourceSlug: "wikidata",
             softwareId: apacheSoftwareId,
-            developers: JSON.stringify([]),
-            label: JSON.stringify(""),
+            authors: JSON.stringify([]),
+            name: JSON.stringify(""),
             description: JSON.stringify("")
         })
         .execute();
@@ -127,8 +127,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             externalId: "Q2822666",
             sourceSlug: "wikidata",
             softwareId: acceleroId,
-            developers: JSON.stringify([]),
-            label: JSON.stringify(""),
+            authors: JSON.stringify([]),
+            name: JSON.stringify(""),
             description: JSON.stringify("")
         })
         .execute();
@@ -250,18 +250,18 @@ describe("fetches software extra data (from different providers)", () => {
                 {
                     applicationCategories: undefined,
                     description: "deprecated tool for creating React SPA using webpack as bundler",
-                    developers: [],
-                    documentationUrl: undefined,
+                    authors: [],
+                    softwareHelp: undefined,
                     softwareId: craSoftwareId,
                     sourceSlug: source.slug,
                     externalId: craSoftwareFormData.externalIdForSource,
                     isLibreSoftware: true,
                     keywords: [],
-                    label: "create-react-app",
+                    name: "create-react-app",
                     license: expect.stringMatching(/MIT/i),
-                    logoUrl: undefined,
-                    sourceUrl: "https://github.com/facebook/create-react-app",
-                    websiteUrl: "https://create-react-app.dev/",
+                    image: undefined,
+                    codeRepositoryUrl: "https://github.com/facebook/create-react-app",
+                    url: "https://create-react-app.dev/",
                     programmingLanguages: [],
                     referencePublications: undefined,
                     identifiers: [
@@ -292,11 +292,13 @@ describe("fetches software extra data (from different providers)", () => {
                             "valueReference": "63537249"
                         }
                     ],
-                    softwareVersion: "5.0.1",
-                    publicationTime: new Date("2022-04-12T00:00:00.000Z"),
+                    latestVersion: { version: "5.0.1", releaseDate: null },
+                    dateCreated: new Date("2022-04-12T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: {},
-                    providers: []
+                    providers: [],
+                    operatingSystems: undefined,
+                    runtimePlatforms: undefined
                 },
                 {
                     applicationCategories: undefined,
@@ -304,7 +306,7 @@ describe("fetches software extra data (from different providers)", () => {
                         "en": "open-source JavaScript module bundler",
                         "fr": "Outil frontend"
                     },
-                    developers: [
+                    authors: [
                         {
                             "@type": "Person",
                             identifiers: [
@@ -317,17 +319,17 @@ describe("fetches software extra data (from different providers)", () => {
                             url: `https://www.wikidata.org/wiki/Q58482636`
                         }
                     ],
-                    documentationUrl: "https://ja.vitejs.dev/guide/",
+                    softwareHelp: "https://ja.vitejs.dev/guide/",
                     sourceSlug: source.slug,
                     softwareId: undefined,
                     externalId: "Q111590996",
                     isLibreSoftware: true,
                     keywords: [],
-                    label: "Vite",
+                    name: "Vite",
                     license: expect.stringMatching(/MIT/i),
-                    logoUrl: expect.stringContaining("Vite"),
-                    sourceUrl: "https://github.com/vitejs/vite",
-                    websiteUrl: "https://vite.dev/",
+                    image: expect.stringContaining("Vite"),
+                    codeRepositoryUrl: "https://github.com/vitejs/vite",
+                    url: "https://vite.dev/",
                     programmingLanguages: ["JavaScript"],
                     referencePublications: undefined,
                     identifiers: [
@@ -358,11 +360,13 @@ describe("fetches software extra data (from different providers)", () => {
                             "valueReference": "257485422"
                         }
                     ],
-                    softwareVersion: expect.any(String),
-                    publicationTime: expect.any(Date),
+                    latestVersion: { version: expect.any(String), releaseDate: null },
+                    dateCreated: expect.any(Date),
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: {},
-                    providers: []
+                    providers: [],
+                    operatingSystems: undefined,
+                    runtimePlatforms: undefined
                 }
             ]);
 
@@ -405,7 +409,7 @@ describe("fetches software extra data (from different providers)", () => {
                         en: "open-source web server software",
                         fr: "serveur web sous licence libre"
                     },
-                    developers: [
+                    authors: [
                         {
                             "@type": "Organization",
                             identifiers: [
@@ -427,18 +431,17 @@ describe("fetches software extra data (from different providers)", () => {
                             url: "https://www.wikidata.org/wiki/Q489709"
                         }
                     ],
-                    documentationUrl: undefined,
+                    softwareHelp: undefined,
                     sourceSlug: source.slug,
                     softwareId: apacheSoftwareId,
                     externalId: "Q11354",
                     isLibreSoftware: false,
                     keywords: [],
-                    label: "Apache HTTP Server",
+                    name: "Apache HTTP Server",
                     license: "Apache License v2.0",
-                    logoUrl:
-                        "//upload.wikimedia.org/wikipedia/commons/thumb/1/10/Apache_HTTP_server_logo_%282019-present%29.svg/250px-Apache_HTTP_server_logo_%282019-present%29.svg.png",
-                    sourceUrl: "https://github.com/apache/httpd",
-                    websiteUrl: "https://httpd.apache.org/",
+                    image: "//upload.wikimedia.org/wikipedia/commons/thumb/1/10/Apache_HTTP_server_logo_%282019-present%29.svg/250px-Apache_HTTP_server_logo_%282019-present%29.svg.png",
+                    codeRepositoryUrl: "https://github.com/apache/httpd",
+                    url: "https://httpd.apache.org/",
                     referencePublications: undefined,
                     identifiers: [
                         {
@@ -469,11 +472,13 @@ describe("fetches software extra data (from different providers)", () => {
                         }
                     ],
                     programmingLanguages: ["C"],
-                    softwareVersion: "2.5.0-alpha",
-                    publicationTime: new Date("2017-11-08T00:00:00.000Z"),
+                    latestVersion: { version: "2.5.0-alpha", releaseDate: null },
+                    dateCreated: new Date("2017-11-08T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: {},
-                    providers: []
+                    providers: [],
+                    operatingSystems: undefined,
+                    runtimePlatforms: undefined
                 },
                 emptyExternalDataCleaned({
                     externalId: "Q118629387",
