@@ -150,20 +150,33 @@ Track all implementation actions, findings, decisions, and validations for issue
   - Migration file needs consolidation (copy content from `1771583441843` → `1771584277207`, delete old).
   - Integration tests not yet validated against real DB.
 
-## IMMEDIATE NEXT STEPS (for new session)
+### 2026-02-20 - Phase 3: softwares table column rename
 
-1. **Fix migration files**: copy content from `1771583441843_rename-external-data-columns-to-canonical.ts` into `1771584277207_rename-external-data-columns-to-canonical.ts`, then delete the old file.
-2. **Run tests**: `yarn --cwd api dev:db && yarn --cwd api db:up && yarn --cwd api test`
-3. **Phase 2c-e still pending** per the plan: adapt source adapters to return canonical directly (currently use wrapper mapper), remove legacy external data types.
-4. **Phase 3+**: migrate `softwares` table, domain types, web. See `docs/issue-491-context.md` for full plan.
+- Step: rename `softwares` table columns to canonical schema + replace `SoftwareType` union with `operatingSystems`/`runtimePlatforms`.
+- Commit: `07cda519` (softwares table rename), `a156a9b5` (SoftwareType → operatingSystems+runtimePlatforms)
+- Files: Kysely migration, `kysely.database.ts`, `createPgSoftwareRepository.ts`, `createGetCompiledData.ts`, `createSoftware.ts`, `updateSoftware.ts`, `readWriteSillData/types.ts`, `CompileData.ts`, `router.ts`, Zod schemas, test files, web components.
+- Validation: typecheck ✅, tests ✅
 
-### Template for next entries
-- Date/time:
-- Step:
+### 2026-02-20 - Phase 4: domain + web migration
+
+- Step: migrate domain types and web to canonical field names (`operatingSystems`, `runtimePlatforms`).
+- Commit: `a156a9b5`
+- Files: web usecases, UI pages (SoftwareForm, SoftwareCatalog, SoftwareDetails), i18n.
+- Validation: typecheck ✅
+
+### 2026-02-20 - Phase 5: cleanup
+
+- Step: remove dead code, rename misleading identifiers.
 - Changes:
+  1. Removed `CanonicalSoftware` alias (0 consumers).
+  2. Removed unused type re-exports from `lib/`: `SoftwareVariant`, `Dereferencing`, `SimilarSoftware`, `SoftwareData`, `SoftwareInternal`, `SoftwareExternal`, `SoftwarePublic`. Kept `Os`, `RuntimePlatform`, `Software`.
+  3. Renamed `resolveSoftwareType` → `resolveOsAndPlatforms` in `utils.ts` + 3 call sites (HAL, GitHub, GitLab adapters).
 - Files:
-- Validation:
-- Findings:
-- Decision:
-- Risks:
-- Next:
+  - `api/src/core/types/index.ts`
+  - `api/src/lib/ApiTypes.ts`
+  - `api/src/lib/index.ts`
+  - `api/src/core/utils.ts`
+  - `api/src/core/adapters/hal/getSoftwareForm.ts`
+  - `api/src/core/adapters/GitHub/getSofrwareFormData.ts`
+  - `api/src/core/adapters/GitLab/getSoftwareFormData.ts`
+- Validation: API typecheck ✅, web typecheck ✅

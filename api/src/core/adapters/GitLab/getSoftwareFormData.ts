@@ -7,7 +7,7 @@ import { Gitlab } from "@gitbeaker/rest";
 
 import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
 import { SoftwareFormData, Source } from "../../usecases/readWriteSillData";
-import { resolveSoftwareType } from "../../utils";
+import { resolveOsAndPlatforms } from "../../utils";
 import { resolveExternalReferenceToProject } from "./api/utils";
 
 export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
@@ -24,7 +24,7 @@ export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
         const formData: SoftwareFormData = {
             softwareName: project.name,
             softwareDescription: project?.description,
-            ...resolveSoftwareType(project.topics ?? []), // Someting else to rely on ?
+            ...resolveOsAndPlatforms(project.topics ?? []), // Someting else to rely on ?
             externalIdForSource: project.web_url,
             sourceSlug: source.slug,
             softwareLicense: project.license.name ?? "undefined",

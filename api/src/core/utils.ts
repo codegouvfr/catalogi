@@ -75,7 +75,7 @@ const stringOfArrayIncluded = (stringArray: Array<string>, text: string): boolea
     });
 };
 
-export const resolveSoftwareType = (
+export const resolveOsAndPlatforms = (
     keywords: string[]
 ): { operatingSystems: Partial<Record<Os, boolean>>; runtimePlatforms: RuntimePlatform[] } => {
     const searchString = keywords.join("").toLocaleLowerCase();

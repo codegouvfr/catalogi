@@ -62,16 +62,23 @@ One shape: SoftwareData base
 | `softwareType` (discriminated union) | `operatingSystems` + `runtimePlatforms` | split |
 | `softwareId` | `id` | |
 
-## Completed Work (Phases 0–2 partial)
+## Completed Work (Phases 0–5)
 
 - Phase 0: `versionMin` → `customAttributes` jsonb ✅
 - Phase 1 + 1.5: Canonical types in `api/src/core/types/SoftwareTypes.ts` ✅
-- Phase 2 (partial): External normalization ✅
+- Phase 2: External normalization ✅
   - Mapper layer (`softwareExternalMappers.ts`)
   - Dual gateway (`SourceGateway.ts`)
   - All 7 source adapters wired
   - Autofill usecase migrated
-  - Legacy renames (`Os`→`LegacyOs`, `SimilarSoftware`→`LegacySimilarSoftware`)
+  - DB column renames (`label`→`name`, `developers`→`authors`, etc.)
+- Phase 3: Softwares table column rename ✅
+  - `logo_url`→`image`, `categories`→`application_categories`, `software_type` replaced by `operating_systems`+`runtime_platforms`
+- Phase 4: Domain + web migration ✅
+  - `SoftwareType` union replaced with `operatingSystems`+`runtimePlatforms` across domain, API, and web
+- Phase 5: Cleanup ✅
+  - Removed dead `CanonicalSoftware` alias and unused type re-exports
+  - Renamed `resolveSoftwareType` → `resolveOsAndPlatforms`
 
 ## Resolved Decisions
 

@@ -37,17 +37,6 @@ export type {
 
 export type { UiConfig, ConfigurableUseCaseName } from "../core/uiConfigSchema";
 
-export type {
-    Os,
-    RuntimePlatform,
-    SoftwareVariant,
-    Dereferencing,
-    SimilarSoftware,
-    SoftwareData,
-    CanonicalSoftware,
-    SoftwareInternal,
-    SoftwareExternal,
-    SoftwarePublic
-} from "../core/types";
+export type { Os, RuntimePlatform } from "../core/types";
 
 export type Translations = { translations: typeof import("../rpc/translations/en_default.json") };

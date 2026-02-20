@@ -16,15 +16,4 @@ import type * as ApiTypes from "./ApiTypes";
 
 export type { ApiTypes };
 
-export type {
-    Os,
-    RuntimePlatform,
-    SoftwareVariant,
-    Dereferencing,
-    SimilarSoftware,
-    SoftwareData,
-    CanonicalSoftware,
-    SoftwareInternal,
-    SoftwareExternal,
-    SoftwarePublic
-} from "../core/types";
+export type { Os, RuntimePlatform } from "../core/types";

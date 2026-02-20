@@ -7,7 +7,7 @@ import { SoftwareFormData, Source } from "../../usecases/readWriteSillData";
 import { halAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
 import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
-import { resolveSoftwareType } from "../../utils";
+import { resolveOsAndPlatforms } from "../../utils";
 
 export const halRawSoftwareToSoftwareForm = async (
     halSoftware: HAL.API.Software,
@@ -18,7 +18,7 @@ export const halRawSoftwareToSoftwareForm = async (
     const formData: SoftwareFormData = {
         softwareName: halSoftware.title_s[0],
         softwareDescription: halSoftware.abstract_s ? halSoftware.abstract_s[0] : "",
-        ...resolveSoftwareType(halSoftware.softPlatform_s ?? []),
+        ...resolveOsAndPlatforms(halSoftware.softPlatform_s ?? []),
         externalIdForSource: halSoftware.docid,
         sourceSlug: source.slug,
         softwareLicense: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright

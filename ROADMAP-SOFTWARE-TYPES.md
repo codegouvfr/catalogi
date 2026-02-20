@@ -9,15 +9,18 @@ Créer une architecture de types unifiée basée sur Schema.org/CodeMeta pour le
 
 ---
 
-## Statut actuel (2026-02-13)
+## Statut actuel (2026-02-20)
 
 - [x] Rebase terminé et branche stable
 - [x] Phase 0 terminée (migration `versionMin` -> `customAttributes`)
 - [x] Phase 1 terminée (nouveaux types + exports)
 - [x] Bootstrap modèle canonique unique (`Software` + variantes `internal|external|public`)
-- [~] Phase 2 en cours (normalisation externe explicite + passerelle canonique source), migration DB non démarrée
+- [x] Phase 2 terminée (normalisation externe + migration DB colonnes)
+- [x] Phase 3 terminée (rename colonnes `softwares` + remplacement `SoftwareType`)
+- [x] Phase 4 terminée (migration domaine + web → `operatingSystems`/`runtimePlatforms`)
+- [x] Phase 5 (cleanup): dead code supprimé, `resolveSoftwareType` → `resolveOsAndPlatforms`
 
-**Commits clés récents**: `049deae4`, `21a99547`, `ff5cafb6`
+**Commits clés récents**: `a156a9b5`, `07cda519`, `f0326a0b`, `b0c594c4`, `ff5cafb6`
 
 ---
 

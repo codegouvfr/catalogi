@@ -4,7 +4,7 @@
 
 import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
 import { SoftwareFormData, Source } from "../../usecases/readWriteSillData";
-import { resolveSoftwareType } from "../../utils";
+import { resolveOsAndPlatforms } from "../../utils";
 import { repoGitHubEndpointMaker } from "./api/repo";
 
 import memoize from "memoizee";
@@ -23,7 +23,7 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
         const formData: SoftwareFormData = {
             softwareName: repoData.full_name,
             softwareDescription: repoData?.description ? repoData.description : "",
-            ...resolveSoftwareType(repoData.topics ?? []), // Someting else to rely on ?
+            ...resolveOsAndPlatforms(repoData.topics ?? []), // Someting else to rely on ?
             externalIdForSource: repoData.html_url
                 .replace("https://github.com/", "")
                 .replace("git+", "")
