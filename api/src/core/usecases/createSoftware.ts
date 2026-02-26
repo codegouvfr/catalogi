@@ -14,10 +14,10 @@ export type CreateSoftware = (
 
 export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => {
     return {
-        name: softwareForm.softwareName,
-        description: { fr: softwareForm.softwareDescription },
-        license: softwareForm.softwareLicense,
-        logoUrl: softwareForm.softwareLogoUrl,
+        name: softwareForm.name,
+        description: { fr: softwareForm.description },
+        license: softwareForm.license,
+        logoUrl: softwareForm.image,
         addedTime: new Date().toISOString(),
         dereferencing: undefined,
         isStillInObservation: false,
@@ -25,7 +25,7 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
         runtimePlatforms: softwareForm.runtimePlatforms,
         applicationCategories: [],
         addedByUserId: userId,
-        keywords: softwareForm.softwareKeywords,
+        keywords: softwareForm.keywords,
         customAttributes: softwareForm.customAttributes
     };
 };
@@ -39,7 +39,7 @@ const resolveExistingSoftwareId = async ({
     dbApi: DbApiV2;
     formData: SoftwareFormData;
 }): Promise<number | undefined> => {
-    const { softwareName, externalIdForSource, sourceSlug } = formData;
+    const { name: softwareName, externalIdForSource, sourceSlug } = formData;
     const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
     const source = await dbApi.source.getByName({ name: sourceSlug });
@@ -96,7 +96,7 @@ const resolveOrCreateSoftwareId = async ({
     formData: SoftwareFormData;
     userId: number;
 }) => {
-    const { softwareName, sourceSlug } = formData;
+    const { name: softwareName, sourceSlug } = formData;
     const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
     const resolvedId = await resolveExistingSoftwareId({ dbApi, formData });
@@ -112,7 +112,7 @@ const resolveOrCreateSoftwareId = async ({
 export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
     (dbApi: DbApiV2) =>
     async ({ formData, userId }) => {
-        const { softwareName, similarSoftwareExternalDataItems, externalIdForSource, sourceSlug } = formData;
+        const { name: softwareName, similarSoftwareExternalDataItems, externalIdForSource, sourceSlug } = formData;
         const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
         console.time(`${logTitle} 💾 Saved`);
@@ -157,7 +157,7 @@ export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
                     softwareExternalDataItems: similarSoftwareExternalDataItems.map(similarSoftwareExternalData => ({
                         externalId: similarSoftwareExternalData.externalId,
                         sourceSlug: sourceSlug,
-                        label: similarSoftwareExternalData.label,
+                        name: similarSoftwareExternalData.name,
                         description: similarSoftwareExternalData.description,
                         isLibreSoftware: similarSoftwareExternalData.isLibreSoftware
                     }))

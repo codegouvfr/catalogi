@@ -56,16 +56,16 @@ export const getWikidataForm: GetSoftwareFormData = async ({
             "";
 
         return {
-            softwareName: name,
-            softwareDescription: description,
+            name,
+            description,
             operatingSystems: { "linux": true, "windows": true, "android": false, "ios": false, "mac": false },
             runtimePlatforms: ["desktop"],
             externalIdForSource: externalId,
             sourceSlug: source.slug,
-            softwareLicense: license?.label ?? "Copyright",
+            license: license?.label ?? "Copyright",
             similarSoftwareExternalDataItems: [],
-            softwareLogoUrl: `https://upload.wikimedia.org/wikipedia/commons/6/69/${logoName?.replace(" ", "_") ?? ""}`,
-            softwareKeywords: [],
+            image: `https://upload.wikimedia.org/wikipedia/commons/6/69/${logoName?.replace(" ", "_") ?? ""}`,
+            keywords: [],
             customAttributes: undefined
         };
     } catch (error) {

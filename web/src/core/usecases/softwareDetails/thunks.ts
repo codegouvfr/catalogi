@@ -97,13 +97,13 @@ export const thunks = {
                         isReferent:
                             user.declarations.find(
                                 d =>
-                                    d.softwareName === apiSoftware.softwareName &&
+                                    d.softwareName === apiSoftware.name &&
                                     d.declarationType === "referent"
                             ) !== undefined,
                         isUser:
                             user.declarations.find(
                                 d =>
-                                    d.softwareName === apiSoftware.softwareName &&
+                                    d.softwareName === apiSoftware.name &&
                                     d.declarationType === "user"
                             ) !== undefined
                     };
@@ -152,7 +152,7 @@ export const thunks = {
             const time = Date.now();
 
             await sillApi.unreferenceSoftware({
-                softwareId: state.software.softwareId,
+                softwareId: state.software.id,
                 reason
             });
 
@@ -172,14 +172,14 @@ function apiSoftwareToSoftware(params: {
     const { apiSoftware, apiInstances, softwareList } = params;
 
     const {
-        softwareId,
-        softwareName,
-        logoUrl,
+        id,
+        name,
+        image,
         authors,
-        officialWebsiteUrl,
-        documentationUrl,
+        url,
+        softwareHelp,
         codeRepositoryUrl,
-        softwareDescription,
+        description,
         latestVersion,
         addedTime,
         dereferencing,
@@ -189,7 +189,7 @@ function apiSoftwareToSoftware(params: {
         operatingSystems,
         runtimePlatforms,
         userAndReferentCountByOrganization,
-        serviceProviders,
+        providers,
         programmingLanguages,
         keywords,
         referencePublications,
@@ -199,20 +199,20 @@ function apiSoftwareToSoftware(params: {
     } = apiSoftware;
 
     return {
-        softwareId,
-        logoUrl,
+        id,
+        image,
         authors,
-        officialWebsiteUrl,
-        documentationUrl,
+        url,
+        softwareHelp,
         codeRepositoryUrl,
-        softwareName,
-        softwareDescription,
+        name,
+        description,
         latestVersion: {
             semVer: latestVersion?.semVer ?? "",
             publicationTime: latestVersion?.publicationTime
         },
         dereferencing,
-        serviceProviders: serviceProviders ?? [],
+        providers: providers ?? [],
         referentCount: Object.values(userAndReferentCountByOrganization)
             .map(({ referentCount }) => referentCount)
             .reduce((prev, curr) => prev + curr, 0),
@@ -223,7 +223,7 @@ function apiSoftwareToSoftware(params: {
         instances: !runtimePlatforms.includes("cloud")
             ? undefined
             : apiInstances
-                  .filter(instance => instance.mainSoftwareSillId === softwareId)
+                  .filter(instance => instance.mainSoftwareSillId === id)
                   .map(instance => ({
                       id: instance.id,
                       instanceUrl: instance.instanceUrl,
@@ -232,28 +232,35 @@ function apiSoftwareToSoftware(params: {
                       isPublic: instance.isPublic
                   })),
         similarSoftwares: similarSoftwares_api.map(similarSoftware => {
-            if (similarSoftware.registered) {
-                const externalSoftware = softwareInListToExternalCatalogSoftware({
-                    softwareList,
-                    softwareName: similarSoftware.softwareName
-                });
-
-                if (externalSoftware !== undefined) {
-                    return {
-                        registered: true,
-                        software: externalSoftware
-                    };
+            if (
+                similarSoftware.isInCatalogi &&
+                similarSoftware.softwareId !== undefined
+            ) {
+                const catalogSoftware = softwareList.find(
+                    s => s.id === similarSoftware.softwareId
+                );
+                if (catalogSoftware !== undefined) {
+                    const externalSoftware = softwareInListToExternalCatalogSoftware({
+                        softwareList,
+                        softwareName: catalogSoftware.name
+                    });
+                    if (externalSoftware !== undefined) {
+                        return {
+                            isInCatalogi: true as const,
+                            software: externalSoftware
+                        };
+                    }
                 }
             }
 
             return {
-                registered: false,
+                isInCatalogi: false as const,
                 sourceSlug: similarSoftware.sourceSlug,
                 externalId: similarSoftware.externalId,
-                label: similarSoftware.label,
+                name: similarSoftware.name,
                 description: similarSoftware.description,
                 isLibreSoftware: similarSoftware.isLibreSoftware
-            } as State.SimilarSoftwareNotRegistered;
+            };
         }),
         license,
         customAttributes,

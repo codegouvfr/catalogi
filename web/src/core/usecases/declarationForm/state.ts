@@ -21,9 +21,9 @@ export namespace State {
         step: 1 | 2;
         isSubmitting: boolean;
         software: {
-            logoUrl: string | undefined;
+            image: string | undefined;
             softwareId: number;
-            softwareName: string;
+            name: string;
             referentCount: number;
             userCount: number;
             softwareType: "desktop/mobile" | "cloud" | "other";

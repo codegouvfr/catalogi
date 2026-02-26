@@ -33,7 +33,7 @@ export type State = {
     search: string;
     searchResults:
         | {
-              softwareName: string;
+              name: string;
               positions: number[];
           }[]
         | undefined;
@@ -138,7 +138,7 @@ export const { reducer, actions } = createUsecaseActions({
                 payload: {
                     searchResults:
                         | {
-                              softwareName: string;
+                              name: string;
                               positions: number[];
                           }[]
                         | undefined;

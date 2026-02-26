@@ -8,7 +8,7 @@ import { assert } from "tsafe/assert";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
 import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
-import type { Os, RuntimePlatform } from "../../../types";
+import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
 import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
@@ -34,16 +34,16 @@ const aggregateCounts = (
 
 const aggregateSimilars = (
     similarRows: SimilarRow[]
-): Record<number, Array<{ softwareName: string | undefined; label: LocalizedString | undefined }>> =>
+): Record<number, Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>> =>
     similarRows.reduce(
         (acc, row) => ({
             ...acc,
             [row.softwareId]: [
                 ...(acc[row.softwareId] ?? []),
-                { softwareName: row.linkedSoftwareName ?? undefined, label: row.name }
+                { softwareName: row.linkedSoftwareName ?? undefined, name: row.name }
             ]
         }),
-        {} as Record<number, Array<{ softwareName: string | undefined; label: LocalizedString | undefined }>>
+        {} as Record<number, Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>>
     );
 
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
@@ -135,12 +135,12 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 const extData = externalDataRecord[software.id];
                 return {
                     id: software.id,
-                    softwareName: software.name,
-                    softwareDescription:
+                    name: software.name,
+                    description:
                         typeof software.description === "string"
                             ? software.description
                             : ((software.description as Record<string, string>)?.fr ?? ""),
-                    logoUrl: extData?.image ?? software.logoUrl ?? undefined,
+                    image: extData?.image ?? software.logoUrl ?? undefined,
                     latestVersion: extData?.latestVersion
                         ? {
                               semVer: extData.latestVersion.version ?? undefined,
@@ -234,42 +234,24 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 {} as Record<string, { userCount: number; referentCount: number }>
             );
 
-            // Format similar softwares
-            const similarSoftwares: Software.LegacySimilarSoftware[] = similarSoftwareRows.map(row => {
-                if (row.linkedSoftwareId && row.linkedSoftwareDereferencing === null) {
-                    const desc = row.linkedSoftwareDescription;
-                    const descStr =
-                        typeof desc === "string" ? desc : ((desc as Record<string, string> | null)?.fr ?? "");
-                    return {
-                        registered: true,
-                        softwareId: row.linkedSoftwareId,
-                        softwareName: row.linkedSoftwareName!,
-                        softwareDescription: descStr,
-                        externalId: row.externalId,
-                        label: row.name,
-                        description: row.description,
-                        isLibreSoftware: row.isLibreSoftware ?? undefined,
-                        sourceSlug: row.sourceSlug
-                    };
-                }
-                return {
-                    registered: false,
-                    sourceSlug: row.sourceSlug,
-                    externalId: row.externalId,
-                    isLibreSoftware: row.isLibreSoftware ?? undefined,
-                    label: row.name,
-                    description: row.description
-                };
-            });
+            const similarSoftwares: SimilarSoftware[] = similarSoftwareRows.map(row => ({
+                externalId: row.externalId,
+                sourceSlug: row.sourceSlug,
+                name: row.name,
+                description: row.description,
+                isLibreSoftware: row.isLibreSoftware ?? undefined,
+                isInCatalogi: row.linkedSoftwareId !== null && row.linkedSoftwareDereferencing === null,
+                softwareId: row.linkedSoftwareId ?? undefined
+            }));
 
             return {
-                softwareId: softwareRow.id,
-                softwareName: softwareRow.name,
-                softwareDescription:
+                id: softwareRow.id,
+                name: softwareRow.name,
+                description:
                     typeof softwareRow.description === "string"
                         ? softwareRow.description
                         : ((softwareRow.description as Record<string, string>)?.fr ?? ""),
-                logoUrl: extData?.image ?? softwareRow.logoUrl ?? undefined,
+                image: extData?.image ?? softwareRow.logoUrl ?? undefined,
                 latestVersion: extData?.latestVersion
                     ? {
                           semVer: extData.latestVersion.version ?? undefined,
@@ -302,9 +284,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                               parentOrganizations: dev.parentOrganizations
                           }
                 ),
-                officialWebsiteUrl: extData?.url ?? undefined,
+                url: extData?.url ?? undefined,
                 codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
-                documentationUrl: extData?.softwareHelp ?? undefined,
+                softwareHelp: extData?.softwareHelp ?? undefined,
                 license: extData?.license ?? softwareRow.license,
                 externalId: extData?.externalId,
                 sourceSlug: extData?.sourceSlug,
@@ -313,7 +295,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 similarSoftwares,
                 keywords: softwareRow.keywords ?? [],
                 programmingLanguages: extData?.programmingLanguages ?? [],
-                serviceProviders: extData?.providers ?? [],
+                providers: extData?.providers ?? [],
                 referencePublications: extData?.referencePublications,
                 identifiers: extData?.identifiers,
                 repoMetadata: extData?.repoMetadata
@@ -477,10 +459,10 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 await db
                     .insertInto("software_external_datas")
                     .values(
-                        dataToInsert.map(({ externalId, sourceSlug, label, description, isLibreSoftware }) => ({
+                        dataToInsert.map(({ externalId, sourceSlug, name, description, isLibreSoftware }) => ({
                             externalId,
                             sourceSlug,
-                            name: JSON.stringify(label),
+                            name: JSON.stringify(name),
                             description: JSON.stringify(description),
                             isLibreSoftware: isLibreSoftware ?? null,
                             authors: JSON.stringify([])

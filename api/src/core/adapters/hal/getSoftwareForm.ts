@@ -16,15 +16,15 @@ export const halRawSoftwareToSoftwareForm = async (
     const codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(halSoftware.uri_s);
 
     const formData: SoftwareFormData = {
-        softwareName: halSoftware.title_s[0],
-        softwareDescription: halSoftware.abstract_s ? halSoftware.abstract_s[0] : "",
+        name: halSoftware.title_s[0],
+        description: halSoftware.abstract_s ? halSoftware.abstract_s[0] : "",
         ...resolveOsAndPlatforms(halSoftware.softPlatform_s ?? []),
         externalIdForSource: halSoftware.docid,
         sourceSlug: source.slug,
-        softwareLicense: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright
+        license: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright
         similarSoftwareExternalDataItems: [],
-        softwareLogoUrl: undefined,
-        softwareKeywords: halSoftware.keyword_s || [],
+        image: undefined,
+        keywords: halSoftware.keyword_s || [],
         customAttributes: undefined
     };
 

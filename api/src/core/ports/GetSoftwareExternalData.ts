@@ -25,7 +25,7 @@ export type SoftwareExternalData = {
     externalId: ExternalId;
     sourceSlug: string;
     developers: Array<SchemaPerson | SchemaOrganization>;
-    label: LocalizedString;
+    name: LocalizedString;
     description: LocalizedString;
 } & PartialNoOptional<{
     isLibreSoftware: boolean;
@@ -53,7 +53,7 @@ export type SoftwareExternalData = {
 
 export type SimilarSoftwareExternalData = Pick<
     SoftwareExternalData,
-    "externalId" | "label" | "description" | "isLibreSoftware" | "sourceSlug"
+    "externalId" | "name" | "description" | "isLibreSoftware" | "sourceSlug"
 >;
 
 export const languages = ["fr", "en"] as const;

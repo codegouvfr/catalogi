@@ -171,10 +171,10 @@ export function createRouter(params: {
                     dbApi.software.getAllSillSoftwareExternalIds(mainSource.slug)
                 ]);
 
-                return queryResults.map(({ externalId, description, label, isLibreSoftware, sourceSlug }) => ({
+                return queryResults.map(({ externalId, description, name, isLibreSoftware, sourceSlug }) => ({
                     externalId: externalId,
                     description: description,
-                    label: label,
+                    name: name,
                     registered: softwareExternalDataIds.includes(externalId),
                     isLibreSoftware,
                     sourceSlug
@@ -200,12 +200,12 @@ export function createRouter(params: {
             .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData } = input;
 
-                const existingSoftware = await dbApi.software.getByName({ softwareName: formData.softwareName.trim() });
+                const existingSoftware = await dbApi.software.getByName({ softwareName: formData.name.trim() });
 
                 if (existingSoftware) {
                     throw new TRPCError({
                         "code": "CONFLICT",
-                        "message": `Software already exists with name : ${formData.softwareName.trim()}`
+                        "message": `Software already exists with name : ${formData.name.trim()}`
                     });
                 }
 
@@ -459,12 +459,12 @@ const zSoftwareFormData = (() => {
         "runtimePlatforms": z.array(zRuntimePlatform),
         "externalIdForSource": z.string().optional(),
         "sourceSlug": z.string(),
-        "softwareName": z.string(),
-        "softwareDescription": z.string(),
-        "softwareLicense": z.string(),
+        "name": z.string(),
+        "description": z.string(),
+        "license": z.string(),
         "similarSoftwareExternalDataItems": z.array(softwareExternalDataOptionSchema),
-        "softwareLogoUrl": z.string().optional(),
-        "softwareKeywords": z.array(z.string()),
+        "image": z.string().optional(),
+        "keywords": z.array(z.string()),
         "customAttributes": z.record(z.string(), z.any()).optional()
     });
 

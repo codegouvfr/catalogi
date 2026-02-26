@@ -5,19 +5,14 @@
 import memoize from "memoizee";
 import { Gitlab } from "@gitbeaker/rest";
 
-import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { resolveExternalReferenceToProject } from "./api/utils";
 
-export const getGitLabSoftwareExternalData: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getGitLabSoftwareExternalData: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         if (source.kind !== "GitLab") throw new Error("This source if not compatible with GitLab Adapter");
 
         const api = new Gitlab({
@@ -32,16 +27,15 @@ export const getGitLabSoftwareExternalData: GetSoftwareExternalData = memoize(
 
         const members = await api.ProjectMembers.all(project.id);
 
-        const lastMergedRequest = (
-            await api.MergeRequests.all({ projectId: project.id, sort: "desc", state: "closed" })
-        )[0];
-        const lastCommit = (await api.Commits.all(project.id))[0];
-        const lastCloseIssue = (await api.Issues.all({ projectId: project.id, sort: "desc", state: "closed" }))[0];
+        const publicationIso = lastRelease?.released_at ? new Date(lastRelease.released_at).toISOString() : undefined;
+        const nowIso = new Date().toISOString();
 
         return {
+            variant: "external",
+            id: undefined,
             externalId,
             sourceSlug: source.slug,
-            developers: members
+            authors: members
                 .filter(member => member.access_level >= 30)
                 .map(member => ({
                     "@type": "Person",
@@ -56,19 +50,25 @@ export const getGitLabSoftwareExternalData: GetSoftwareExternalData = memoize(
                     url: member.web_url ?? undefined,
                     affiliations: []
                 })),
-            label: { "en": project.name },
+            name: { "en": project.name },
             description: project?.description ? { "en": project.description } : {},
-            isLibreSoftware: true, // TODO Resolver ?
-            logoUrl: project.avatar_url ?? undefined,
-            websiteUrl: undefined,
-            sourceUrl: project.web_url,
-            documentationUrl: project.readme_url,
+            isLibreSoftware: true,
+            image: project.avatar_url ?? undefined,
+            url: undefined,
+            codeRepositoryUrl: project.web_url,
+            softwareHelp: project.readme_url,
             license: project.license?.name,
-            softwareVersion: lastRelease.tag_name,
-            keywords: project.topics ?? undefined,
-            programmingLanguages: [], // TODO
+            latestVersion: lastRelease?.tag_name
+                ? { version: lastRelease.tag_name, releaseDate: publicationIso }
+                : undefined,
+            dateCreated: publicationIso,
+            addedTime: nowIso,
+            updateTime: nowIso,
+            keywords: project.topics ?? [],
+            programmingLanguages: [],
             applicationCategories: [],
-            publicationTime: lastRelease.released_at ? new Date(lastRelease.released_at) : undefined,
+            operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+            runtimePlatforms: [],
             referencePublications: [],
             identifiers: [
                 identifersUtils.makeRepoGitLabIdentifer({
@@ -77,16 +77,13 @@ export const getGitLabSoftwareExternalData: GetSoftwareExternalData = memoize(
                     projectName: project.path_with_namespace
                 })
             ],
-            repoMetadata: {
-                healthCheck: {
-                    lastCommit: lastCommit?.committed_date ? new Date(lastCommit.committed_date) : undefined,
-                    lastClosedIssue: lastCloseIssue?.closed_at ? new Date(lastCloseIssue.closed_at) : undefined,
-                    lastClosedIssuePullRequest: lastMergedRequest?.closed_at
-                        ? new Date(lastMergedRequest.closed_at)
-                        : undefined
-                }
-            },
-            providers: []
+            providers: [],
+            sameAs: [],
+            dereferencing: undefined,
+            customAttributes: undefined,
+            userAndReferentCountByOrganization: undefined,
+            hasExpertReferent: undefined,
+            instances: undefined
         };
     }
 );

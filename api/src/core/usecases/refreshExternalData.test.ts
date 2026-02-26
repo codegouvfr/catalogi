@@ -24,7 +24,7 @@ import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOpti
 const viteOption: SoftwareExternalDataOption = {
     externalId: "Q111590996" /* viteJS */,
     sourceSlug: "wikidata",
-    label: "Vite JS",
+    name: "Vite JS",
     description: "Vite JS is a build tool for modern web development.",
     isLibreSoftware: true
 };
@@ -34,12 +34,12 @@ const craSoftwareFormData = {
     runtimePlatforms: [],
     externalIdForSource: "Q118629387",
     sourceSlug: "wikidata",
-    softwareName: "Create react app",
-    softwareDescription: "To create React apps.",
-    softwareLicense: "MIT",
+    name: "Create react app",
+    description: "To create React apps.",
+    license: "MIT",
     similarSoftwareExternalDataItems: [viteOption],
-    softwareLogoUrl: "https://example.com/logo.png",
-    softwareKeywords: ["Productivity", "Task", "Management"],
+    image: "https://example.com/logo.png",
+    keywords: ["Productivity", "Task", "Management"],
     customAttributes: {
         isPresentInSupportContract: true,
         isFromFrenchPublicService: true,
@@ -186,7 +186,7 @@ describe("fetches software extra data (from different providers)", () => {
             emptyExternalData({
                 externalId: "Q111590996",
                 sourceSlug: "wikidata",
-                label: viteOption.label,
+                name: viteOption.name,
                 description: viteOption.description,
                 isLibreSoftware: viteOption.isLibreSoftware
             })
@@ -482,7 +482,7 @@ describe("fetches software extra data (from different providers)", () => {
                 emptyExternalDataCleaned({
                     externalId: "Q111590996",
                     sourceSlug: "wikidata",
-                    label: viteOption.label,
+                    name: viteOption.name,
                     description: viteOption.description,
                     isLibreSoftware: viteOption.isLibreSoftware
                 })

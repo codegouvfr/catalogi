@@ -15,12 +15,12 @@ export const { open: openCnllServiceProviderModal } = modal;
 
 type Props = {
     className?: string;
-    softwareName: string;
+    name: string;
     annuaireCnllServiceProviders: ApiTypes.Organization[];
 };
 
 export function CnllServiceProviderModal(props: Props) {
-    const { className, annuaireCnllServiceProviders, softwareName } = props;
+    const { className, annuaireCnllServiceProviders, name: softwareName } = props;
 
     const { t } = useTranslation();
 

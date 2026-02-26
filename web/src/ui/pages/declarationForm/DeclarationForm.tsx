@@ -113,7 +113,7 @@ export default function DeclarationForm(props: Props) {
                                     id: software.softwareId
                                 }).link
                             },
-                            label: software.softwareName
+                            label: software.name
                         }
                     ]}
                     currentPageLabel={t(
@@ -142,13 +142,11 @@ export default function DeclarationForm(props: Props) {
                             <div className={classes.logoWrapper}>
                                 <img
                                     className={classes.logo}
-                                    src={software.logoUrl ?? softwareLogoPlaceholder}
+                                    src={software.image ?? softwareLogoPlaceholder}
                                     alt="Logo du logiciel"
                                 />
                             </div>
-                            <h4 className={classes.softwareName}>
-                                {software.softwareName}
-                            </h4>
+                            <h4 className={classes.softwareName}>{software.name}</h4>
                         </div>
                         <DetailUsersAndReferents
                             className={cx(

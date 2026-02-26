@@ -38,7 +38,7 @@ const softwares = createSelector(readyState, readyState => {
     }
 
     const softwares: {
-        softwareName: string;
+        name: string;
         isReferent: boolean;
         // Only defined if isReferent is true
         isTechnicalExpert?: boolean;
@@ -48,12 +48,12 @@ const softwares = createSelector(readyState, readyState => {
 
     for (const declaration of readyState.declarations) {
         let software = softwares.find(
-            software => software.softwareName === declaration.softwareName
+            software => software.name === declaration.softwareName
         );
 
         if (software === undefined) {
             software = {
-                softwareName: declaration.softwareName,
+                name: declaration.softwareName,
                 isReferent: false,
                 isUser: false,
                 usecaseDescription: ""

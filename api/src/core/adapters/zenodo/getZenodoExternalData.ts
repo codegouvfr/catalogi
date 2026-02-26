@@ -4,7 +4,8 @@
 
 import memoize from "memoizee";
 
-import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { SchemaIdentifier, SchemaPerson } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
@@ -13,14 +14,8 @@ import { Zenodo } from "./zenodoAPI/type";
 import { populateFromDOIIdentifiers } from "../doiResolver";
 import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
-export const getZenodoExternalData: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getZenodoExternalData: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         if (source.kind !== "Zenodo" && source.url !== "https://zenodo.org/")
             throw new Error(`Not a Zenodo source, was : ${source.kind}`);
 
@@ -29,7 +24,6 @@ export const getZenodoExternalData: GetSoftwareExternalData = memoize(
         let record: Zenodo.Record | undefined = undefined;
 
         if (externalId.includes("10.5281")) {
-            // case where DOI is involved
             record = await zenodoApi.records.getByDOI(externalId);
         } else {
             record = await zenodoApi.records.get(Number(externalId));
@@ -49,7 +43,7 @@ export const getZenodoExternalData: GetSoftwareExternalData = memoize(
                 ?.identifier ?? undefined;
         const repoIdentifer = await repoUrlToIdentifer({ repoUrl: repositoryUrl });
 
-        const formatedExternalData = await formatRecordToExternalData(record, communitiesRows, source, repoIdentifer);
+        const formatedExternalData = formatRecordToExternalData(record, communitiesRows, source, repoIdentifer);
 
         formatedExternalData.identifiers = await populateFromDOIIdentifiers(formatedExternalData.identifiers ?? []);
 
@@ -78,30 +72,42 @@ const formatRecordToExternalData = (
     communities: Zenodo.Community[],
     source: Source,
     repoIdentifier: SchemaIdentifier | undefined
-): SoftwareExternalData => {
+): SoftwareExternal => {
+    const publicationIso = recordSoftwareItem.metadata.publication_date
+        ? new Date(recordSoftwareItem.metadata.publication_date).toISOString()
+        : undefined;
+    const nowIso = new Date().toISOString();
+
     return {
+        variant: "external",
+        id: undefined,
         externalId: recordSoftwareItem.id.toString(),
         sourceSlug: source.slug,
-        developers: recordSoftwareItem.metadata.creators.map(creatorToPerson),
-        label: { "en": recordSoftwareItem.metadata.title },
+        authors: recordSoftwareItem.metadata.creators.map(creatorToPerson),
+        name: { "en": recordSoftwareItem.metadata.title },
         description: { "en": recordSoftwareItem.metadata.description },
-        isLibreSoftware: recordSoftwareItem.metadata.access_right === "open", // Not sure
-        logoUrl: undefined,
-        websiteUrl: undefined,
-        sourceUrl:
+        isLibreSoftware: recordSoftwareItem.metadata.access_right === "open",
+        image: undefined,
+        url: undefined,
+        codeRepositoryUrl:
             recordSoftwareItem.metadata.related_identifiers?.filter(
                 identifier => identifier.relation === "isSupplementTo"
             )?.[0]?.identifier ?? undefined,
-        documentationUrl: undefined,
+        softwareHelp: undefined,
         license: recordSoftwareItem.metadata.license?.id ?? "Copyright",
-        softwareVersion: recordSoftwareItem.metadata.version,
+        latestVersion: recordSoftwareItem.metadata.version
+            ? { version: recordSoftwareItem.metadata.version, releaseDate: publicationIso }
+            : undefined,
+        dateCreated: publicationIso,
+        addedTime: nowIso,
+        updateTime: nowIso,
         keywords: recordSoftwareItem.metadata.keywords ?? [],
-        programmingLanguages: recordSoftwareItem.metadata.custom?.["code:programmingLanguage"]?.map(
-            item => item.title.en
-        ),
-        applicationCategories: communities?.map(commu => commu.metadata.title),
-        publicationTime: recordSoftwareItem.metadata.publication_date,
-        referencePublications: [], // TODO reliotated identifers // relation type // ??
+        programmingLanguages:
+            recordSoftwareItem.metadata.custom?.["code:programmingLanguage"]?.map(item => item.title.en) ?? [],
+        applicationCategories: communities?.map(commu => commu.metadata.title) ?? [],
+        operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+        runtimePlatforms: [],
+        referencePublications: [],
         identifiers: [
             identifersUtils.makeZenodoIdentifer({
                 zenodoId: recordSoftwareItem.id.toString(),
@@ -116,7 +122,12 @@ const formatRecordToExternalData = (
                 : []),
             ...(repoIdentifier ? [repoIdentifier] : [])
         ],
-        repoMetadata: {},
-        providers: []
+        providers: [],
+        sameAs: [],
+        dereferencing: undefined,
+        customAttributes: undefined,
+        userAndReferentCountByOrganization: undefined,
+        hasExpertReferent: undefined,
+        instances: undefined
     };
 };

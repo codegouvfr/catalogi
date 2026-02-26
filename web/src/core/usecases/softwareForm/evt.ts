@@ -11,7 +11,7 @@ export const createEvt = (({ evtAction }) =>
             ? [
                   {
                       action: "redirect" as const,
-                      softwareName: action.payload.softwareName
+                      softwareName: action.payload.name
                   }
               ]
             : null

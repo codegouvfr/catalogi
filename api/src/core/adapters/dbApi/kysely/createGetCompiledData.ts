@@ -143,7 +143,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             .map(similar => ({
                                 "externalId": similar.externalId!,
                                 "sourceSlug": similar.sourceSlug!,
-                                "label": similar.name!,
+                                "name": similar.name!,
                                 "description": similar.description!,
                                 "isLibreSoftware": similar.isLibreSoftware!
                             }))

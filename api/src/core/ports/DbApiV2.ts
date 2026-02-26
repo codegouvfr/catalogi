@@ -16,6 +16,7 @@ import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
 import type { SoftwareExternalData } from "./GetSoftwareExternalData";
+import type { SoftwareExternal } from "../types/SoftwareTypes";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
 import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
 
@@ -96,9 +97,12 @@ export interface SoftwareExternalDataRepository {
         externalId: string;
         softwareId?: number;
         lastDataFetchAt?: Date;
-        softwareExternalData: SoftwareExternalData;
+        softwareExternalData: SoftwareExternalData | SoftwareExternal;
     }) => Promise<void>;
-    save: (params: { softwareExternalData: SoftwareExternalData; softwareId: number | undefined }) => Promise<void>; // TODO
+    save: (params: {
+        softwareExternalData: SoftwareExternalData | SoftwareExternal;
+        softwareId: number | undefined;
+    }) => Promise<void>;
     get: (params: {
         sourceSlug: string;
         externalId: string;

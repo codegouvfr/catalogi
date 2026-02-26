@@ -291,8 +291,7 @@ function RowVirtualizerDynamicWindow(
                                             return <div key={i} />;
                                         }
 
-                                        const links =
-                                            linksBySoftwareName[software.softwareName];
+                                        const links = linksBySoftwareName[software.name];
 
                                         return (
                                             <SoftwareCatalogCard

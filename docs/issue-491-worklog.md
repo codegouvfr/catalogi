@@ -180,3 +180,85 @@ Track all implementation actions, findings, decisions, and validations for issue
   - `api/src/core/adapters/GitHub/getSofrwareFormData.ts`
   - `api/src/core/adapters/GitLab/getSoftwareFormData.ts`
 - Validation: API typecheck ✅, web typecheck ✅
+
+### 2026-02-20 - Phase 5b: remaining legacy inventory
+
+**Remaining Legacy Items:**
+
+1. **`ServiceProvider` type** (`readWriteSillData/types.ts:172-178`)
+   - Marked obsolete. `CompileData.ts` uses it but `SchemaOrganization` already covers the shape.
+   - Removal: replace with `SchemaOrganization` in `CompileData.ts`, delete type, remove from `ApiTypes.ts`.
+
+2. **`LegacySimilarSoftware` namespace** (`readWriteSillData/types.ts:80-101`)
+   - Discriminated union (`registered: true/false`). Canonical `SimilarSoftware` in `SoftwareTypes.ts` uses flat `isInCatalogi` boolean.
+   - Removal: adopt canonical `SimilarSoftware` in domain, repo builder, web.
+
+3. **`toCanonicalSoftwareExternalGetter` wrapper** (`softwareExternalMappers.ts:110-122`)
+   - Each adapter returns legacy `SoftwareExternalData`, wrapper converts to `SoftwareExternal`.
+   - Removal: make each adapter return `SoftwareExternal` directly, delete wrapper.
+
+4. **`softwareExternalData` deprecated gateway field** (`SourceGateway.ts:18`)
+   - Dual field: `softwareExternal` (canonical) + `softwareExternalData` (legacy).
+   - Removal: once adapters return canonical, delete deprecated field + all references.
+
+5. **`SoftwareExternalData` legacy type** (`GetSoftwareExternalData.ts:24-52`)
+   - Legacy field names (`developers`, `label`, `logoUrl`, `websiteUrl`, `sourceUrl`, `documentationUrl`, `softwareVersion`, `publicationTime`).
+   - Removal: once all consumers use canonical `SoftwareExternal`, delete type.
+
+6. **Legacy domain field names** (`readWriteSillData/types.ts`)
+   - `softwareName`→`name`, `softwareDescription`→`description`, `logoUrl`→`image`, `officialWebsiteUrl`→`url`, `documentationUrl`→`softwareHelp`, `serviceProviders`→`providers`.
+   - Removal: rename in domain types, tRPC, web (breaking tRPC contract).
+
+7. **DB repo `update`/`save` accepting `SoftwareExternalData`** (`createPgSoftwareExternalDataRepository.ts`)
+   - Maps legacy field names to canonical DB columns.
+   - Removal: accept `SoftwareExternal` directly, simplify mapping.
+
+### 2026-02-26 - Phase 6: Web canonical rename + SimilarSoftwareExternalData migration
+
+- Step: rename all legacy field names to canonical names across API external types and entire web codebase.
+- Status: **COMPLETE** — API typecheck ✅, web typecheck ✅, API unit tests pass (integration tests fail due to no DB, pre-existing)
+
+**API changes (Steps 1-2):**
+
+1. **`SoftwareExternalData.label` → `name`** (`GetSoftwareExternalData.ts:28`)
+2. **`SimilarSoftwareExternalData` Pick** updated: `"label"` → `"name"` (`GetSoftwareExternalData.ts:56`)
+3. **`SoftwareExternalDataOption.label` → `name`** + zod schema (`GetSoftwareExternalDataOptions.ts`)
+4. **`SoftwareInList.similarSoftwares`** shape: `{ name, label }` → `{ softwareName, name }` (avoids conflict; `softwareName` = catalog name, `name` = external data name) (`readWriteSillData/types.ts:34`)
+5. **`AutoFillData`** type: `softwareName`→`name`, `softwareDescription`→`description`, `softwareLicense`→`license`, `softwareLogoUrl`→`image` (`getSoftwareFormAutoFillDataFromExternalAndOtherSources.ts`)
+6. **All source adapter `softwareOptions`** implementations: `label:` → `name:` (wikidata, GitHub, GitLab, HAL, CDL, Zenodo)
+7. **Router** `getExternalSoftwareOptions` return mapping: `label` → `name` (`router.ts:174`)
+8. **`toLegacySoftwareExternalData`** mapper: `label: row.name` → `name: row.name` (`softwareExternalMappers.ts:29`)
+9. **`saveSimilarSoftwares`** destructuring: `label` → `name` (`createPgSoftwareRepository.ts:462`)
+10. **`createGetCompiledData`** similar mapping: `"label"` → `"name"` (`createGetCompiledData.ts:146`)
+11. **`createSoftware.ts`**: `label: similarSoftwareExternalData.label` → `name: similarSoftwareExternalData.name`
+12. **`createPgSoftwareExternalDataRepository.ts`**: `saveMany`/`toDbValues` — `data.label` → `data.name`
+13. **`aggregateSimilars`** helper: return type + mapping updated to `{ softwareName, name }`
+14. **All test files** updated: `test.helpers.ts`, `createSoftware.test.ts`, `updateSoftware.test.ts`, `refreshExternalData.test.ts`, `pgDbApi.integration.test.ts`, `getHalSoftware.test.ts`, `zenodoGateway.test.ts`, `softwareExternalMappers.test.ts`
+15. **API rebuilt** (`yarn --cwd api build`) to expose canonical types to web
+
+**Web changes (Steps 4-8):**
+
+16. **softwareDetails** state: `softwareId`→`id`, `softwareName`→`name`, `softwareDescription`→`description`, `logoUrl`→`image`, `officialWebsiteUrl`→`url`, `documentationUrl`→`softwareHelp`, `serviceProviders`→`providers`
+17. **softwareDetails** thunks: all destructuring and return mappings updated
+18. **softwareCatalog** state: `softwareName`→`name` in searchResults type
+19. **softwareCatalog** thunks: `softwareName`→`name`, `softwareDescription`→`description`, `logoUrl`→`image`, `similarSoftware.label`→`similarSoftware.name`
+20. **softwareCatalog** selectors: all `softwareName` → `name`, helper renames
+21. **softwareForm** state: step2 fields `softwareName`→`name`, `softwareDescription`→`description`, `softwareLicense`→`license`, `softwareLogoUrl`→`image`, `softwareKeywords`→`keywords`; step4 `label`→`name`
+22. **softwareForm** thunks: autofill response, update init, submit mapping, similar softwares
+23. **softwareForm** evt: payload field access updated
+24. **softwareUserAndReferent**: state/thunks/selectors — `softwareName`→`name`, `logoUrl`→`image`
+25. **instanceForm**: state/thunks/evt — `softwareName`→`name`, `softwareDescription`→`description`
+26. **redirect**: thunks — destructuring updated
+27. **declarationForm**: state/thunks — `softwareName`→`name`, `logoUrl`→`image`
+28. **userProfile**: selectors — `softwareName`→`name`
+29. **UI components**: SoftwareCatalogCard, SoftwareCatalog, SoftwareCatalogControlled, PreviewTab, HeaderDetailCard, SoftwareDetails, AlikeSoftwareTab, CnllServiceProviderModal, Step1 (instance), Step2 (software), SoftwareForm, Step4, SoftwareUserAndReferent, DeclarationForm, UserProfile, DeclarationRemovalModal — all field accesses renamed
+30. **SmartLogo** `logoUrl` prop kept as-is (UI component prop, not a state field)
+
+- Validation:
+  - `yarn --cwd api typecheck` ✅
+  - `yarn --cwd web typecheck` ✅
+  - API tests: unit tests ✅, integration tests fail (pre-existing: DB not running + 2 flaky wikidata API tests)
+- Decision:
+  - `SoftwareInList.similarSoftwares` renamed `name`→`softwareName` (catalog name) and `label`→`name` (external data name) to avoid field name conflict
+  - SmartLogo's `logoUrl` prop kept (UI concern, not a domain type field)
+  - Function parameters like `initialize({ softwareId })` kept (not state fields)

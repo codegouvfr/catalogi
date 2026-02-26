@@ -22,7 +22,7 @@ const similarExternalId = "external-id-222";
 const similarSoftExternalDataOption: SoftwareExternalDataOption = {
     externalId: similarExternalId,
     sourceSlug: testSource.slug,
-    label: "Some similar software",
+    name: "Some similar software",
     description: "Some similar software description",
     isLibreSoftware: true
 };
@@ -31,11 +31,11 @@ const softwareFormData: SoftwareFormData = {
     externalIdForSource,
     sourceSlug: testSource.slug,
     similarSoftwareExternalDataItems: [similarSoftExternalDataOption],
-    softwareDescription: "Super software",
-    softwareKeywords: ["bob", "l'éponge"],
-    softwareLicense: "MIT",
-    softwareLogoUrl: "https://external-software-logo-url.com/logo.png",
-    softwareName: "",
+    description: "Super software",
+    keywords: ["bob", "l'éponge"],
+    license: "MIT",
+    image: "https://external-software-logo-url.com/logo.png",
+    name: "",
     operatingSystems: {
         ios: true,
         android: true,
@@ -62,7 +62,7 @@ const softwareExternalData: SoftwareExternalData = {
             url: `https://www.wikidata.org/wiki/bob`
         }
     ],
-    label: { en: "Some software" },
+    name: { en: "Some software" },
     description: { en: "Some software description" },
     isLibreSoftware: true,
     logoUrl: "https://external-software-logo-url.com/logo.png",
@@ -92,7 +92,7 @@ const similarSoftwareExternalData: SoftwareExternalData = {
             url: `https://www.wikidata.org/wiki/similar-bob`
         }
     ],
-    label: "Some similar software",
+    name: "Some similar software",
     description: { en: "Some similar software description" },
     isLibreSoftware: true,
     logoUrl: "https://similar-software-logo-url.com/similar-logo.png",
@@ -207,7 +207,7 @@ describe("pgDbApi", () => {
                     url: dev.url
                 })),
                 codeRepositoryUrl: softwareExternalData.sourceUrl,
-                documentationUrl: softwareExternalData.documentationUrl,
+                softwareHelp: softwareExternalData.documentationUrl,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
                 keywords: ["bob", "l'éponge"],
@@ -216,8 +216,8 @@ describe("pgDbApi", () => {
                     "semVer": "1.0.0"
                 },
                 license: "MIT",
-                logoUrl: softwareFormData.softwareLogoUrl,
-                officialWebsiteUrl: softwareExternalData.websiteUrl,
+                image: softwareFormData.image,
+                url: softwareExternalData.websiteUrl,
                 customAttributes: {
                     doRespectRgaa: true,
                     isFromFrenchPublicService: false,
@@ -225,20 +225,21 @@ describe("pgDbApi", () => {
                 },
                 programmingLanguages: ["C++"],
                 repoMetadata: {},
-                serviceProviders: [],
+                providers: [],
                 similarSoftwares: [
                     {
                         sourceSlug: testSource.slug,
                         externalId: similarSoftwareExternalData.externalId,
-                        label: similarSoftwareExternalData.label,
+                        name: similarSoftwareExternalData.name,
                         description: similarSoftwareExternalData.description,
                         isLibreSoftware: similarSoftwareExternalData.isLibreSoftware,
-                        registered: false
+                        isInCatalogi: false,
+                        softwareId: undefined
                     }
                 ],
-                softwareDescription: "Super software",
-                softwareId: expect.any(Number),
-                softwareName: softwareFormData.softwareName,
+                description: "Super software",
+                id: expect.any(Number),
+                name: softwareFormData.name,
                 operatingSystems: {
                     android: true,
                     ios: true,
@@ -329,7 +330,7 @@ describe("pgDbApi", () => {
             const expectedDeclarations: (DeclarationFormData & { softwareName: string })[] = [
                 {
                     declarationType: "user",
-                    softwareName: softwareFormData.softwareName,
+                    softwareName: softwareFormData.name,
                     os: "mac",
                     version: "1",
                     serviceUrl: "https://example.com",
@@ -337,7 +338,7 @@ describe("pgDbApi", () => {
                 },
                 {
                     declarationType: "referent",
-                    softwareName: softwareFormData.softwareName,
+                    softwareName: softwareFormData.name,
                     isTechnicalExpert: true,
                     usecaseDescription: "des trucs de référent",
                     serviceUrl: undefined
@@ -466,7 +467,7 @@ describe("pgDbApi", () => {
                     sourceSlug: testSource.slug,
                     softwareId: null,
                     authors: JSON.stringify(softExtData.developers),
-                    name: JSON.stringify(softExtData.label),
+                    name: JSON.stringify(softExtData.name),
                     description: JSON.stringify(softExtData.description),
                     isLibreSoftware: softExtData.isLibreSoftware ?? null,
                     image: softExtData.logoUrl ?? null,

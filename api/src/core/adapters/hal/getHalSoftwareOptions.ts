@@ -28,7 +28,7 @@ const rawHalSoftwareToExternalOption =
 
         return {
             externalId: halSoftware.docid,
-            label: labelByLang[language],
+            name: labelByLang[language],
             description: descriptionByLang[language],
             isLibreSoftware: halSoftware.openAccess_bool,
             sourceSlug: source.slug

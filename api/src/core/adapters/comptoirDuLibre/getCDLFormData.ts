@@ -17,16 +17,16 @@ const formatCDLSoftwareToExternalData = async (
     const logoUrl = await comptoirDuLibreApi.getIconUrl({ comptoirDuLibreId: comptoirSoftware.id });
 
     return {
-        softwareName: comptoirSoftware.name,
-        softwareDescription: "",
+        name: comptoirSoftware.name,
+        description: "",
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
         runtimePlatforms: ["desktop"], // TODO Check Mandatory, Incorrect data
         externalIdForSource: comptoirSoftware.id.toString(),
         sourceSlug: source.slug,
-        softwareLicense: comptoirSoftware.licence,
+        license: comptoirSoftware.licence,
         similarSoftwareExternalDataItems: [],
-        softwareLogoUrl: logoUrl,
-        softwareKeywords: keywords,
+        image: logoUrl,
+        keywords: keywords,
         customAttributes: undefined
     };
 };

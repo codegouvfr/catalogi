@@ -43,13 +43,11 @@ export const thunks = {
 
             const softwares = await sillApi.getSoftwareList();
 
-            const allSillSoftwares = softwares.map(
-                ({ softwareName, id, softwareDescription }) => ({
-                    softwareDescription,
-                    softwareSillId: id,
-                    softwareName
-                })
-            );
+            const allSillSoftwares = softwares.map(({ name, id, description }) => ({
+                description,
+                softwareSillId: id,
+                name
+            }));
 
             switch (params.type) {
                 case "update":
@@ -186,7 +184,7 @@ export const thunks = {
 
             assert(software !== undefined);
 
-            dispatch(actions.formSubmitted({ softwareName: software.softwareName }));
+            dispatch(actions.formSubmitted({ name: software.name }));
         },
     returnToPreviousStep:
         () =>

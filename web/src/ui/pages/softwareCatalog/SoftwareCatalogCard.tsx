@@ -19,9 +19,9 @@ import { CustomAttributesInCard } from "./CustomAttributeInCard";
 import type { Link } from "type-route";
 
 type BaseSoftwareProps = {
-    logoUrl?: string;
-    softwareName: string;
-    softwareDescription: string;
+    image?: string;
+    name: string;
+    description: string;
     customAttributes?: ApiTypes.CustomAttributes;
     latestVersion?: {
         semVer?: string;
@@ -66,11 +66,11 @@ function isSoftwareFromList(
 
 export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
     const {
-        logoUrl,
-        softwareName,
+        image,
+        name: softwareName,
         customAttributes,
         latestVersion,
-        softwareDescription,
+        description,
         softwareUsersAndReferentsLink,
         softwareDetailsLink,
         declareFormLink,
@@ -111,11 +111,11 @@ export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
         <div className={cx(fr.cx("fr-card"), classes.root, className)}>
             <div className={classes.cardBody}>
                 <a className={cx(classes.headerContainer)} {...softwareDetailsLink}>
-                    {(logoUrl || ui?.uiConfig.catalog.defaultLogo) && (
+                    {(image || ui?.uiConfig.catalog.defaultLogo) && (
                         <div className={classes.logoWrapper}>
                             <img
                                 className={cx(classes.logo)}
-                                src={logoUrl ?? softwareLogoPlaceholder}
+                                src={image ?? softwareLogoPlaceholder}
                                 alt={"software logo"}
                             />
                         </div>
@@ -210,7 +210,7 @@ export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
                         </p>
                     )}
 
-                    <Markdown>{resolveLocalizedString(softwareDescription)}</Markdown>
+                    <Markdown>{resolveLocalizedString(description)}</Markdown>
                 </div>
 
                 {ui?.uiConfig.catalog.cardOptions.referentCount && (

@@ -49,9 +49,9 @@ namespace State {
             | undefined;
         isSubmitting: boolean;
         allSillSoftwares: {
-            softwareName: string;
+            name: string;
             softwareSillId: number;
-            softwareDescription: string;
+            description: string;
         }[];
     };
 }
@@ -77,9 +77,9 @@ export const { reducer, actions } = createUsecaseActions({
                 payload: {
                     preFillData: State.Ready["preFillData"];
                     allSillSoftwares: {
-                        softwareName: string;
+                        name: string;
                         softwareSillId: number;
-                        softwareDescription: string;
+                        description: string;
                     }[];
                 };
             }
@@ -130,7 +130,7 @@ export const { reducer, actions } = createUsecaseActions({
                 payload: _payload
             }: {
                 payload: {
-                    softwareName: string;
+                    name: string;
                 };
             }
         ) => {}

@@ -14,7 +14,7 @@ const gitHubSoftwareToExternalOption =
     (gitHubItem: GitHubAPI.SearchRepositoriesItem): SoftwareExternalDataOption => {
         return {
             externalId: gitHubItem.html_url,
-            label: gitHubItem.name,
+            name: gitHubItem.name,
             description: gitHubItem.description ?? "",
             isLibreSoftware: false,
             sourceSlug: source.slug

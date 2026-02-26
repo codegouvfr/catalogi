@@ -2,9 +2,9 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ServiceProvider } from "../usecases/readWriteSillData";
 import type { Db } from "./DbApi";
 import { SimilarSoftwareExternalData, SoftwareExternalData } from "./GetSoftwareExternalData";
+import { SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 
 export type CompileData = (params: {
     db: Db;
@@ -45,7 +45,7 @@ export namespace CompiledData {
             | "sourceSlug"
             | "customAttributes"
         > & {
-            serviceProviders: ServiceProvider[];
+            serviceProviders: SchemaOrganization[];
             softwareExternalData: SoftwareExternalData | undefined;
             similarExternalSoftwares: SimilarSoftwareExternalData[];
             latestVersion:

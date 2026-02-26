@@ -17,7 +17,7 @@ const modal = createModal({
 
 type Params = {
     softwareId: number;
-    softwareName: string;
+    name: string;
     declarationType: "user" | "referent";
 };
 
@@ -52,7 +52,7 @@ export function DeclarationRemovalModal() {
     const params = evtParams.state;
 
     const {
-        softwareName = "",
+        name: softwareName = "",
         softwareId = 0,
         declarationType = "referent"
     } = params ?? {};

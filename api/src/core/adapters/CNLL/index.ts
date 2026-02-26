@@ -5,19 +5,11 @@
 import { SecondarySourceGateway } from "../../ports/SourceGateway";
 import { getCNLLSoftwareExternalData } from "./getExternalData";
 import { getCnllPrestatairesSill } from "../getCnllPrestatairesSill";
-import { toCanonicalSoftwareExternalGetter } from "../../types/softwareExternalMappers";
-
-const getCNLLSoftwareExternal = toCanonicalSoftwareExternalGetter(getCNLLSoftwareExternalData);
 
 export const cnllSourceGateway: SecondarySourceGateway = {
     sourceType: "ComptoirDuLibre",
     sourceProfile: "Secondary",
-    softwareExternal: {
-        getById: getCNLLSoftwareExternal
-    },
-    softwareExternalData: {
-        getById: getCNLLSoftwareExternalData
-    },
+    softwareExternal: { getById: getCNLLSoftwareExternalData },
     discoverSoftwareLinks: async () => {
         const cnllProviders = await getCnllPrestatairesSill();
         return cnllProviders.map(provider => ({

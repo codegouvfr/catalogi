@@ -148,8 +148,8 @@ export default function SoftwareCatalog(props: Props) {
     const linksBySoftwareName = useMemo(
         () =>
             Object.fromEntries(
-                allSoftwares.map(({ softwareName, id }) => [
-                    softwareName,
+                allSoftwares.map(({ name, id }) => [
+                    name,
                     /* prettier-ignore */
                     {
                         "softwareDetails": routes.softwareDetails({ "id": id }).link,

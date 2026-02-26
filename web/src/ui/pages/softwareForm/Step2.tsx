@@ -63,10 +63,10 @@ export function SoftwareFormStep2(props: Step2Props) {
         wikidataEntry:
             | ReturnType<typeof getLibreSoftwareWikidataOptions>[number]
             | undefined;
-        softwareName: string;
-        softwareDescription: string;
-        softwareLicense: string;
-        softwareLogoUrl: string;
+        name: string;
+        description: string;
+        license: string;
+        image: string;
         keywordsInputValue: string;
     }>({
         defaultValues: (() => {
@@ -74,7 +74,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                 return undefined;
             }
 
-            const { externalId, softwareKeywords, ...rest } = initialFormData ?? {};
+            const { externalId, keywords, ...rest } = initialFormData ?? {};
 
             return {
                 ...rest,
@@ -84,9 +84,9 @@ export function SoftwareFormStep2(props: Step2Props) {
                         : {
                               externalId,
                               description: "",
-                              label: rest.softwareName
+                              name: rest.name
                           },
-                keywordsInputValue: softwareKeywords.join(", ")
+                keywordsInputValue: keywords.join(", ")
             };
         })()
     });
@@ -122,14 +122,10 @@ export function SoftwareFormStep2(props: Step2Props) {
             (async () => {
                 setIsAutocompleteInProgress(true);
 
-                const {
-                    softwareName,
-                    softwareDescription,
-                    softwareLicense,
-                    softwareLogoUrl
-                } = await getAutofillDataFromWikidata({
-                    externalId: wikiDataEntry.externalId
-                });
+                const { name, description, license, image } =
+                    await getAutofillDataFromWikidata({
+                        externalId: wikiDataEntry.externalId
+                    });
 
                 if (!isActive) {
                     return;
@@ -144,20 +140,20 @@ export function SoftwareFormStep2(props: Step2Props) {
                     wikidataInputElement.scrollIntoView({ behavior: "smooth" });
                 }
 
-                if (softwareDescription !== undefined) {
-                    setValue("softwareDescription", softwareDescription);
+                if (description !== undefined) {
+                    setValue("description", description);
                 }
 
-                if (softwareLicense !== undefined) {
-                    setValue("softwareLicense", softwareLicense);
+                if (license !== undefined) {
+                    setValue("license", license);
                 }
 
-                if (softwareName !== undefined) {
-                    setValue("softwareName", softwareName);
+                if (name !== undefined) {
+                    setValue("name", name);
                 }
 
-                if (softwareLogoUrl !== undefined) {
-                    setValue("softwareLogoUrl", softwareLogoUrl);
+                if (image !== undefined) {
+                    setValue("image", image);
                 }
 
                 setIsAutocompleteInProgress(false);
@@ -177,14 +173,11 @@ export function SoftwareFormStep2(props: Step2Props) {
         <form
             className={className}
             onSubmit={handleSubmit(
-                ({ wikidataEntry, softwareLogoUrl, keywordsInputValue, ...rest }) =>
+                ({ wikidataEntry, image, keywordsInputValue, ...rest }) =>
                     onSubmit({
                         ...rest,
-                        softwareLogoUrl:
-                            softwareLogoUrl === "" ? undefined : softwareLogoUrl,
-                        softwareKeywords: keywordsInputValue
-                            .split(",")
-                            .map(s => s.trim()),
+                        image: image === "" ? undefined : image,
+                        keywords: keywordsInputValue.split(",").map(s => s.trim()),
                         externalId: wikidataEntry?.externalId
                     })
             )}
@@ -201,13 +194,13 @@ export function SoftwareFormStep2(props: Step2Props) {
                         value={field.value}
                         onValueChange={field.onChange}
                         getOptionLabel={wikidataEntry =>
-                            resolveLocalizedString(wikidataEntry.label)
+                            resolveLocalizedString(wikidataEntry.name)
                         }
                         renderOption={(liProps, wikidataEntity) => (
                             <li {...liProps} key={wikidataEntity.externalId}>
                                 <div>
                                     <span>
-                                        {resolveLocalizedString(wikidataEntity.label)}
+                                        {resolveLocalizedString(wikidataEntity.name)}
                                     </span>
                                     <br />
                                     <span className={fr.cx("fr-text--xs")}>
@@ -286,20 +279,18 @@ export function SoftwareFormStep2(props: Step2Props) {
                             label={t("softwareFormStep2.logo url")}
                             hintText={t("softwareFormStep2.logo url hint")}
                             nativeInputProps={{
-                                ...register("softwareLogoUrl", {
+                                ...register("image", {
                                     pattern: /^(?:https:)?\/\//
                                 })
                             }}
-                            state={
-                                errors.softwareLogoUrl !== undefined ? "error" : undefined
-                            }
+                            state={errors.image !== undefined ? "error" : undefined}
                             stateRelatedMessage={t("softwareFormStep2.must be an url")}
                         />
                     )}
                 />
-                {watch("softwareLogoUrl") && (
+                {watch("image") && (
                     <img
-                        src={watch("softwareLogoUrl")}
+                        src={watch("image")}
                         alt={t("softwareFormStep2.logo preview alt")}
                         style={{
                             marginLeft: fr.spacing("4v"),
@@ -323,9 +314,9 @@ export function SoftwareFormStep2(props: Step2Props) {
                         }}
                         label={t("softwareFormStep2.software name")}
                         nativeInputProps={{
-                            ...register("softwareName", { required: true })
+                            ...register("name", { required: true })
                         }}
-                        state={errors.softwareName !== undefined ? "error" : undefined}
+                        state={errors.name !== undefined ? "error" : undefined}
                         stateRelatedMessage={t("app.required")}
                     />
                 )}
@@ -342,11 +333,9 @@ export function SoftwareFormStep2(props: Step2Props) {
                         label={t("softwareFormStep2.software feature")}
                         hintText={t("softwareFormStep2.software feature hint")}
                         nativeInputProps={{
-                            ...register("softwareDescription", { required: true })
+                            ...register("description", { required: true })
                         }}
-                        state={
-                            errors.softwareDescription !== undefined ? "error" : undefined
-                        }
+                        state={errors.description !== undefined ? "error" : undefined}
                         stateRelatedMessage={t("app.required")}
                     />
                 )}
@@ -363,9 +352,9 @@ export function SoftwareFormStep2(props: Step2Props) {
                         label={t("softwareFormStep2.license")}
                         hintText={t("softwareFormStep2.license hint")}
                         nativeInputProps={{
-                            ...register("softwareLicense", { required: true })
+                            ...register("license", { required: true })
                         }}
-                        state={errors.softwareLicense !== undefined ? "error" : undefined}
+                        state={errors.license !== undefined ? "error" : undefined}
                         stateRelatedMessage={t("app.required")}
                     />
                 )}

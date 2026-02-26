@@ -6,23 +6,11 @@ import { PrimarySourceGateway } from "../../ports/SourceGateway";
 import { getGitLabSoftwareExternalData } from "./getExternalData";
 import { getGitLabSoftwareForm } from "./getSoftwareFormData";
 import { getGitLabSoftwareOptions } from "./getSoftwareOptions";
-import { toCanonicalSoftwareExternalGetter } from "../../types/softwareExternalMappers";
-
-const getGitLabSoftwareExternal = toCanonicalSoftwareExternalGetter(getGitLabSoftwareExternalData);
 
 export const gitLabSourceGateway: PrimarySourceGateway = {
     sourceType: "GitHub",
     sourceProfile: "Primary",
-    softwareExternal: {
-        getById: getGitLabSoftwareExternal
-    },
-    softwareExternalData: {
-        getById: getGitLabSoftwareExternalData
-    },
-    softwareOptions: {
-        getById: getGitLabSoftwareOptions
-    },
-    softwareForm: {
-        getById: getGitLabSoftwareForm
-    }
+    softwareExternal: { getById: getGitLabSoftwareExternalData },
+    softwareOptions: { getById: getGitLabSoftwareOptions },
+    softwareForm: { getById: getGitLabSoftwareForm }
 };

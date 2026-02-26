@@ -48,20 +48,20 @@ export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
     runtimePlatforms: ["desktop"],
     externalIdForSource: "Q171985",
     sourceSlug: "some-source-slug",
-    softwareName: "Some software",
-    softwareDescription: "Some software description",
-    softwareLicense: "Some software license",
+    name: "Some software",
+    description: "Some software description",
+    license: "Some software license",
     similarSoftwareExternalDataItems: [
         {
             externalId: "some-external-id",
             sourceSlug: "some-source-slug",
-            label: "Some label",
+            name: "Some label",
             description: "Some description",
             isLibreSoftware: true
         }
     ],
-    softwareLogoUrl: "https://example.com/logo.png",
-    softwareKeywords: ["some", "keywords"],
+    image: "https://example.com/logo.png",
+    keywords: ["some", "keywords"],
     customAttributes: {
         isPresentInSupportContract: true,
         isFromFrenchPublicService: true,
@@ -79,11 +79,11 @@ export const createInstanceFormData = makeObjectFactory<InstanceFormData>({
 export const emptyExternalData = (
     params: { softwareId?: number; externalId: string; sourceSlug: string } & Partial<SoftwareExternalDataOption>
 ) => {
-    const { softwareId = null, externalId, sourceSlug, label = "", description = "", isLibreSoftware = null } = params;
+    const { softwareId = null, externalId, sourceSlug, name = "", description = "", isLibreSoftware = null } = params;
     return {
         externalId,
         authors: [],
-        name: label,
+        name,
         description,
         isLibreSoftware,
         image: null,
@@ -115,14 +115,14 @@ export const emptyExternalDataCleaned = (
         softwareId = undefined,
         externalId,
         sourceSlug,
-        label = "",
+        name = "",
         description = "",
         isLibreSoftware = undefined
     } = params;
     return {
         externalId,
         authors: [],
-        name: label,
+        name,
         description,
         isLibreSoftware,
         image: undefined,

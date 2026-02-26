@@ -27,10 +27,14 @@ export default function SoftwareUserAndReferent(props: Props) {
 
     const { softwareUserAndReferent } = useCore().functions;
 
-    const { isReady, logoUrl, referents, users, softwareId, softwareName } = useCoreState(
-        "softwareUserAndReferent",
-        "main"
-    );
+    const {
+        isReady,
+        image,
+        referents,
+        users,
+        softwareId,
+        name: softwareName
+    } = useCoreState("softwareUserAndReferent", "main");
 
     useEffect(() => {
         softwareUserAndReferent.initialize({ softwareId: route.params.id });
@@ -241,7 +245,7 @@ export default function SoftwareUserAndReferent(props: Props) {
                                     <div className={classes.logoWrapper}>
                                         <img
                                             className={classes.logo}
-                                            src={logoUrl ?? softwareLogoPlaceholder}
+                                            src={image ?? softwareLogoPlaceholder}
                                             alt="Logo du logiciel"
                                         />
                                     </div>

@@ -38,8 +38,8 @@ export const thunks = {
             dispatch(
                 actions.initializationCompleted({
                     software: {
-                        logoUrl: software.logoUrl,
-                        softwareName: software.softwareName,
+                        image: software.image,
+                        name: software.name,
                         softwareId: software.id,
                         referentCount: Object.values(
                             software.userAndReferentCountByOrganization
@@ -97,7 +97,7 @@ export const thunks = {
 
                     assert(state.stateDescription === "ready");
 
-                    const { softwareName } = state.software;
+                    const softwareName = state.software.name;
 
                     return { softwareName };
                 })();

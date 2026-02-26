@@ -32,9 +32,7 @@ export default function UserProfile(props: Props) {
     const { isReady, profile, softwares } = useCoreState("userProfile", "main");
     const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
-    const softwareIdByName = Object.fromEntries(
-        allSoftwares.map(s => [s.softwareName, s.id])
-    );
+    const softwareIdByName = Object.fromEntries(allSoftwares.map(s => [s.name, s.id]));
 
     useEffect(() => {
         userProfile.initialize({ email: route.params.email });
@@ -102,7 +100,7 @@ export default function UserProfile(props: Props) {
             <div className={classes.softwareListing}>
                 {softwares.map(
                     ({
-                        softwareName,
+                        name: softwareName,
                         isReferent,
                         isUser,
                         isTechnicalExpert,

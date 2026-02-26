@@ -16,9 +16,9 @@ export const protectedThunks = {
             dispatch(
                 actions.initialized({
                     softwareNameBySillId: Object.fromEntries(
-                        (await sillApi.getSoftwareList()).map(({ id, softwareName }) => [
+                        (await sillApi.getSoftwareList()).map(({ id, name }) => [
                             id,
-                            softwareName
+                            name
                         ])
                     )
                 })

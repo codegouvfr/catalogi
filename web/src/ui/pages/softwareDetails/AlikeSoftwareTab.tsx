@@ -19,7 +19,7 @@ export type Props = {
     className?: string;
     similarSoftwares: SoftwareDetails.Software["similarSoftwares"];
     getLinks: (params: {
-        softwareName: string;
+        name: string;
     }) => Record<
         "declarationForm" | "softwareDetails" | "softwareUsersAndReferents",
         Link
@@ -45,30 +45,28 @@ export const SimilarSoftwareTab = (props: Props) => {
 
     const { resolveLocalizedString } = useResolveLocalizedString();
 
-    const similarSoftwaresNotRegistered = similarSoftwares.filter(
+    const similarSoftwaresNotInCatalogi = similarSoftwares.filter(
         (
             similarSoftware
-        ): similarSoftware is SoftwareDetails.SimilarSoftwareNotRegistered =>
-            !similarSoftware.registered
+        ): similarSoftware is SoftwareDetails.SimilarSoftwareNotInCatalogi =>
+            !similarSoftware.isInCatalogi
     );
 
     return (
         <section className={className}>
             <p className={fr.cx("fr-text--bold")}>
                 {t("similarSoftwareTab.similar software in sill")} (
-                {similarSoftwares.filter(({ registered }) => registered).length}) :
+                {similarSoftwares.filter(({ isInCatalogi }) => isInCatalogi).length}) :
             </p>
             {similarSoftwares
                 .map(similarSoftware =>
-                    similarSoftware.registered ? similarSoftware.software : undefined
+                    similarSoftware.isInCatalogi ? similarSoftware.software : undefined
                 )
                 .filter(exclude(undefined))
                 .map(software => {
                     const {
-                        logoUrl,
-                        softwareName,
+                        name: softwareName,
                         latestVersion,
-                        softwareDescription,
                         customAttributes,
                         userDeclaration
                     } = software;
@@ -77,7 +75,7 @@ export const SimilarSoftwareTab = (props: Props) => {
                         declarationForm,
                         softwareDetails,
                         softwareUsersAndReferents
-                    } = getLinks({ softwareName });
+                    } = getLinks({ name: softwareName });
 
                     return (
                         <SoftwareCatalogCard
@@ -99,14 +97,14 @@ export const SimilarSoftwareTab = (props: Props) => {
                     );
                 })}
 
-            {similarSoftwaresNotRegistered.length === 0 ? null : (
+            {similarSoftwaresNotInCatalogi.length === 0 ? null : (
                 <>
                     <p className={fr.cx("fr-text--bold", "fr-mt-8v")}>
                         {t("similarSoftwareTab.similar software not in sill")} (
-                        {similarSoftwaresNotRegistered.length}) :
+                        {similarSoftwaresNotInCatalogi.length}) :
                     </p>
                     <ul>
-                        {similarSoftwaresNotRegistered
+                        {similarSoftwaresNotInCatalogi
                             .sort(
                                 (
                                     { isLibreSoftware: isLibreSoftwareA },
@@ -121,44 +119,40 @@ export const SimilarSoftwareTab = (props: Props) => {
                                     return 0;
                                 }
                             )
-                            .map(
-                                ({ externalId, label, description, isLibreSoftware }) => {
-                                    return (
-                                        <li key={externalId}>
-                                            <p
-                                                className={css({
-                                                    display: "inline-block",
-                                                    marginRight: fr.spacing("4v")
-                                                })}
+                            .map(({ externalId, name, description, isLibreSoftware }) => {
+                                return (
+                                    <li key={externalId}>
+                                        <p
+                                            className={css({
+                                                display: "inline-block",
+                                                marginRight: fr.spacing("4v")
+                                            })}
+                                        >
+                                            <a
+                                                href={`https://www.wikidata.org/wiki/${externalId}`}
+                                                target="_blank"
+                                                rel="noreferrer"
                                             >
-                                                <a
-                                                    href={`https://www.wikidata.org/wiki/${externalId}`}
-                                                    target="_blank"
-                                                    rel="noreferrer"
-                                                >
-                                                    {resolveLocalizedString(label)}
-                                                </a>
-                                                :&nbsp;&nbsp;
-                                                {capitalize(
-                                                    resolveLocalizedString(description)
+                                                {resolveLocalizedString(name)}
+                                            </a>
+                                            :&nbsp;&nbsp;
+                                            {capitalize(
+                                                resolveLocalizedString(description)
+                                            )}
+                                        </p>
+                                        {isLibreSoftware ? (
+                                            <Tag
+                                                iconId="ri-check-fill"
+                                                linkProps={getAddWikipediaSoftwareToSillLink(
+                                                    { externalId }
                                                 )}
-                                            </p>
-                                            {isLibreSoftware ? (
-                                                <Tag
-                                                    iconId="ri-check-fill"
-                                                    linkProps={getAddWikipediaSoftwareToSillLink(
-                                                        { externalId }
-                                                    )}
-                                                >
-                                                    {t(
-                                                        "similarSoftwareTab.libre software"
-                                                    )}
-                                                </Tag>
-                                            ) : null}
-                                        </li>
-                                    );
-                                }
-                            )}
+                                            >
+                                                {t("similarSoftwareTab.libre software")}
+                                            </Tag>
+                                        ) : null}
+                                    </li>
+                                );
+                            })}
                     </ul>
                 </>
             )}

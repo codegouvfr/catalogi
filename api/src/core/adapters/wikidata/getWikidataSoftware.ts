@@ -13,13 +13,9 @@ import { removeDuplicatesFactory } from "evt/tools/reducers/removeDuplicates";
 import { same } from "evt/tools/inDepth/same";
 import { createResolveLocalizedString } from "i18nifty/LocalizedString/reactless";
 import { id } from "tsafe/id";
-import {
-    languages,
-    type Language,
-    type GetSoftwareExternalData,
-    type SoftwareExternalData,
-    type LocalizedString
-} from "../../ports/GetSoftwareExternalData";
+import { languages, type Language, type LocalizedString } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import {
     type WikidataEntity,
     type DataValue,
@@ -61,14 +57,8 @@ const lastestVersionClaim = (ent: WikidataEntity) => {
     });
 };
 
-export const getWikidataSoftware: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getWikidataSoftware: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         console.info(`   -> fetching wiki soft : ${source.slug}`);
         const { entity } =
             (await fetchEntity(externalId).catch(error => {
@@ -128,16 +118,21 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
         const sourceUrl = getClaimDataValue<"string">("P1324")[0];
         const repoIdentifer = await repoUrlToIdentifer({ repoUrl: sourceUrl });
 
+        const nowIso = new Date().toISOString();
+        const publicationIso = publicationTimeDate?.toISOString();
+
         return {
+            variant: "external",
+            id: undefined,
             externalId,
             sourceSlug: source.slug,
-            "label": wikidataSingleLocalizedStringToLocalizedString(entity.labels) ?? {
+            "name": wikidataSingleLocalizedStringToLocalizedString(entity.labels) ?? {
                 "en": "No label"
             },
             "description": wikidataSingleLocalizedStringToLocalizedString(entity.descriptions) ?? {
                 "en": "No description"
             },
-            "logoUrl": await (async () => {
+            "image": await (async () => {
                 const value = getClaimDataValue<"string">("P154")[0];
 
                 if (value === undefined) {
@@ -200,14 +195,14 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
                 const websiteUrl = getClaimDataValue<"string">("P856")[0];
 
                 return {
-                    sourceUrl,
-                    "websiteUrl": sourceUrl !== websiteUrl ? websiteUrl : undefined
+                    codeRepositoryUrl: sourceUrl,
+                    "url": sourceUrl !== websiteUrl ? websiteUrl : undefined
                 };
             })(),
-            "documentationUrl": getClaimDataValue<"string">("P2078")[0],
+            "softwareHelp": getClaimDataValue<"string">("P2078")[0],
             "license": license?.label,
             "isLibreSoftware": license === undefined ? false : freeSoftwareLicensesWikidataIds.includes(license.id),
-            "developers": await Promise.all(
+            "authors": await Promise.all(
                 [
                     ...getClaimDataValue<"wikibase-entityid">("P50"),
                     ...getClaimDataValue<"wikibase-entityid">("P170"),
@@ -281,16 +276,22 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
                             "areEquals": same
                         });
 
-                        return removeDuplicates<SoftwareExternalData["developers"][number]>();
+                        return removeDuplicates<SoftwareExternal["authors"][number]>();
                     })()
                 )
             ),
-            softwareVersion: versionClaim?.mainsnak?.datavalue?.value as string | undefined,
+            latestVersion: versionClaim?.mainsnak?.datavalue?.value
+                ? { version: versionClaim.mainsnak.datavalue.value as string, releaseDate: publicationIso }
+                : undefined,
+            dateCreated: publicationIso,
+            addedTime: nowIso,
+            updateTime: nowIso,
             keywords: getClaimDataValue<"string">("P921"),
             programmingLanguages: programmingLanguageString ? [programmingLanguageString] : [],
-            applicationCategories: undefined, // doesn't exit on wiki data
-            referencePublications: undefined, // doesn't exit on wiki data
-            publicationTime: publicationTimeDate,
+            applicationCategories: [],
+            operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+            runtimePlatforms: [],
+            referencePublications: [],
             identifiers: [
                 ...(framaLibreId
                     ? [identifersUtils.makeFramaIndentifier({ framaLibreId, additionalType: "Software" })]
@@ -298,8 +299,13 @@ export const getWikidataSoftware: GetSoftwareExternalData = memoize(
                 identifersUtils.makeWikidataIdentifier({ wikidataId: externalId, additionalType: "Software" }),
                 ...(repoIdentifer ? [repoIdentifer] : [])
             ],
-            repoMetadata: {},
-            providers: []
+            providers: [],
+            sameAs: [],
+            dereferencing: undefined,
+            customAttributes: undefined,
+            userAndReferentCountByOrganization: undefined,
+            hasExpertReferent: undefined,
+            instances: undefined
         };
     },
     {

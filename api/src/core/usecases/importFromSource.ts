@@ -82,12 +82,12 @@ const checkSoftware = async (
 ) => {
     // Get software form from source
     const softwareForm = await getSoftwareForm({ externalId, source });
-    if (!softwareForm || !softwareForm.softwareName) {
+    if (!softwareForm || !softwareForm.name) {
         return undefined;
     }
 
     console.info(
-        `[UC:Import] Importing ${softwareForm.softwareName}(${externalId}) from ${source.slug} : Adding software and externalData `
+        `[UC:Import] Importing ${softwareForm.name}(${externalId}) from ${source.slug} : Adding software and externalData `
     );
     const createSoftware = makeCreateSofware(dbApi);
     return createSoftware({ formData: softwareForm, userId });

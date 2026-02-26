@@ -14,7 +14,7 @@ const gitLabSoftwareToExternalOption =
     (gitLabItem: ProjectSchema): SoftwareExternalDataOption => {
         return {
             externalId: gitLabItem.id.toString(),
-            label: gitLabItem.name,
+            name: gitLabItem.name,
             description: gitLabItem.description,
             isLibreSoftware: false,
             sourceSlug: source.slug

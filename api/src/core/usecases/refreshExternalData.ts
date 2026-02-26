@@ -242,7 +242,7 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
             const actualExternalDataRow = await dbApi.softwareExternalData.get({ sourceSlug, externalId });
 
             const sourceGateway = resolveAdapterFromSource(source);
-            const externalData = await sourceGateway.softwareExternalData.getById({
+            const externalData = await sourceGateway.softwareExternal.getById({
                 externalId: externalId,
                 source: source
             });

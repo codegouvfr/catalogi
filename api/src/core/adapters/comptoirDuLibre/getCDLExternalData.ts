@@ -4,7 +4,8 @@
 
 import memoize from "memoizee";
 
-import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { comptoirDuLibreApi } from "../comptoirDuLibreApi";
 import { ComptoirDuLibre } from "../../ports/ComptoirDuLibreApi";
@@ -12,14 +13,8 @@ import { SchemaIdentifier, SchemaOrganization } from "../dbApi/kysely/kysely.dat
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
-export const getCDLSoftwareExternalData: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getCDLSoftwareExternalData: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         const comptoirAPi = await comptoirDuLibreApi.getComptoirDuLibre();
 
         const comptoirSoftware = comptoirAPi.softwares.find(softwareItem => softwareItem.id.toString() === externalId);
@@ -56,29 +51,35 @@ const formatCDLSoftwareToExternalData = (
     cdlSoftwareItem: ComptoirDuLibre.Software,
     source: Source,
     repoIdentifier: SchemaIdentifier | undefined
-): SoftwareExternalData => {
+): SoftwareExternal => {
     const splittedCNLLUrl = !Array.isArray(cdlSoftwareItem.external_resources.cnll)
         ? cdlSoftwareItem.external_resources.cnll.url.split("/")
         : undefined;
+    const nowIso = new Date().toISOString();
 
     return {
+        variant: "external",
+        id: undefined,
         externalId: cdlSoftwareItem.id.toString(),
         sourceSlug: source.slug,
-        developers: [],
-        label: { "fr": cdlSoftwareItem.name },
+        authors: [],
+        name: { "fr": cdlSoftwareItem.name },
         description: { "fr": "" },
         isLibreSoftware: true,
-        //
-        logoUrl: undefined, // Use scrapper ?
-        websiteUrl: cdlSoftwareItem.external_resources.website ?? undefined,
-        sourceUrl: cdlSoftwareItem.external_resources.repository ?? undefined,
-        documentationUrl: undefined,
+        image: undefined,
+        url: cdlSoftwareItem.external_resources.website ?? undefined,
+        codeRepositoryUrl: cdlSoftwareItem.external_resources.repository ?? undefined,
+        softwareHelp: undefined,
         license: cdlSoftwareItem.licence,
-        softwareVersion: undefined,
+        latestVersion: undefined,
+        dateCreated: undefined,
+        addedTime: nowIso,
+        updateTime: nowIso,
         keywords: [],
         programmingLanguages: [],
         applicationCategories: [],
-        publicationTime: undefined,
+        operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+        runtimePlatforms: [],
         referencePublications: [],
         identifiers: [
             identifersUtils.makeCDLIdentifier({
@@ -114,7 +115,12 @@ const formatCDLSoftwareToExternalData = (
                 : []),
             ...(repoIdentifier ? [repoIdentifier] : [])
         ],
-        repoMetadata: undefined,
-        providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers)
+        providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers),
+        sameAs: [],
+        dereferencing: undefined,
+        customAttributes: undefined,
+        userAndReferentCountByOrganization: undefined,
+        hasExpertReferent: undefined,
+        instances: undefined
     };
 };

@@ -4,19 +4,14 @@
 
 import memoize from "memoizee";
 
-import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { repoGitHubEndpointMaker } from "./api/repo";
 
-export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         if (source.kind !== "GitHub") throw new Error("This source if not compatible with GitHub Adapter");
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
@@ -30,10 +25,6 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
         const repoDevs = await gitHubApi.repo.getContributors({ repoUrl });
         const repoTags = await gitHubApi.repo.getTags({ repoUrl });
         const repoLanguages = await gitHubApi.repo.getLanguages({ repoUrl });
-        const lastCommit = await gitHubApi.repo.commits.getLastCommit({ repoUrl });
-        const lastCloseIssue = await gitHubApi.repo.issues.getLastClosedIssue({ repoUrl });
-        const lastClosedPull = await gitHubApi.repo.mergeRequests.getLast({ repoUrl });
-
         const devIds =
             repoDevs
                 ?.map(dev => dev.id)
@@ -56,10 +47,17 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
               })
             : undefined;
 
+        const publicationIso = lastVersionCommit?.commit.author?.date
+            ? new Date(lastVersionCommit.commit.author.date).toISOString()
+            : undefined;
+        const nowIso = new Date().toISOString();
+
         return {
+            variant: "external",
+            id: undefined,
             externalId: repoData.html_url.replace("https://github.com/", "").replace("git+", "").replace(".git", ""),
             sourceSlug: source.slug,
-            developers: filteredUserDevs.map(dev => ({
+            authors: filteredUserDevs.map(dev => ({
                 "@type": "Person",
                 name: dev.name ?? dev.login,
                 identifiers: [
@@ -75,21 +73,23 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
                       ]
                     : []
             })),
-            label: { "en": repoData.full_name },
+            name: { "en": repoData.full_name },
             description: repoData?.description ? { "en": repoData.description } : {},
-            isLibreSoftware: true, // TODO Resolver ?
-            logoUrl: undefined,
-            websiteUrl: repoData.homepage ?? undefined,
-            sourceUrl: repoData.html_url,
-            documentationUrl: undefined,
+            isLibreSoftware: true,
+            image: undefined,
+            url: repoData.homepage ?? undefined,
+            codeRepositoryUrl: repoData.html_url,
+            softwareHelp: undefined,
             license: repoData.license?.name,
-            softwareVersion: repoTags?.[0]?.name,
-            keywords: repoData.topics,
+            latestVersion: repoTags?.[0]?.name ? { version: repoTags[0].name, releaseDate: publicationIso } : undefined,
+            dateCreated: publicationIso,
+            addedTime: nowIso,
+            updateTime: nowIso,
+            keywords: repoData.topics ?? [],
             programmingLanguages: Object.keys(repoLanguages),
             applicationCategories: [],
-            publicationTime: lastVersionCommit?.commit.author?.date
-                ? new Date(lastVersionCommit.commit.author.date)
-                : undefined,
+            operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+            runtimePlatforms: [],
             referencePublications: [],
             identifiers: [
                 identifersUtils.makeRepoGitHubIdentifer({
@@ -97,16 +97,13 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternalData = memoize(
                     repoId: repoData.id
                 })
             ],
-            repoMetadata: {
-                healthCheck: {
-                    lastCommit: lastCommit?.commit?.author?.date ? new Date(lastCommit.commit.author.date) : undefined,
-                    lastClosedIssue: lastCloseIssue?.closed_at ? new Date(lastCloseIssue.closed_at) : undefined,
-                    lastClosedIssuePullRequest: lastClosedPull?.closed_at
-                        ? new Date(lastClosedPull.closed_at)
-                        : undefined
-                }
-            },
-            providers: []
+            providers: [],
+            sameAs: [],
+            dereferencing: undefined,
+            customAttributes: undefined,
+            userAndReferentCountByOrganization: undefined,
+            hasExpertReferent: undefined,
+            instances: undefined
         };
     }
 );

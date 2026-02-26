@@ -21,18 +21,18 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
         if (!repoData) throw new Error(`This GitHub url (${externalId}) provided doesn't work.`);
 
         const formData: SoftwareFormData = {
-            softwareName: repoData.full_name,
-            softwareDescription: repoData?.description ? repoData.description : "",
+            name: repoData.full_name,
+            description: repoData?.description ? repoData.description : "",
             ...resolveOsAndPlatforms(repoData.topics ?? []), // Someting else to rely on ?
             externalIdForSource: repoData.html_url
                 .replace("https://github.com/", "")
                 .replace("git+", "")
                 .replace(".git", ""),
             sourceSlug: source.slug,
-            softwareLicense: repoData.license?.name ?? "undefined", // TODO 1 case to copyright
+            license: repoData.license?.name ?? "undefined", // TODO 1 case to copyright
             similarSoftwareExternalDataItems: [],
-            softwareLogoUrl: undefined,
-            softwareKeywords: repoData.topics || [],
+            image: undefined,
+            keywords: repoData.topics || [],
             customAttributes: undefined
         };
 

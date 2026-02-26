@@ -83,12 +83,12 @@ export function SoftwareFormStep4(props: Step4Props) {
                         value={field.value}
                         onValueChange={value => field.onChange(value)}
                         getOptionLabel={wikidataEntry =>
-                            resolveLocalizedString(wikidataEntry.label)
+                            resolveLocalizedString(wikidataEntry.name)
                         }
                         renderOption={(liProps, entity) => (
                             <li {...liProps}>
                                 <div>
-                                    <span>{resolveLocalizedString(entity.label)}</span>
+                                    <span>{resolveLocalizedString(entity.name)}</span>
                                     <br />
                                     <span className={fr.cx("fr-text--xs")}>
                                         {resolveLocalizedString(entity.description)}

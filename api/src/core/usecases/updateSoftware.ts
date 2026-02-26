@@ -19,10 +19,10 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
 
         await dbApi.software.update({
             software: {
-                name: formFields.softwareName,
-                description: { fr: formFields.softwareDescription },
-                license: formFields.softwareLicense,
-                logoUrl: formFields.softwareLogoUrl,
+                name: formFields.name,
+                description: { fr: formFields.description },
+                license: formFields.license,
+                logoUrl: formFields.image,
                 dereferencing: undefined,
                 isStillInObservation: false,
                 customAttributes: formFields.customAttributes,
@@ -30,7 +30,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 runtimePlatforms: formFields.runtimePlatforms,
                 applicationCategories: [],
                 addedByUserId: userId,
-                keywords: formFields.softwareKeywords
+                keywords: formFields.keywords
             },
             softwareId
         });
@@ -44,5 +44,5 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
             }
         ]);
 
-        console.log(`software correctly updated, softwareId is : ${softwareId} (${formFields.softwareName})`);
+        console.log(`software correctly updated, softwareId is : ${softwareId} (${formFields.name})`);
     };

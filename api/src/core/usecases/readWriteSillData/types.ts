@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { LocalizedString, SimilarSoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { LocalizedString } from "../../ports/GetSoftwareExternalData";
 import { DatabaseDataType } from "../../ports/DbApiV2";
 import {
     RepoMetadata,
@@ -13,13 +13,13 @@ import {
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
-import type { Os, RuntimePlatform } from "../../types";
+import type { Os, RuntimePlatform, SimilarSoftware } from "../../types";
 
 export type SoftwareInList = {
     id: number;
-    softwareName: string;
-    softwareDescription: string;
-    logoUrl: string | undefined;
+    name: string;
+    description: string;
+    image: string | undefined;
     latestVersion: { semVer: string | undefined; publicationTime: number | undefined } | undefined;
     addedTime: number;
     updateTime: number;
@@ -31,15 +31,15 @@ export type SoftwareInList = {
     programmingLanguages: string[];
     authors: Array<{ name: string }>;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
-    similarSoftwares: Array<{ softwareName: string | undefined; label: LocalizedString | undefined }>;
+    similarSoftwares: Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>;
 };
 
 export type Software = {
-    logoUrl: string | undefined;
-    softwareId: number;
-    softwareName: string;
-    softwareDescription: string;
-    serviceProviders: SchemaOrganization[];
+    id: number;
+    name: string;
+    description: string;
+    image: string | undefined;
+    providers: SchemaOrganization[];
     latestVersion:
         | {
               semVer?: string;
@@ -59,15 +59,15 @@ export type Software = {
     customAttributes: CustomAttributes | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
     authors: Array<SchemaPerson | SchemaOrganization>;
-    officialWebsiteUrl: string | undefined;
+    url: string | undefined;
     codeRepositoryUrl: string | undefined;
-    documentationUrl: string | undefined;
+    softwareHelp: string | undefined;
     license: string;
     externalId: string | undefined;
     sourceSlug: string | undefined;
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
-    similarSoftwares: Software.LegacySimilarSoftware[];
+    similarSoftwares: SimilarSoftware[];
     keywords: string[];
     programmingLanguages: string[];
     referencePublications?: ScholarlyArticle[];
@@ -76,30 +76,6 @@ export type Software = {
 };
 
 export type Source = DatabaseDataType.SourceRow;
-
-export namespace Software {
-    export type LegacySimilarSoftware =
-        | LegacySimilarSoftware.SimilarSoftwareNotRegistered
-        | LegacySimilarSoftware.SimilarRegisteredSoftware;
-
-    export namespace LegacySimilarSoftware {
-        export type SimilarSoftwareNotRegistered = {
-            registered: false;
-            sourceSlug: string;
-            externalId: string;
-            isLibreSoftware: boolean | undefined;
-            label: LocalizedString;
-            description: LocalizedString;
-        };
-
-        export type SimilarRegisteredSoftware = {
-            registered: true;
-            softwareId: number;
-            softwareName: string;
-            softwareDescription: string;
-        } & SimilarSoftwareExternalData;
-    }
-}
 
 export type CreateUserParams = {
     firstName?: string;
@@ -124,16 +100,16 @@ export type Instance = {
 };
 
 export type SoftwareFormData = {
-    softwareName: string;
-    softwareDescription: string;
+    name: string;
+    description: string;
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
     externalIdForSource: string | undefined;
     sourceSlug: string;
-    softwareLicense: string;
+    license: string;
     similarSoftwareExternalDataItems: SoftwareExternalDataOption[];
-    softwareLogoUrl: string | undefined;
-    softwareKeywords: string[];
+    image: string | undefined;
+    keywords: string[];
     customAttributes: CustomAttributes | undefined;
 };
 
@@ -165,14 +141,4 @@ export type InstanceFormData = {
     targetAudience: string;
     instanceUrl: string | undefined;
     isPublic: boolean;
-};
-
-/* Obselete data for Compile Data : TODO Remove that */
-
-export type ServiceProvider = {
-    name: string;
-    website?: string;
-    cdlUrl?: string;
-    cnllUrl?: string;
-    siren?: string;
 };

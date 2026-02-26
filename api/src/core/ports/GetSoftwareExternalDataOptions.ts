@@ -8,7 +8,7 @@ import { LocalizedString, type Language } from "./GetSoftwareExternalData";
 
 export type SoftwareExternalDataOption = {
     externalId: string;
-    label: LocalizedString;
+    name: LocalizedString;
     description: LocalizedString;
     isLibreSoftware: boolean | undefined;
     sourceSlug: string;
@@ -25,7 +25,7 @@ const localizedStringSchema = z.string().or(
 
 export const softwareExternalDataOptionSchema = z.object({
     externalId: z.string(),
-    label: localizedStringSchema,
+    name: localizedStringSchema,
     description: localizedStringSchema,
     isLibreSoftware: z.boolean(),
     sourceSlug: z.string()

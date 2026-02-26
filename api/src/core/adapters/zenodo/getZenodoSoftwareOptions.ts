@@ -22,7 +22,7 @@ export const getZenodoSoftwareOptions: GetSoftwareExternalDataOptions = async ({
 function formatRecordToSoftwareOption(record: Zenodo.Record, source: Source): SoftwareExternalDataOption {
     return {
         externalId: record.id.toString(),
-        label: record.title,
+        name: record.title,
         description: record.metadata.description ?? "",
         isLibreSoftware: record.metadata.access_right === "open", // Not sure
         sourceSlug: source.slug

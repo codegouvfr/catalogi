@@ -34,16 +34,16 @@ export type FormData = {
     };
     step2: {
         externalId: string | undefined;
-        softwareName: string;
-        softwareDescription: string;
-        softwareLicense: string;
-        softwareLogoUrl: string | undefined;
-        softwareKeywords: string[];
+        name: string;
+        description: string;
+        license: string;
+        image: string | undefined;
+        keywords: string[];
     };
     step3: CustomAttributes | undefined;
     step4: {
         similarSoftwares: {
-            label: LocalizedString<Language>;
+            name: LocalizedString<Language>;
             description: LocalizedString<Language>;
             externalId: string;
             sourceSlug: string | undefined;
@@ -76,33 +76,26 @@ export const { reducer, actions } = createUsecaseActions({
             }: {
                 payload: {
                     externalId: string;
-                    softwareName: string;
-                    softwareDescription: string;
-                    softwareLicense: string;
-                    softwareLogoUrl: string | undefined;
-                    softwareKeywords: string[];
+                    name: string;
+                    description: string;
+                    license: string;
+                    image: string | undefined;
+                    keywords: string[];
                 };
             }
         ) => {
-            const {
-                externalId,
-                softwareName,
-                softwareDescription,
-                softwareLicense,
-                softwareLogoUrl,
-                softwareKeywords
-            } = payload;
+            const { externalId, name, description, license, image, keywords } = payload;
 
             return id<SoftwareFormState.Ready>({
                 stateDescription: "ready",
                 formData: {
                     step2: {
                         externalId,
-                        softwareName,
-                        softwareDescription,
-                        softwareLicense,
-                        softwareLogoUrl,
-                        softwareKeywords
+                        name,
+                        description,
+                        license,
+                        image,
+                        keywords
                     }
                 },
                 softwareSillId: undefined,
@@ -202,7 +195,7 @@ export const { reducer, actions } = createUsecaseActions({
                 payload: _payload
             }: {
                 payload: {
-                    softwareName: string;
+                    name: string;
                 };
             }
         ) => {},

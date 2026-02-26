@@ -31,7 +31,7 @@ export const thunks = {
 
             assert(software !== undefined);
 
-            const softwareName = software.softwareName;
+            const softwareName = software.name;
 
             const { users } = await sillApi.getUsers();
 
@@ -93,8 +93,8 @@ export const thunks = {
             dispatch(
                 actions.initializationCompleted({
                     softwareId,
-                    softwareName,
-                    logoUrl: software.logoUrl,
+                    name: softwareName,
+                    image: software.image,
                     users: softwareUsers,
                     referents: softwareReferents
                 })

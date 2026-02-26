@@ -132,7 +132,7 @@ describe("createPgSoftwareRepository", () => {
 
             const list = await repository.getFullList();
             expect(list).toHaveLength(1);
-            expect(list[0].softwareName).toBe("Active");
+            expect(list[0].name).toBe("Active");
         });
     });
 

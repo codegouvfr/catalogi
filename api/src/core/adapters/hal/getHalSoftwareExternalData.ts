@@ -4,7 +4,8 @@
 
 import memoize from "memoizee";
 import { JSDOM } from "jsdom";
-import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { halAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
@@ -76,14 +77,8 @@ const resolveStructId = (parsedXMLLabel: JSDOM, structAcronym: string) => {
     return Number(org[0].getAttribute("xml:id")?.split("-")[1]);
 };
 
-export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         const halRawSoftware = await halAPIGateway.software.getById(externalId).catch(error => {
             if (!(error instanceof HAL.API.FetchError)) throw error;
             if (error.status === 404 || error.status === undefined) return;
@@ -224,42 +219,59 @@ export const getHalSoftwareExternalData: GetSoftwareExternalData = memoize(
             ...(repoIdentifier ? [repoIdentifier] : [])
         ];
 
+        const releaseDateIso = halRawSoftware?.releasedDate_tdate
+            ? new Date(halRawSoftware.releasedDate_tdate).toISOString()
+            : undefined;
+        const nowIso = new Date().toISOString();
+
         return {
+            variant: "external",
+            id: undefined,
             externalId: halRawSoftware.docid,
             sourceSlug: source.slug,
-            developers: authors ?? [],
-            label: {
+            authors: authors ?? [],
+            name: {
                 "en": halRawSoftware?.en_title_s?.[0] ?? halRawSoftware?.title_s?.[0] ?? "-",
-                "fr": halRawSoftware?.fr_title_s?.[0] ?? halRawSoftware.en_title_s?.[0] // TODO pourquoi en anglais et pas défault ?
+                "fr": halRawSoftware?.fr_title_s?.[0] ?? halRawSoftware.en_title_s?.[0]
             },
             description: {
                 "en": halRawSoftware?.en_abstract_s?.[0] ?? halRawSoftware.abstract_s?.[0] ?? "-",
-                "fr": halRawSoftware?.fr_abstract_s?.[0] ?? halRawSoftware.en_abstract_s?.[0] // TODO pourquoi en anglais et pas défault ?
+                "fr": halRawSoftware?.fr_abstract_s?.[0] ?? halRawSoftware.en_abstract_s?.[0]
             },
             isLibreSoftware: halRawSoftware.openAccess_bool,
-            // Optionnal
-            logoUrl: undefined,
-            websiteUrl: halRawSoftware.uri_s,
-            sourceUrl: halRawSoftware?.softCodeRepository_s?.[0],
-            documentationUrl: undefined, // TODO no info about documentation in HAL check on SWH or Repo ?
+            image: undefined,
+            url: halRawSoftware.uri_s,
+            codeRepositoryUrl: halRawSoftware?.softCodeRepository_s?.[0],
+            softwareHelp: undefined,
             license: codemetaSoftware?.license?.[0] ?? "undefined",
-            softwareVersion: halRawSoftware?.softVersion_s?.[0],
-            keywords: halRawSoftware?.keyword_s,
-            programmingLanguages: halRawSoftware?.softProgrammingLanguage_s,
-            applicationCategories: sciencesCategories,
-            publicationTime: halRawSoftware?.releasedDate_tdate
-                ? new Date(halRawSoftware?.releasedDate_tdate)
+            latestVersion: halRawSoftware?.softVersion_s?.[0]
+                ? { version: halRawSoftware.softVersion_s[0], releaseDate: releaseDateIso }
                 : undefined,
-            referencePublications:
-                halRawSoftware.relatedPublication_s &&
-                (
-                    await Promise.all(
-                        halRawSoftware.relatedPublication_s.map(id => buildReferencePublication(parseScolarId(id), id))
-                    )
-                ).filter(val => val !== undefined),
+            dateCreated: releaseDateIso,
+            addedTime: nowIso,
+            updateTime: nowIso,
+            keywords: halRawSoftware?.keyword_s ?? [],
+            programmingLanguages: halRawSoftware?.softProgrammingLanguage_s ?? [],
+            applicationCategories: sciencesCategories,
+            operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+            runtimePlatforms: [],
+            referencePublications: halRawSoftware.relatedPublication_s
+                ? (
+                      await Promise.all(
+                          halRawSoftware.relatedPublication_s.map(id =>
+                              buildReferencePublication(parseScolarId(id), id)
+                          )
+                      )
+                  ).filter(val => val !== undefined)
+                : [],
             identifiers: [...(await populateFromDOIIdentifiers(identifiers))],
             providers: [],
-            repoMetadata: {}
+            sameAs: [],
+            dereferencing: undefined,
+            customAttributes: undefined,
+            userAndReferentCountByOrganization: undefined,
+            hasExpertReferent: undefined,
+            instances: undefined
         };
     },
     {

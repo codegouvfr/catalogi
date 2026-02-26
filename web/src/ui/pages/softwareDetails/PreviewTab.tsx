@@ -24,13 +24,13 @@ import { Chip } from "@mui/material";
 // so we are sure that we don't forget to provide some props
 export type Props = {
     className?: string;
-    softwareName: string;
+    name: string;
     softwareCurrentVersion?: string;
     softwareDateCurrentVersion?: number;
-    softwareDescription: string;
+    description: string;
     registerDate?: number;
     license?: string;
-    serviceProviders: ApiTypes.Organization[];
+    providers: ApiTypes.Organization[];
     supportedPlatforms: SupportedPlatforms;
     customAttributes: CustomAttributes | undefined;
     programmingLanguages: string[];
@@ -39,27 +39,27 @@ export type Props = {
     operatingSystems: Partial<Record<string, boolean>>;
     runtimePlatforms: string[];
     identifiers: ApiTypes.Identifier[];
-    officialWebsiteUrl?: string;
+    url?: string;
     repoMetadata?: ApiTypes.RepoMetadata;
 };
 export const PreviewTab = (props: Props) => {
     const {
-        softwareName,
+        name: softwareName,
         softwareCurrentVersion,
         softwareDateCurrentVersion,
-        softwareDescription,
+        description: softwareDescription,
         registerDate,
         license,
         supportedPlatforms,
         customAttributes,
-        serviceProviders,
+        providers,
         programmingLanguages,
         keywords,
         applicationCategories,
         operatingSystems,
         runtimePlatforms,
         identifiers,
-        officialWebsiteUrl,
+        url: officialWebsiteUrl,
         repoMetadata
     } = props;
     const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main")!;
@@ -399,8 +399,8 @@ export const PreviewTab = (props: Props) => {
                     )}
             </section>
             <CnllServiceProviderModal
-                softwareName={softwareName}
-                annuaireCnllServiceProviders={serviceProviders.filter(provider => {
+                name={softwareName}
+                annuaireCnllServiceProviders={providers.filter(provider => {
                     return provider.identifiers?.some(identifier => {
                         return identifier.subjectOf?.additionalType === "CNLL";
                     });

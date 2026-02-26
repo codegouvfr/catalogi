@@ -4,21 +4,16 @@
 
 import memoize from "memoizee";
 
-import { GetSoftwareExternalData, SoftwareExternalData } from "../../ports/GetSoftwareExternalData";
+import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
+import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { SchemaOrganization } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { getCnllPrestatairesSill } from "../getCnllPrestatairesSill";
 import { CnllPrestatairesSill } from "../../ports/GetCnllPrestatairesSill";
 
-export const getCNLLSoftwareExternalData: GetSoftwareExternalData = memoize(
-    async ({
-        externalId,
-        source
-    }: {
-        externalId: string;
-        source: Source;
-    }): Promise<SoftwareExternalData | undefined> => {
+export const getCNLLSoftwareExternalData: GetSoftwareExternal = memoize(
+    async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         if (source.kind !== "CNLL") throw new Error("This source if not compatible with CNLL Adapter");
 
         const cnllProviders = await getCnllPrestatairesSill();
@@ -55,32 +50,44 @@ const cnllProviderToCMProdivers = (provider: CnllPrestatairesSill.Prestataire): 
     };
 };
 
-const formatCNLLProvidersToExternalData = (
-    cnllProdivers: CnllPrestatairesSill,
-    source: Source
-): SoftwareExternalData => ({
-    externalId: cnllProdivers.sill_id.toString(),
-    sourceSlug: source.slug,
-    developers: [],
-    label: { "fr": cnllProdivers.nom },
-    description: { "fr": "" },
-    isLibreSoftware: true,
-    logoUrl: undefined,
-    websiteUrl: undefined,
-    sourceUrl: undefined,
-    documentationUrl: undefined,
-    license: undefined,
-    softwareVersion: undefined,
-    keywords: [],
-    programmingLanguages: [],
-    applicationCategories: [],
-    publicationTime: undefined,
-    referencePublications: [],
-    identifiers: [
-        identifersUtils.makeCNLLIdentifier({
-            cNNLId: cnllProdivers.sill_id.toString()
-        })
-    ],
-    repoMetadata: undefined,
-    providers: cnllProdivers.prestataires.map(cnllProviderToCMProdivers)
-});
+const formatCNLLProvidersToExternalData = (cnllProdivers: CnllPrestatairesSill, source: Source): SoftwareExternal => {
+    const nowIso = new Date().toISOString();
+
+    return {
+        variant: "external",
+        id: undefined,
+        externalId: cnllProdivers.sill_id.toString(),
+        sourceSlug: source.slug,
+        authors: [],
+        name: { "fr": cnllProdivers.nom },
+        description: { "fr": "" },
+        isLibreSoftware: true,
+        image: undefined,
+        url: undefined,
+        codeRepositoryUrl: undefined,
+        softwareHelp: undefined,
+        license: undefined,
+        latestVersion: undefined,
+        dateCreated: undefined,
+        addedTime: nowIso,
+        updateTime: nowIso,
+        keywords: [],
+        programmingLanguages: [],
+        applicationCategories: [],
+        operatingSystems: { windows: false, linux: false, mac: false, android: false, ios: false },
+        runtimePlatforms: [],
+        referencePublications: [],
+        identifiers: [
+            identifersUtils.makeCNLLIdentifier({
+                cNNLId: cnllProdivers.sill_id.toString()
+            })
+        ],
+        providers: cnllProdivers.prestataires.map(cnllProviderToCMProdivers),
+        sameAs: [],
+        dereferencing: undefined,
+        customAttributes: undefined,
+        userAndReferentCountByOrganization: undefined,
+        hasExpertReferent: undefined,
+        instances: undefined
+    };
+};

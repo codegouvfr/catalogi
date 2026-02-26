@@ -19,19 +19,19 @@ const readyState = (rootState: RootState) => {
 
 const isReady = createSelector(readyState, readyState => readyState !== undefined);
 const softwareId = createSelector(readyState, readyState => readyState?.softwareId);
-const softwareName = createSelector(readyState, readyState => readyState?.softwareName);
-const logoUrl = createSelector(readyState, readyState => readyState?.logoUrl);
+const name_ = createSelector(readyState, readyState => readyState?.name);
+const image = createSelector(readyState, readyState => readyState?.image);
 const users = createSelector(readyState, readyState => readyState?.users);
 const referents = createSelector(readyState, readyState => readyState?.referents);
 
 const main = createSelector(
     isReady,
     softwareId,
-    softwareName,
-    logoUrl,
+    name_,
+    image,
     users,
     referents,
-    (isReady, softwareId, softwareName, logoUrl, users, referents) => {
+    (isReady, softwareId, name, image, users, referents) => {
         if (!isReady) {
             return {
                 isReady: false as const
@@ -39,15 +39,15 @@ const main = createSelector(
         }
 
         assert(softwareId !== undefined);
-        assert(softwareName !== undefined);
+        assert(name !== undefined);
         assert(users !== undefined);
         assert(referents !== undefined);
 
         return {
             isReady: true as const,
             softwareId,
-            softwareName,
-            logoUrl,
+            name,
+            image,
             users,
             referents
         };

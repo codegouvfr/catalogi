@@ -9,10 +9,10 @@ import type { Language } from "../ports/GetSoftwareExternalData";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 
 type AutoFillData = {
-    softwareName: string | undefined;
-    softwareDescription: string | undefined;
-    softwareLicense: string | undefined;
-    softwareLogoUrl: string | undefined;
+    name: string | undefined;
+    description: string | undefined;
+    license: string | undefined;
+    image: string | undefined;
     keywords: string[];
 };
 
@@ -70,13 +70,13 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
         });
 
         const autoFillData: AutoFillData = {
-            "softwareName": resolveLocalizedString(externalSoftwareName),
-            "softwareDescription":
+            "name": resolveLocalizedString(externalSoftwareName),
+            "description":
                 softwareExternal.description === undefined
                     ? undefined
                     : resolveLocalizedString(softwareExternal.description),
-            "softwareLicense": softwareExternal.license ?? comptoirDuLibreSoftware?.licence,
-            "softwareLogoUrl": softwareExternal.image ?? comptoirDuLibreLogoUrl,
+            "license": softwareExternal.license ?? comptoirDuLibreSoftware?.licence,
+            "image": softwareExternal.image ?? comptoirDuLibreLogoUrl,
             "keywords": comptoirDuLibreKeywords ?? []
         };
 

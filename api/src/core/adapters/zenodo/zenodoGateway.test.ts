@@ -34,7 +34,7 @@ const admtoolsSoftware = {
             ]
         }
     ],
-    label: {
+    name: {
         en: "admtools"
     },
     description: {
@@ -121,7 +121,7 @@ const resultRequest = [
             "R package to estimate age-depth models and transform data between the time domain and the stratigraphic domain.",
         "externalId": "15479049",
         "isLibreSoftware": true,
-        "label": "admtools",
+        "name": "admtools",
         "sourceSlug": "zenodo"
     }
 ];
@@ -142,9 +142,9 @@ describe.skip("zenodoSourceGateway", () => {
         expect(zenodoSourceGateway.sourceProfile).toBe("Primary");
     });
 
-    describe("softwareExternalData", () => {
+    describe("softwareExternal", () => {
         it("should call getZenodoExternalData when getById is called", async () => {
-            const result = await zenodoSourceGateway.softwareExternalData.getById({
+            const result = await zenodoSourceGateway.softwareExternal.getById({
                 externalId: "15479049",
                 source: zenodoSource
             });

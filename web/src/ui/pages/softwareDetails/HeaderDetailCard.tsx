@@ -19,8 +19,8 @@ import { useCoreState } from "../../../core";
 
 export type Props = {
     className?: string;
-    softwareLogoUrl?: string;
-    softwareName: string;
+    image?: string;
+    name: string;
     softwareDereferencing:
         | {
               reason?: string;
@@ -44,8 +44,8 @@ export type Props = {
 export const HeaderDetailCard = memo((props: Props) => {
     const {
         className,
-        softwareLogoUrl,
-        softwareName,
+        image,
+        name: softwareName,
         authors,
         officialWebsite,
         documentationWebsite,
@@ -87,11 +87,11 @@ export const HeaderDetailCard = memo((props: Props) => {
                     <i className={fr.cx("fr-icon-arrow-left-s-line")} />
                 </a>
                 <div className={classes.softwareInformation}>
-                    {softwareLogoUrl && (
+                    {image && (
                         <div className={classes.logoWrapper}>
                             <img
                                 className={classes.logo}
-                                src={softwareLogoUrl}
+                                src={image}
                                 alt={t("headerDetailCard.software logo")}
                             />
                         </div>

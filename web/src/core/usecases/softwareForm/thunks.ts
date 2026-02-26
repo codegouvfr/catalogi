@@ -5,7 +5,6 @@
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
 import type { ApiTypes } from "api";
-import { exclude } from "tsafe/exclude";
 import type { Language } from "api";
 import { name, actions, type FormData } from "./state";
 import { selectors as sourceSelectors } from "core/usecases/source.slice";
@@ -53,22 +52,17 @@ export const thunks = {
 
                         assert(externalId !== undefined);
 
-                        const {
-                            keywords,
-                            softwareDescription,
-                            softwareLicense,
-                            softwareLogoUrl,
-                            softwareName
-                        } = await dispatch(thunks.getAutofillData({ externalId }));
+                        const { keywords, description, license, image, name } =
+                            await dispatch(thunks.getAutofillData({ externalId }));
 
                         dispatch(
                             actions.initializedForCreateWithPreSelectedSoftware({
                                 externalId,
-                                softwareName: softwareName ?? "",
-                                softwareDescription: softwareDescription ?? "",
-                                softwareLicense: softwareLicense ?? "",
-                                softwareLogoUrl,
-                                softwareKeywords: keywords
+                                name: name ?? "",
+                                description: description ?? "",
+                                license: license ?? "",
+                                image,
+                                keywords
                             })
                         );
                     }
@@ -85,7 +79,7 @@ export const thunks = {
 
                         dispatch(
                             actions.initializedForUpdate({
-                                softwareSillId: software.softwareId,
+                                softwareSillId: software.id,
                                 formData: {
                                     step1: {
                                         operatingSystems: software.operatingSystems,
@@ -93,43 +87,24 @@ export const thunks = {
                                     },
                                     step2: {
                                         externalId: software.externalId,
-                                        softwareDescription: software.softwareDescription,
-                                        softwareLicense: software.license,
-                                        softwareName: software.softwareName,
-                                        softwareLogoUrl: software.logoUrl,
-                                        softwareKeywords: software.keywords
+                                        description: software.description,
+                                        license: software.license,
+                                        name: software.name,
+                                        image: software.image,
+                                        keywords: software.keywords
                                     },
                                     step3: software.customAttributes,
                                     step4: {
-                                        similarSoftwares: software.similarSoftwares
-                                            .map(similarSoftware => {
-                                                if (!similarSoftware.registered) {
-                                                    return similarSoftware;
-                                                } else {
-                                                    const foundSoftware =
-                                                        softwareList.find(
-                                                            s =>
-                                                                s.softwareName ===
-                                                                similarSoftware.softwareName
-                                                        );
-
-                                                    if (foundSoftware === undefined) {
-                                                        return undefined;
-                                                    }
-
-                                                    return {
-                                                        label: foundSoftware.softwareName,
-                                                        description:
-                                                            foundSoftware.softwareDescription,
-                                                        isLibreSoftware: true,
-                                                        externalId:
-                                                            similarSoftware.externalId,
-                                                        sourceSlug:
-                                                            similarSoftware.sourceSlug
-                                                    };
-                                                }
+                                        similarSoftwares: software.similarSoftwares.map(
+                                            similarSoftware => ({
+                                                name: similarSoftware.name,
+                                                description: similarSoftware.description,
+                                                isLibreSoftware:
+                                                    similarSoftware.isLibreSoftware,
+                                                externalId: similarSoftware.externalId,
+                                                sourceSlug: similarSoftware.sourceSlug
                                             })
-                                            .filter(exclude(undefined))
+                                        )
                                     }
                                 }
                             })
@@ -206,28 +181,21 @@ export const thunks = {
                 runtimePlatforms: step1.runtimePlatforms,
                 externalIdForSource: step2.externalId,
                 sourceSlug: mainSource.slug,
-                softwareName: step2.softwareName,
-                softwareDescription: step2.softwareDescription,
-                softwareLicense: step2.softwareLicense,
-
+                name: step2.name,
+                description: step2.description,
+                license: step2.license,
                 customAttributes: step3,
                 similarSoftwareExternalDataItems: formDataStep4.similarSoftwares.map(
-                    ({
-                        externalId,
-                        sourceSlug,
-                        label,
-                        description,
-                        isLibreSoftware
-                    }) => ({
+                    ({ externalId, sourceSlug, name, description, isLibreSoftware }) => ({
                         externalId,
                         sourceSlug: sourceSlug ?? mainSource.slug,
-                        label,
+                        name,
                         description,
                         isLibreSoftware
                     })
                 ),
-                softwareLogoUrl: step2.softwareLogoUrl,
-                softwareKeywords: step2.softwareKeywords
+                image: step2.image,
+                keywords: step2.keywords
             };
 
             dispatch(actions.submissionStarted());
@@ -241,7 +209,7 @@ export const thunks = {
                       formData
                   }));
 
-            dispatch(actions.formSubmitted({ softwareName: step2.softwareName }));
+            dispatch(actions.formSubmitted({ name: step2.name }));
         },
     returnToPreviousStep:
         () =>

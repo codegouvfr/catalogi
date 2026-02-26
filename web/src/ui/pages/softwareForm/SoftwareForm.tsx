@@ -76,9 +76,7 @@ export default function SoftwareForm(props: Props) {
                 action => action.action === "redirect",
                 ctx,
                 async ({ softwareName }) => {
-                    const software = allSoftwares.find(
-                        s => s.softwareName === softwareName
-                    );
+                    const software = allSoftwares.find(s => s.name === softwareName);
                     if (software) {
                         routes.softwareDetails({ id: software.id }).push();
                     } else {
@@ -135,14 +133,14 @@ export default function SoftwareForm(props: Props) {
                         {(() => {
                             switch (route.name) {
                                 case "softwareCreationForm":
-                                    return formData.step2?.softwareName
+                                    return formData.step2?.name
                                         ? t("softwareForm.add software", {
-                                              name: formData.step2.softwareName
+                                              name: formData.step2.name
                                           })
                                         : t("softwareForm.add unamed software");
                                 case "softwareUpdateForm":
                                     return t("softwareForm.update software", {
-                                        name: formData.step2?.softwareName ?? ""
+                                        name: formData.step2?.name ?? ""
                                     });
                             }
                         })()}
@@ -152,7 +150,7 @@ export default function SoftwareForm(props: Props) {
                     currentStep={step}
                     stepCount={stepCount}
                     title={(() => {
-                        const softwareName = formData.step2?.softwareName;
+                        const softwareName = formData.step2?.name;
                         switch (step) {
                             case 1:
                                 return (() => {
@@ -282,11 +280,11 @@ export default function SoftwareForm(props: Props) {
                                 switch (route.name) {
                                     case "softwareCreationForm":
                                         return t("softwareForm.add software", {
-                                            name: formData.step2?.softwareName
+                                            name: formData.step2?.name
                                         });
                                     case "softwareUpdateForm":
                                         return t("softwareForm.update software", {
-                                            name: formData.step2?.softwareName ?? ""
+                                            name: formData.step2?.name ?? ""
                                         });
                                 }
                             })()}

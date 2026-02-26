@@ -19,9 +19,9 @@ export type Step1Props = {
     };
     onSubmit: (formData: { mainSoftwareSillId: number }) => void;
     allSillSoftwares: {
-        softwareName: string;
+        name: string;
         softwareSillId: number;
-        softwareDescription: string;
+        description: string;
     }[];
     evtActionSubmit: NonPostableEvt<void>;
 };
@@ -38,9 +38,9 @@ export function InstanceFormStep1(props: Step1Props) {
         control
     } = useForm<{
         mainSoftware: {
-            softwareName: string;
+            name: string;
             softwareSillId: number;
-            softwareDescription: string;
+            description: string;
         };
         otherWikidataSoftwares: WikidataEntry[];
     }>({
@@ -53,8 +53,8 @@ export function InstanceFormStep1(props: Step1Props) {
                 }
 
                 const mainSoftware = allSillSoftwares.find(
-                    ({ softwareSillId }) =>
-                        softwareSillId === initialFormData.mainSoftwareSillId
+                    software =>
+                        software.softwareSillId === initialFormData.mainSoftwareSillId
                 );
 
                 assert(mainSoftware !== undefined);
@@ -96,14 +96,14 @@ export function InstanceFormStep1(props: Step1Props) {
                         options={allSillSoftwares}
                         value={field.value}
                         onValueChange={value => field.onChange(value)}
-                        getOptionLabel={entry => entry.softwareName}
+                        getOptionLabel={entry => entry.name}
                         renderOption={(liProps, entry) => (
                             <li {...liProps}>
                                 <div>
-                                    <span>{entry.softwareName}</span>
+                                    <span>{entry.name}</span>
                                     <br />
                                     <span className={fr.cx("fr-text--xs")}>
-                                        {entry.softwareDescription}
+                                        {entry.description}
                                     </span>
                                 </div>
                             </li>

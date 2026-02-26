@@ -16,7 +16,7 @@ export const rawCDLSoftwareToExternalOption =
     (cdlSoftware: ComptoirDuLibre.Software): SoftwareExternalDataOption => {
         return {
             externalId: cdlSoftware.id.toString(),
-            label: cdlSoftware.name,
+            name: cdlSoftware.name,
             description: "",
             isLibreSoftware: true,
             sourceSlug: source.slug

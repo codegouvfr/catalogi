@@ -104,7 +104,7 @@ const softwares = createSelector(
     ) => {
         let tmpSoftwares = internalSoftwares;
 
-        let positionsBySoftwareName: Map<string, Set<number>> | undefined = undefined;
+        let positionsByName: Map<string, Set<number>> | undefined = undefined;
 
         if (searchResults !== undefined) {
             const filterResults = filterAndSortBySearch({
@@ -113,10 +113,7 @@ const softwares = createSelector(
             });
 
             tmpSoftwares = filterResults.map(({ software, positions }) => {
-                (positionsBySoftwareName ??= new Map()).set(
-                    software.softwareName,
-                    positions
-                );
+                (positionsByName ??= new Map()).set(software.name, positions);
                 return software;
             });
         }
@@ -224,13 +221,10 @@ const softwares = createSelector(
         return tmpSoftwares.map(software => ({
             ...software,
             searchHighlight: (() => {
-                if (
-                    positionsBySoftwareName === undefined ||
-                    software.search === undefined
-                ) {
+                if (positionsByName === undefined || software.search === undefined) {
                     return undefined;
                 }
-                const positions = positionsBySoftwareName.get(software.softwareName);
+                const positions = positionsByName.get(software.name);
 
                 assert(positions !== undefined);
 
@@ -773,27 +767,27 @@ const main = createSelector(
 export const selectors = { main };
 
 const { filterAndSortBySearch } = (() => {
-    const getIndexBySoftwareName = memoize(
+    const getIndexByName = memoize(
         (softwares: Software[]) =>
-            Object.fromEntries(softwares.map(({ softwareName }, i) => [softwareName, i])),
+            Object.fromEntries(softwares.map(({ name }, i) => [name, i])),
         { max: 1 }
     );
 
     function filterAndSortBySearch(params: {
         searchResults: {
-            softwareName: string;
+            name: string;
             positions: number[];
         }[];
         softwares: Software[];
     }) {
         const { searchResults, softwares } = params;
 
-        const indexBySoftwareName = getIndexBySoftwareName(softwares);
+        const indexByName = getIndexByName(softwares);
 
         return searchResults
-            .map(({ softwareName }) => softwareName)
-            .map((softwareName, i) => ({
-                software: softwares[indexBySoftwareName[softwareName]],
+            .map(({ name }) => name)
+            .map((name, i) => ({
+                software: softwares[indexByName[name]],
                 positions: new Set(searchResults[i].positions)
             }));
     }
@@ -875,5 +869,5 @@ export function softwareInListToExternalCatalogSoftware(params: {
 }): Software | undefined {
     const { softwareList, softwareName: targetName } = params;
 
-    return softwareList.find(s => s.softwareName === targetName);
+    return softwareList.find(s => s.name === targetName);
 }

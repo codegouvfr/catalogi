@@ -122,7 +122,7 @@ export const protectedThunks = {
                                                   declaration.declarationType ===
                                                       "referent" &&
                                                   declaration.softwareName ===
-                                                      software.softwareName
+                                                      software.name
                                           ) !== undefined,
                                       isUser:
                                           agent.declarations.find(
@@ -130,7 +130,7 @@ export const protectedThunks = {
                                                   declaration.declarationType ===
                                                       "user" &&
                                                   declaration.softwareName ===
-                                                      software.softwareName
+                                                      software.name
                                           ) !== undefined
                                   };
                               })();
@@ -186,8 +186,8 @@ function softwareInListToInternalSoftware(params: {
     const { software, userDeclaration } = params;
 
     const {
-        softwareName,
-        softwareDescription,
+        name: softwareName,
+        description: softwareDescription,
         applicationCategories,
         similarSoftwares,
         keywords,
@@ -215,8 +215,8 @@ function softwareInListToInternalSoftware(params: {
                         .map(
                             similarSoftware =>
                                 similarSoftware.softwareName ??
-                                (similarSoftware.label
-                                    ? resolveLocalizedString(similarSoftware.label)
+                                (similarSoftware.name
+                                    ? resolveLocalizedString(similarSoftware.name)
                                     : undefined)
                         )
                         .map(name =>
@@ -240,7 +240,7 @@ const { filterBySearchMemoized } = (() => {
         (softwares: State.Software[]) => {
             const index = new FlexSearch.Document({
                 document: {
-                    id: "softwareName",
+                    id: "name",
                     field: ["search"]
                 },
                 cache: 100,
@@ -255,7 +255,7 @@ const { filterBySearchMemoized } = (() => {
 
             softwares.forEach(
                 ({
-                    logoUrl,
+                    image,
                     latestVersion,
                     userDeclaration,
                     customAttributes,
@@ -294,7 +294,7 @@ const { filterBySearchMemoized } = (() => {
             search: string
         ): Promise<
             {
-                softwareName: string;
+                name: string;
                 positions: number[];
             }[]
         > => {
@@ -315,11 +315,11 @@ const { filterBySearchMemoized } = (() => {
                 softwareName => (
                     assert(typeof softwareName === "string"),
                     {
-                        softwareName,
+                        name: softwareName,
                         positions: highlightMatches({
                             text: (() => {
                                 const software = softwares.find(
-                                    software => software.softwareName === softwareName
+                                    software => software.name === softwareName
                                 );
 
                                 assert(software !== undefined);

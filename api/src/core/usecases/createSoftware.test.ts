@@ -23,7 +23,7 @@ import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOpti
 const viteOption: SoftwareExternalDataOption = {
     externalId: "Q111590996" /* viteJS */,
     sourceSlug: testSource.slug,
-    label: "Vite JS",
+    name: "Vite JS",
     description: "Vite JS is a build tool for modern web development.",
     isLibreSoftware: true
 };
@@ -33,12 +33,12 @@ const craSoftwareFormData = {
     runtimePlatforms: [],
     externalIdForSource: "Q118629387",
     sourceSlug: testSource.slug,
-    softwareName: "Create react app",
-    softwareDescription: "To create React apps.",
-    softwareLicense: "MIT",
+    name: "Create react app",
+    description: "To create React apps.",
+    license: "MIT",
     similarSoftwareExternalDataItems: [viteOption],
-    softwareLogoUrl: "https://example.com/logo.png",
-    softwareKeywords: ["Productivity", "Task", "Management"],
+    image: "https://example.com/logo.png",
+    keywords: ["Productivity", "Task", "Management"],
     customAttributes: {
         doRespectRgaa: true,
         isPresentInSupportContract: true,
@@ -82,11 +82,16 @@ describe("Create software - Trying all the cases", () => {
 
         const softwareListFromApiItem = await dbApi.software.getDetails(softwareListFromApi[0].id);
         expectToMatchObject(softwareListFromApiItem, {
-            softwareName: "Create react app",
+            name: "Create react app",
             similarSoftwares: [
                 {
-                    ...viteOption,
-                    registered: false
+                    externalId: viteOption.externalId,
+                    sourceSlug: viteOption.sourceSlug,
+                    name: viteOption.name,
+                    description: viteOption.description,
+                    isLibreSoftware: viteOption.isLibreSoftware,
+                    isInCatalogi: false,
+                    softwareId: undefined
                 }
             ]
         });
@@ -220,7 +225,7 @@ describe("Create software - Trying all the cases", () => {
 
         const alteredNameForm = {
             ...craSoftwareFormData,
-            softwareName: "Create react app 2"
+            name: "Create react app 2"
         };
 
         craSoftwareId = await createSoftware({
@@ -284,14 +289,14 @@ describe("Create software - Trying all the cases", () => {
                     {
                         externalId: "Q111590996",
                         sourceSlug: testSource.slug,
-                        label: "Vite JS",
+                        name: "Vite JS",
                         description: "Vite JS is a build tool for modern web development.",
                         isLibreSoftware: true
                     },
                     {
                         externalId: "Q111590997",
                         sourceSlug: testSource.slug,
-                        label: "Vite JS 2",
+                        name: "Vite JS 2",
                         description: "Vite JS 2 is a build tool for modern web development.",
                         isLibreSoftware: true
                     }
@@ -318,14 +323,14 @@ describe("Create software - Trying all the cases", () => {
                     {
                         externalId: "Q111590996",
                         sourceSlug: testSource.slug,
-                        label: "Vite JS",
+                        name: "Vite JS",
                         description: "Vite JS is a build tool for modern web development.",
                         isLibreSoftware: true
                     },
                     {
                         externalId: "Q111590998",
                         sourceSlug: testSource.slug,
-                        label: "Vite JS 3",
+                        name: "Vite JS 3",
                         description: "Vite JS 3 is a build tool for modern web development.",
                         isLibreSoftware: true
                     }

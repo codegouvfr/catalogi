@@ -6,15 +6,21 @@ import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
 import { type State as SoftwareCatalogState } from "core/usecases/softwareCatalog";
-import type { ApiTypes } from "api";
+import type { ApiTypes, LocalizedString } from "api";
 
 export const name = "softwareDetails";
 
 export type State = State.NotReady | State.Ready | State.Error;
 
 export namespace State {
-    export type SimilarSoftwareNotRegistered =
-        ApiTypes.Software.LegacySimilarSoftware.SimilarSoftwareNotRegistered;
+    export type SimilarSoftwareNotInCatalogi = {
+        isInCatalogi: false;
+        sourceSlug: string;
+        externalId: string;
+        isLibreSoftware: boolean | undefined;
+        name: LocalizedString;
+        description: LocalizedString;
+    };
 
     export type NotReady = {
         stateDescription: "not ready";
@@ -40,14 +46,14 @@ export namespace State {
     };
 
     export type Software = {
-        softwareId: number;
-        softwareName: string;
-        softwareDescription: string;
-        serviceProviders: ApiTypes.Organization[];
-        logoUrl: string | undefined;
+        id: number;
+        name: string;
+        description: string;
+        providers: ApiTypes.Organization[];
+        image: string | undefined;
         authors: Array<ApiTypes.Person | ApiTypes.Organization>;
-        officialWebsiteUrl: string | undefined;
-        documentationUrl: string | undefined;
+        url: string | undefined;
+        softwareHelp: string | undefined;
         codeRepositoryUrl: string | undefined;
         latestVersion:
             | {
@@ -82,10 +88,10 @@ export namespace State {
             | undefined;
         similarSoftwares: (
             | {
-                  registered: true;
+                  isInCatalogi: true;
                   software: SoftwareCatalogState.Software;
               }
-            | SimilarSoftwareNotRegistered
+            | SimilarSoftwareNotInCatalogi
         )[];
         programmingLanguages: string[];
         keywords: string[];

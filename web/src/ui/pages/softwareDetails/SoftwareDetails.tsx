@@ -43,7 +43,7 @@ export default function SoftwareDetails(props: Props) {
     const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
     const softwareIdByName = useMemo(
-        () => new Map(allSoftwares.map(software => [software.softwareName, software.id])),
+        () => new Map(allSoftwares.map(software => [software.name, software.id])),
         [allSoftwares]
     );
 
@@ -73,7 +73,7 @@ export default function SoftwareDetails(props: Props) {
     }
 
     const getLogoUrl = (): string | undefined => {
-        if (software?.logoUrl) return software.logoUrl;
+        if (software?.image) return software.image;
         if (uiConfig?.softwareDetails.defaultLogo) return softwareLogoPlaceholder;
     };
 
@@ -93,16 +93,16 @@ export default function SoftwareDetails(props: Props) {
                                 label: t("softwareDetails.catalog breadcrumb")
                             }
                         ]}
-                        currentPageLabel={software.softwareName}
+                        currentPageLabel={software.name}
                         className={classes.breadcrumb}
                     />
                     <HeaderDetailCard
-                        softwareLogoUrl={getLogoUrl()}
-                        softwareName={software.softwareName}
+                        image={getLogoUrl()}
+                        name={software.name}
                         softwareDereferencing={software.dereferencing}
                         authors={software.authors}
-                        officialWebsite={software.officialWebsiteUrl}
-                        documentationWebsite={software.documentationUrl}
+                        officialWebsite={software.url}
+                        documentationWebsite={software.softwareHelp}
                         sourceCodeRepository={software.codeRepositoryUrl}
                         onGoBackClick={() => {
                             const previousRouteName = getPreviousRouteName();
@@ -124,9 +124,9 @@ export default function SoftwareDetails(props: Props) {
                                 isDefault: route.params.tab === undefined,
                                 content: (
                                     <PreviewTab
-                                        softwareName={software.softwareName}
-                                        serviceProviders={software.serviceProviders}
-                                        softwareDescription={software.softwareDescription}
+                                        name={software.name}
+                                        providers={software.providers}
+                                        description={software.description}
                                         license={software.license}
                                         supportedPlatforms={software.supportedPlatforms}
                                         customAttributes={software.customAttributes}
@@ -147,7 +147,7 @@ export default function SoftwareDetails(props: Props) {
                                         operatingSystems={software?.operatingSystems}
                                         runtimePlatforms={software?.runtimePlatforms}
                                         identifiers={software.identifiers}
-                                        officialWebsiteUrl={software.officialWebsiteUrl}
+                                        url={software.url}
                                         repoMetadata={software.repoMetadata}
                                     />
                                 )
@@ -165,14 +165,14 @@ export default function SoftwareDetails(props: Props) {
                                                   instanceList={software.instances}
                                                   createInstanceLink={
                                                       routes.instanceCreationForm({
-                                                          softwareId: software.softwareId
+                                                          softwareId: software.id
                                                       }).link
                                                   }
                                               />
                                           )
                                       }
                                   ]),
-                            ...(software.serviceProviders.length === 0
+                            ...(software.providers.length === 0
                                 ? []
                                 : [
                                       {
@@ -180,7 +180,7 @@ export default function SoftwareDetails(props: Props) {
                                               "softwareDetails.tab service providers",
                                               {
                                                   serviceProvidersCount:
-                                                      software.serviceProviders.length
+                                                      software.providers.length
                                               }
                                           ),
                                           content: (
@@ -191,7 +191,7 @@ export default function SoftwareDetails(props: Props) {
                                                       )}
                                                   </p>
                                                   <ul>
-                                                      {software.serviceProviders.map(
+                                                      {software.providers.map(
                                                           serviceProvider => (
                                                               <ServiceProviderRow
                                                                   key={
@@ -226,7 +226,7 @@ export default function SoftwareDetails(props: Props) {
                                                   similarSoftwares={
                                                       software.similarSoftwares
                                                   }
-                                                  getLinks={({ softwareName }) => {
+                                                  getLinks={({ name: softwareName }) => {
                                                       const softwareId =
                                                           softwareIdByName.get(
                                                               softwareName
@@ -289,7 +289,7 @@ export default function SoftwareDetails(props: Props) {
                             seeUserAndReferent={
                                 software.referentCount > 0 || software.userCount > 0
                                     ? routes.softwareUsersAndReferents({
-                                          id: software.softwareId
+                                          id: software.id
                                       }).link
                                     : undefined
                             }
@@ -334,7 +334,7 @@ export default function SoftwareDetails(props: Props) {
                                 priority="secondary"
                                 linkProps={
                                     routes.softwareUpdateForm({
-                                        id: software.softwareId
+                                        id: software.id
                                     }).link
                                 }
                             >
@@ -352,7 +352,7 @@ export default function SoftwareDetails(props: Props) {
                                         <Button
                                             linkProps={
                                                 routes.declarationForm({
-                                                    id: software.softwareId
+                                                    id: software.id
                                                 }).link
                                             }
                                         >
@@ -368,8 +368,8 @@ export default function SoftwareDetails(props: Props) {
                                             onClick={() =>
                                                 openDeclarationRemovalModal({
                                                     declarationType,
-                                                    softwareName: software.softwareName,
-                                                    softwareId: software.softwareId
+                                                    name: software.name,
+                                                    softwareId: software.id
                                                 })
                                             }
                                         >
@@ -383,7 +383,7 @@ export default function SoftwareDetails(props: Props) {
                                             <Button
                                                 linkProps={
                                                     routes.declarationForm({
-                                                        id: software.softwareId,
+                                                        id: software.id,
                                                         declarationType: "referent"
                                                     }).link
                                                 }

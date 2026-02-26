@@ -13,14 +13,14 @@ export const createEvt = (({ evtAction, getState }) =>
             assert(state.stateDescription === "ready");
 
             const software = state.allSillSoftwares.find(
-                s => s.softwareName === action.payload.softwareName
+                s => s.name === action.payload.name
             );
             assert(software !== undefined);
 
             return [
                 {
                     action: "redirect" as const,
-                    softwareName: action.payload.softwareName,
+                    softwareName: action.payload.name,
                     softwareId: software.softwareSillId
                 }
             ];
