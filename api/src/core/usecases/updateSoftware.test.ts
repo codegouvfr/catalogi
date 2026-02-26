@@ -89,7 +89,7 @@ describe("Create software, than updates it adding a similar software", () => {
             "isStillInObservation": false,
             "keywords": ["Productivity", "Task", "Management"],
             "license": "MIT",
-            "logoUrl": "https://example.com/logo.png",
+            "image": "https://example.com/logo.png",
             "name": "Create react app",
             "addedTime": expect.any(String),
             "operatingSystems": {},

@@ -15,7 +15,6 @@ import type {
 import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
-import type { SoftwareExternalData } from "./GetSoftwareExternalData";
 import type { SoftwareExternal } from "../types/SoftwareTypes";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
 import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
@@ -28,7 +27,7 @@ export type SoftwareExtrinsicRow = Pick<
     | "name"
     | "description"
     | "license"
-    | "logoUrl"
+    | "image"
     | "dereferencing"
     | "isStillInObservation"
     | "customAttributes"
@@ -97,10 +96,10 @@ export interface SoftwareExternalDataRepository {
         externalId: string;
         softwareId?: number;
         lastDataFetchAt?: Date;
-        softwareExternalData: SoftwareExternalData | SoftwareExternal;
+        softwareExternalData: SoftwareExternal | DatabaseDataType.SoftwareExternalDataRow;
     }) => Promise<void>;
     save: (params: {
-        softwareExternalData: SoftwareExternalData | SoftwareExternal;
+        softwareExternalData: SoftwareExternal | DatabaseDataType.SoftwareExternalDataRow;
         softwareId: number | undefined;
     }) => Promise<void>;
     get: (params: {

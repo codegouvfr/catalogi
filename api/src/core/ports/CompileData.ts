@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import type { Db } from "./DbApi";
-import { SimilarSoftwareExternalData, SoftwareExternalData } from "./GetSoftwareExternalData";
+import { SimilarSoftwareExternalData } from "./GetSoftwareExternalData";
 import { SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
+import type { DatabaseDataType } from "./DbApiV2";
 
 export type CompileData = (params: {
     db: Db;
@@ -39,14 +40,14 @@ export namespace CompiledData {
             | "operatingSystems"
             | "runtimePlatforms"
             | "categories"
-            | "logoUrl"
+            | "image"
             | "keywords"
             | "externalId"
             | "sourceSlug"
             | "customAttributes"
         > & {
             serviceProviders: SchemaOrganization[];
-            softwareExternalData: SoftwareExternalData | undefined;
+            softwareExternalData: DatabaseDataType.SoftwareExternalDataRow | undefined;
             similarExternalSoftwares: SimilarSoftwareExternalData[];
             latestVersion:
                 | {
@@ -94,7 +95,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             isStillInObservation,
             keywords,
             license,
-            logoUrl,
+            image,
             name,
             referencedSinceTime,
             operatingSystems,
@@ -116,7 +117,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             isStillInObservation,
             keywords,
             license,
-            logoUrl,
+            image,
             name,
             referencedSinceTime,
             operatingSystems,

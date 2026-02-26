@@ -107,7 +107,7 @@ describe("Create software - Trying all the cases", () => {
             "isStillInObservation": false,
             "keywords": ["Productivity", "Task", "Management"],
             "license": "MIT",
-            "logoUrl": "https://example.com/logo.png",
+            "image": "https://example.com/logo.png",
             "name": "Create react app",
             "addedTime": expect.any(String),
             "operatingSystems": {},

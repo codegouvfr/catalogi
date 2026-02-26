@@ -262,3 +262,29 @@ Track all implementation actions, findings, decisions, and validations for issue
   - `SoftwareInList.similarSoftwares` renamed `name`→`softwareName` (catalog name) and `label`→`name` (external data name) to avoid field name conflict
   - SmartLogo's `logoUrl` prop kept (UI concern, not a domain type field)
   - Function parameters like `initialize({ softwareId })` kept (not state fields)
+
+### 2026-02-26 - Phase 7: eliminate legacy SoftwareExternalData + softwares.logoUrl rename
+
+- Step: remove remaining legacy types and mappers, rename softwares.logoUrl → image.
+- Status: **COMPLETE** — all typecheck ✅, all tests ✅
+
+**Changes:**
+
+1. **Committed Phase 6** (commit `c53a4cc3`)
+2. **Deleted `softwareExternalMappers.ts` + test** — `toLegacySoftwareExternalData` and `castToSoftwareExternalData` no longer needed
+3. **Removed `castToSoftwareExternalData` callers** — `createGetCompiledData.ts`, `refreshExternalData.ts`, `createSoftware.ts` now pass DB rows directly
+4. **Updated `CompileData.ts`** — `softwareExternalData` field type changed from `SoftwareExternalData` to `DatabaseDataType.SoftwareExternalDataRow`
+5. **Simplified `createPgSoftwareExternalDataRepository.ts`** — removed `isCanonical()` discriminator, removed legacy `SoftwareExternalData` branch from `toDbValues`, accepts `SoftwareExternal | DatabaseDataType.SoftwareExternalDataRow`
+6. **Updated `DbApiV2.ts`** — `update`/`save` param changed from `SoftwareExternalData | SoftwareExternal` to `SoftwareExternal | DatabaseDataType.SoftwareExternalDataRow`
+7. **Deleted `SoftwareExternalData` and `GetSoftwareExternalData` types** from `GetSoftwareExternalData.ts` — kept `Language`, `LocalizedString`, `languages`, redefined `SimilarSoftwareExternalData` independently
+8. **Renamed `softwares.logoUrl` → `image`** — migration `1772105164020`, `SoftwaresTable`, `Db.SoftwareRow`, `SoftwareExtrinsicRow`, `createPgSoftwareRepository.ts`, `createGetCompiledData.ts`, `CompileData.ts`, `createSoftware.ts`, `updateSoftware.ts`
+9. **Updated all test fixtures** — `pgDbApi.integration.test.ts`, `refreshExternalData.test.ts`, `createSoftware.test.ts`, `updateSoftware.test.ts`, `routes.e2e.test.ts`, `createPgSoftwareRepository.test.ts`, `zenodoGateway.test.ts`
+
+- Files deleted:
+  - `api/src/core/types/softwareExternalMappers.ts`
+  - `api/src/core/types/softwareExternalMappers.test.ts`
+- Validation:
+  - `yarn --cwd api typecheck` ✅
+  - `yarn --cwd web typecheck` ✅
+  - `yarn --cwd api build` ✅
+  - `yarn --cwd api test` ✅ (66 passed, 4 skipped)

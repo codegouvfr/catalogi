@@ -4,7 +4,6 @@
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
-import { castToSoftwareExternalData } from "../adapters/dbApi/kysely/createPgSoftwareExternalDataRepository";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
@@ -145,7 +144,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                     externalId: link.externalId,
                     softwareId: resolvedSoftwareId,
                     lastDataFetchAt: existingExternalData.lastDataFetchAt,
-                    softwareExternalData: castToSoftwareExternalData(existingExternalData)
+                    softwareExternalData: existingExternalData
                 });
 
                 rebindCount++;

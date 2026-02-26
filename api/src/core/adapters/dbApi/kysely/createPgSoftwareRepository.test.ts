@@ -47,7 +47,7 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
             runtimePlatforms: JSON.stringify(["cloud"]),
             applicationCategories: JSON.stringify([]),
             keywords: JSON.stringify([]),
-            logoUrl: null,
+            image: null,
             dereferencing: null,
             ...overrides,
             addedByUserId

@@ -10,7 +10,6 @@ import type { Os, RuntimePlatform } from "../../../types";
 import { Database } from "./kysely.database";
 import { isNotNull, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
-import { castToSoftwareExternalData } from "./createPgSoftwareExternalDataRepository";
 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
@@ -68,7 +67,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
             "s.isStillInObservation",
             "s.keywords",
             "s.license",
-            "s.logoUrl",
+            "s.image",
             "s.name",
             "s.addedTime",
             "s.operatingSystems",
@@ -103,7 +102,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     isStillInObservation,
                     keywords,
                     license,
-                    logoUrl
+                    image
                 }): CompiledData.Software<"private"> => {
                     const softwareExternalData = mergeExternalData(externalDataBySoftwareId[id] ?? []);
                     const version =
@@ -125,16 +124,14 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         updateTime: new Date(updateTime).getTime(),
                         isStillInObservation,
                         license,
-                        logoUrl: logoUrl ?? undefined,
+                        image: image ?? undefined,
                         keywords: keywords ?? [],
                         categories: applicationCategories ?? [],
                         operatingSystems: (operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
                         runtimePlatforms: (runtimePlatforms ?? []) as RuntimePlatform[],
                         customAttributes,
                         addedByUserEmail: agentById[addedByUserId].email,
-                        softwareExternalData: softwareExternalData
-                            ? castToSoftwareExternalData(softwareExternalData)
-                            : undefined,
+                        softwareExternalData: softwareExternalData ?? undefined,
                         latestVersion: version,
                         dereferencing: dereferencing ?? undefined,
                         serviceProviders: softwareExternalData?.providers ?? [],

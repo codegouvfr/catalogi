@@ -6,7 +6,6 @@ import { Kysely } from "kysely";
 import { beforeEach, describe, expect, it, afterEach } from "vitest";
 import { expectPromiseToFailWith, expectToEqual, resetDB, testPgUrl, testSource } from "../../../../tools/test.helpers";
 import { DbUser, DbApiV2 } from "../../../ports/DbApiV2";
-import { SoftwareExternalData } from "../../../ports/GetSoftwareExternalData";
 import { DeclarationFormData, SoftwareFormData } from "../../../usecases/readWriteSillData";
 import { createKyselyPgDbApi } from "./createPgDbApi";
 import { Database } from "./kysely.database";
@@ -51,12 +50,12 @@ const softwareFormData: SoftwareFormData = {
     }
 };
 
-const softwareExternalData: SoftwareExternalData = {
+const softwareExternalData = {
     externalId: externalIdForSource,
     sourceSlug: testSource.slug,
-    developers: [
+    authors: [
         {
-            "@type": "Person",
+            "@type": "Person" as const,
             name: "Bob",
             identifiers: [identifersUtils.makeWikidataIdentifier({ wikidataId: "QXXXXXX", additionalType: "Person" })],
             url: `https://www.wikidata.org/wiki/bob`
@@ -65,28 +64,28 @@ const softwareExternalData: SoftwareExternalData = {
     name: { en: "Some software" },
     description: { en: "Some software description" },
     isLibreSoftware: true,
-    logoUrl: "https://external-software-logo-url.com/logo.png",
-    websiteUrl: "https://example.com",
-    sourceUrl: "https://example.com/source",
-    documentationUrl: "https://example.com/documentation",
+    image: "https://external-software-logo-url.com/logo.png",
+    url: "https://example.com",
+    codeRepositoryUrl: "https://example.com/source",
+    softwareHelp: "https://example.com/documentation",
     license: "MIT",
-    softwareVersion: "1.0.0",
+    latestVersion: { version: "1.0.0", releaseDate: null },
     keywords: ["Usefull", "Daily"],
     programmingLanguages: ["C++"],
     applicationCategories: ["Software Cat I", "Software Cat II"],
     referencePublications: undefined,
     identifiers: undefined,
-    publicationTime: new Date(1561566581000),
+    dateCreated: new Date(1561566581000),
     repoMetadata: undefined,
     providers: []
 };
 
-const similarSoftwareExternalData: SoftwareExternalData = {
+const similarSoftwareExternalData = {
     externalId: similarExternalId,
     sourceSlug: testSource.slug,
-    developers: [
+    authors: [
         {
-            "@type": "Person",
+            "@type": "Person" as const,
             name: "Bobby",
             identifiers: [identifersUtils.makeWikidataIdentifier({ wikidataId: "QXXXXXX", additionalType: "Person" })],
             url: `https://www.wikidata.org/wiki/similar-bob`
@@ -95,18 +94,18 @@ const similarSoftwareExternalData: SoftwareExternalData = {
     name: "Some similar software",
     description: { en: "Some similar software description" },
     isLibreSoftware: true,
-    logoUrl: "https://similar-software-logo-url.com/similar-logo.png",
-    websiteUrl: "https://example.similar.com",
-    sourceUrl: "https://example.similar.com/source",
-    documentationUrl: "https://example.similar.com/documentation",
+    image: "https://similar-software-logo-url.com/similar-logo.png",
+    url: "https://example.similar.com",
+    codeRepositoryUrl: "https://example.similar.com/source",
+    softwareHelp: "https://example.similar.com/documentation",
     license: "MIT",
-    softwareVersion: "3.0.2",
+    latestVersion: { version: "3.0.2", releaseDate: null },
     keywords: ["Infra", "Adminsys"],
     programmingLanguages: ["Python3"],
     applicationCategories: ["Software Cat I", "Software Cat II"],
     referencePublications: undefined,
     identifiers: undefined,
-    publicationTime: new Date(1561566581000),
+    dateCreated: new Date(1561566581000),
     repoMetadata: undefined,
     providers: []
 };
@@ -185,7 +184,7 @@ describe("pgDbApi", () => {
                 addedTime: expect.any(Number),
                 updateTime: expect.any(Number),
                 applicationCategories: ["Software Cat I", "Software Cat II"],
-                authors: softwareExternalData.developers.map(dev => ({
+                authors: softwareExternalData.authors.map(dev => ({
                     "@type": "Person" as const,
                     name: dev.name,
                     "affiliations": undefined,
@@ -206,8 +205,8 @@ describe("pgDbApi", () => {
                     ],
                     url: dev.url
                 })),
-                codeRepositoryUrl: softwareExternalData.sourceUrl,
-                softwareHelp: softwareExternalData.documentationUrl,
+                codeRepositoryUrl: softwareExternalData.codeRepositoryUrl,
+                softwareHelp: softwareExternalData.softwareHelp,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
                 keywords: ["bob", "l'éponge"],
@@ -217,14 +216,17 @@ describe("pgDbApi", () => {
                 },
                 license: "MIT",
                 image: softwareFormData.image,
-                url: softwareExternalData.websiteUrl,
+                url: softwareExternalData.url,
                 customAttributes: {
                     doRespectRgaa: true,
                     isFromFrenchPublicService: false,
                     isPresentInSupportContract: true
                 },
                 programmingLanguages: ["C++"],
-                repoMetadata: {},
+                repoMetadata: undefined,
+                referencePublications: undefined,
+                identifiers: undefined,
+                dereferencing: undefined,
                 providers: [],
                 similarSoftwares: [
                     {
@@ -466,25 +468,23 @@ describe("pgDbApi", () => {
                     externalId: softExtData.externalId,
                     sourceSlug: testSource.slug,
                     softwareId: null,
-                    authors: JSON.stringify(softExtData.developers),
+                    authors: JSON.stringify(softExtData.authors),
                     name: JSON.stringify(softExtData.name),
                     description: JSON.stringify(softExtData.description),
                     isLibreSoftware: softExtData.isLibreSoftware ?? null,
-                    image: softExtData.logoUrl ?? null,
-                    url: softExtData.websiteUrl ?? null,
-                    codeRepositoryUrl: softExtData.sourceUrl ?? null,
-                    softwareHelp: softExtData.documentationUrl ?? null,
+                    image: softExtData.image ?? null,
+                    url: softExtData.url ?? null,
+                    codeRepositoryUrl: softExtData.codeRepositoryUrl ?? null,
+                    softwareHelp: softExtData.softwareHelp ?? null,
                     license: softExtData.license ?? null,
-                    latestVersion: softExtData.softwareVersion
-                        ? JSON.stringify({ version: softExtData.softwareVersion, releaseDate: null })
-                        : null,
+                    latestVersion: softExtData.latestVersion ? JSON.stringify(softExtData.latestVersion) : null,
                     keywords: JSON.stringify(softExtData.keywords),
                     applicationCategories: JSON.stringify(softExtData.applicationCategories),
                     programmingLanguages: JSON.stringify(softExtData.programmingLanguages),
                     identifiers: JSON.stringify(softExtData.identifiers),
                     repoMetadata: JSON.stringify(softExtData.repoMetadata),
                     referencePublications: JSON.stringify(softExtData.referencePublications),
-                    dateCreated: softExtData.publicationTime ?? null,
+                    dateCreated: softExtData.dateCreated ?? null,
                     providers: JSON.stringify(softExtData.providers)
                 }))
             )

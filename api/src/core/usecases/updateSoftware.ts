@@ -22,7 +22,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 name: formFields.name,
                 description: { fr: formFields.description },
                 license: formFields.license,
-                logoUrl: formFields.image,
+                image: formFields.image,
                 dereferencing: undefined,
                 isStillInObservation: false,
                 customAttributes: formFields.customAttributes,

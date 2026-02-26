@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { castToSoftwareExternalData } from "../adapters/dbApi/kysely/createPgSoftwareExternalDataRepository";
 import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
 import { SoftwareFormData } from "./readWriteSillData";
 
@@ -17,7 +16,7 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
         name: softwareForm.name,
         description: { fr: softwareForm.description },
         license: softwareForm.license,
-        logoUrl: softwareForm.image,
+        image: softwareForm.image,
         addedTime: new Date().toISOString(),
         dereferencing: undefined,
         isStillInObservation: false,
@@ -131,7 +130,7 @@ export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
                     externalId: externalIdForSource,
                     softwareId,
                     lastDataFetchAt: savedExternalData?.lastDataFetchAt,
-                    softwareExternalData: castToSoftwareExternalData(savedExternalData)
+                    softwareExternalData: savedExternalData
                 });
                 console.log(`${logTitle} 💾 ${externalIdForSource} now binded with this software`);
             }

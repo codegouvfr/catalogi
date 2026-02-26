@@ -38,7 +38,7 @@ export namespace Db {
         runtimePlatforms: RuntimePlatform[];
         categories: string[];
         addedByAgentEmail: string;
-        logoUrl: string | undefined;
+        image: string | undefined;
         keywords: string[];
         customAttributes: CustomAttributes | null;
     };

@@ -210,7 +210,7 @@ type SoftwaresTable = {
     runtimePlatforms: JSONColumnType<RuntimePlatform[]>;
     applicationCategories: JSONColumnType<string[]>;
     addedByUserId: number;
-    logoUrl: string | null;
+    image: string | null;
     keywords: JSONColumnType<string[]>;
 };
 

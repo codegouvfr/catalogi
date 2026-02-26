@@ -9,7 +9,7 @@ import { Source } from "../../usecases/readWriteSillData";
 const admtoolsSoftware = {
     externalId: "15479049",
     sourceSlug: "zenodo",
-    developers: [
+    authors: [
         {
             "@type": "Person",
             name: "Hohmann, Niklas",
@@ -41,19 +41,19 @@ const admtoolsSoftware = {
         en: "R package to estimate age-depth models and transform data between the time domain and the stratigraphic domain."
     },
     isLibreSoftware: true,
-    logoUrl: undefined,
-    websiteUrl: undefined,
-    sourceUrl: "https://github.com/MindTheGap-ERC/admtools/tree/v0.6.0",
-    documentationUrl: undefined,
+    image: undefined,
+    url: undefined,
+    codeRepositoryUrl: "https://github.com/MindTheGap-ERC/admtools/tree/v0.6.0",
+    softwareHelp: undefined,
     license: "gpl-3.0",
-    softwareVersion: "v0.6.0",
+    latestVersion: { version: "v0.6.0", releaseDate: undefined },
     keywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"],
     programmingLanguages: undefined,
     applicationCategories: [
         "Quantifying the completeness of the stratigraphic record and its role in reconstructing the tempo and mode of evolution",
         "EU Open Research Repository"
     ],
-    publicationTime: "2025-05-21",
+    dateCreated: "2025-05-21",
     referencePublications: [],
     identifiers: [
         {

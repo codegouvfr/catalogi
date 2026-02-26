@@ -140,7 +140,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         typeof software.description === "string"
                             ? software.description
                             : ((software.description as Record<string, string>)?.fr ?? ""),
-                    image: extData?.image ?? software.logoUrl ?? undefined,
+                    image: extData?.image ?? software.image ?? undefined,
                     latestVersion: extData?.latestVersion
                         ? {
                               semVer: extData.latestVersion.version ?? undefined,
@@ -251,7 +251,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     typeof softwareRow.description === "string"
                         ? softwareRow.description
                         : ((softwareRow.description as Record<string, string>)?.fr ?? ""),
-                image: extData?.image ?? softwareRow.logoUrl ?? undefined,
+                image: extData?.image ?? softwareRow.image ?? undefined,
                 latestVersion: extData?.latestVersion
                     ? {
                           semVer: extData.latestVersion.version ?? undefined,
@@ -319,7 +319,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 name,
                 description,
                 license,
-                logoUrl,
+                image,
                 addedTime,
                 isStillInObservation,
                 dereferencing,
@@ -343,7 +343,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         name,
                         description: JSON.stringify(description),
                         license,
-                        logoUrl,
+                        image,
                         addedTime,
                         updateTime: now,
                         dereferencing: JSON.stringify(dereferencing),
@@ -366,7 +366,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 name,
                 description,
                 license,
-                logoUrl,
+                image,
                 dereferencing,
                 isStillInObservation,
                 customAttributes,
@@ -387,7 +387,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     name,
                     description: JSON.stringify(description),
                     license,
-                    logoUrl: logoUrl ?? null,
+                    image: image ?? null,
                     dereferencing: JSON.stringify(dereferencing),
                     updateTime: now,
                     isStillInObservation: false,

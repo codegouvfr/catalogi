@@ -134,7 +134,7 @@ describe("RPC e2e tests", () => {
                     },
                     "keywords": softwareFormData.keywords,
                     "license": softwareFormData.license,
-                    "logoUrl": softwareFormData.image,
+                    "image": softwareFormData.image,
                     "name": softwareFormData.name,
                     "applicationCategories": [],
                     "isStillInObservation": false,

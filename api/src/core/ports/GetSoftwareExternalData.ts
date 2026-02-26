@@ -4,57 +4,15 @@
 
 import { z } from "zod";
 import type { LocalizedString as LocalizedString_generic } from "i18nifty/LocalizedString/reactless";
-import type { PartialNoOptional } from "../../tools/PartialNoOptional";
 import { assert, type Equals } from "tsafe/assert";
-import { Source } from "../usecases/readWriteSillData";
-import {
-    SchemaIdentifier,
-    SchemaOrganization,
-    SchemaPerson,
-    ScholarlyArticle
-} from "../adapters/dbApi/kysely/kysely.database";
 
-type ExternalId = string;
-
-export type GetSoftwareExternalData = {
-    (params: { externalId: ExternalId; source: Source }): Promise<SoftwareExternalData | undefined>;
-    clear: (externalId: ExternalId) => void;
-};
-
-export type SoftwareExternalData = {
-    externalId: ExternalId;
-    sourceSlug: string;
-    developers: Array<SchemaPerson | SchemaOrganization>;
+export type SimilarSoftwareExternalData = {
+    externalId: string;
     name: LocalizedString;
     description: LocalizedString;
-} & PartialNoOptional<{
-    isLibreSoftware: boolean;
-    logoUrl: string;
-    websiteUrl: string;
-    sourceUrl: string;
-    documentationUrl: string;
-    license: string;
-    softwareVersion: string;
-    keywords: string[];
-    programmingLanguages: string[];
-    applicationCategories: string[];
-    publicationTime: Date;
-    referencePublications: ScholarlyArticle[];
-    identifiers: SchemaIdentifier[];
-    providers: Array<SchemaOrganization>;
-    repoMetadata: {
-        healthCheck?: {
-            lastCommit?: Date;
-            lastClosedIssue?: Date;
-            lastClosedIssuePullRequest?: Date;
-        };
-    };
-}>;
-
-export type SimilarSoftwareExternalData = Pick<
-    SoftwareExternalData,
-    "externalId" | "name" | "description" | "isLibreSoftware" | "sourceSlug"
->;
+    isLibreSoftware: boolean | undefined;
+    sourceSlug: string;
+};
 
 export const languages = ["fr", "en"] as const;
 

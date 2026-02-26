@@ -59,7 +59,7 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             name: "Apache HTTP Server",
             description: JSON.stringify({ fr: "Serveur Web & Reverse Proxy" }),
             license: "Apache-2.0",
-            logoUrl: "https://sill.code.gouv.fr/logo/apache-http.png",
+            image: "https://sill.code.gouv.fr/logo/apache-http.png",
             keywords: JSON.stringify(["serveur", "http", "web", "server", "apache"]),
             isStillInObservation: false,
             applicationCategories: JSON.stringify([]),
@@ -99,7 +99,7 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             name: "Acceleo",
             description: JSON.stringify({ fr: "Outil et/ou plugin de génération de tout ou partie du code" }),
             license: "EPL-2.0",
-            logoUrl: null,
+            image: null,
             keywords: JSON.stringify(["modélisation", "génération", "code", "modeling", "code generation"]),
             isStillInObservation: false,
             applicationCategories: JSON.stringify(["Other Development Tools"]),
@@ -242,7 +242,7 @@ describe("fetches software extra data (from different providers)", () => {
                     "sourceSlug": "wikidata"
                 }),
                 {
-                    applicationCategories: undefined,
+                    applicationCategories: [],
                     description: "deprecated tool for creating React SPA using webpack as bundler",
                     authors: [],
                     softwareHelp: undefined,
@@ -257,7 +257,7 @@ describe("fetches software extra data (from different providers)", () => {
                     codeRepositoryUrl: "https://github.com/facebook/create-react-app",
                     url: "https://create-react-app.dev/",
                     programmingLanguages: [],
-                    referencePublications: undefined,
+                    referencePublications: [],
                     identifiers: [
                         {
                             "@type": "PropertyValue",
@@ -286,16 +286,16 @@ describe("fetches software extra data (from different providers)", () => {
                             "valueReference": "63537249"
                         }
                     ],
-                    latestVersion: { version: "5.0.1", releaseDate: null },
+                    latestVersion: { version: "5.0.1", releaseDate: expect.any(String) },
                     dateCreated: new Date("2022-04-12T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
-                    repoMetadata: {},
+                    repoMetadata: undefined,
                     providers: [],
                     operatingSystems: undefined,
                     runtimePlatforms: undefined
                 },
                 {
-                    applicationCategories: undefined,
+                    applicationCategories: [],
                     description: {
                         "en": "open-source JavaScript module bundler",
                         "fr": "Outil frontend"
@@ -325,7 +325,7 @@ describe("fetches software extra data (from different providers)", () => {
                     codeRepositoryUrl: "https://github.com/vitejs/vite",
                     url: "https://vite.dev/",
                     programmingLanguages: ["JavaScript"],
-                    referencePublications: undefined,
+                    referencePublications: [],
                     identifiers: [
                         {
                             "@type": "PropertyValue",
@@ -354,10 +354,10 @@ describe("fetches software extra data (from different providers)", () => {
                             "valueReference": "257485422"
                         }
                     ],
-                    latestVersion: { version: expect.any(String), releaseDate: null },
+                    latestVersion: { version: expect.any(String), releaseDate: expect.any(String) },
                     dateCreated: expect.any(Date),
                     lastDataFetchAt: expect.any(Date),
-                    repoMetadata: {},
+                    repoMetadata: undefined,
                     providers: [],
                     operatingSystems: undefined,
                     runtimePlatforms: undefined
@@ -398,7 +398,7 @@ describe("fetches software extra data (from different providers)", () => {
                     "sourceSlug": "wikidata"
                 }),
                 {
-                    applicationCategories: undefined,
+                    applicationCategories: [],
                     description: {
                         en: "open-source web server software",
                         fr: "serveur web sous licence libre"
@@ -436,7 +436,7 @@ describe("fetches software extra data (from different providers)", () => {
                     image: "//upload.wikimedia.org/wikipedia/commons/thumb/1/10/Apache_HTTP_server_logo_%282019-present%29.svg/250px-Apache_HTTP_server_logo_%282019-present%29.svg.png",
                     codeRepositoryUrl: "https://github.com/apache/httpd",
                     url: "https://httpd.apache.org/",
-                    referencePublications: undefined,
+                    referencePublications: [],
                     identifiers: [
                         {
                             "@type": "PropertyValue",
@@ -466,10 +466,10 @@ describe("fetches software extra data (from different providers)", () => {
                         }
                     ],
                     programmingLanguages: ["C"],
-                    latestVersion: { version: "2.5.0-alpha", releaseDate: null },
+                    latestVersion: { version: "2.5.0-alpha", releaseDate: expect.any(String) },
                     dateCreated: new Date("2017-11-08T00:00:00.000Z"),
                     lastDataFetchAt: expect.any(Date),
-                    repoMetadata: {},
+                    repoMetadata: undefined,
                     providers: [],
                     operatingSystems: undefined,
                     runtimePlatforms: undefined
