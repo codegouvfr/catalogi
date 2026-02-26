@@ -2,24 +2,11 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { Db } from "./DbApi";
 import { SimilarSoftwareExternalData } from "./GetSoftwareExternalData";
 import { SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 import type { DatabaseDataType } from "./DbApiV2";
-
-export type CompileData = (params: {
-    db: Db;
-    getCachedSoftware: ((params: { sillSoftwareId: number }) => CompileData.PartialSoftware | undefined) | undefined;
-}) => Promise<CompiledData<"private">>;
-
-export namespace CompileData {
-    export type PartialSoftware = Pick<
-        CompiledData.Software<"private">,
-        "softwareExternalData" | "latestVersion" | "similarExternalSoftwares"
-    > & {
-        instances: Pick<CompiledData.Instance, "id">[];
-    };
-}
+import type { Os, RuntimePlatform } from "../types";
+import { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
 
 export type CompiledData<T extends "private" | "public"> = CompiledData.Software<T>[];
 
@@ -27,25 +14,27 @@ export namespace CompiledData {
     export type Software<T extends "private" | "public"> = T extends "private" ? Software.Private : Software.Public;
 
     export namespace Software {
-        export type Common = Pick<
-            Db.SoftwareRow,
-            | "id"
-            | "name"
-            | "description"
-            | "referencedSinceTime"
-            | "updateTime"
-            | "dereferencing"
-            | "isStillInObservation"
-            | "license"
-            | "operatingSystems"
-            | "runtimePlatforms"
-            | "categories"
-            | "image"
-            | "keywords"
-            | "externalId"
-            | "sourceSlug"
-            | "customAttributes"
-        > & {
+        export type Common = {
+            id: number;
+            name: string;
+            description: string;
+            referencedSinceTime: number;
+            updateTime: number;
+            dereferencing:
+                | {
+                      reason?: string;
+                      time: number;
+                      lastRecommendedVersion?: string;
+                  }
+                | undefined;
+            isStillInObservation: boolean;
+            license: string;
+            operatingSystems: Partial<Record<Os, boolean>>;
+            runtimePlatforms: RuntimePlatform[];
+            categories: string[];
+            image: string | undefined;
+            keywords: string[];
+            customAttributes: CustomAttributes | null;
             serviceProviders: SchemaOrganization[];
             softwareExternalData: DatabaseDataType.SoftwareExternalDataRow | undefined;
             similarExternalSoftwares: SimilarSoftwareExternalData[];
@@ -65,10 +54,20 @@ export namespace CompiledData {
 
         export type Private = Common & {
             addedByUserEmail: string;
-            users: (Pick<Db.AgentRow, "organization"> &
-                Pick<Db.SoftwareUserRow, "os" | "serviceUrl" | "useCaseDescription" | "version">)[];
-            referents: (Pick<Db.AgentRow, "email" | "organization"> &
-                Pick<Db.SoftwareReferentRow, "isExpert" | "serviceUrl" | "useCaseDescription">)[];
+            users: {
+                organization: string;
+                os: Os | undefined;
+                serviceUrl: string | undefined;
+                useCaseDescription: string;
+                version: string;
+            }[];
+            referents: {
+                email: string;
+                organization: string;
+                isExpert: boolean;
+                serviceUrl: string | undefined;
+                useCaseDescription: string;
+            }[];
             instances: (Instance & { addedByUserEmail: string })[];
         };
     }

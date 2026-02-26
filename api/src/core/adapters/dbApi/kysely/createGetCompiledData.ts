@@ -4,7 +4,6 @@
 
 import { Kysely } from "kysely";
 import { CompiledData } from "../../../ports/CompileData";
-import { Db } from "../../../ports/DbApi";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import type { Os, RuntimePlatform } from "../../../types";
 import { Database } from "./kysely.database";
@@ -13,7 +12,10 @@ import { mergeExternalData } from "./mergeExternalData";
 
 export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise<CompiledData<"private">> => {
     console.time("agentById query");
-    const agentById: Record<number, Db.AgentRow> = await db
+    const agentById: Record<
+        number,
+        { email: string; organization: string; about: string | undefined; isPublic: boolean }
+    > = await db
         .selectFrom("users")
         .selectAll()
         .execute()

@@ -288,3 +288,31 @@ Track all implementation actions, findings, decisions, and validations for issue
   - `yarn --cwd web typecheck` ✅
   - `yarn --cwd api build` ✅
   - `yarn --cwd api test` ✅ (66 passed, 4 skipped)
+
+### 2026-02-26 - Phase 8: final cleanup — delete orphaned code, inline CompileData types, delete Db namespace
+
+- Step: delete dead types/files, inline `Db.*` into `CompileData.ts`, fix zenodo test fixture.
+- Status: **COMPLETE** — all typecheck ✅, all non-DB tests ✅, API build ✅
+
+**Changes:**
+
+1. **Deleted `PartialNoOptional.ts`** — 0 consumers after `SoftwareExternalData` deletion
+2. **Inlined `Db.*` types into `CompileData.ts`** — replaced `Pick<Db.SoftwareRow, ...>` with explicit field types in `Common`, replaced `Pick<Db.AgentRow, ...>` + `Pick<Db.SoftwareUserRow, ...>` + `Pick<Db.SoftwareReferentRow, ...>` with inline field types in `Private`. Removed `Db` import.
+3. **Deleted `CompileData` function type + `PartialSoftware` namespace** — never called, only `CompiledData` namespace and `compiledDataPrivateToPublic` kept.
+4. **Removed `Db` import from `createGetCompiledData.ts`** — inlined `Db.AgentRow` as explicit object type in `agentById` declaration.
+5. **Deleted `DbApi.ts`** — zero consumers after inlining.
+6. **Fixed zenodo test fixture** (`zenodoGateway.test.ts`): `softwareName`→`name`, `softwareDescription`→`description`, `softwareLicense`→`license`, `softwareLogoUrl`→`image`, `softwareKeywords`→`keywords`, `similarSoftwareExternalDataIds`→`similarSoftwareExternalDataItems`, added missing `customAttributes: undefined`.
+7. **Removed `externalId`/`sourceSlug` from `CompiledData.Software.Common`** — never populated by `createGetCompiledData`, always undefined. Dead fields.
+
+- Files deleted:
+  - `api/src/tools/PartialNoOptional.ts`
+  - `api/src/core/ports/DbApi.ts`
+- Files modified:
+  - `api/src/core/ports/CompileData.ts`
+  - `api/src/core/adapters/dbApi/kysely/createGetCompiledData.ts`
+  - `api/src/core/adapters/zenodo/zenodoGateway.test.ts`
+- Validation:
+  - `yarn --cwd api typecheck` ✅
+  - `yarn --cwd web typecheck` ✅
+  - `yarn --cwd api build` ✅
+  - `yarn --cwd api test` — 34 passed, 4 skipped, 25 failed (all DB auth failures, pre-existing)

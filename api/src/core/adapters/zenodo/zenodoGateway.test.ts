@@ -96,8 +96,8 @@ const admtoolsSoftware = {
 };
 
 const amdSoftwareForm = {
-    softwareName: "admtools",
-    softwareDescription:
+    name: "admtools",
+    description:
         "R package to estimate age-depth models and transform data between the time domain and the stratigraphic domain.",
     operatingSystems: {
         linux: false,
@@ -109,10 +109,11 @@ const amdSoftwareForm = {
     runtimePlatforms: ["desktop"],
     externalIdForSource: "15479049",
     sourceSlug: "zenodo",
-    softwareLicense: "gpl-3.0",
-    similarSoftwareExternalDataIds: [],
-    softwareLogoUrl: undefined,
-    softwareKeywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"]
+    license: "gpl-3.0",
+    similarSoftwareExternalDataItems: [],
+    image: undefined,
+    keywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"],
+    customAttributes: undefined
 };
 
 const resultRequest = [
