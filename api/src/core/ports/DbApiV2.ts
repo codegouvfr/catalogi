@@ -2,7 +2,12 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { Database, DatabaseRowOutput, SchemaPerson } from "../adapters/dbApi/kysely/kysely.database";
+import type {
+    Database,
+    DatabaseRowOutput,
+    SchemaOrganization,
+    SchemaPerson
+} from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
 import type {
     CreateUserParams,
@@ -187,6 +192,13 @@ export interface SourceRepository {
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
 }
 
+export interface AuthorOrganizationsRepository {
+    getAll: (params?: { ids?: Array<string> }) => Promise<SchemaOrganization[]>;
+    get: (params: { id: string }) => Promise<SchemaOrganization | undefined>;
+    save: (params: { organization: SchemaOrganization }) => Promise<void>;
+    checkIfSaved: (params: { ids: Array<string> }) => Promise<Record<string, boolean>>;
+}
+
 export type Session = {
     id: string;
     state: string;
@@ -225,5 +237,6 @@ export type DbApiV2 = {
     softwareUser: SoftwareUserRepository;
     session: SessionRepository;
     attributeDefinition: AttributeDefinitionRepository;
+    authorOrganization: AuthorOrganizationsRepository;
     getCompiledDataPrivate: () => Promise<CompiledData<"private">>;
 };
