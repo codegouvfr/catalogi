@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ExternalDataOriginKind } from "../adapters/dbApi/kysely/kysely.database";
+import { GetAuthorOrganization } from "./GetAuthorOrganization";
 import { GetSoftwareExternal } from "./GetSoftwareExternal";
 import { GetSoftwareExternalDataOptions } from "./GetSoftwareExternalDataOptions";
 import { GetSoftwareFormData } from "./GetSoftwareFormData";
@@ -21,5 +22,8 @@ export interface SourceGateway {
     softwareExtra?: {
         getSoftwareExternal: GetSoftwareExternal;
         getDiscoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
+    };
+    organization?: {
+        getOrganization: GetAuthorOrganization;
     };
 }

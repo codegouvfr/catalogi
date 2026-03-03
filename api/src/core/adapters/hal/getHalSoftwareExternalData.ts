@@ -171,8 +171,8 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
                                             : []),
                                         ...(structure.rnsr_s?.[0] || structure.rnsr_s
                                             ? [
-                                                  identifersUtils.makeRorOrgaIdentifer({
-                                                      rorId: structure.rnsr_s?.[0] ?? structure.rnsr_s
+                                                  identifersUtils.makeRNSROrgaIdentifer({
+                                                      rnrsId: structure.rnsr_s?.[0] ?? structure.rnsr_s
                                                   })
                                               ]
                                             : [])
