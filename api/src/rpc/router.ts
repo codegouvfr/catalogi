@@ -34,6 +34,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "createSoftware"
     | "updateSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
+    | "getAndFetchSoftwareIdsByAuthorOrganization"
     | "auth"
 >;
 
@@ -182,9 +183,7 @@ export function createRouter(params: {
                     })
                     .optional()
             )
-            .query(async ({ input }) => {
-                return dbApi.software.getSoftwareIdsByOrganisation({ search: input });
-            }),
+            .query(async ({ input }) => useCases.getAndFetchSoftwareIdsByAuthorOrganization({ search: input })),
         // -------------- PROTECTED PROCEDURES --------------
         "getExternalSoftwareOptions": protectedProcedure
             .input(
