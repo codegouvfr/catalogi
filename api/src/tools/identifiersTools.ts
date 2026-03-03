@@ -109,6 +109,28 @@ const rnsrSource: WebSite = {
     additionalType: "RNSR"
 };
 
+type CrossRefType = "fundref";
+const crossRefSource: WebSite = {
+    "@type": "Website" as const,
+    name: "One of the official Identifier Registration Agencies",
+    url: new URL("https://www.crossref.org"),
+    additionalType: "CROSSREF"
+};
+
+const gridSource = {
+    "@type": "Website" as const,
+    name: "Global Research Identifier Database",
+    url: new URL("https://www.grid.ac"),
+    additionalType: "GRID"
+};
+
+const insiSource = {
+    "@type": "Website" as const,
+    name: "International Standard Name Identifier",
+    url: new URL("https://insi.org"),
+    additionalType: "INSI"
+};
+
 export const identifersUtils = {
     makeGenericIdentifier: (params: { value: string; url?: string | URL }): SchemaIdentifier => {
         const { value, url } = params;
@@ -350,6 +372,44 @@ export const identifersUtils = {
             url: `https://appliweb.dgri.education.fr/rnsr/PresenteStruct.jsp?PUBLIC=OK&numNatStruct=${rnrsId}`,
             subjectOf: rnsrSource,
             additionalType: "Organization"
+        };
+    },
+    makeCrossRefIdentifier: (params: { type: CrossRefType; crossRefId: string }): SchemaIdentifier => {
+        const { type, crossRefId } = params;
+
+        const base = {
+            "@type": "PropertyValue" as const,
+            value: crossRefId,
+            subjectOf: crossRefSource,
+            additionalType: type
+        };
+
+        switch (type) {
+            case "fundref":
+                return {
+                    ...base,
+                    url: `https://api.crossref.org/funders/${crossRefId}`
+                };
+            default:
+                const unreachableCase: never = type;
+                throw new Error(`Unreachable case: ${unreachableCase}`);
+        }
+    },
+    makeGridIdentifier: (params: { gridId: string }): SchemaIdentifier => {
+        const { gridId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: gridId,
+            subjectOf: gridSource
+        };
+    },
+    makeINSIIdentifier: (params: { insiId: string }): SchemaIdentifier => {
+        const { insiId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: insiId,
+            url: `http://isni.org/isni/${insiId}`,
+            subjectOf: insiSource
         };
     }
 };
