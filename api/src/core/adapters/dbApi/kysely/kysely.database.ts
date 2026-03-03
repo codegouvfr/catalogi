@@ -34,6 +34,36 @@ export type SchemaOrganization = {
     url?: string;
     identifiers?: SchemaIdentifier[];
     parentOrganizations?: SchemaOrganization[];
+    //
+    foundingDate?: string;
+    alternateName?: string[]; // Accronym
+    description?: string;
+    sameAs?: string[];
+    address?: SchemaPostalAddress;
+    memberOf?: SchemaOrganization[];
+    additionalType?: string[]; // education, government, facility, funder
+    image?: URL | string; // logo
+    //
+    producer?: string[]; // software Ids
+};
+
+export type SchemaPostalAddress = {
+    "@type": "PostalAddress";
+    addressCountry?: string;
+    addressCountryCode?: string;
+    addressRegion?: string;
+    addressLocality?: string;
+    postalCode?: string;
+    streetAddress?: string;
+    postOfficeBoxNumber?: string;
+    geo?: SchemaGeoCoordinates;
+};
+
+type SchemaGeoCoordinates = {
+    "@type": "GeoCoordinates";
+    latitude: number;
+    longitude: number;
+    elevation?: number;
 };
 
 // from https://schema.org/Person
