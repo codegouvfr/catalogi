@@ -44,6 +44,22 @@ const makeGetCatalogiJson = (redirectUrl: string | undefined, dbApi: DbApiV2): H
     };
 };
 
+const makeGetCatalogiJsonV2 = (redirectUrl: string | undefined, dbApi: DbApiV2): Handler => {
+    const getMemoizedPublicList = memoize(() => dbApi.software.getPublicList(), {
+        promise: true,
+        maxAge: 2 * 60 * 60 * 1000 // 2 hours
+    });
+
+    return async (req, res) => {
+        if (redirectUrl !== undefined) {
+            return res.redirect(redirectUrl + req.originalUrl);
+        }
+
+        const data = await getMemoizedPublicList();
+        res.setHeader("Content-Type", "application/json").send(Buffer.from(JSON.stringify(data), "utf8"));
+    };
+};
+
 export async function startRpcService(params: {
     oidcParams: OidcParams & { manageProfileUrl: string };
     port: number;
@@ -84,6 +100,7 @@ export async function startRpcService(params: {
     });
 
     const catalogiJsonHandler = makeGetCatalogiJson(redirectUrl, dbApi);
+    const catalogiJsonV2Handler = makeGetCatalogiJsonV2(redirectUrl, dbApi);
 
     const app = express();
 
@@ -181,6 +198,7 @@ export async function startRpcService(params: {
                     .json({ message: `No translations found for language : ${lang}`, error: error.message });
             }
         })
+        .get(`*/v2/catalogi.json`, catalogiJsonV2Handler)
         .get(`*/catalogi.json`, catalogiJsonHandler)
         // the following is just for backward compatibility
         .get(`*/sill.json`, catalogiJsonHandler)

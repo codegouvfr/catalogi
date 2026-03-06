@@ -46,6 +46,37 @@ const aggregateSimilars = (
         {} as Record<number, Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>>
     );
 
+type EnrichedSimilarRow = {
+    softwareId: number;
+    externalId: string;
+    sourceSlug: string;
+    linkedSoftwareId: number | null;
+    linkedSoftwareDereferencing: unknown;
+    name: LocalizedString;
+    description: LocalizedString;
+    isLibreSoftware: boolean | null;
+};
+
+const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, SimilarSoftware[]> =>
+    rows.reduce(
+        (acc, row) => ({
+            ...acc,
+            [row.softwareId]: [
+                ...(acc[row.softwareId] ?? []),
+                {
+                    externalId: row.externalId,
+                    sourceSlug: row.sourceSlug,
+                    name: row.name,
+                    description: row.description,
+                    isLibreSoftware: row.isLibreSoftware ?? undefined,
+                    isInCatalogi: row.linkedSoftwareId !== null && row.linkedSoftwareDereferencing === null,
+                    softwareId: row.linkedSoftwareId ?? undefined
+                }
+            ]
+        }),
+        {} as Record<number, SimilarSoftware[]>
+    );
+
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     return {
         getFullList: async (): Promise<SoftwareInList[]> => {
@@ -161,6 +192,149 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     authors: (extData?.authors ?? []).map(dev => ({ name: dev.name })),
                     userAndReferentCountByOrganization: countsMap[software.id] ?? {},
                     similarSoftwares: similarMap[software.id] ?? []
+                };
+            });
+        },
+        getPublicList: async (): Promise<Software[]> => {
+            const [softwareRows, userCountRows, referentCountRows, enrichedSimilarRows, externalRows] =
+                await Promise.all([
+                    db.selectFrom("softwares").selectAll().orderBy("name", "asc").execute(),
+
+                    db
+                        .selectFrom("software_users")
+                        .innerJoin("users", "users.id", "software_users.userId")
+                        .select([
+                            "software_users.softwareId",
+                            "users.organization",
+                            sql<string>`'userCount'`.as("countType"),
+                            ({ fn }) => fn.countAll<string>().as("count")
+                        ])
+                        .groupBy(["software_users.softwareId", "users.organization"])
+                        .execute(),
+
+                    db
+                        .selectFrom("software_referents")
+                        .innerJoin("users", "users.id", "software_referents.userId")
+                        .select([
+                            "software_referents.softwareId",
+                            "users.organization",
+                            sql<string>`'referentCount'`.as("countType"),
+                            ({ fn }) => fn.countAll<string>().as("count")
+                        ])
+                        .groupBy(["software_referents.softwareId", "users.organization"])
+                        .execute(),
+
+                    db
+                        .selectFrom("softwares__similar_software_external_datas as sim")
+                        .innerJoin("software_external_datas as ext", join =>
+                            join
+                                .onRef("ext.externalId", "=", "sim.similarExternalId")
+                                .onRef("ext.sourceSlug", "=", "sim.sourceSlug")
+                        )
+                        .leftJoin("softwares as linkedSoft", "linkedSoft.id", "ext.softwareId")
+                        .select([
+                            "sim.softwareId",
+                            "ext.externalId",
+                            "ext.sourceSlug",
+                            "ext.softwareId as linkedSoftwareId",
+                            "linkedSoft.dereferencing as linkedSoftwareDereferencing",
+                            "ext.name",
+                            "ext.description",
+                            "ext.isLibreSoftware"
+                        ])
+                        .execute(),
+
+                    db
+                        .selectFrom("software_external_datas as ext")
+                        .selectAll("ext")
+                        .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
+                        .select(["s.kind", "s.priority", "s.url as sourceUrl", "s.slug"])
+                        .where("ext.softwareId", "is not", null)
+                        .orderBy("ext.softwareId", "asc")
+                        .orderBy("s.priority", "desc")
+                        .execute()
+                ]);
+
+            const externalBySoftwareId = externalRows.reduce(
+                (acc, row) => ({
+                    ...acc,
+                    [row.softwareId!]: [...(acc[row.softwareId!] ?? []), transformNullToUndefined(row)]
+                }),
+                {} as Record<number, PopulatedExternalData[]>
+            );
+
+            const externalDataRecord = Object.entries(externalBySoftwareId).reduce(
+                (acc, [softwareId, items]) => {
+                    const merged = mergeExternalData(items);
+                    return merged ? { ...acc, [softwareId]: merged } : acc;
+                },
+                {} as Record<number, DatabaseDataType.SoftwareExternalDataRow>
+            );
+
+            const allCountRows: CountRow[] = [
+                ...userCountRows.map(r => ({ ...r, countType: "userCount" })),
+                ...referentCountRows.map(r => ({ ...r, countType: "referentCount" }))
+            ];
+            const countsMap = aggregateCounts(allCountRows);
+            const similarMap = aggregateEnrichedSimilars(enrichedSimilarRows as EnrichedSimilarRow[]);
+
+            return softwareRows.map(softwareRow => {
+                const extData = externalDataRecord[softwareRow.id];
+                return {
+                    id: softwareRow.id,
+                    name: softwareRow.name,
+                    description:
+                        typeof softwareRow.description === "string"
+                            ? softwareRow.description
+                            : ((softwareRow.description as Record<string, string>)?.fr ?? ""),
+                    image: extData?.image ?? softwareRow.image ?? undefined,
+                    latestVersion: extData?.latestVersion
+                        ? {
+                              semVer: extData.latestVersion.version ?? undefined,
+                              publicationTime: extData.dateCreated?.getTime()
+                          }
+                        : undefined,
+                    addedTime: new Date(softwareRow.addedTime).getTime(),
+                    updateTime: new Date(softwareRow.updateTime).getTime(),
+                    dereferencing: softwareRow.dereferencing ?? undefined,
+                    applicationCategories: [
+                        ...(softwareRow.applicationCategories ?? []),
+                        ...(extData?.applicationCategories ?? [])
+                    ],
+                    customAttributes: softwareRow.customAttributes ?? undefined,
+                    userAndReferentCountByOrganization: countsMap[softwareRow.id] ?? {},
+                    authors: (extData?.authors ?? []).map((dev): SchemaPerson | SchemaOrganization =>
+                        dev["@type"] === "Person"
+                            ? {
+                                  "@type": "Person",
+                                  name: dev.name,
+                                  url: dev.url,
+                                  identifiers: dev.identifiers,
+                                  affiliations: dev.affiliations
+                              }
+                            : {
+                                  "@type": "Organization",
+                                  name: dev.name,
+                                  url: dev.url,
+                                  identifiers: dev.identifiers,
+                                  parentOrganizations: dev.parentOrganizations
+                              }
+                    ),
+                    url: extData?.url ?? undefined,
+                    codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
+                    softwareHelp: extData?.softwareHelp ?? undefined,
+                    license: extData?.license ?? softwareRow.license,
+                    externalId: extData?.externalId,
+                    sourceSlug: extData?.sourceSlug,
+                    operatingSystems: (softwareRow.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                    runtimePlatforms: (softwareRow.runtimePlatforms ?? []) as RuntimePlatform[],
+                    similarSoftwares: similarMap[softwareRow.id] ?? [],
+                    keywords: softwareRow.keywords ?? [],
+                    programmingLanguages: extData?.programmingLanguages ?? [],
+                    providers: extData?.providers ?? [],
+                    referencePublications: extData?.referencePublications,
+                    identifiers: extData?.identifiers,
+                    repoMetadata: extData?.repoMetadata
                 };
             });
         },
