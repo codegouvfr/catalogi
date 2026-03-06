@@ -83,7 +83,7 @@ const formatCNLLProvidersToExternalData = (cnllProdivers: CnllPrestatairesSill, 
             })
         ],
         providers: cnllProdivers.prestataires.map(cnllProviderToCMProdivers),
-        sameAs: [],
+        similarSoftwares: [],
         dereferencing: undefined,
         customAttributes: undefined,
         userAndReferentCountByOrganization: undefined,

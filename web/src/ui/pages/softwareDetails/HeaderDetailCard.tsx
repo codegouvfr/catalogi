@@ -24,7 +24,7 @@ export type Props = {
     softwareDereferencing:
         | {
               reason?: string;
-              time: number;
+              time: string;
               lastRecommendedVersion?: string;
           }
         | undefined;

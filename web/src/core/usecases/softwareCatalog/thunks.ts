@@ -185,39 +185,33 @@ function softwareInListToInternalSoftware(params: {
 }): State.Software {
     const { software, userDeclaration } = params;
 
-    const {
-        name: softwareName,
-        description: softwareDescription,
-        applicationCategories,
-        similarSoftwares,
-        keywords,
-        authors
-    } = software;
+    const { applicationCategories, similarSoftwares, keywords, authors } = software;
 
     const { resolveLocalizedString } = createResolveLocalizedString({
         currentLanguage: "fr",
         fallbackLanguage: "en"
     });
 
+    const resolvedName = resolveLocalizedString(software.name);
+    const resolvedDescription = resolveLocalizedString(software.description);
+
     return {
         ...software,
+        name: resolvedName,
+        description: resolvedDescription,
         userDeclaration,
         search: (() => {
             const search =
-                softwareName +
+                resolvedName +
                 " (" +
                 [
                     ...keywords,
                     ...applicationCategories,
-                    softwareDescription,
+                    resolvedDescription,
                     ...authors.map(author => author.name),
                     ...similarSoftwares
-                        .map(
-                            similarSoftware =>
-                                similarSoftware.softwareName ??
-                                (similarSoftware.name
-                                    ? resolveLocalizedString(similarSoftware.name)
-                                    : undefined)
+                        .map(similarSoftware =>
+                            resolveLocalizedString(similarSoftware.name)
                         )
                         .map(name =>
                             name === "VSCodium"
@@ -260,6 +254,7 @@ const { filterBySearchMemoized } = (() => {
                     userDeclaration,
                     customAttributes,
                     similarSoftwares,
+                    authors,
                     ...software
                 }) => index.add(software)
             );

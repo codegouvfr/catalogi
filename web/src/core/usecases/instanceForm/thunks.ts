@@ -5,6 +5,7 @@
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
 import type { ApiTypes } from "api";
+import { createResolveLocalizedString } from "i18nifty";
 import { name, actions } from "./state";
 
 export const thunks = {
@@ -43,10 +44,15 @@ export const thunks = {
 
             const softwares = await sillApi.getSoftwareList();
 
+            const { resolveLocalizedString } = createResolveLocalizedString({
+                currentLanguage: "fr",
+                fallbackLanguage: "en"
+            });
+
             const allSillSoftwares = softwares.map(({ name, id, description }) => ({
-                description,
+                description: resolveLocalizedString(description),
                 softwareSillId: id,
-                name
+                name: resolveLocalizedString(name)
             }));
 
             switch (params.type) {
@@ -184,7 +190,12 @@ export const thunks = {
 
             assert(software !== undefined);
 
-            dispatch(actions.formSubmitted({ name: software.name }));
+            const { resolveLocalizedString: resolve } = createResolveLocalizedString({
+                currentLanguage: "fr",
+                fallbackLanguage: "en"
+            });
+
+            dispatch(actions.formSubmitted({ name: resolve(software.name) }));
         },
     returnToPreviousStep:
         () =>

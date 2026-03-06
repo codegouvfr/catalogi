@@ -6,6 +6,7 @@ import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
 import type { ApiTypes } from "api";
 import type { Language } from "api";
+import { createResolveLocalizedString } from "i18nifty";
 import { name, actions, type FormData } from "./state";
 import { selectors as sourceSelectors } from "core/usecases/source.slice";
 
@@ -77,6 +78,11 @@ export const thunks = {
 
                         const softwareList = await sillApi.getSoftwareList();
 
+                        const { resolveLocalizedString } = createResolveLocalizedString({
+                            currentLanguage: "fr",
+                            fallbackLanguage: "en"
+                        });
+
                         dispatch(
                             actions.initializedForUpdate({
                                 softwareSillId: software.id,
@@ -87,9 +93,11 @@ export const thunks = {
                                     },
                                     step2: {
                                         externalId: software.externalId,
-                                        description: software.description,
+                                        description: resolveLocalizedString(
+                                            software.description
+                                        ),
                                         license: software.license,
-                                        name: software.name,
+                                        name: resolveLocalizedString(software.name),
                                         image: software.image,
                                         keywords: software.keywords
                                     },

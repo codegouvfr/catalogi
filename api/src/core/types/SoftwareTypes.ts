@@ -7,7 +7,8 @@ import type {
     SchemaPerson,
     SchemaOrganization,
     SchemaIdentifier,
-    ScholarlyArticle
+    ScholarlyArticle,
+    RepoMetadata
 } from "../adapters/dbApi/kysely/kysely.database";
 import type { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
 import type { Instance } from "../usecases/readWriteSillData/types";
@@ -61,7 +62,8 @@ export type SoftwareData = {
     isLibreSoftware: boolean | undefined;
     referencePublications: ScholarlyArticle[];
     identifiers: SchemaIdentifier[];
-    sameAs: SimilarSoftware[];
+    similarSoftwares: SimilarSoftware[];
+    repoMetadata?: RepoMetadata;
 };
 
 export type Software = SoftwareData & {

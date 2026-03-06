@@ -10,7 +10,7 @@ import { capitalize } from "tsafe/capitalize";
 
 export const { getFormattedDate } = (() => {
     function getFormattedDate(params: {
-        time: number;
+        time: number | string;
         lang: Language;
         doAlwaysShowYear?: boolean;
         showTime?: boolean;
@@ -38,7 +38,7 @@ export const { getFormattedDate } = (() => {
 })();
 
 export function useFormattedDate(params: {
-    time: number;
+    time: number | string;
     doAlwaysShowYear?: boolean;
     showTime?: boolean;
 }): string {
@@ -319,10 +319,10 @@ export const { fromNow } = (() => {
         return { getUnits };
     })();
 
-    function fromNow(params: { dateTime: number; lang: Language }): string {
+    function fromNow(params: { dateTime: number | string; lang: Language }): string {
         const { dateTime, lang } = params;
 
-        const diff = Date.now() - dateTime;
+        const diff = Date.now() - new Date(dateTime).getTime();
         const diffAbs = Math.abs(diff);
         for (const unit of getUnits({ lang })) {
             if (diffAbs < unit.max) {
@@ -339,7 +339,7 @@ export const { fromNow } = (() => {
 })();
 
 export const { useFromNow } = (() => {
-    function useFromNow(params: { dateTime: number | undefined }) {
+    function useFromNow(params: { dateTime: number | string | undefined }) {
         const { dateTime } = params;
 
         if (dateTime === undefined) return { fromNowText: "" };
@@ -368,20 +368,23 @@ export const { useFromNow } = (() => {
     return { useFromNow };
 })();
 
-export const shortEndMonthDate = (params: { time: number; lang: string }): string => {
+export const shortEndMonthDate = (params: {
+    time: number | string;
+    lang: string;
+}): string => {
     const { time, lang } = params;
 
     return new Intl.DateTimeFormat(lang, {
         year: "numeric",
         month: "short"
-    }).format(time);
+    }).format(new Date(time));
 };
 
-export const monthDate = (params: { time: number; lang: string }): string => {
+export const monthDate = (params: { time: number | string; lang: string }): string => {
     const { time, lang } = params;
 
     return new Intl.DateTimeFormat(lang, {
         year: "numeric",
         month: "long"
-    }).format(time);
+    }).format(new Date(time));
 };

@@ -98,7 +98,7 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
                 })
             ],
             providers: [],
-            sameAs: [],
+            similarSoftwares: [],
             dereferencing: undefined,
             customAttributes: undefined,
             userAndReferentCountByOrganization: undefined,

@@ -300,7 +300,7 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
                 ...(repoIdentifer ? [repoIdentifer] : [])
             ],
             providers: [],
-            sameAs: [],
+            similarSoftwares: [],
             dereferencing: undefined,
             customAttributes: undefined,
             userAndReferentCountByOrganization: undefined,

@@ -132,10 +132,10 @@ export default function SoftwareDetails(props: Props) {
                                         customAttributes={software.customAttributes}
                                         registerDate={software.addedTime}
                                         softwareDateCurrentVersion={
-                                            software.latestVersion?.publicationTime
+                                            software.latestVersion?.releaseDate
                                         }
                                         softwareCurrentVersion={
-                                            software.latestVersion?.semVer
+                                            software.latestVersion?.version
                                         }
                                         keywords={software?.keywords}
                                         programmingLanguages={

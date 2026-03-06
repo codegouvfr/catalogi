@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 export function createCompareFn<T>(params: {
-    getWeight: (item: T) => number;
+    getWeight: (item: T) => number | string;
     order: "ascending" | "descending";
     tieBreaker?: (a: T, b: T) => number;
 }) {
@@ -16,13 +16,11 @@ export function createCompareFn<T>(params: {
             return tieBreaker(a, b);
         }
 
-        return (() => {
-            switch (order) {
-                case "ascending":
-                    return wA - wB;
-                case "descending":
-                    return wB - wA;
-            }
-        })();
+        const diff =
+            typeof wA === "string" || typeof wB === "string"
+                ? String(wA).localeCompare(String(wB))
+                : wA - wB;
+
+        return order === "descending" ? -diff : diff;
     };
 }

@@ -26,9 +26,9 @@ export type Props = {
     className?: string;
     name: string;
     softwareCurrentVersion?: string;
-    softwareDateCurrentVersion?: number;
+    softwareDateCurrentVersion?: string;
     description: string;
-    registerDate?: number;
+    registerDate?: string;
     license?: string;
     providers: ApiTypes.Organization[];
     supportedPlatforms: SupportedPlatforms;

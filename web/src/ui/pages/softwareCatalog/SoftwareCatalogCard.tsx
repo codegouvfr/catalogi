@@ -24,8 +24,8 @@ type BaseSoftwareProps = {
     description: string;
     customAttributes?: ApiTypes.CustomAttributes;
     latestVersion?: {
-        semVer?: string;
-        publicationTime?: number;
+        version?: string;
+        releaseDate?: string;
     };
     softwareDetailsLink?: Link;
     declareFormLink?: Link;
@@ -105,7 +105,7 @@ export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
             searchHighlight !== undefined ||
             !ui?.uiConfig.catalog.cardOptions.referentCount
     });
-    const { fromNowText } = useFromNow({ dateTime: latestVersion?.publicationTime });
+    const { fromNowText } = useFromNow({ dateTime: latestVersion?.releaseDate });
 
     return (
         <div className={cx(fr.cx("fr-card"), classes.root, className)}>
@@ -172,11 +172,11 @@ export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
                                         classes.softwareVersionContainer
                                     )}
                                 >
-                                    {latestVersion?.publicationTime &&
+                                    {latestVersion?.releaseDate &&
                                         t("softwareCatalogCard.latestVersion", {
                                             fromNowText
                                         })}
-                                    {latestVersion?.semVer && (
+                                    {latestVersion?.version && (
                                         <span
                                             className={cx(
                                                 fr.cx(
@@ -188,7 +188,7 @@ export const SoftwareCatalogCard = memo(({ className, software }: Props) => {
                                                 classes.badgeVersion
                                             )}
                                         >
-                                            {latestVersion?.semVer}
+                                            {latestVersion?.version}
                                         </span>
                                     )}
                                 </p>

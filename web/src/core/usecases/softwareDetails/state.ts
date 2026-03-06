@@ -57,16 +57,16 @@ export namespace State {
         codeRepositoryUrl: string | undefined;
         latestVersion:
             | {
-                  semVer?: string;
-                  publicationTime?: number;
+                  version?: string;
+                  releaseDate?: string;
               }
             | undefined;
-        addedTime: number;
+        addedTime: string;
         license: string;
         dereferencing:
             | {
                   reason?: string;
-                  time: number;
+                  time: string;
                   lastRecommendedVersion?: string;
               }
             | undefined;
@@ -163,7 +163,7 @@ export const { reducer, actions } = createUsecaseActions({
         },
         unreferencingCompleted: (
             state,
-            { payload }: { payload: { reason: string; time: number } }
+            { payload }: { payload: { reason: string; time: string } }
         ) => {
             const { reason, time } = payload;
 

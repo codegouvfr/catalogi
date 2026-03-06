@@ -15,7 +15,9 @@ export type SupportedPlatforms = {
     isAvailableAsMobileApp?: boolean;
 };
 
-export type Software = ApiTypes.SoftwareInList & {
+export type Software = Omit<ApiTypes.SoftwareInList, "name" | "description"> & {
+    name: string;
+    description: string;
     userDeclaration?: {
         isUser: boolean;
         isReferent: boolean;
@@ -24,7 +26,6 @@ export type Software = ApiTypes.SoftwareInList & {
         searchChars: string[];
         highlightedIndexes: number[];
     };
-    /** String used for search indexing (concatenation of name, description, keywords, etc.) */
     search?: string;
 };
 

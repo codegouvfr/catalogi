@@ -8,7 +8,7 @@ import { assert } from "tsafe/assert";
 import type { ApiTypes } from "api";
 import { createUsecaseContextApi } from "redux-clean-architecture";
 import { Evt } from "evt";
-import { softwareInListToExternalCatalogSoftware } from "core/usecases/softwareCatalog";
+import { createResolveLocalizedString } from "i18nifty";
 import { name, actions, type State } from "./state";
 
 export const thunks = {
@@ -149,7 +149,7 @@ export const thunks = {
 
             dispatch(actions.unreferencingStarted());
 
-            const time = Date.now();
+            const time = new Date().toISOString();
 
             await sillApi.unreferenceSoftware({
                 softwareId: state.software.id,
@@ -171,15 +171,18 @@ function apiSoftwareToSoftware(params: {
 }): State.Software {
     const { apiSoftware, apiInstances, softwareList } = params;
 
+    const { resolveLocalizedString } = createResolveLocalizedString({
+        currentLanguage: "fr",
+        fallbackLanguage: "en"
+    });
+
     const {
         id,
-        name,
         image,
         authors,
         url,
         softwareHelp,
         codeRepositoryUrl,
-        description,
         latestVersion,
         addedTime,
         dereferencing,
@@ -205,12 +208,14 @@ function apiSoftwareToSoftware(params: {
         url,
         softwareHelp,
         codeRepositoryUrl,
-        name,
-        description,
-        latestVersion: {
-            semVer: latestVersion?.semVer ?? "",
-            publicationTime: latestVersion?.publicationTime
-        },
+        name: resolveLocalizedString(apiSoftware.name),
+        description: resolveLocalizedString(apiSoftware.description),
+        latestVersion: latestVersion
+            ? {
+                  version: latestVersion.version ?? "",
+                  releaseDate: latestVersion.releaseDate
+              }
+            : undefined,
         dereferencing,
         providers: providers ?? [],
         referentCount: Object.values(userAndReferentCountByOrganization)
@@ -240,16 +245,16 @@ function apiSoftwareToSoftware(params: {
                     s => s.id === similarSoftware.softwareId
                 );
                 if (catalogSoftware !== undefined) {
-                    const externalSoftware = softwareInListToExternalCatalogSoftware({
-                        softwareList,
-                        softwareName: catalogSoftware.name
-                    });
-                    if (externalSoftware !== undefined) {
-                        return {
-                            isInCatalogi: true as const,
-                            software: externalSoftware
-                        };
-                    }
+                    return {
+                        isInCatalogi: true as const,
+                        software: {
+                            ...catalogSoftware,
+                            name: resolveLocalizedString(catalogSoftware.name),
+                            description: resolveLocalizedString(
+                                catalogSoftware.description
+                            )
+                        }
+                    };
                 }
             }
 

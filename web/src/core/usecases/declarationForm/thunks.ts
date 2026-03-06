@@ -4,6 +4,7 @@
 
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
+import { createResolveLocalizedString } from "i18nifty";
 import { name, actions, type State, type FormData } from "./state";
 
 export const thunks = {
@@ -35,11 +36,16 @@ export const thunks = {
 
             assert(software !== undefined);
 
+            const { resolveLocalizedString } = createResolveLocalizedString({
+                currentLanguage: "fr",
+                fallbackLanguage: "en"
+            });
+
             dispatch(
                 actions.initializationCompleted({
                     software: {
                         image: software.image,
-                        name: software.name,
+                        name: resolveLocalizedString(software.name),
                         softwareId: software.id,
                         referentCount: Object.values(
                             software.userAndReferentCountByOrganization

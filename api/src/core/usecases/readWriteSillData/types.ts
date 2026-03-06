@@ -17,42 +17,42 @@ import type { Os, RuntimePlatform, SimilarSoftware } from "../../types";
 
 export type SoftwareInList = {
     id: number;
-    name: string;
-    description: string;
+    name: LocalizedString;
+    description: LocalizedString;
     image: string | undefined;
-    latestVersion: { semVer: string | undefined; publicationTime: number | undefined } | undefined;
-    addedTime: number;
-    updateTime: number;
+    latestVersion: { version: string | undefined; releaseDate: string | undefined } | undefined;
+    addedTime: string;
+    updateTime: string;
     applicationCategories: string[];
     keywords: string[];
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
     customAttributes: CustomAttributes | undefined;
     programmingLanguages: string[];
-    authors: Array<{ name: string }>;
+    authors: Array<SchemaPerson | SchemaOrganization>;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
-    similarSoftwares: Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>;
+    similarSoftwares: SimilarSoftware[];
 };
 
 export type Software = {
     id: number;
-    name: string;
-    description: string;
+    name: LocalizedString;
+    description: LocalizedString;
     image: string | undefined;
     providers: SchemaOrganization[];
     latestVersion:
         | {
-              semVer?: string;
-              publicationTime?: number;
+              version: string | undefined;
+              releaseDate: string | undefined;
           }
         | undefined;
-    addedTime: number;
-    updateTime: number;
-    dereferencing?:
+    addedTime: string;
+    updateTime: string;
+    dereferencing:
         | {
-              reason?: string;
-              time: number;
-              lastRecommendedVersion?: string;
+              reason: string | undefined;
+              time: string;
+              lastRecommendedVersion: string | undefined;
           }
         | undefined;
     applicationCategories: string[];

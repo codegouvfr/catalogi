@@ -123,7 +123,7 @@ const formatRecordToExternalData = (
             ...(repoIdentifier ? [repoIdentifier] : [])
         ],
         providers: [],
-        sameAs: [],
+        similarSoftwares: [],
         dereferencing: undefined,
         customAttributes: undefined,
         userAndReferentCountByOrganization: undefined,

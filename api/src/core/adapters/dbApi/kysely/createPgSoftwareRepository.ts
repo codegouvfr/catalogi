@@ -6,16 +6,14 @@ import { Kysely, sql } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
-import { LocalizedString } from "../../../ports/GetSoftwareExternalData";
+import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
-import { Database, SchemaPerson, SchemaOrganization } from "./kysely.database";
+import { Database } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
-type SimilarRow = { softwareId: number; linkedSoftwareName: string | null; name: LocalizedString };
-
 const aggregateCounts = (
     countRows: CountRow[]
 ): Record<number, Record<string, { userCount: number; referentCount: number }>> =>
@@ -30,20 +28,6 @@ const aggregateCounts = (
             };
         },
         {} as Record<number, Record<string, { userCount: number; referentCount: number }>>
-    );
-
-const aggregateSimilars = (
-    similarRows: SimilarRow[]
-): Record<number, Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>> =>
-    similarRows.reduce(
-        (acc, row) => ({
-            ...acc,
-            [row.softwareId]: [
-                ...(acc[row.softwareId] ?? []),
-                { softwareName: row.linkedSoftwareName ?? undefined, name: row.name }
-            ]
-        }),
-        {} as Record<number, Array<{ softwareName: string | undefined; name: LocalizedString | undefined }>>
     );
 
 type EnrichedSimilarRow = {
@@ -80,59 +64,69 @@ const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, S
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     return {
         getFullList: async (): Promise<SoftwareInList[]> => {
-            const [softwareRows, userCountRows, referentCountRows, similarRows, externalRows] = await Promise.all([
-                db
-                    .selectFrom("softwares")
-                    .selectAll()
-                    .where("dereferencing", "is", null)
-                    .orderBy("name", "asc")
-                    .execute(),
+            const [softwareRows, userCountRows, referentCountRows, enrichedSimilarRows, externalRows] =
+                await Promise.all([
+                    db
+                        .selectFrom("softwares")
+                        .selectAll()
+                        .where("dereferencing", "is", null)
+                        .orderBy("name", "asc")
+                        .execute(),
 
-                db
-                    .selectFrom("software_users")
-                    .innerJoin("users", "users.id", "software_users.userId")
-                    .select([
-                        "software_users.softwareId",
-                        "users.organization",
-                        sql<string>`'userCount'`.as("countType"),
-                        ({ fn }) => fn.countAll<string>().as("count")
-                    ])
-                    .groupBy(["software_users.softwareId", "users.organization"])
-                    .execute(),
+                    db
+                        .selectFrom("software_users")
+                        .innerJoin("users", "users.id", "software_users.userId")
+                        .select([
+                            "software_users.softwareId",
+                            "users.organization",
+                            sql<string>`'userCount'`.as("countType"),
+                            ({ fn }) => fn.countAll<string>().as("count")
+                        ])
+                        .groupBy(["software_users.softwareId", "users.organization"])
+                        .execute(),
 
-                db
-                    .selectFrom("software_referents")
-                    .innerJoin("users", "users.id", "software_referents.userId")
-                    .select([
-                        "software_referents.softwareId",
-                        "users.organization",
-                        sql<string>`'referentCount'`.as("countType"),
-                        ({ fn }) => fn.countAll<string>().as("count")
-                    ])
-                    .groupBy(["software_referents.softwareId", "users.organization"])
-                    .execute(),
+                    db
+                        .selectFrom("software_referents")
+                        .innerJoin("users", "users.id", "software_referents.userId")
+                        .select([
+                            "software_referents.softwareId",
+                            "users.organization",
+                            sql<string>`'referentCount'`.as("countType"),
+                            ({ fn }) => fn.countAll<string>().as("count")
+                        ])
+                        .groupBy(["software_referents.softwareId", "users.organization"])
+                        .execute(),
 
-                db
-                    .selectFrom("softwares__similar_software_external_datas as sim")
-                    .innerJoin("software_external_datas as ext", join =>
-                        join
-                            .onRef("ext.externalId", "=", "sim.similarExternalId")
-                            .onRef("ext.sourceSlug", "=", "sim.sourceSlug")
-                    )
-                    .leftJoin("softwares as s", "s.id", "ext.softwareId")
-                    .select(["sim.softwareId", "s.name as linkedSoftwareName", "ext.name"])
-                    .execute(),
+                    db
+                        .selectFrom("softwares__similar_software_external_datas as sim")
+                        .innerJoin("software_external_datas as ext", join =>
+                            join
+                                .onRef("ext.externalId", "=", "sim.similarExternalId")
+                                .onRef("ext.sourceSlug", "=", "sim.sourceSlug")
+                        )
+                        .leftJoin("softwares as linkedSoft", "linkedSoft.id", "ext.softwareId")
+                        .select([
+                            "sim.softwareId",
+                            "ext.externalId",
+                            "ext.sourceSlug",
+                            "ext.softwareId as linkedSoftwareId",
+                            "linkedSoft.dereferencing as linkedSoftwareDereferencing",
+                            "ext.name",
+                            "ext.description",
+                            "ext.isLibreSoftware"
+                        ])
+                        .execute(),
 
-                db
-                    .selectFrom("software_external_datas as ext")
-                    .selectAll("ext")
-                    .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
-                    .select(["s.kind", "s.priority", "s.url as sourceUrl", "s.slug"])
-                    .where("ext.softwareId", "is not", null)
-                    .orderBy("ext.softwareId", "asc")
-                    .orderBy("s.priority", "desc")
-                    .execute()
-            ]);
+                    db
+                        .selectFrom("software_external_datas as ext")
+                        .selectAll("ext")
+                        .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
+                        .select(["s.kind", "s.priority", "s.url as sourceUrl", "s.slug"])
+                        .where("ext.softwareId", "is not", null)
+                        .orderBy("ext.softwareId", "asc")
+                        .orderBy("s.priority", "desc")
+                        .execute()
+                ]);
 
             // Aggregate external data by softwareId
             const externalBySoftwareId = externalRows.reduce(
@@ -159,7 +153,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             const countsMap = aggregateCounts(allCountRows);
 
             // Aggregate similar softwares
-            const similarMap = aggregateSimilars(similarRows as SimilarRow[]);
+            const similarMap = aggregateEnrichedSimilars(enrichedSimilarRows as EnrichedSimilarRow[]);
 
             // Combine all data
             return softwareRows.map(software => {
@@ -167,21 +161,18 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 return {
                     id: software.id,
                     name: software.name,
-                    description:
-                        typeof software.description === "string"
-                            ? software.description
-                            : ((software.description as Record<string, string>)?.fr ?? ""),
+                    description: software.description,
                     image: extData?.image ?? software.image ?? undefined,
                     latestVersion: extData?.latestVersion
                         ? {
-                              semVer: extData.latestVersion.version ?? undefined,
-                              publicationTime: extData.latestVersion.releaseDate
-                                  ? new Date(extData.latestVersion.releaseDate).getTime()
-                                  : extData.dateCreated?.getTime()
+                              version: extData.latestVersion.version ?? undefined,
+                              releaseDate:
+                                  extData.latestVersion.releaseDate ??
+                                  (extData.dateCreated ? extData.dateCreated.toISOString().slice(0, 10) : undefined)
                           }
                         : undefined,
-                    addedTime: new Date(software.addedTime).getTime(),
-                    updateTime: new Date(software.updateTime).getTime(),
+                    addedTime: software.addedTime,
+                    updateTime: software.updateTime,
                     applicationCategories: [
                         ...(software.applicationCategories ?? []),
                         ...(extData?.applicationCategories ?? [])
@@ -191,7 +182,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     runtimePlatforms: (software.runtimePlatforms ?? []) as RuntimePlatform[],
                     customAttributes: software.customAttributes ?? undefined,
                     programmingLanguages: extData?.programmingLanguages ?? [],
-                    authors: (extData?.authors ?? []).map(dev => ({ name: dev.name })),
+                    authors: extData?.authors ?? [],
                     userAndReferentCountByOrganization: countsMap[software.id] ?? {},
                     similarSoftwares: similarMap[software.id] ?? []
                 };
@@ -282,48 +273,36 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             return softwareRows.map(softwareRow => {
                 const extData = externalDataRecord[softwareRow.id];
+                const deref = softwareRow.dereferencing;
                 return {
                     id: softwareRow.id,
                     name: softwareRow.name,
-                    description:
-                        typeof softwareRow.description === "string"
-                            ? softwareRow.description
-                            : ((softwareRow.description as Record<string, string>)?.fr ?? ""),
+                    description: softwareRow.description,
                     image: extData?.image ?? softwareRow.image ?? undefined,
                     latestVersion: extData?.latestVersion
                         ? {
-                              semVer: extData.latestVersion.version ?? undefined,
-                              publicationTime: extData.latestVersion.releaseDate
-                                  ? new Date(extData.latestVersion.releaseDate).getTime()
-                                  : extData.dateCreated?.getTime()
+                              version: extData.latestVersion.version ?? undefined,
+                              releaseDate:
+                                  extData.latestVersion.releaseDate ??
+                                  (extData.dateCreated ? extData.dateCreated.toISOString().slice(0, 10) : undefined)
                           }
                         : undefined,
-                    addedTime: new Date(softwareRow.addedTime).getTime(),
-                    updateTime: new Date(softwareRow.updateTime).getTime(),
-                    dereferencing: softwareRow.dereferencing ?? undefined,
+                    addedTime: softwareRow.addedTime,
+                    updateTime: softwareRow.updateTime,
+                    dereferencing: deref
+                        ? {
+                              reason: deref.reason,
+                              time: new Date(deref.time).toISOString(),
+                              lastRecommendedVersion: deref.lastRecommendedVersion
+                          }
+                        : undefined,
                     applicationCategories: [
                         ...(softwareRow.applicationCategories ?? []),
                         ...(extData?.applicationCategories ?? [])
                     ],
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     userAndReferentCountByOrganization: countsMap[softwareRow.id] ?? {},
-                    authors: (extData?.authors ?? []).map((dev): SchemaPerson | SchemaOrganization =>
-                        dev["@type"] === "Person"
-                            ? {
-                                  "@type": "Person",
-                                  name: dev.name,
-                                  url: dev.url,
-                                  identifiers: dev.identifiers,
-                                  affiliations: dev.affiliations
-                              }
-                            : {
-                                  "@type": "Organization",
-                                  name: dev.name,
-                                  url: dev.url,
-                                  identifiers: dev.identifiers,
-                                  parentOrganizations: dev.parentOrganizations
-                              }
-                    ),
+                    authors: extData?.authors ?? [],
                     url: extData?.url ?? undefined,
                     codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
                     softwareHelp: extData?.softwareHelp ?? undefined,
@@ -422,48 +401,37 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 softwareId: row.linkedSoftwareId ?? undefined
             }));
 
+            const deref = softwareRow.dereferencing;
+
             return {
                 id: softwareRow.id,
                 name: softwareRow.name,
-                description:
-                    typeof softwareRow.description === "string"
-                        ? softwareRow.description
-                        : ((softwareRow.description as Record<string, string>)?.fr ?? ""),
+                description: softwareRow.description,
                 image: extData?.image ?? softwareRow.image ?? undefined,
                 latestVersion: extData?.latestVersion
                     ? {
-                          semVer: extData.latestVersion.version ?? undefined,
-                          publicationTime: extData.latestVersion.releaseDate
-                              ? new Date(extData.latestVersion.releaseDate).getTime()
-                              : extData.dateCreated?.getTime()
+                          version: extData.latestVersion.version ?? undefined,
+                          releaseDate:
+                              extData.latestVersion.releaseDate ??
+                              (extData.dateCreated ? extData.dateCreated.toISOString().slice(0, 10) : undefined)
                       }
                     : undefined,
-                addedTime: new Date(softwareRow.addedTime).getTime(),
-                updateTime: new Date(softwareRow.updateTime).getTime(),
-                dereferencing: softwareRow.dereferencing ?? undefined,
+                addedTime: softwareRow.addedTime,
+                updateTime: softwareRow.updateTime,
+                dereferencing: deref
+                    ? {
+                          reason: deref.reason,
+                          time: new Date(deref.time).toISOString(),
+                          lastRecommendedVersion: deref.lastRecommendedVersion
+                      }
+                    : undefined,
                 applicationCategories: [
                     ...(softwareRow.applicationCategories ?? []),
                     ...(extData?.applicationCategories ?? [])
                 ],
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 userAndReferentCountByOrganization,
-                authors: (extData?.authors ?? []).map((dev): SchemaPerson | SchemaOrganization =>
-                    dev["@type"] === "Person"
-                        ? {
-                              "@type": "Person",
-                              name: dev.name,
-                              url: dev.url,
-                              identifiers: dev.identifiers,
-                              affiliations: dev.affiliations
-                          }
-                        : {
-                              "@type": "Organization",
-                              name: dev.name,
-                              url: dev.url,
-                              identifiers: dev.identifiers,
-                              parentOrganizations: dev.parentOrganizations
-                          }
-                ),
+                authors: extData?.authors ?? [],
                 url: extData?.url ?? undefined,
                 codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
                 softwareHelp: extData?.softwareHelp ?? undefined,

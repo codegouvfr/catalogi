@@ -5,6 +5,7 @@
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
 import { exclude } from "tsafe/exclude";
+import { createResolveLocalizedString } from "i18nifty";
 import { name, actions, type State } from "./state";
 
 export const thunks = {
@@ -31,7 +32,12 @@ export const thunks = {
 
             assert(software !== undefined);
 
-            const softwareName = software.name;
+            const { resolveLocalizedString } = createResolveLocalizedString({
+                currentLanguage: "fr",
+                fallbackLanguage: "en"
+            });
+
+            const softwareName = resolveLocalizedString(software.name);
 
             const { users } = await sillApi.getUsers();
 

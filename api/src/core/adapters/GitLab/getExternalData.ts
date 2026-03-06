@@ -78,7 +78,7 @@ export const getGitLabSoftwareExternalData: GetSoftwareExternal = memoize(
                 })
             ],
             providers: [],
-            sameAs: [],
+            similarSoftwares: [],
             dereferencing: undefined,
             customAttributes: undefined,
             userAndReferentCountByOrganization: undefined,

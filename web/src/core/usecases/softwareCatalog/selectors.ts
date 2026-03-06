@@ -170,7 +170,7 @@ const softwares = createSelector(
                         case "latest_version_publication_date":
                             return createCompareFn<Software>({
                                 getWeight: software =>
-                                    software.latestVersion?.publicationTime ?? 0,
+                                    software.latestVersion?.releaseDate ?? "",
                                 order: "descending",
                                 tieBreaker: createCompareFn({
                                     getWeight: software => software.updateTime,
@@ -861,13 +861,4 @@ function filterByAttributeName(params: {
 
         return (software.customAttributes as any)?.[attributeName];
     });
-}
-
-export function softwareInListToExternalCatalogSoftware(params: {
-    softwareList: Software[];
-    softwareName: string;
-}): Software | undefined {
-    const { softwareList, softwareName: targetName } = params;
-
-    return softwareList.find(s => s.name === targetName);
 }

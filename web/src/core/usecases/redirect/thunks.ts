@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import type { Thunks } from "core/bootstrap";
+import { createResolveLocalizedString } from "i18nifty";
 import { actions } from "./state";
 
 export const thunks = {};
@@ -13,12 +14,17 @@ export const protectedThunks = {
         async (...args) => {
             const [dispatch, , { sillApi }] = args;
 
+            const { resolveLocalizedString } = createResolveLocalizedString({
+                currentLanguage: "fr",
+                fallbackLanguage: "en"
+            });
+
             dispatch(
                 actions.initialized({
                     softwareNameBySillId: Object.fromEntries(
                         (await sillApi.getSoftwareList()).map(({ id, name }) => [
                             id,
-                            name
+                            resolveLocalizedString(name)
                         ])
                     )
                 })

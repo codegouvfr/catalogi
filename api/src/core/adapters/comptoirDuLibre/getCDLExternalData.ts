@@ -116,7 +116,7 @@ const formatCDLSoftwareToExternalData = (
             ...(repoIdentifier ? [repoIdentifier] : [])
         ],
         providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers),
-        sameAs: [],
+        similarSoftwares: [],
         dereferencing: undefined,
         customAttributes: undefined,
         userAndReferentCountByOrganization: undefined,

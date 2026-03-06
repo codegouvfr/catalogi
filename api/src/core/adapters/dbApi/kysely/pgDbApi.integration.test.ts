@@ -181,13 +181,12 @@ describe("pgDbApi", () => {
             const actualSoftware = await dbApi.software.getDetails(softwares[0].id);
 
             expectToEqual(actualSoftware, {
-                addedTime: expect.any(Number),
-                updateTime: expect.any(Number),
+                addedTime: expect.any(String),
+                updateTime: expect.any(String),
                 applicationCategories: ["Software Cat I", "Software Cat II"],
                 authors: softwareExternalData.authors.map(dev => ({
                     "@type": "Person" as const,
                     name: dev.name,
-                    "affiliations": undefined,
                     "identifiers": [
                         {
                             "@type": "PropertyValue" as const,
@@ -211,8 +210,8 @@ describe("pgDbApi", () => {
                 externalId: externalIdForSource,
                 keywords: ["bob", "l'éponge"],
                 latestVersion: {
-                    "publicationTime": 1561566581000,
-                    "semVer": "1.0.0"
+                    "releaseDate": "2019-06-26",
+                    "version": "1.0.0"
                 },
                 license: "MIT",
                 image: softwareFormData.image,
@@ -239,7 +238,7 @@ describe("pgDbApi", () => {
                         softwareId: undefined
                     }
                 ],
-                description: "Super software",
+                description: { fr: "Super software" },
                 id: expect.any(Number),
                 name: softwareFormData.name,
                 operatingSystems: {

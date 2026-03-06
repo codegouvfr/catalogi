@@ -17,11 +17,10 @@ import { useWindowInnerSize } from "powerhooks/useWindowInnerSize";
 import { useBreakpointsValues } from "@codegouvfr/react-dsfr/useBreakpointsValues";
 import { SelectNext } from "ui/shared/SelectNext";
 import { LocalizedString } from "../../i18n";
-import { ApiTypes } from "api";
 
 export type Props = {
     className?: string;
-    softwares: ApiTypes.SoftwareInList[];
+    softwares: SoftwareCatalogState.Software[];
     linksBySoftwareName: Record<
         string,
         Record<"softwareDetails" | "declareUsageForm" | "softwareUsersAndReferents", Link>
@@ -215,10 +214,10 @@ function RowVirtualizerDynamicWindow(
     })();
 
     const softwaresGroupedByLine = useMemo(() => {
-        const groupedSoftwares: (ApiTypes.SoftwareInList | undefined)[][] = [];
+        const groupedSoftwares: (SoftwareCatalogState.Software | undefined)[][] = [];
 
         for (let i = 0; i < softwares.length; i += columnCount) {
-            const row: ApiTypes.SoftwareInList[] = [];
+            const row: SoftwareCatalogState.Software[] = [];
 
             for (let j = 0; j < columnCount; j++) {
                 row.push(softwares[i + j]);
