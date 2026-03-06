@@ -175,7 +175,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     latestVersion: extData?.latestVersion
                         ? {
                               semVer: extData.latestVersion.version ?? undefined,
-                              publicationTime: extData.dateCreated?.getTime()
+                              publicationTime: extData.latestVersion.releaseDate
+                                  ? new Date(extData.latestVersion.releaseDate).getTime()
+                                  : extData.dateCreated?.getTime()
                           }
                         : undefined,
                     addedTime: new Date(software.addedTime).getTime(),
@@ -291,7 +293,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     latestVersion: extData?.latestVersion
                         ? {
                               semVer: extData.latestVersion.version ?? undefined,
-                              publicationTime: extData.dateCreated?.getTime()
+                              publicationTime: extData.latestVersion.releaseDate
+                                  ? new Date(extData.latestVersion.releaseDate).getTime()
+                                  : extData.dateCreated?.getTime()
                           }
                         : undefined,
                     addedTime: new Date(softwareRow.addedTime).getTime(),
@@ -429,7 +433,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 latestVersion: extData?.latestVersion
                     ? {
                           semVer: extData.latestVersion.version ?? undefined,
-                          publicationTime: extData.dateCreated?.getTime()
+                          publicationTime: extData.latestVersion.releaseDate
+                              ? new Date(extData.latestVersion.releaseDate).getTime()
+                              : extData.dateCreated?.getTime()
                       }
                     : undefined,
                 addedTime: new Date(softwareRow.addedTime).getTime(),

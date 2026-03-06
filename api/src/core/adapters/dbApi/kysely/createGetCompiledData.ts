@@ -107,11 +107,14 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     image
                 }): CompiledData.Software<"private"> => {
                     const softwareExternalData = mergeExternalData(externalDataBySoftwareId[id] ?? []);
+                    const publicationTime = softwareExternalData?.latestVersion?.releaseDate
+                        ? new Date(softwareExternalData.latestVersion.releaseDate).getTime()
+                        : softwareExternalData?.dateCreated?.valueOf();
                     const version =
-                        softwareExternalData?.latestVersion?.version && softwareExternalData?.dateCreated
+                        softwareExternalData?.latestVersion?.version && publicationTime !== undefined
                             ? {
                                   semVer: softwareExternalData.latestVersion.version,
-                                  publicationTime: softwareExternalData.dateCreated.valueOf()
+                                  publicationTime
                               }
                             : undefined;
 

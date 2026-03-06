@@ -8,7 +8,7 @@ import { getGitLabSoftwareForm } from "./getSoftwareFormData";
 import { getGitLabSoftwareOptions } from "./getSoftwareOptions";
 
 export const gitLabSourceGateway: PrimarySourceGateway = {
-    sourceType: "GitHub",
+    sourceType: "GitLab",
     sourceProfile: "Primary",
     softwareExternal: { getById: getGitLabSoftwareExternalData },
     softwareOptions: { getById: getGitLabSoftwareOptions },
