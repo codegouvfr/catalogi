@@ -14,3 +14,8 @@ helm-charts/*/charts/
 docs/charts/*.tgz
 
 deploy-script-exemple.md
+
+# E2E tests
+e2e/test-results/
+e2e/playwright-report/
+e2e/.auth/

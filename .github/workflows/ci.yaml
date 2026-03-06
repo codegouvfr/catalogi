@@ -50,11 +50,27 @@ jobs:
       - name: Fullcheck
         run: yarn fullcheck
   
+  e2e:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: security-scan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile --ignore-scripts
+      - name: Install Playwright browsers
+        run: cd e2e && npx playwright install --with-deps chromium
+      - name: Run e2e tests
+        run: cd e2e && yarn test:e2e
+
   check_if_version_upgraded:
     name: Check if version upgrade
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: validations
+    needs: [validations, e2e]
     outputs:
       from_version: ${{ steps.step1.outputs.from_version }}
       to_version: ${{ steps.step1.outputs.to_version }}

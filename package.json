@@ -16,6 +16,9 @@
     "job:import-from-inner-identifiers": "turbo job:import-from-inner-identifiers",
     "typecheck": "turbo typecheck",
     "test": "turbo test",
+    "test:e2e": "yarn --cwd e2e test:e2e",
+    "test:e2e:ui": "yarn --cwd e2e test:e2e:ui",
+    "test:e2e:headed": "yarn --cwd e2e test:e2e:headed",
     "format": "turbo format",
     "format:check": "turbo format:check",
     "fullcheck": "turbo typecheck format:check lint test",
@@ -36,6 +39,8 @@
   },
   "workspaces": [
     "api",
-    "web"
-  ]
+    "web",
+    "e2e"
+  ],
+  "dependencies": {}
 }

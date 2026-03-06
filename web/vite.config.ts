@@ -44,7 +44,7 @@ export default defineConfig(async () => {
             port: 3000,
             proxy: {
                 "/api": {
-                    target: "http://localhost:3084",
+                    target: `http://localhost:${process.env.API_PORT || "3084"}`,
                     changeOrigin: true,
                     rewrite: path => path.replace(/^\/api/, "")
                 }

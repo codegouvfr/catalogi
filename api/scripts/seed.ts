@@ -51,10 +51,19 @@ const seed = async () => {
         sub: null
     };
 
+    const testUser: OmitFromExisting<DbUser, "id"> = {
+        email: "test@example.com",
+        about: undefined,
+        isPublic: false,
+        organization: "DINUM",
+        sub: null
+    };
+
     const UCCreateSofware = makeCreateSofware(dbApi);
 
     console.info("Adding user");
     const userId = await dbApi.user.add(someUser);
+    await dbApi.user.add(testUser);
 
     console.info("Adding software packages");
     const softwarePackagesFormData: SoftwareFormData[] = [
