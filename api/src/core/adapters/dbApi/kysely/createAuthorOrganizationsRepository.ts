@@ -47,5 +47,8 @@ export const createPgAuthorOrganisationsRepository = (db: Kysely<Database>): Aut
             output[id] = flatResult.includes(id);
         });
         return output;
+    },
+    flush: async () => {
+        await db.deleteFrom("author_organizations").execute();
     }
 });
