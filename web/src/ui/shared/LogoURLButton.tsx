@@ -7,7 +7,30 @@ import Button from "@codegouvfr/react-dsfr/Button";
 import { ReactNode } from "react";
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
 
-type LogoHandle =
+// Type guard function
+export const isLogoHandle = (value: string): boolean => {
+    const validLogoHandles: LogoHandle[] = [
+        "GitLab",
+        "HAL",
+        "wikidata",
+        "SWH",
+        "Orcid",
+        "doi",
+        "GitHub",
+        "ComptoirDuLibre",
+        "FramaLibre",
+        "CNLL",
+        "Zenodo",
+        "ROR",
+        "GRID",
+        "ISNI",
+        "CROSSREF",
+        "RNSR"
+    ];
+    return validLogoHandles.includes(value as LogoHandle);
+};
+
+export type LogoHandle =
     | "GitLab"
     | "HAL"
     | "wikidata"
@@ -19,16 +42,21 @@ type LogoHandle =
     | "FramaLibre"
     | "CNLL"
     | "Zenodo"
-    | "ROR";
+    | "ROR"
+    | "GRID"
+    | "ISNI"
+    | "CROSSREF"
+    | "RNSR";
 
 export type Props = {
     // from Button
     iconId?: FrIconClassName | RiIconClassName;
     priority?: "primary" | "secondary" | "tertiary" | "tertiary no outline";
+    size?: "small" | "large" | "medium";
     children?: ReactNode;
     className?: string;
     // Specific
-    url: URL | string | undefined;
+    url?: URL | string | undefined;
     labelFromURL?: boolean;
     label?: string;
     type?: LogoHandle;
@@ -85,6 +113,26 @@ const resolveLogoFromURL = (
 
     if (urlString.includes("ror.org")) {
         return resolveLogoFromType("ROR");
+    }
+
+    if (urlString.includes("appliweb.dgri.education.fr/rnsr")) {
+        return resolveLogoFromType("RNSR");
+    }
+
+    if (urlString.includes("rnsr.adc.education.fr")) {
+        return resolveLogoFromType("RNSR");
+    }
+
+    if (urlString.includes("isni.org")) {
+        return resolveLogoFromType("ISNI");
+    }
+
+    if (urlString.includes("grid.org")) {
+        return resolveLogoFromType("GRID");
+    }
+
+    if (urlString.includes("api.crossref.org")) {
+        return resolveLogoFromType("CROSSREF");
     }
 
     return {
@@ -172,7 +220,32 @@ const resolveLogoFromType = (
                 URLlogo: new URL("https://ror.org/img/ror-logo.svg"),
                 textFromURL: "ROR"
             };
-
+        case "GRID":
+            return {
+                URLlogo: new URL(
+                    "https://grid.ac/assets/big-logo-ee7b8b390ece80dc0c59f5c5a46e2fd09c58d0315ebcced04516b91611f141be.svg"
+                ),
+                textFromURL: "GRID"
+            };
+        case "ISNI":
+            return {
+                URLlogo: new URL(
+                    "https://upload.wikimedia.org/wikipedia/commons/4/4e/International_Standard_Name_Identifier.png"
+                ),
+                textFromURL: "ISNI"
+            };
+        case "RNSR":
+            return {
+                URLlogo: new URL(
+                    "https://rnsr.adc.education.fr/assets/img/logo_rnsr.png"
+                ),
+                textFromURL: "RNSR"
+            };
+        case "CROSSREF":
+            return {
+                URLlogo: new URL("https://www.crossref.org/favicon.ico"),
+                textFromURL: "Crossref"
+            };
         default:
             sourceType satisfies never;
             return {
@@ -182,26 +255,77 @@ const resolveLogoFromType = (
     }
 };
 
+const buildUrlFromType = (sourceType: LogoHandle, label: string): string | undefined => {
+    switch (sourceType) {
+        case "HAL":
+            return `https://hal.science/${label}`;
+        case "Orcid":
+            return `https://orcid.org/${label}`;
+        case "wikidata":
+            return `https://www.wikidata.org/wiki/${label}`;
+        case "doi":
+            return `https://orcid.org/${label}`; // TODO
+        case "SWH":
+            return `https://orcid.org/${label}`; // TODO
+        case "GitLab":
+            return `https://orcid.org/${label}`; // TODO
+        case "GitHub":
+            return `https://github.com/${label}`;
+        case "ComptoirDuLibre":
+            return `https://orcid.org/${label}`; // TODO
+        case "FramaLibre":
+            return `https://orcid.org/${label}`; // TODO
+        case "Zenodo":
+            return `https://orcid.org/${label}`; // TODO
+        case "CNLL":
+            return `https://orcid.org/${label}`; // TODO
+        case "ROR":
+            return `https://ror.org/${label}`; // TODO
+        case "ISNI":
+            return `http://isni.org/isni/${label}`;
+        case "CROSSREF":
+            return `https://orcid.org/${label}`; // TODO
+        case "RNSR":
+            return `https://rnsr.adc.education.fr//structure/${label}`;
+        case "GRID":
+            return undefined;
+        default:
+            sourceType satisfies never;
+            return undefined;
+    }
+};
+
 export function LogoURLButton(props: Props) {
     const {
         url,
         label,
         labelFromURL,
         type,
+        size = "medium",
         priority = "primary",
         className,
         iconId
     } = props;
 
-    if (!url) return null;
+    let urlToConvert = !url && type && label ? buildUrlFromType(type, label) : url;
+    console.log({
+        label,
+        type,
+        urlToConvert
+    });
 
-    const urlString = typeof url === "string" ? url : url?.href;
+    const urlString =
+        typeof urlToConvert === "string" ? urlToConvert : urlToConvert?.href;
 
     const { classes } = useStyles();
 
     const getUrlMetadata = () => {
         if (type) return resolveLogoFromType(type);
-        return resolveLogoFromURL(url);
+        if (urlToConvert) return resolveLogoFromURL(urlToConvert);
+        return {
+            URLlogo: undefined,
+            textFromURL: undefined
+        };
     };
 
     const { URLlogo, textFromURL } = getUrlMetadata();
@@ -216,6 +340,7 @@ export function LogoURLButton(props: Props) {
     return (
         <Button
             className={className}
+            size={size}
             priority={priority}
             {...(iconId && !URLlogo ? { iconId: iconId } : { iconId: undefined })}
             linkProps={{

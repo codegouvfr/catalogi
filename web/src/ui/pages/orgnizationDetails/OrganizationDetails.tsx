@@ -33,7 +33,7 @@ export default function organizationDetails(props: Props) {
 
     const filteredSoftware = Array.isArray(org?.producer)
         ? allSoftwares.filter(softwareItem =>
-              org.producer.includes(softwareItem.id.toString())
+              org.producer?.includes(softwareItem.id.toString())
           )
         : [];
 
