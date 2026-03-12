@@ -13,6 +13,14 @@ export type Features = Feature[];
 
 export type SoftwareLink = { externalId: string; softwareId: number; softwareName?: string };
 
+export type SearchOrganizationCriteria = {
+    name?: string;
+    identifer?: {
+        base: string;
+        value: string;
+    }
+}
+
 export interface SourceGateway {
     sourceType: ExternalDataOriginKind;
     software?: {
@@ -25,5 +33,6 @@ export interface SourceGateway {
     };
     organization?: {
         getOrganization: GetAuthorOrganization;
+        searchOrganization: (search: SearchOrganizationCriteria) => Promise<string[] | undefined>
     };
 }
