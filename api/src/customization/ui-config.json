@@ -15,7 +15,7 @@
                 "enabled": true
             },
             "devOrganizations": {
-                "enabled": true
+                "enabled": false
             },
             "addSoftware": {
                 "enabled": true

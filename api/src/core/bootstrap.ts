@@ -21,7 +21,10 @@ import rawUiConfig from "../customization/ui-config.json";
 import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
-import { makeGetAndFetchSoftwareIdsByAuthorOrganization } from "./usecases/getOrganization";
+import {
+    makeGetAndFetchSoftwareIdsByAuthorOrganization,
+    saveAndgetSoftwareIdsByOrganisation
+} from "./usecases/getOrganization";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -89,6 +92,10 @@ export async function bootstrapCore(
             refreshSession: makeRefreshSession({ sessionRepository: dbApi.session, oidcClient })
         }
     };
+
+    if (uiConfig.header.menu.devOrganizations.enabled) {
+        saveAndgetSoftwareIdsByOrganisation({ dbApi });
+    }
 
     return { dbApi, context, useCases, uiConfig };
 }
