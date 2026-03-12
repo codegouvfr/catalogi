@@ -203,6 +203,7 @@ export interface AuthorOrganizationsRepository {
     get: (params: { id: string }) => Promise<SchemaOrganization | undefined>;
     save: (params: { organization: SchemaOrganization }) => Promise<void>;
     checkIfSaved: (params: { ids: Array<string> }) => Promise<Record<string, boolean>>;
+    flush: () => Promise<void>;
 }
 
 export type Session = {

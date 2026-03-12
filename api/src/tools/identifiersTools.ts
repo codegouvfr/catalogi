@@ -414,15 +414,32 @@ export const identifersUtils = {
     }
 };
 
-const compareIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): boolean => {
-    if (id1.value === id2.value && id1.subjectOf?.url === id2.subjectOf?.url) return true;
+export const compareIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): boolean => {
+    if (id1.value === id2.value && id1.subjectOf?.url.toString() === id2.subjectOf?.url.toString()) return true;
     return false;
 };
 
+export const deduplicateIdentifierArray = (arr: SchemaIdentifier[]): SchemaIdentifier[] => {
+    const deduplicated: SchemaIdentifier[] = [];
+
+    for (const identier of arr) {
+        if (!deduplicated.some(identier1 => compareIdentifier(identier1, identier))) {
+            deduplicated.push(identier);
+        }
+    }
+
+    return deduplicated;
+};
+
 export const mergeDepuplicateIdentifierArray = (
-    arr1: SchemaIdentifier[],
-    arr2: SchemaIdentifier[]
+    arr1: SchemaIdentifier[] | undefined,
+    arr2: SchemaIdentifier[] | undefined
 ): SchemaIdentifier[] => {
+    if (!arr1 || arr1.length === 0) {
+        if (!arr2 || arr2.length === 0) return [];
+        return arr2;
+    }
+    if (!arr2 || arr2.length === 0) return arr1;
     const filtered = arr2.filter(identier => !arr1.some(identier1 => compareIdentifier(identier1, identier)));
 
     return arr1.concat(filtered);

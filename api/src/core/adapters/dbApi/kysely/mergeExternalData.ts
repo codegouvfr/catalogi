@@ -5,6 +5,7 @@ import merge from "deepmerge";
 import { DatabaseDataType, PopulatedExternalData } from "../../../ports/DbApiV2";
 import { SchemaIdentifier, SchemaOrganization, SchemaPerson } from "./kysely.database";
 import { mergeArrays } from "../../../utils";
+import { mergeDepuplicateIdentifierArray } from "../../../../tools/identifiersTools";
 
 export const mergeExternalData = (
     externalData: PopulatedExternalData[]
@@ -114,12 +115,7 @@ export const isSameOrganization = (orgA: SchemaOrganization, orgB: SchemaOrganiz
 
 export const mergeOrganizations = (orgA: SchemaOrganization, orgB: SchemaOrganization): SchemaOrganization => {
     // Merge identifiers without duplicates
-    const mergedIdentifiers = [...(orgA.identifiers ?? [])];
-    for (const identifierB of orgB.identifiers ?? []) {
-        if (!isIdentifierInArray(identifierB, mergedIdentifiers)) {
-            mergedIdentifiers.push(identifierB);
-        }
-    }
+    const mergedIdentifiers = mergeDepuplicateIdentifierArray(orgA.identifiers, orgB.identifiers);
 
     // Merge parent organizations without duplicates (optional, depending on your needs)
     const mergedParentOrganizations = orgA.parentOrganizations ?? [];
@@ -130,9 +126,7 @@ export const mergeOrganizations = (orgA: SchemaOrganization, orgB: SchemaOrganiz
     });
 
     return {
-        "@type": "Organization",
-        name: orgA.name,
-        url: orgA.url || orgB.url,
+        ...merge.all<SchemaOrganization>([orgA, orgB]),
         identifiers: mergedIdentifiers,
         parentOrganizations: mergedParentOrganizations
     };
@@ -170,7 +164,7 @@ export const mergeOrganizationArrays = (
 /* App deep merge options */
 const appCustomeMerge = (key: string) => {
     if (key === "developers") {
-        return mergePersonArrays;
+        return (personListA: SchemaPerson[] | undefined, _: SchemaPerson[] | undefined) => personListA;
     }
 };
 
