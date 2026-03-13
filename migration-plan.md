@@ -5,7 +5,7 @@
 | Phase | Description | Status | Branch/PR |
 |-------|-------------|--------|-----------|
 | 1 | yarn → pnpm | DONE | migrate-pnpm-shared-tsx |
-| 2 | tsx for API dev + production | NOT STARTED | |
+| 2 | tsx for API dev | DONE | migrate-pnpm-shared-tsx |
 | 3 | shared package (leaf types) | NOT STARTED | |
 | 4 | expand shared (domain types) | NOT STARTED | |
 
