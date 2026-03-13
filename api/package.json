@@ -6,8 +6,8 @@
         "type": "git",
         "url": "git://github.com/codegouvfr/sill.git"
     },
-    "main": "dist/src/lib/index.js",
-    "types": "dist/src/lib/index.d.ts",
+    "main": "./src/lib/index.ts",
+    "types": "./src/lib/index.ts",
     "scripts": {
         "test": "vitest --watch=false --no-file-parallelism",
         "dev": "dotenv -e ../.env -- tsx watch src/entrypoints/start-api.ts",
