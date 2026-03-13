@@ -2,9 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import fetch from "node-fetch";
 import memoize from "memoizee";
-import * as https from "https";
 import { z } from "zod";
 import { zCnllPrestatairesSill, type GetCnllPrestatairesSill } from "../ports/GetCnllPrestatairesSill";
 
@@ -14,7 +12,7 @@ export const getCnllPrestatairesSill: GetCnllPrestatairesSill = memoize(
     async () => {
         try {
             console.info("Fetching cnll prestataires sill");
-            const res = await fetch(url, { "agent": new https.Agent({ "rejectUnauthorized": false }) });
+            const res = await fetch(url);
 
             if (res.status !== 200) {
                 throw new Error(`Failed to fetch ${url}`);

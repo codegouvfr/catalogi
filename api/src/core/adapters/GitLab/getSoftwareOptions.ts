@@ -8,6 +8,7 @@ import type {
     SoftwareExternalDataOption
 } from "../../ports/GetSoftwareExternalDataOptions";
 import { Source } from "../../usecases/readWriteSillData";
+import { convertSourceConfigToBaseRequestOptions } from "../../../tools/sourceConfig";
 
 const gitLabSoftwareToExternalOption =
     ({ source }: { source: Source }) =>
@@ -26,9 +27,7 @@ export const getGitLabSoftwareOptions: GetSoftwareExternalDataOptions = async ({
 
     console.info(`GitLab doesn't support multi languages, ${language} not used`);
 
-    const api = new Gitlab({
-        host: source.url
-    });
+    const api = new Gitlab(convertSourceConfigToBaseRequestOptions(source));
 
     const result = await api.Projects.all({ search: queryString });
 
