@@ -10,7 +10,7 @@
     "types": "dist/src/lib/index.d.ts",
     "scripts": {
         "test": "vitest --watch=false --no-file-parallelism",
-        "dev": "pnpm build && pnpm start",
+        "dev": "dotenv -e ../.env -- tsx watch src/entrypoints/start-api.ts",
         "generate-translation-schema": "node scripts/generate-translation-schema.js",
         "build": "tsc && cp -r src/customization dist/src/",
         "start": "pnpm db:up --no-outdated-check && dotenv -e ../.env -- node dist/src/entrypoints/start-api.js",
@@ -22,7 +22,7 @@
         "format": "pnpm run _format --write",
         "format:check": "pnpm run _format --list-different",
         "link-in-web": "ts-node --skipProject scripts/link-in-app.ts sill-web",
-        "db:seed": "pnpm build && dotenv -e ../.env -- node dist/scripts/seed.js",
+        "db:seed": "dotenv -e ../.env -- tsx scripts/seed.ts",
         "typecheck": "tsc --noEmit",
         "migrate": "dotenv -e ../.env -- kysely migrate",
         "db:up": "pnpm migrate latest",
@@ -68,6 +68,7 @@
         "superjson": "^1.12.2",
         "ts-node": "^10.9.1",
         "typescript": "^5.7.3",
+        "tsx": "^4.19.0",
         "vitest": "^1.2.2"
     },
     "dependencies": {
