@@ -1,6 +1,5 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import type { ApiTypes } from "api";
-import { AttributeDefinition } from "api/dist/src/core/usecases/readWriteSillData/attributeTypes";
 import { useLang } from "../../i18n";
 import Tooltip from "@mui/material/Tooltip";
 
@@ -65,7 +64,7 @@ const CustomAttributeInCard = ({
 };
 
 const icondComponentByIconName: Record<
-    NonNullable<AttributeDefinition["displayInCardIcon"]>,
+    NonNullable<ApiTypes.AttributeDefinition["displayInCardIcon"]>,
     () => React.ReactElement
 > = {
     computer: () => <i className={fr.cx("fr-icon-computer-line")} />,

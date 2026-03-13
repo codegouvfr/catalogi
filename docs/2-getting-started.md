@@ -10,7 +10,7 @@
 To run the application in local, you need :
 
 - docker and docker-compose, do setup the database, and local keycloak server.
-- nodejs 22 and yarn to run the web application (front and back)
+- nodejs 22 and pnpm to run the web application (front and back)
 
 1. Clone the repository
 
@@ -22,7 +22,7 @@ git clone git@github.com:codegouvfr/catalogi.git
 
 ```bash
 cd catalogi
-yarn install
+pnpm install
 ```
 
 3. Create a `.env` file and set the environment variables as needed. You can copy the `.env.sample` file to start with a template.
@@ -42,13 +42,13 @@ docker compose -f docker-compose.resources.yml up --build -d
 5. load the database with some data by running seed
 
 ```bash
-cd api && yarn db:seed
+cd api && pnpm db:seed
 ```
 
 6. start the frontend and backend in dev
 
 ```bash
-yarn dev # from the root, this will run both the frontend and backend `yarn dev`
+pnpm dev # from the root, this will run both the frontend and backend `pnpm dev`
 ```
 
 The docker-compose.resources.yml will start:

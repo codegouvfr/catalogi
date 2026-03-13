@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { CustomAttributes } from "api/dist/src/core/usecases/readWriteSillData/attributeTypes";
 import { createUsecaseActions } from "redux-clean-architecture";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
@@ -40,7 +39,7 @@ export type FormData = {
         image: string | undefined;
         keywords: string[];
     };
-    step3: CustomAttributes | undefined;
+    step3: ApiTypes.CustomAttributes | undefined;
     step4: {
         similarSoftwares: {
             name: LocalizedString<Language>;

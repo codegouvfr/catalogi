@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { CustomAttributes } from "api/dist/src/core/usecases/readWriteSillData/attributeTypes";
 import { id } from "tsafe/id";
 import { useLang } from "ui/i18n";
 import { useTranslation } from "react-i18next";
@@ -13,7 +12,6 @@ import { capitalize } from "tsafe/capitalize";
 import { useCoreState } from "../../../core";
 import { SupportedPlatforms } from "../../../core/usecases/softwareCatalog";
 import { CnllServiceProviderModal } from "./CnllServiceProviderModal";
-import { Identifier } from "api/dist/src/lib/ApiTypes";
 import { OperatingSystemsTable } from "ui/shared/OperatingSystemsTable";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { ApiTypes } from "api";
@@ -32,7 +30,7 @@ export type Props = {
     license?: string;
     providers: ApiTypes.Organization[];
     supportedPlatforms: SupportedPlatforms;
-    customAttributes: CustomAttributes | undefined;
+    customAttributes: ApiTypes.CustomAttributes | undefined;
     programmingLanguages: string[];
     keywords?: string[];
     applicationCategories: string[];
@@ -96,7 +94,7 @@ export const PreviewTab = (props: Props) => {
             }
             acc.push(identifier);
             return acc;
-        }, [] as Identifier[]);
+        }, [] as ApiTypes.Identifier[]);
 
     return (
         <>

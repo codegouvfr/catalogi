@@ -30,7 +30,7 @@ spec:
                 {{- toYaml .Values.update.securityContext | nindent 16 }}
               image: "{{ .Values.update.image.repository }}:{{ include "catalogi.imageTag" (dict "image" .Values.update.image "root" .) }}"
               imagePullPolicy: {{ .Values.update.image.pullPolicy }}
-              command: ["yarn", "update"]
+              command: ["pnpm", "update"]
               resources:
                 {{- toYaml .Values.update.resources | nindent 16 }}
               env:

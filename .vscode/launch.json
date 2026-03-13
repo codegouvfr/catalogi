@@ -7,8 +7,8 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "yarn dev",
-            "runtimeExecutable": "yarn",
+            "name": "pnpm dev",
+            "runtimeExecutable": "pnpm",
             "cwd": "${workspaceFolder}",
             "runtimeArgs": [
                 "dev"
@@ -18,7 +18,7 @@
             "type": "node",
             "request": "launch",
             "name": "Import Data",
-            "runtimeExecutable": "yarn",
+            "runtimeExecutable": "pnpm",
             "cwd": "${workspaceFolder}/api",
             "runtimeArgs": [
                 "run",
@@ -29,7 +29,7 @@
             "type": "node",
             "request": "launch",
             "name": "Update Data",
-            "runtimeExecutable": "yarn",
+            "runtimeExecutable": "pnpm",
             "cwd": "${workspaceFolder}/api",
             "runtimeArgs": [
                 "run",
@@ -40,7 +40,7 @@
             "type": "node",
             "request": "launch",
             "name": "Fullcheck",
-            "runtimeExecutable": "yarn",
+            "runtimeExecutable": "pnpm",
             "cwd": "${workspaceFolder}",
             "runtimeArgs": [
                 "fullcheck"
@@ -50,7 +50,7 @@
             "type": "node",
             "request": "launch",
             "name": "Import From Inner Identifers",
-            "runtimeExecutable": "yarn",
+            "runtimeExecutable": "pnpm",
             "cwd": "${workspaceFolder}/api",
             "runtimeArgs": [
                 "run",
@@ -61,7 +61,7 @@
             "type": "node",
             "request": "launch",
             "name": "Fullcheck",
-            "runtimeExecutable": "yarn",
+            "runtimeExecutable": "pnpm",
             "cwd": "${workspaceFolder}",
             "runtimeArgs": [
                 "run",
