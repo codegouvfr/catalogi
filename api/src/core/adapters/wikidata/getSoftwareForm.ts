@@ -4,7 +4,9 @@
 
 import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
 import { SoftwareFormData } from "../../usecases/readWriteSillData";
-import { createGetClaimDataValue, fetchEntity, WikidataFetchError } from "./getWikidataSoftware";
+import { makeWikidataAPIAgent } from "./ApiAgent";
+import { WikidataFetchError } from "./ApiAgent/entity";
+import { createGetClaimDataValue } from "./getWikidataSoftware";
 
 export const getWikidataForm: GetSoftwareFormData = async ({
     externalId,
@@ -12,8 +14,10 @@ export const getWikidataForm: GetSoftwareFormData = async ({
 }): Promise<SoftwareFormData | undefined> => {
     try {
         console.info(`   -> fetching wiki soft : ${externalId}`);
+        const wikidataAgent = makeWikidataAPIAgent(source);
+
         const { entity } =
-            (await fetchEntity(externalId).catch(error => {
+            (await wikidataAgent.fetchEntity(externalId).catch(error => {
                 if (error instanceof WikidataFetchError) {
                     if (error.status === 404 || error.status === undefined) {
                         return undefined;
@@ -38,7 +42,7 @@ export const getWikidataForm: GetSoftwareFormData = async ({
             }
 
             console.info(`I   -> fetching wiki license : ${licenseId}`);
-            const { entity } = await fetchEntity(licenseId).catch(() => ({ "entity": undefined }));
+            const { entity } = await wikidataAgent.fetchEntity(licenseId).catch(() => ({ "entity": undefined }));
 
             if (entity === undefined) {
                 return undefined;

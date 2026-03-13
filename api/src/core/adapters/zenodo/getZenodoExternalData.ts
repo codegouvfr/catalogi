@@ -19,7 +19,7 @@ export const getZenodoExternalData: GetSoftwareExternal = memoize(
         if (source.kind !== "Zenodo" && source.url !== "https://zenodo.org/")
             throw new Error(`Not a Zenodo source, was : ${source.kind}`);
 
-        const zenodoApi = makeZenodoApi();
+        const zenodoApi = makeZenodoApi(source);
 
         let record: Zenodo.Record | undefined = undefined;
 

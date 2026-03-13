@@ -3,13 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 import type { GetSoftwareExternalDataOptions } from "../../ports/GetSoftwareExternalDataOptions";
-import fetch from "node-fetch";
 import { freeSoftwareLicensesWikidataIds } from "./getWikidataSoftware";
-
-const useAgent = "Socle interministériel de logiciels libres - Ap";
+import { makeWikidataAPIAgent } from "./ApiAgent";
+import { convertSourceConfigToRequestInit } from "../../../tools/sourceConfig";
 
 export const getWikidataSoftwareOptions: GetSoftwareExternalDataOptions = async ({ queryString, language, source }) => {
     if (source.kind !== "wikidata") throw new Error(`Not a wikidata source, was : ${source.kind}`);
+
+    const wikipediaAgent = makeWikidataAPIAgent(source);
 
     const results: {
         search: {
@@ -23,11 +24,7 @@ export const getWikidataSoftwareOptions: GetSoftwareExternalDataOptions = async 
             `search=${encodeURIComponent(queryString)}`,
             `language=${language}`
         ].join("&"),
-        {
-            "headers": {
-                "User-Agent": useAgent
-            }
-        }
+        convertSourceConfigToRequestInit(source.configuration)
     ).then(response => response.json())) as any;
 
     const arr = results.search.map(entry => ({
@@ -36,7 +33,7 @@ export const getWikidataSoftwareOptions: GetSoftwareExternalDataOptions = async 
         "name": entry.label ?? ""
     }));
 
-    const licensesById = await getLicenses(arr.map(({ id }) => id));
+    const licensesById = await wikipediaAgent.getLicenses(arr.map(({ id }) => id));
 
     return arr.map(({ id, name, description }) => ({
         externalId: id,
@@ -50,44 +47,3 @@ export const getWikidataSoftwareOptions: GetSoftwareExternalDataOptions = async 
         })()
     }));
 };
-
-async function getLicenses(wikidataIds: string[]) {
-    const propertyId = "P275"; // license
-    const wikidataIdString = wikidataIds.map(id => "wd:" + id).join(" ");
-    const query = `SELECT ?item ?itemLabel ?license ?licenseLabel WHERE {
-        VALUES ?item { ${wikidataIdString} }
-        ?item wdt:${propertyId} ?license.
-        SERVICE wikibase:label { bd:serviceParam wikibase:language "en". }
-    }`;
-    const url = `https://query.wikidata.org/sparql?query=${encodeURIComponent(query)}&format=json`;
-    const headers = { "User-Agent": useAgent };
-    const response = await fetch(url, { headers });
-    const data = await response.json();
-
-    // Group the results by the Wikidata ID
-    const groupedData: Record<
-        string,
-        {
-            item: string;
-            itemLabel: string;
-            license: string;
-            licenseLabel: string;
-        }
-    > = {};
-
-    data.results.bindings.forEach((binding: any) => {
-        const wikidataId = binding.item.value.split("/").pop();
-        if (!groupedData[wikidataId]) {
-            groupedData[wikidataId] = {
-                "item": binding.item.value,
-                "itemLabel": binding.itemLabel.value,
-                "license": binding.license.value,
-                "licenseLabel": binding.licenseLabel.value
-            };
-        }
-    });
-
-    return Object.fromEntries(
-        Object.entries(groupedData).map(([wikidataId, { license }]) => [wikidataId, license.split("/").reverse()[0]])
-    );
-}

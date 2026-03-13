@@ -10,14 +10,13 @@ import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { resolveExternalReferenceToProject } from "./api/utils";
+import { convertSourceConfigToBaseRequestOptions } from "../../../tools/sourceConfig";
 
 export const getGitLabSoftwareExternalData: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         if (source.kind !== "GitLab") throw new Error("This source if not compatible with GitLab Adapter");
 
-        const api = new Gitlab({
-            host: source.url
-        });
+        const api = new Gitlab(convertSourceConfigToBaseRequestOptions(source));
 
         const project = await resolveExternalReferenceToProject({ externalId, gitLabApi: api });
         if (!project) return;
