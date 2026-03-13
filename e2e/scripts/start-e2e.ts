@@ -160,7 +160,7 @@ const main = async () => {
 
     console.log("Starting containers and building API in parallel...");
 
-    const apiBuildPromise = execCommand("yarn", ["build"], { cwd: API_DIR });
+    const apiBuildPromise = execCommand("pnpm", ["build"], { cwd: API_DIR });
 
     const pgPromise = new PostgreSqlContainer("postgres:16-alpine").start();
 
@@ -202,7 +202,7 @@ const main = async () => {
 
     try {
         console.log("Running migrations...");
-        await execCommand("yarn", ["migrate", "latest"], { cwd: API_DIR, env: apiEnv });
+        await execCommand("pnpm", ["migrate", "latest"], { cwd: API_DIR, env: apiEnv });
 
         console.log("Seeding database...");
         await execCommand("node", ["dist/scripts/seed.js"], { cwd: API_DIR, env: apiEnv });
