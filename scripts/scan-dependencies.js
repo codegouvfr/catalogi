@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 /**
- * Shai-Hulud 2.0 IOC Scanner for Yarn projects
- * Scans package.json and yarn.lock against DataDog's consolidated IOC list
+ * Shai-Hulud 2.0 IOC Scanner
+ * Scans package.json and pnpm-lock.yaml against DataDog's consolidated IOC list
  */
 
 const fs = require("fs");
@@ -10,7 +10,7 @@ const path = require("path");
 
 const IOC_FILE = "iocs.csv";
 const PACKAGE_JSON_PATHS = ["package.json", "api/package.json", "web/package.json"];
-const YARN_LOCK_PATH = "yarn.lock";
+const PNPM_LOCK_PATH = "pnpm-lock.yaml";
 
 /**
  * Parse IOC CSV file
@@ -63,10 +63,11 @@ function extractDependencies(packageJsonPath) {
 }
 
 /**
- * Parse yarn.lock to get resolved versions
- * Simplified parser - extracts package@version pairs
+ * Parse pnpm-lock.yaml to get resolved versions
+ * Extracts package@version pairs from the packages: section
+ * Format: '  @scope/name@1.2.3:' or '  name@1.2.3:'
  */
-function parseYarnLock(lockPath) {
+function parsePnpmLock(lockPath) {
     if (!fs.existsSync(lockPath)) {
         console.error(`ERROR: ${lockPath} not found`);
         process.exit(1);
@@ -76,31 +77,26 @@ function parseYarnLock(lockPath) {
     const lines = content.split("\n");
     const packages = [];
 
-    let currentPackage = null;
-    let currentVersion = null;
+    let inPackagesSection = false;
 
     for (const line of lines) {
-        // Package declaration line (e.g., "package-name@^1.0.0:")
-        if (line.match(/^[^ ].*:$/)) {
-            const pkgLine = line.slice(0, -1); // Remove trailing :
-            // Extract package name (before @)
-            const atIndex = pkgLine.lastIndexOf("@");
-            if (atIndex > 0) {
-                currentPackage = pkgLine.substring(0, atIndex);
-            }
+        if (line === "packages:") {
+            inPackagesSection = true;
+            continue;
         }
-        // Version line (e.g., "  version "1.2.3"")
-        else if (line.trim().startsWith('version "')) {
-            const versionMatch = line.match(/version "([^"]+)"/);
-            if (versionMatch && currentPackage) {
-                currentVersion = versionMatch[1];
-                packages.push({
-                    name: currentPackage,
-                    version: currentVersion
-                });
-                currentPackage = null;
-                currentVersion = null;
-            }
+
+        if (inPackagesSection && line.length > 0 && !line.startsWith(" ")) {
+            break;
+        }
+
+        if (!inPackagesSection) continue;
+
+        const match = line.match(/^\s{2}'?(@?[^@']+)@([^':]+)'?:/);
+        if (match) {
+            packages.push({
+                name: match[1],
+                version: match[2]
+            });
         }
     }
 
@@ -153,9 +149,9 @@ function scanDependencies() {
         }
     }
 
-    // Parse yarn.lock for resolved versions
-    const resolvedDeps = parseYarnLock(YARN_LOCK_PATH);
-    console.log(`✓ Scanned ${YARN_LOCK_PATH}: ${resolvedDeps.length} resolved packages\n`);
+    // Parse pnpm-lock.yaml for resolved versions
+    const resolvedDeps = parsePnpmLock(PNPM_LOCK_PATH);
+    console.log(`✓ Scanned ${PNPM_LOCK_PATH}: ${resolvedDeps.length} resolved packages\n`);
 
     // Check for matches
     const matches = [];
@@ -167,7 +163,7 @@ function scanDependencies() {
                 matches.push({
                     package: pkg.name,
                     version: pkg.version,
-                    source: "yarn.lock",
+                    source: "pnpm-lock.yaml",
                     ioc: ioc
                 });
             }
