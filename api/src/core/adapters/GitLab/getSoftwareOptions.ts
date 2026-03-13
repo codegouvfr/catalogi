@@ -15,7 +15,7 @@ const gitLabSoftwareToExternalOption =
         return {
             externalId: gitLabItem.id.toString(),
             name: gitLabItem.name,
-            description: gitLabItem.description,
+            description: gitLabItem.description ?? "",
             isLibreSoftware: false,
             sourceSlug: source.slug
         };
