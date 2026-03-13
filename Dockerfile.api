@@ -7,19 +7,20 @@ RUN apk add --no-cache \
       git \
       openssh-client \
       ca-certificates
+RUN corepack enable && corepack prepare pnpm@10.9.0 --activate
 
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY api/package.json api/
 COPY api/update-then-wait.sh api/
 
-RUN yarn install --frozen-lockfile --ignore-scripts
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 COPY turbo.json ./
 COPY api/ api/
 
 WORKDIR /app/api
 RUN chmod +x /app/api/update-then-wait.sh
-RUN yarn build
+RUN pnpm build
 
-CMD ["yarn", "start"]
+CMD ["pnpm", "start"]

@@ -1,0 +1,4 @@
+packages:
+  - api
+  - web
+  - e2e

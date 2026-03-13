@@ -4,15 +4,16 @@
 
 # build step
 FROM node:22-alpine as build
+RUN corepack enable && corepack prepare pnpm@10.9.0 --activate
 WORKDIR /app
-COPY package.json yarn.lock ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY api/package.json api/
 COPY web/package.json web/
 COPY web/public/ web/public/
 COPY web/index.html web/
 
-RUN yarn install --frozen-lockfile --ignore-scripts
-RUN cd web && yarn postinstall
+RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN cd web && pnpm postinstall
 
 COPY turbo.json ./
 COPY api/ api/
@@ -20,7 +21,7 @@ COPY web/src/ web/src/
 COPY web/vite.config.ts web/tsconfig.json web/.env.declaration web/
 
 WORKDIR /app
-RUN yarn build
+RUN pnpm build
 
 WORKDIR /app
 COPY web/nginx.conf web/

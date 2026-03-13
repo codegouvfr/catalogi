@@ -56,7 +56,7 @@ export const getGitLabSoftwareExternalData: GetSoftwareExternal = memoize(
             image: project.avatar_url ?? undefined,
             url: undefined,
             codeRepositoryUrl: project.web_url,
-            softwareHelp: project.readme_url,
+            softwareHelp: project.readme_url ?? undefined,
             license: project.license?.name,
             latestVersion: lastRelease?.tag_name
                 ? { version: lastRelease.tag_name, releaseDate: publicationIso }

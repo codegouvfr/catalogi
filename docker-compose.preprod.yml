@@ -11,7 +11,7 @@ services:
       dockerfile: Dockerfile.api
     env_file: .env
     restart: unless-stopped
-    command: yarn start
+    command: pnpm start
 
   update:
     depends_on:
@@ -23,7 +23,7 @@ services:
     env_file: .env
     restart: always
     # runs every 4 hours (240 minutes)
-    command: yarn update-then-wait 240
+    command: pnpm update-then-wait 240
 
   web:
     depends_on:

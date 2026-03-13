@@ -42,13 +42,13 @@ jobs:
         with:
           node-version: "22"
       - name: Install dependencies
-        run: yarn install --frozen-lockfile --ignore-scripts
+        run: corepack enable && pnpm install --frozen-lockfile
       - name: Build back
-        run: cd api && yarn build
+        run: cd api && pnpm build
       - name: Migrate db
-        run: cd api && yarn migrate latest
+        run: cd api && pnpm migrate latest
       - name: Fullcheck
-        run: yarn fullcheck
+        run: pnpm fullcheck
   
   e2e:
     name: E2E tests
@@ -60,11 +60,11 @@ jobs:
         with:
           node-version: "22"
       - name: Install dependencies
-        run: yarn install --frozen-lockfile --ignore-scripts
+        run: corepack enable && pnpm install --frozen-lockfile
       - name: Install Playwright browsers
         run: cd e2e && npx playwright install --with-deps chromium
       - name: Run e2e tests
-        run: cd e2e && yarn test:e2e
+        run: cd e2e && pnpm test:e2e
 
   check_if_version_upgraded:
     name: Check if version upgrade

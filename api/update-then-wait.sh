@@ -16,8 +16,8 @@ START_DATETIME=$(date "+%Y-%m-%d %H:%M:%S")
 
 echo "Starting update at ${START_DATETIME}"
 # Run the update command
-yarn job:import-from-inner-identifiers
-yarn job:update
+pnpm job:import-from-inner-identifiers
+pnpm job:update
 
 END_DATETIME=$(date "+%Y-%m-%d %H:%M:%S")
 

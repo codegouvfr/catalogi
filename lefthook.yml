@@ -5,18 +5,18 @@
 pre-commit:
   commands:
     format:
-      run: yarn format
+      run: pnpm format
       stage_fixed: true
     sync-helm-version:
       glob: "{package.json,helm-charts/catalogi/Chart.yaml}"
-      run: yarn sync-helm-charts
+      run: pnpm sync-helm-charts
       stage_fixed: true
 
     bump-helm-chart-version:
       glob: "helm-charts/catalogi/**/*"
       # This exclude is critical to prevent an infinite loop.
       exclude: "helm-charts/catalogi/Chart.yaml"
-      run: yarn bump-helm-chart-version
+      run: pnpm bump-helm-chart-version
       stage_fixed: true
 
     stage-chart-yaml:
@@ -24,15 +24,15 @@ pre-commit:
       run: git add helm-charts/catalogi/Chart.yaml
 
     lint:
-      run: yarn turbo lint
+      run: pnpm turbo lint
 
 commit-msg:
   commands:
     commit-msg:
-      run: yarn run commitlint --edit {1}
+      run: pnpm exec commitlint --edit {1}
 
 pre-push:
   parallel: true
   commands:
     format-lint-typecheck:
-      run: yarn turbo format:check lint typecheck
+      run: pnpm turbo format:check lint typecheck
