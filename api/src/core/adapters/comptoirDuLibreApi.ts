@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import fetch from "node-fetch";
 import { type ComptoirDuLibreApi, zComptoirDuLibre } from "../ports/ComptoirDuLibreApi";
 import cheerio, { type CheerioAPI, type Cheerio, type Element } from "cheerio";
 import memoize from "memoizee";

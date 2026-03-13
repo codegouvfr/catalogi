@@ -140,12 +140,19 @@ type SimilarExternalSoftwareExternalDataTable = {
     sourceSlug: string;
 };
 
+export type SourceConfig = {
+    queryTimeout?: number;
+    auth?: string;
+    rateLimitRetryDuration?: number;
+};
+
 type SourcesTable = {
     slug: string;
     kind: ExternalDataOriginKind;
     url: string;
     priority: number;
     description: JSONColumnType<LocalizedString> | null;
+    configuration: JSONColumnType<SourceConfig> | null;
 };
 
 type SoftwareAttributeDefinitionsTable = {
