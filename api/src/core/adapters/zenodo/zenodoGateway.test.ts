@@ -133,7 +133,8 @@ describe.skip("zenodoSourceGateway", () => {
         kind: "Zenodo",
         url: "https://zenodo.org",
         priority: 1,
-        description: undefined
+        description: undefined,
+        configuration: undefined
     };
 
     beforeAll(() => {});
