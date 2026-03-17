@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes <contact-logiciels-catalogue-esr@groupes.renater.fr>
 // SPDX-License-Identifier: MIT
 
 import { type WikidataEntity } from "../../../../tools/WikidataEntity";
@@ -14,8 +14,9 @@ export class WikidataFetchError extends Error {
 export async function fetchEntity(params: {
     wikidataId: string;
     requestInit?: RequestInit;
+    rateLimitRetryDuration?: number;
 }): Promise<{ entity: WikidataEntity }> {
-    const { wikidataId, requestInit = {} } = params;
+    const { wikidataId, requestInit = {}, rateLimitRetryDuration = 5000 } = params;
 
     const res = await fetch(`https://www.wikidata.org/wiki/Special:EntityData/${wikidataId}.json`, requestInit).catch(
         () => undefined
@@ -26,7 +27,7 @@ export async function fetchEntity(params: {
     }
 
     if (res.status === 429) {
-        await new Promise(resolve => setTimeout(resolve, 300));
+        await new Promise(resolve => setTimeout(resolve, rateLimitRetryDuration));
         return fetchEntity(params);
     }
 

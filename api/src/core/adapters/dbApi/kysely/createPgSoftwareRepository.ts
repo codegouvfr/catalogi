@@ -9,7 +9,7 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
-import { Database } from "./kysely.database";
+import { Database, SchemaOrganization, SchemaPerson } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import {
     isSameOrganization,
@@ -694,13 +694,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             }));
         },
         // Alternative index
-        getSoftwareIdsByDeveloper: async ({ search }) => {
+        getSoftwareIdsByAuthors: async ({ search }) => {
             type ResultQ = {
                 softwareId: number | null;
-                developer: SchemaOrganization | SchemaPerson;
+                authors: SchemaOrganization | SchemaPerson;
             }[];
             type ResultFunction = {
-                developer: SchemaOrganization | SchemaPerson;
+                authors: SchemaOrganization | SchemaPerson;
                 softwareIds: number[];
             };
             const resultQuery = await db
@@ -709,7 +709,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     "software_external_datas.softwareId as softwareId",
                     sql<
                         SchemaOrganization | SchemaPerson
-                    >`jsonb_array_elements("software_external_datas"."developers")`.as("developer")
+                    >`jsonb_array_elements("software_external_datas"."authors")`.as("authors")
                 ])
                 .execute();
 
@@ -717,21 +717,21 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             while (resultQuery.length !== 0) {
                 let personA: ResultFunction = {
-                    developer: resultQuery[0].developer,
+                    authors: resultQuery[0].authors,
                     softwareIds: [Number(resultQuery[0].softwareId)]
                 };
                 resultQuery.splice(0, 1);
 
-                if (personA.developer["@type"] === "Person") {
+                if (personA.authors["@type"] === "Person") {
                     resultQuery.reduce(
                         (
                             acc: ResultQ,
-                            val: { softwareId: number | null; developer: SchemaOrganization | SchemaPerson },
+                            val: { softwareId: number | null; authors: SchemaOrganization | SchemaPerson },
                             index: number
                         ) => {
-                            if (val.developer["@type"] === "Person" && personA.developer["@type"] === "Person") {
-                                if (isSamePerson(val.developer, personA.developer)) {
-                                    personA.developer = mergePersons(personA.developer, val.developer);
+                            if (val.authors["@type"] === "Person" && personA.authors["@type"] === "Person") {
+                                if (isSamePerson(val.authors, personA.authors)) {
+                                    personA.authors = mergePersons(personA.authors, val.authors);
                                     personA.softwareIds.push(Number(val.softwareId));
                                     resultQuery.splice(index, 1);
                                 }
@@ -751,28 +751,28 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             if (search) {
                 if (search.name) {
                     const searchCrit = search.name;
-                    result.filter(row => row.developer.name.includes(searchCrit));
+                    result.filter(row => row.authors.name.includes(searchCrit));
                 }
                 if (search.identifier) {
                     const searchCritValue = search.identifier.value;
                     if (search.identifier.key) {
                         const searchCritKey = search.identifier.key;
                         result.filter(row =>
-                            row.developer.identifiers?.some(
+                            row.authors.identifiers?.some(
                                 id =>
                                     id.subjectOf?.additionalType?.includes(searchCritKey) &&
                                     id.value.includes(searchCritValue)
                             )
                         );
                     } else {
-                        result.filter(row => row.developer.identifiers?.some(id => id.value.includes(searchCritValue)));
+                        result.filter(row => row.authors.identifiers?.some(id => id.value.includes(searchCritValue)));
                     }
                 }
             }
 
             return result.map(row => {
                 return {
-                    ...row.developer,
+                    ...row.authors,
                     producer: row.softwareIds.map(a => a.toString())
                 };
             });
@@ -786,11 +786,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             const test = sql<OrganizationRow>`WITH RECURSIVE FlattenedOrganizations AS (
     -- Base case: Select the root affiliations
     SELECT
-        jsonb_array_elements(developer->'affiliations') AS orga,
+        jsonb_array_elements(author->'affiliations') AS orga,
         software_external_datas."softwareId" AS "softwareId"
     FROM
         software_external_datas,
-        jsonb_array_elements(software_external_datas.developers) AS developer
+        jsonb_array_elements(software_external_datas.authors) AS author
         
         UNION ALL
 
@@ -802,8 +802,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
         FlattenedOrganizations AS fo
     WHERE
         fo.orga->'parentOrganizations' IS NOT NULL
-       
-        
 )
 
 SELECT DISTINCT
