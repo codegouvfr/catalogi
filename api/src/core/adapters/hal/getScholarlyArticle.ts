@@ -4,9 +4,10 @@
 
 import { GetScholarlyArticle } from "../../ports/GetScholarlyArticle";
 import { identifersUtils } from "../../../tools/identifiersTools";
-import { halAPIGateway } from "./HalAPI";
+import { makeHalAPIGateway } from "./HalAPI";
 
 export const getScholarlyArticle: GetScholarlyArticle = async halDocId => {
+    const halAPIGateway = makeHalAPIGateway();
     const articleData = await halAPIGateway.article.getById(halDocId).catch(error => {
         if (error.message == "404") return undefined;
         throw error;

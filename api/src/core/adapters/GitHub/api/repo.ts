@@ -33,10 +33,10 @@ const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
     };
 };
 
-export const repoGitHubEndpointMaker = (params: { source: Source }) => {
-    const { source } = params;
+export const repoGitHubEndpointMaker = (params?: { source?: Source }) => {
+    const source = params?.source;
 
-    const octokit = new Octokit(source.configuration?.auth ? { auth: source.configuration.auth } : {});
+    const octokit = new Octokit(source?.configuration?.auth ? { auth: source.configuration.auth } : {});
 
     return {
         repo: {

@@ -9,7 +9,7 @@ import type {
 import { Language } from "../../ports/GetSoftwareExternalData";
 import { Source } from "../../usecases/readWriteSillData";
 import { HAL } from "./HalAPI/types/HAL";
-import { halAPIGateway } from "./HalAPI";
+import { makeHalAPIGateway } from "./HalAPI";
 
 const rawHalSoftwareToExternalOption =
     ({ language, source }: { language: Language; source: Source }) =>
@@ -41,6 +41,7 @@ export const getHalSoftwareOptions: GetSoftwareExternalDataOptions = async ({ qu
     if (source.kind !== "HAL") throw new Error(`Not a HAL source, was : ${source.kind}`);
 
     // todo make something so that we can give the source to the halApiGateway (so that it can be configured, with the correct url)
+    const halAPIGateway = makeHalAPIGateway(source);
     const rawHalSoftwares = await halAPIGateway.software.getAll({ queryString });
     return rawHalSoftwares.map(rawHalSoftwareToExternalOption({ language, source }));
 };
