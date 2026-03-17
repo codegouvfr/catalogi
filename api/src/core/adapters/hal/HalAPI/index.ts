@@ -8,10 +8,32 @@ import { HAL } from "./types/HAL";
 
 const HAL_API_TIMEOUT = 60000;
 
-export const makeHalAPIGateway = (source: Source) => {
+export type HALAPIGateway = {
+    software: {
+        getById: (halDocid: string) => Promise<HAL.API.Software | undefined>;
+        getAll: (params: {
+            queryString?: string | undefined;
+            SWHFilter?: boolean | undefined;
+        }) => Promise<HAL.API.Software[]>;
+        getCodemetaByUrl: (urlSoftwareDoc: string) => Promise<HAL.SoftwareApplication | undefined>;
+    };
+    domain: {
+        getByCode: (code: string) => Promise<HAL.API.Domain | undefined>;
+        gelAll: () => () => Promise<HAL.API.Domain[]>;
+    };
+    structure: {
+        getById: (docid: number) => Promise<HAL.API.Structure | undefined>;
+        getByAcronym: (structureAcronym: string) => Promise<HAL.API.Structure | undefined>;
+    };
+    article: {
+        getById: (articleHalId: string) => Promise<HAL.API.Article | undefined>;
+    };
+};
+
+export const makeHalAPIGateway = (source?: Source): HALAPIGateway => {
     const overLoadedConfig = {
-        ...source.configuration,
-        rateLimitRetryDuration: source.configuration?.rateLimitRetryDuration ?? HAL_API_TIMEOUT
+        ...(source?.configuration ?? {}),
+        rateLimitRetryDuration: source?.configuration?.rateLimitRetryDuration ?? HAL_API_TIMEOUT
     };
 
     const halArticleFieldsToReturn: (keyof HAL.API.Article)[] = ["en_title_s", "fr_title_s", "docid", "title_s"];
@@ -91,7 +113,7 @@ export const makeHalAPIGateway = (source: Source) => {
                 }
 
                 const json = await getHalApiRequest<HAL.API.Software>(url);
-                return json?.response.docs;
+                return json?.response?.docs ?? [];
             },
             getCodemetaByUrl: (urlSoftwareDoc: string) => {
                 const url = `${urlSoftwareDoc}/codemeta`;
