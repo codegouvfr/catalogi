@@ -7,7 +7,7 @@ import { JSDOM } from "jsdom";
 import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
 import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
-import { halAPIGateway } from "./HalAPI";
+import { HALAPIGateway, makeHalAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
 import { crossRefSource } from "./CrossRef";
 import { getScholarlyArticle } from "./getScholarlyArticle";
@@ -17,7 +17,8 @@ import { populateFromDOIIdentifiers } from "../doiResolver";
 import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 const buildParentOrganizationTree = async (
-    structureIdArray: number[] | string[] | undefined
+    structureIdArray: number[] | string[] | undefined,
+    halAPIGateway: HALAPIGateway
 ): Promise<SchemaOrganization[]> => {
     if (!structureIdArray) return [];
 
@@ -33,7 +34,7 @@ const buildParentOrganizationTree = async (
                 "@type": "Organization",
                 "name": structure.name_s,
                 "url": structure.ror_s?.[0] ?? structure.ror_s ?? structure?.url_s,
-                "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i)
+                "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i, halAPIGateway)
             };
         })
     );
@@ -79,6 +80,7 @@ const resolveStructId = (parsedXMLLabel: JSDOM, structAcronym: string) => {
 
 export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
+        const halAPIGateway = makeHalAPIGateway(source);
         const halRawSoftware = await halAPIGateway.software.getById(externalId).catch(error => {
             if (!(error instanceof HAL.API.FetchError)) throw error;
             if (error.status === 404 || error.status === undefined) return;
@@ -88,12 +90,14 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
         if (halRawSoftware === undefined) return;
         if (halRawSoftware.docType_s !== "SOFTWARE") return;
 
-        const sciencesCategories = await Promise.all(
-            halRawSoftware.domainAllCode_s.map(async (code: string): Promise<string> => {
-                const domain = await halAPIGateway.domain.getByCode(code);
-                return domain.en_domain_s;
-            })
-        );
+        const sciencesCategories = (
+            await Promise.all(
+                halRawSoftware.domainAllCode_s.map(async (code: string): Promise<string | undefined> => {
+                    const domain = await halAPIGateway.domain.getByCode(code);
+                    return domain?.en_domain_s;
+                })
+            )
+        ).filter(cat => cat !== undefined);
 
         // AUTOMATED CURATION - URL of Software Notice
         // Isuse because of sub domain name in HAL
@@ -145,7 +149,10 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
                                     "@type": "Organization" as const,
                                     "name": structure.name_s,
                                     "url": structure.ror_s?.[0] ?? structure.ror_s ?? structure?.url_s,
-                                    "parentOrganizations": await buildParentOrganizationTree(structure.parentDocid_i)
+                                    "parentOrganizations": await buildParentOrganizationTree(
+                                        structure.parentDocid_i,
+                                        halAPIGateway
+                                    )
                                 };
                             })
                     );

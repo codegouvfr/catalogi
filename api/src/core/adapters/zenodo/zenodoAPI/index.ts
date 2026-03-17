@@ -8,13 +8,14 @@ import { Zenodo } from "./type";
 
 const ZENODO_API_API_TIMEOUT = 60 * 1000;
 
-export const makeZenodoApi = (source: Source) => {
+export const makeZenodoApi = (source?: Source) => {
     const timeOutBreak = source?.configuration?.rateLimitRetryDuration ?? ZENODO_API_API_TIMEOUT;
 
     const getRecord = async (zenodoRecordId: number): Promise<Zenodo.Record | undefined> => {
         const url = `https://zenodo.org/api/records/${zenodoRecordId}`;
+        const config = source?.configuration ? convertSourceConfigToRequestInit(source.configuration) : {};
 
-        const res = await fetch(url, convertSourceConfigToRequestInit(source.configuration)).catch(err => {
+        const res = await fetch(url, config).catch(err => {
             console.error(err);
             throw new Error(err);
         });
