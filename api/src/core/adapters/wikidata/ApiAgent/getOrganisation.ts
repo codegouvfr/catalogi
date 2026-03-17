@@ -1,133 +1,15 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes <contact-logiciels-catalogue-esr@groupes.renater.fr>
 // SPDX-License-Identifier: MIT
 
 import { SchemaOrganization, SchemaPostalAddress } from "../../dbApi/kysely/kysely.database";
-
-interface WikidataValue {
-    type: string;
-    content?: string | number | { [key: string]: any } | Array<unknown>;
-}
-
-interface WikidataProperty {
-    id: string;
-    data_type: string;
-}
-
-interface WikidataStatement {
-    id: string;
-    rank: string;
-    qualifiers?: Array<{
-        property: WikidataProperty;
-        value: WikidataValue;
-    }>;
-    references?: Array<{
-        hash: string;
-        parts: Array<{
-            property: WikidataProperty;
-            value: WikidataValue;
-        }>;
-    }>;
-    property: WikidataProperty;
-    value: WikidataValue;
-}
-
-interface WikidataStatements {
-    [propertyId: string]: WikidataStatement[];
-}
-
-interface WikidataLabels {
-    [lang: string]: string;
-}
-
-interface WikidataDescriptions {
-    [lang: string]: string;
-}
-
-interface WikidataAliases {
-    [lang: string]: string[];
-}
-
-interface WikidataSitelink {
-    title: string;
-    badges: string[];
-    url: string;
-}
-
-interface WikidataSitelinks {
-    [site: string]: WikidataSitelink;
-}
-
-export interface WikidataEntity {
-    type: string;
-    id: string;
-    labels: WikidataLabels;
-    descriptions: WikidataDescriptions;
-    aliases: WikidataAliases;
-    statements: WikidataStatements;
-    sitelinks: WikidataSitelinks;
-}
-
-export const fetchWikidataEntity = async (entityId: string): Promise<WikidataEntity | undefined> => {
-    const url = `https://www.wikidata.org/w/rest.php/wikibase/v1/entities/items/${entityId}`;
-
-    try {
-        const response = await fetch(url, {
-            headers: {
-                Accept: "application/json"
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data: WikidataEntity = await response.json();
-        return data;
-    } catch (error) {
-        console.error("Erreur lors de la récupération de l'entité Wikidata :", error);
-        return undefined;
-    }
-};
-
-interface WikimediaImageInfo {
-    query: {
-        pages: {
-            [key: string]: {
-                imageinfo?: Array<{ url: string }>;
-            };
-        };
-    };
-}
-
-async function getWikimediaFileUrl(fileName: string): Promise<string> {
-    const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-
-    try {
-        const response = await fetch(apiUrl);
-        if (!response.ok) {
-            throw new Error(`Erreur HTTP: ${response.status}`);
-        }
-        const data: WikimediaImageInfo = await response.json();
-        const pages = data.query.pages;
-        const pageId = Object.keys(pages)[0];
-        const imageInfo = pages[pageId].imageinfo;
-
-        if (!imageInfo || imageInfo.length === 0) {
-            throw new Error("Aucune URL trouvée pour ce fichier.");
-        }
-
-        return imageInfo[0].url;
-    } catch (error) {
-        console.error("Erreur lors de la récupération de l'URL du fichier:", error);
-        throw error;
-    }
-}
+import { fetchRestWikidataEntity, RestWikidataEntity } from "./restApi";
+import { getWikimediaFileUrl } from "./wikimedia";
 
 export const convertWikidataToSchemaOrganization = (params: {
-    organisationEntity: WikidataEntity;
-    streetEntity?: WikidataEntity;
-    countryEntity?: WikidataEntity;
+    organisationEntity: RestWikidataEntity;
+    streetEntity?: RestWikidataEntity;
+    countryEntity?: RestWikidataEntity;
     logoUrl?: string;
 }): SchemaOrganization => {
     const { organisationEntity, streetEntity, countryEntity, logoUrl } = params;
@@ -206,19 +88,27 @@ export const convertWikidataToSchemaOrganization = (params: {
     return organization;
 };
 
-export const getOrganizationFromApi = async (entityId: string): Promise<SchemaOrganization | undefined> => {
-    const org = await fetchWikidataEntity(entityId);
+export const getOrganisationFromApi = async (params: {
+    entityId: string;
+    requestInit?: RequestInit;
+    rateLimitRetryDuration?: number;
+}): Promise<SchemaOrganization | undefined> => {
+    const org = await fetchRestWikidataEntity(params);
     if (!org) return undefined;
 
     const addressEntityId = org?.statements?.P159?.[0].qualifiers?.find(statement => statement.property.id === "P669")
         ?.value.content as string | undefined;
-    const addressEntity = addressEntityId ? await fetchWikidataEntity(addressEntityId) : undefined;
+    const addressEntity = addressEntityId
+        ? await fetchRestWikidataEntity({ ...params, entityId: addressEntityId })
+        : undefined;
 
     const countryWikidataId =
         (addressEntity?.statements?.P17?.[0].value.content as string | undefined) ??
         (org?.statements?.P17?.[0].value.content as string | undefined) ??
         undefined;
-    const countryEntity = countryWikidataId ? await fetchWikidataEntity(countryWikidataId) : undefined;
+    const countryEntity = countryWikidataId
+        ? await fetchRestWikidataEntity({ ...params, entityId: countryWikidataId })
+        : undefined;
 
     // Récupération du logo
     const logoFileName = org.statements?.P154?.[0];
@@ -230,7 +120,7 @@ export const getOrganizationFromApi = async (entityId: string): Promise<SchemaOr
         logoFileName.value.content &&
         typeof logoFileName.value.content === "string"
     ) {
-        logoUrl = await getWikimediaFileUrl(logoFileName.value.content);
+        logoUrl = await getWikimediaFileUrl({ ...params, fileName: logoFileName.value.content });
     }
 
     return convertWikidataToSchemaOrganization({

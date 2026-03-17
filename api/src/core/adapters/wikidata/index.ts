@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { PrimarySourceGateway } from "../../ports/SourceGateway";
-import { getOrganizationFromApi } from "./API Rest/getItem";
-import { searchOrganizationhWikidataItemId } from "./getOrganization";
 import { getWikidataForm } from "./getSoftwareForm";
 import { getWikidataSoftware } from "./getWikidataSoftware";
 import { getWikidataSoftwareOptions } from "./getWikidataSoftwareOptions";
@@ -15,11 +13,4 @@ export const wikidataSourceGateway: PrimarySourceGateway = {
     softwareExternal: { getById: getWikidataSoftware },
     softwareOptions: { getById: getWikidataSoftwareOptions },
     softwareForm: { getById: getWikidataForm }
-};
-
-export const wikidataEndpoint = {
-    organization: {
-        get: getOrganizationFromApi,
-        search: searchOrganizationhWikidataItemId
-    }
 };

@@ -150,7 +150,7 @@ export function createRouter(params: {
             return { referentCount };
         }),
         "getCurrentUser": loggedProcedure.query(({ ctx: { currentUser } }): UserWithId | undefined => currentUser),
-        "getSoftwareIdsByDeveloper": loggedProcedure
+        "getSoftwareIdsByAuthors": loggedProcedure
             .input(
                 z
                     .object({
@@ -165,7 +165,7 @@ export function createRouter(params: {
                     .optional()
             )
             .query(async ({ input }) => {
-                const data = await dbApi.software.getSoftwareIdsByDeveloper({ search: input });
+                const data = await dbApi.software.getSoftwareIdsByAuthors({ search: input });
                 return data;
             }),
         "getSoftwareIdsByOrganisation": loggedProcedure
