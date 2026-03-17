@@ -6,7 +6,7 @@ import { compareIdentifier, deduplicateIdentifierArray } from "../../tools/ident
 import { SchemaIdentifier, SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 import { mergeOrganizations } from "../adapters/dbApi/kysely/mergeExternalData";
 import { rorOrgApi } from "../adapters/ror.org";
-import { wikidataEndpoint } from "../adapters/wikidata";
+import { makeWikidataAPIAgent } from "../adapters/wikidata/ApiAgent";
 import type { DbApiV2, SearchOptions } from "../ports/DbApiV2";
 import { UIOrganization } from "./readWriteSillData";
 
@@ -19,61 +19,66 @@ export const makeGetAndFetchSoftwareIdsByAuthorOrganization = (deps: { dbApi: Db
     return (params: { search?: SearchOptions }) => getSoftwareIdsByOrganisation({ search: params?.search, dbApi });
 };
 
-const fetchWithIdentifer = (identifier: SchemaIdentifier) => {
-    if (!identifier.subjectOf?.additionalType) return;
-
-    switch (identifier.subjectOf.additionalType) {
-        case "ROR":
-            return rorOrgApi.organization.get(identifier.value);
-        case "wikidata":
-            return wikidataEndpoint.organization.get(identifier.value);
-        default:
-            return;
-    }
-};
-
-const batchCatcher = async (identifiers: SchemaIdentifier[]): Promise<SchemaOrganization | undefined> => {
-    const deduplicatedIdentifiers = deduplicateIdentifierArray(identifiers);
-    const organizationFetched = await Promise.all(deduplicatedIdentifiers.map(fetchWithIdentifer));
-
-    if (organizationFetched.length > 0) {
-        const childrenIdentifiers = organizationFetched
-            .map(org => org?.identifiers)
-            .filter(id => id !== undefined)
-            .flat();
-
-        // remove actual ids from children ids
-        const filteredChildenIds = childrenIdentifiers.filter(
-            identier => !deduplicatedIdentifiers.some(identierToRemove => compareIdentifier(identierToRemove, identier))
-        );
-        const moreInfo = filteredChildenIds.length > 0 ? await batchCatcher(filteredChildenIds) : undefined;
-        organizationFetched.push(moreInfo);
-
-        return organizationFetched.reduce((acc, org) => {
-            if (!org) return acc;
-            if (!acc) return org;
-            return mergeOrganizations(org, acc);
-        }, undefined);
-    }
-
-    return undefined;
-};
-
-const fetchRecursivelyOrganisation = async (organisation: SchemaOrganization): Promise<SchemaOrganization> => {
-    if (organisation.identifiers && organisation.identifiers.length > 0) {
-        const mergedFromSources = await batchCatcher(organisation.identifiers);
-        if (mergedFromSources) {
-            return mergeOrganizations(mergedFromSources, organisation);
-        }
-    }
-
-    return {
-        ...organisation,
-        identifiers: organisation.identifiers ? deduplicateIdentifierArray(organisation.identifiers) : []
-    };
-};
-
 const fetchAndSaveOrganization = async (dbApi: DbApiV2, organization: SchemaOrganization): Promise<void> => {
+    const sources = await dbApi.source.getByType({ type: "wikidata" });
+    const source = sources.length > 0 ? sources[0] : undefined;
+    const apiAgent = makeWikidataAPIAgent(source);
+
+    const fetchWithIdentifer = (identifier: SchemaIdentifier) => {
+        if (!identifier.subjectOf?.additionalType) return;
+
+        switch (identifier.subjectOf.additionalType) {
+            case "ROR":
+                return rorOrgApi.organization.get(identifier.value);
+            case "wikidata":
+                return apiAgent.getOrganization(identifier.value);
+            default:
+                return;
+        }
+    };
+
+    const batchCatcher = async (identifiers: SchemaIdentifier[]): Promise<SchemaOrganization | undefined> => {
+        const deduplicatedIdentifiers = deduplicateIdentifierArray(identifiers);
+        const organizationFetched = await Promise.all(deduplicatedIdentifiers.map(fetchWithIdentifer));
+
+        if (organizationFetched.length > 0) {
+            const childrenIdentifiers = organizationFetched
+                .map(org => org?.identifiers)
+                .filter(id => id !== undefined)
+                .flat();
+
+            // remove actual ids from children ids
+            const filteredChildenIds = childrenIdentifiers.filter(
+                identier =>
+                    !deduplicatedIdentifiers.some(identierToRemove => compareIdentifier(identierToRemove, identier))
+            );
+            const moreInfo = filteredChildenIds.length > 0 ? await batchCatcher(filteredChildenIds) : undefined;
+            organizationFetched.push(moreInfo);
+
+            return organizationFetched.reduce((acc, org) => {
+                if (!org) return acc;
+                if (!acc) return org;
+                return mergeOrganizations(org, acc);
+            }, undefined);
+        }
+
+        return undefined;
+    };
+
+    const fetchRecursivelyOrganisation = async (organisation: SchemaOrganization): Promise<SchemaOrganization> => {
+        if (organisation.identifiers && organisation.identifiers.length > 0) {
+            const mergedFromSources = await batchCatcher(organisation.identifiers);
+            if (mergedFromSources) {
+                return mergeOrganizations(mergedFromSources, organisation);
+            }
+        }
+
+        return {
+            ...organisation,
+            identifiers: organisation.identifiers ? deduplicateIdentifierArray(organisation.identifiers) : []
+        };
+    };
+
     return dbApi.authorOrganization.save({
         organization: await fetchRecursivelyOrganisation(organization)
     });

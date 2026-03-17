@@ -5,6 +5,7 @@
 import type {
     Database,
     DatabaseRowOutput,
+    ExternalDataOriginKind,
     SchemaOrganization,
     SchemaPerson
 } from "../adapters/dbApi/kysely/kysely.database";
@@ -98,7 +99,7 @@ export interface SoftwareRepository {
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
     unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
     // Alternative index
-    getSoftwareIdsByDeveloper: (params: { search?: SearchOptions }) => Promise<Array<SchemaPerson | UIOrganization>>;
+    getSoftwareIdsByAuthors: (params: { search?: SearchOptions }) => Promise<Array<SchemaPerson | UIOrganization>>;
     getSoftwareIdsByOrganisation: (params: { search?: SearchOptions }) => Promise<Array<UIOrganization>>;
 }
 
@@ -196,6 +197,7 @@ export interface SourceRepository {
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
+    getByType: (params: { type: ExternalDataOriginKind }) => Promise<DatabaseDataType.SourceRow[]>;
 }
 
 export interface AuthorOrganizationsRepository {
