@@ -185,8 +185,6 @@ export function createSillApi(params: { url: string }): SillApi {
 
             sillApi.getSoftwareList.clear();
         },
-        getSoftwareIdsByDeveloper: params =>
-            trpcClient.getSoftwareIdsByDeveloper.query(params),
         getSoftwareIdsByOrganisation: params =>
             trpcClient.getSoftwareIdsByOrganisation.query(params)
     };

@@ -150,24 +150,6 @@ export function createRouter(params: {
             return { referentCount };
         }),
         "getCurrentUser": loggedProcedure.query(({ ctx: { currentUser } }): UserWithId | undefined => currentUser),
-        "getSoftwareIdsByAuthors": loggedProcedure
-            .input(
-                z
-                    .object({
-                        name: z.string().optional(),
-                        identifier: z
-                            .object({
-                                key: z.string().optional(),
-                                value: z.string()
-                            })
-                            .optional()
-                    })
-                    .optional()
-            )
-            .query(async ({ input }) => {
-                const data = await dbApi.software.getSoftwareIdsByAuthors({ search: input });
-                return data;
-            }),
         "getSoftwareIdsByOrganisation": loggedProcedure
             .input(
                 z
