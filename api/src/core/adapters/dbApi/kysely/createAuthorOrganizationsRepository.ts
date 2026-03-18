@@ -10,7 +10,7 @@ export const createPgAuthorOrganisationsRepository = (db: Kysely<Database>): Aut
     getAll: async (params?: { ids?: Array<string> }) => {
         let query = db.selectFrom("author_organizations").select("organization");
 
-        if (params?.ids) {
+        if (params?.ids && params.ids.length > 0) {
             query = query.where("id", "in", params.ids);
         }
 
