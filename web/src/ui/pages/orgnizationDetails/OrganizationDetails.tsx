@@ -40,8 +40,8 @@ export default function organizationDetails(props: Props) {
     const linksBySoftwareName = useMemo(
         () =>
             Object.fromEntries(
-                filteredSoftware.map(({ softwareName, id }) => [
-                    softwareName,
+                filteredSoftware.map(({ name, id }) => [
+                    name,
                     /* prettier-ignore */
                     {
                         "softwareDetails": routes.softwareDetails({ "id": id }).link,
