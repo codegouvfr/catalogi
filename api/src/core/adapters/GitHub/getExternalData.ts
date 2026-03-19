@@ -8,7 +8,7 @@ import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
 import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
-import { repoGitHubEndpointMaker } from "./api/repo";
+import { gitHubEndpointMaker } from "./api/repo";
 
 export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
@@ -16,7 +16,8 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
 
-        const gitHubApi = repoGitHubEndpointMaker({ source });
+        const configApi = source?.configuration?.auth ? { auth: source?.configuration?.auth } : {};
+        const gitHubApi = gitHubEndpointMaker(configApi);
         if (!gitHubApi) throw new Error("This GitHub url provided doesn't work.");
 
         const repoUrl = externalId.includes("https://github.com") ? externalId : `https://github.com/${externalId}`;

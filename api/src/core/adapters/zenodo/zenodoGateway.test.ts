@@ -141,12 +141,11 @@ describe.skip("zenodoSourceGateway", () => {
 
     it("should have the correct sourceType and sourceProfile", () => {
         expect(zenodoSourceGateway.sourceType).toBe("Zenodo");
-        expect(zenodoSourceGateway.sourceProfile).toBe("Primary");
     });
 
     describe("softwareExternal", () => {
         it("should call getZenodoExternalData when getById is called", async () => {
-            const result = await zenodoSourceGateway.softwareExternal.getById({
+            const result = await zenodoSourceGateway.softwareExtra.getSoftwareExternal({
                 externalId: "15479049",
                 source: zenodoSource
             });
@@ -156,7 +155,7 @@ describe.skip("zenodoSourceGateway", () => {
 
     describe("softwareOptions", () => {
         it("should call getZenodoSoftwareOptions when getById is called", async () => {
-            const result = await zenodoSourceGateway.softwareOptions.getById({
+            const result = await zenodoSourceGateway.software.getSoftwareOptions({
                 source: zenodoSource,
                 queryString: "admtools",
                 language: "en"
@@ -168,7 +167,7 @@ describe.skip("zenodoSourceGateway", () => {
 
     describe("softwareForm", () => {
         it("should call getZenodoSoftwareFormData when getById is called", async () => {
-            const result = await zenodoSourceGateway.softwareForm.getById({
+            const result = await zenodoSourceGateway.software.getSoftwareForm({
                 externalId: "15479049",
                 source: zenodoSource
             });

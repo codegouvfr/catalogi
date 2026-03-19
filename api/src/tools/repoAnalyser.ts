@@ -4,7 +4,7 @@
 
 import { Gitlab } from "@gitbeaker/rest";
 import { SchemaIdentifier } from "../core/adapters/dbApi/kysely/kysely.database";
-import { repoGitHubEndpointMaker } from "../core/adapters/GitHub/api/repo";
+import { gitHubEndpointMaker } from "../core/adapters/GitHub/api/repo";
 import { identifersUtils } from "./identifiersTools";
 import { repoUrlToCleanUrl, resolveExternalReferenceToProject } from "../core/adapters/GitLab/api/utils";
 
@@ -48,7 +48,7 @@ export const repoUrlToIdentifer = async (params: {
 
     switch (repoType) {
         case "GitHub":
-            const api = repoGitHubEndpointMaker();
+            const api = gitHubEndpointMaker();
             const repo = await api.repo.get({ repoUrl });
 
             if (!repo) return;
