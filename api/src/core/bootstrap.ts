@@ -24,7 +24,7 @@ import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalDa
 import {
     makeGetAndFetchSoftwareIdsByAuthorOrganization,
     saveAndgetSoftwareIdsByOrganisation
-} from "./usecases/getOrganization";
+} from "./usecases/getAuthorOrganization";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 

@@ -5,8 +5,9 @@
 import { compareIdentifier, deduplicateIdentifierArray } from "../../tools/identifiersTools";
 import { SchemaIdentifier, SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 import { mergeOrganizations } from "../adapters/dbApi/kysely/mergeExternalData";
-import { rorOrgApi } from "../adapters/ror.org";
-import { makeWikidataAPIAgent } from "../adapters/wikidata/ApiAgent";
+import { rnsrSourceGateway } from "../adapters/RNSR";
+import { rorSourceGateway } from "../adapters/ror.org";
+import { wikidataSourceGateway } from "../adapters/wikidata";
 import type { DbApiV2, SearchOptions } from "../ports/DbApiV2";
 import { UIOrganization } from "./readWriteSillData";
 
@@ -19,19 +20,40 @@ export const makeGetAndFetchSoftwareIdsByAuthorOrganization = (deps: { dbApi: Db
     return (params: { search?: SearchOptions }) => getSoftwareIdsByOrganisation({ search: params?.search, dbApi });
 };
 
-const fetchAndSaveOrganization = async (dbApi: DbApiV2, organization: SchemaOrganization): Promise<void> => {
-    const sources = await dbApi.source.getByType({ type: "wikidata" });
-    const source = sources.length > 0 ? sources[0] : undefined;
-    const apiAgent = makeWikidataAPIAgent(source);
+const logUsecase = "[UC:GetAuthorOrganization]";
 
-    const fetchWithIdentifer = (identifier: SchemaIdentifier) => {
-        if (!identifier.subjectOf?.additionalType) return;
+const fetchAndSaveOrganization = async (dbApi: DbApiV2, organization: SchemaOrganization): Promise<void> => {
+    const sources = await dbApi.source.getAll();
+    const allowedSourceType = ["ROR", "wikidata", "RNSR"];
+    const sourcesIndex = sources.filter(source => allowedSourceType.includes(source.kind));
+
+    const fetchWithIdentifer = async (identifier: SchemaIdentifier): Promise<SchemaOrganization | undefined> => {
+        if (!identifier?.subjectOf?.additionalType) return;
+
+        const type = identifier.subjectOf.additionalType;
+        const source = sourcesIndex.find(source => source.kind === type);
+
+        if (!source) {
+            console.debug(`${logUsecase} You don't have a source set for ${type} type`);
+            return;
+        }
 
         switch (identifier.subjectOf.additionalType) {
             case "ROR":
-                return rorOrgApi.organization.get(identifier.value);
+                return rorSourceGateway.organization.getOrganization({
+                    organizationId: identifier.value,
+                    source
+                });
             case "wikidata":
-                return apiAgent.getOrganization(identifier.value);
+                return wikidataSourceGateway.organization.getOrganization({
+                    organizationId: identifier.value,
+                    source
+                });
+            case "RNSR":
+                return rnsrSourceGateway.organization.getOrganization({
+                    organizationId: identifier.value,
+                    source
+                });
             default:
                 return;
         }
@@ -87,7 +109,7 @@ const fetchAndSaveOrganization = async (dbApi: DbApiV2, organization: SchemaOrga
 // Option 1 : SaveThenGet
 export const saveAndgetSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2; search?: SearchOptions }) => {
     const { dbApi, search = {} } = params;
-    const logIdentifer = "[UC:AuthorOrganization] Save&Get -";
+    const logIdentifer = `${logUsecase} Save&Get -`;
 
     // 1. Request to make link between software and organization
     const softwareIdsByOrg = await dbApi.software.getSoftwareIdsByOrganisation({ search });
@@ -134,7 +156,7 @@ export const getSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2; sea
 // Option 3 : Update = Delete -> Save
 export const updateSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2 }) => {
     const { dbApi } = params;
-    const logIdentifer = "[UC:AuthorOrganization] Update -";
+    const logIdentifer = `${logUsecase} Update -`;
 
     await dbApi.authorOrganization.flush();
     console.debug(`${logIdentifer} Flush table - Done`);

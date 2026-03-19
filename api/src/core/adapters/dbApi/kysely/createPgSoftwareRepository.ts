@@ -818,6 +818,7 @@ FROM
                 softwareIds: number[];
             };
             const result: ResultFunction[] = [];
+            let filtertedResult: ResultFunction[] = [];
 
             while (resultArray.length !== 0) {
                 let orgaRowA: ResultFunction = {
@@ -840,13 +841,15 @@ FROM
             if (search) {
                 if (search.name) {
                     const searchCrit = search.name;
-                    result.filter(row => row.organization.name.includes(searchCrit));
+                    filtertedResult = result.filter(row =>
+                        row.organization.name.toLowerCase().includes(searchCrit.toLowerCase())
+                    );
                 }
                 if (search.identifier) {
                     const searchCritValue = search.identifier.value;
                     if (search.identifier.key) {
                         const searchCritKey = search.identifier.key;
-                        result.filter(row =>
+                        filtertedResult = result.filter(row =>
                             row.organization.identifiers?.some(
                                 id =>
                                     id.subjectOf?.additionalType?.includes(searchCritKey) &&
@@ -854,14 +857,14 @@ FROM
                             )
                         );
                     } else {
-                        result.filter(row =>
+                        filtertedResult = result.filter(row =>
                             row.organization.identifiers?.some(id => id.value.includes(searchCritValue))
                         );
                     }
                 }
             }
 
-            return result.map(row => {
+            return filtertedResult.map(row => {
                 return {
                     ...row.organization,
                     producer: row.softwareIds.map(a => a.toString())
