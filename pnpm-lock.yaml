@@ -112,8 +112,8 @@ importers:
         specifier: ^7.4.2
         version: 7.4.4
       esbuild:
-        specifier: ^0.25.0
-        version: 0.25.12
+        specifier: ^0.27.0
+        version: 0.27.3
       evt:
         specifier: ^2.5.7
         version: 2.5.9
