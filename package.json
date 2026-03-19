@@ -27,8 +27,8 @@
     "bump-helm-chart-version": "node scripts/bump-helm-chart-version.js"
   },
   "devDependencies": {
-    "@commitlint/cli": "^19.8.0",
-    "@commitlint/config-conventional": "^19.8.0",
+    "@commitlint/cli": "^20.0.0",
+    "@commitlint/config-conventional": "^20.0.0",
     "js-yaml": "^4.1.0",
     "lefthook": "^1.10.10",
     "turbo": "^1.12.5"
