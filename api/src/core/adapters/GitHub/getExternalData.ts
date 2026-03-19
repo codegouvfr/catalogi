@@ -16,7 +16,7 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
 
-        const gitHubApi = repoGitHubEndpointMaker({});
+        const gitHubApi = repoGitHubEndpointMaker({ source });
         if (!gitHubApi) throw new Error("This GitHub url provided doesn't work.");
 
         const repoUrl = externalId.includes("https://github.com") ? externalId : `https://github.com/${externalId}`;

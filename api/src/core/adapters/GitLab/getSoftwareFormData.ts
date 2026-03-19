@@ -9,14 +9,13 @@ import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
 import { SoftwareFormData, Source } from "../../usecases/readWriteSillData";
 import { resolveOsAndPlatforms } from "../../utils";
 import { resolveExternalReferenceToProject } from "./api/utils";
+import { convertSourceConfigToBaseRequestOptions } from "../../../tools/sourceConfig";
 
 export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareFormData | undefined> => {
         if (source.kind !== "GitLab") throw new Error("This source if not compatible with GitLab Adapter");
 
-        const api = new Gitlab({
-            host: source.url
-        });
+        const api = new Gitlab(convertSourceConfigToBaseRequestOptions(source));
 
         const project = await resolveExternalReferenceToProject({ externalId, gitLabApi: api });
         if (!project) return;

@@ -4,7 +4,7 @@
 
 import memoize from "memoizee";
 import { SoftwareFormData, Source } from "../../usecases/readWriteSillData";
-import { halAPIGateway } from "./HalAPI";
+import { makeHalAPIGateway } from "./HalAPI";
 import { HAL } from "./HalAPI/types/HAL";
 import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
 import { resolveOsAndPlatforms } from "../../utils";
@@ -13,6 +13,7 @@ export const halRawSoftwareToSoftwareForm = async (
     halSoftware: HAL.API.Software,
     source: Source
 ): Promise<SoftwareFormData> => {
+    const halAPIGateway = makeHalAPIGateway(source);
     const codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(halSoftware.uri_s);
 
     const formData: SoftwareFormData = {
@@ -33,6 +34,7 @@ export const halRawSoftwareToSoftwareForm = async (
 
 export const getHalSoftwareForm: GetSoftwareFormData = memoize(
     async ({ externalId, source }): Promise<SoftwareFormData | undefined> => {
+        const halAPIGateway = makeHalAPIGateway(source);
         const halRawSoftware = await halAPIGateway.software.getById(externalId).catch(error => {
             if (!(error instanceof HAL.API.FetchError)) throw error;
             if (error.status === 404 || error.status === undefined) return;

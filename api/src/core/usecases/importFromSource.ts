@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { DbApiV2 } from "../ports/DbApiV2";
-import { halAPIGateway } from "../adapters/hal/HalAPI";
+import { makeHalAPIGateway } from "../adapters/hal/HalAPI";
 import { makeCreateSofware } from "./createSoftware";
 import { Source } from "./readWriteSillData";
 import { GetSoftwareFormData } from "../ports/GetSoftwareFormData";
@@ -55,9 +55,10 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
 const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]> => {
     switch (source.kind) {
         case "HAL":
+            const halAPIGateway = makeHalAPIGateway(source);
             return (await halAPIGateway.software.getAll({ SWHFilter: true })).map(doc => doc.docid);
         case "Zenodo":
-            const zenodoAPI = makeZenodoApi();
+            const zenodoAPI = makeZenodoApi(source);
             return (await zenodoAPI.records.getAllSoftware()).hits.hits.map(item => item.id.toString());
         case "ComptoirDuLibre":
         case "wikidata":
