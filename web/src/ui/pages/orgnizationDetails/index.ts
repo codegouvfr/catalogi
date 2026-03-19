@@ -2,5 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-export * from "./state";
-export * from "./thunks";
+import { lazy } from "react";
+export * from "./route";
+export const LazyComponent = lazy(() => import("./OrganizationDetails"));

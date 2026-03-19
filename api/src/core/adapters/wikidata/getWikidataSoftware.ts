@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import fetch from "node-fetch";
 import * as cheerio from "cheerio";
 import { assert } from "tsafe/assert";
 import memoize from "memoizee";
@@ -27,6 +26,8 @@ import { Source } from "../../usecases/readWriteSillData";
 import { SchemaOrganization, SchemaPerson } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
+import { makeWikidataAPIAgent } from "./ApiAgent";
+import { WikidataFetchError } from "./ApiAgent/entity";
 
 const { resolveLocalizedString } = createResolveLocalizedString({
     "currentLanguage": id<Language>("en"),
@@ -60,8 +61,10 @@ const lastestVersionClaim = (ent: WikidataEntity) => {
 export const getWikidataSoftware: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
         console.info(`   -> fetching wiki soft : ${source.slug}`);
+        const wikidataAgent = makeWikidataAPIAgent(source);
+
         const { entity } =
-            (await fetchEntity(externalId).catch(error => {
+            (await wikidataAgent.fetchEntity(externalId).catch(error => {
                 if (error instanceof WikidataFetchError) {
                     if (error.status === 404 || error.status === undefined) {
                         return undefined;
@@ -84,7 +87,7 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
             }
 
             console.info(`   -> fetching wiki license : ${licenseId}`);
-            const { entity } = await fetchEntity(licenseId).catch(() => ({ "entity": undefined }));
+            const { entity } = await wikidataAgent.fetchEntity(licenseId).catch(() => ({ "entity": undefined }));
 
             if (entity === undefined) {
                 return undefined;
@@ -93,9 +96,9 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
             return { "label": entity.aliases.en?.[0]?.value, "id": licenseId };
         })();
 
-        const { entity: programmingLanguageEntity } = await fetchEntity(
-            getClaimDataValue<"wikibase-entityid">("P277")[0]?.id
-        ).catch(() => ({ "entity": undefined }));
+        const { entity: programmingLanguageEntity } = await wikidataAgent
+            .fetchEntity(getClaimDataValue<"wikibase-entityid">("P277")[0]?.id)
+            .catch(() => ({ "entity": undefined }));
         const programmingLanguageLabel = programmingLanguageEntity
             ? wikidataSingleLocalizedStringToLocalizedString(programmingLanguageEntity.labels)
             : undefined;
@@ -210,7 +213,7 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
                     ...getClaimDataValue<"wikibase-entityid">("P178")
                 ].map(async ({ id }): Promise<SchemaPerson | SchemaOrganization | undefined> => {
                     console.info(`   -> fetching wiki dev : ${id}`);
-                    const { entity } = await fetchEntity(id).catch(() => ({ "entity": undefined }));
+                    const { entity } = await wikidataAgent.fetchEntity(id).catch(() => ({ "entity": undefined }));
                     if (entity === undefined) {
                         return undefined;
                     }
@@ -337,40 +340,6 @@ function wikidataSingleLocalizedStringToLocalizedString(
     }
 
     return localizedString;
-}
-
-export class WikidataFetchError extends Error {
-    constructor(public readonly status: number | undefined) {
-        super(`Wikidata fetch error status: ${status}`);
-        Object.setPrototypeOf(this, new.target.prototype);
-    }
-}
-
-export async function fetchEntity(wikidataId: string): Promise<{ entity: WikidataEntity }> {
-    const res = await fetch(`https://www.wikidata.org/wiki/Special:EntityData/${wikidataId}.json`).catch(
-        () => undefined
-    );
-
-    if (res === undefined) {
-        throw new WikidataFetchError(undefined);
-    }
-
-    if (res.status === 429) {
-        await new Promise(resolve => setTimeout(resolve, 300));
-        return fetchEntity(wikidataId);
-    }
-
-    if (res.status === 404) {
-        throw new WikidataFetchError(res.status);
-    }
-
-    const json = await res.json();
-
-    const entity = Object.values(json["entities"])[0] as WikidataEntity;
-
-    console.info(`   -> fetched wiki soft : ${entity.aliases.en?.[0]?.value || entity.aliases.fr?.[0]?.value}`);
-
-    return { entity };
 }
 
 export function createGetClaimDataValue(params: { entity: WikidataEntity }) {
