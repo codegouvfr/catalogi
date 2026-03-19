@@ -4,7 +4,6 @@
 
 import { Octokit } from "@octokit/rest";
 import { Endpoints } from "@octokit/types";
-import { Source } from "../../../usecases/readWriteSillData";
 
 export namespace GitHubAPI {
     export type Commit = Endpoints["GET /repos/{owner}/{repo}/commits/{ref}"]["response"]["data"];
@@ -33,10 +32,8 @@ const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
     };
 };
 
-export const repoGitHubEndpointMaker = (params?: { source?: Source }) => {
-    const source = params?.source;
-
-    const octokit = new Octokit(source?.configuration?.auth ? { auth: source.configuration.auth } : {});
+export const gitHubEndpointMaker = (params?: { auth?: string }) => {
+    const octokit = new Octokit(params?.auth ? { auth: params.auth } : {});
 
     return {
         repo: {

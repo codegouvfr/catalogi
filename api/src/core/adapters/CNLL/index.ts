@@ -2,20 +2,25 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { SecondarySourceGateway } from "../../ports/SourceGateway";
+import { SourceGateway } from "../../ports/SourceGateway";
 import { getCNLLSoftwareExternalData } from "./getExternalData";
 import { getCnllPrestatairesSill } from "../getCnllPrestatairesSill";
 
-export const cnllSourceGateway: SecondarySourceGateway = {
-    sourceType: "ComptoirDuLibre",
-    sourceProfile: "Secondary",
-    softwareExternal: { getById: getCNLLSoftwareExternalData },
-    discoverSoftwareLinks: async () => {
-        const cnllProviders = await getCnllPrestatairesSill();
-        return cnllProviders.map(provider => ({
-            externalId: provider.sill_id.toString(),
-            softwareId: provider.sill_id,
-            softwareName: provider.nom
-        }));
+export type CNLLGateway = SourceGateway & {
+    softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
+};
+
+export const cnllSourceGateway: CNLLGateway = {
+    sourceType: "CNLL",
+    softwareExtra: {
+        getSoftwareExternal: getCNLLSoftwareExternalData,
+        getDiscoverSoftwareLinks: async () => {
+            const cnllProviders = await getCnllPrestatairesSill();
+            return cnllProviders.map(provider => ({
+                externalId: provider.sill_id.toString(),
+                softwareId: provider.sill_id,
+                softwareName: provider.nom
+            }));
+        }
     }
 };

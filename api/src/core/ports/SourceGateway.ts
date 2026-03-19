@@ -7,21 +7,19 @@ import { GetSoftwareExternal } from "./GetSoftwareExternal";
 import { GetSoftwareExternalDataOptions } from "./GetSoftwareExternalDataOptions";
 import { GetSoftwareFormData } from "./GetSoftwareFormData";
 
+export type Feature = "software" | "softwareExtra";
+export type Features = Feature[];
+
 export type SoftwareLink = { externalId: string; softwareId: number; softwareName?: string };
 
-export type BaseSourceGateway = {
-    sourceProfile: "Primary" | "Secondary";
+export interface SourceGateway {
     sourceType: ExternalDataOriginKind;
-    softwareExternal: { getById: GetSoftwareExternal };
-    discoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
-};
-
-export type PrimarySourceGateway = BaseSourceGateway & {
-    sourceProfile: "Primary";
-    softwareOptions: { getById: GetSoftwareExternalDataOptions };
-    softwareForm: { getById: GetSoftwareFormData };
-};
-
-export type SecondarySourceGateway = BaseSourceGateway & {
-    sourceProfile: "Secondary";
-};
+    software?: {
+        getSoftwareOptions: GetSoftwareExternalDataOptions;
+        getSoftwareForm: GetSoftwareFormData;
+    };
+    softwareExtra?: {
+        getSoftwareExternal: GetSoftwareExternal;
+        getDiscoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
+    };
+}

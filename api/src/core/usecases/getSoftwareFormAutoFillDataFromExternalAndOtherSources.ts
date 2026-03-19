@@ -30,9 +30,12 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
         const { comptoirDuLibreApi } = context;
 
         const mainSource = await context.dbApi.source.getMainSource();
+        const gateway = resolveAdapterFromSource(mainSource);
+        if (!gateway.softwareExtra?.getSoftwareExternal)
+            throw new Error(`getSoftwareExternal not implemented on ${mainSource.kind}`);
 
         const [softwareExternal, comptoirDuLibre] = await Promise.all([
-            resolveAdapterFromSource(mainSource).softwareExternal.getById({ externalId, source: mainSource }),
+            gateway.softwareExtra.getSoftwareExternal({ externalId, source: mainSource }),
             comptoirDuLibreApi.getComptoirDuLibre()
         ]);
 

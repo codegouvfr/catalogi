@@ -2,15 +2,23 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { PrimarySourceGateway } from "../../ports/SourceGateway";
+import { SourceGateway } from "../../ports/SourceGateway";
 import { getGitHubSoftwareExternalData } from "./getExternalData";
 import { getGitHubSoftwareFOrm } from "./getSofrwareFormData";
 import { getGitHubSoftwareOptions } from "./getSoftwareOptions";
 
-export const gitHubSourceGateway: PrimarySourceGateway = {
+export type GitHubGateway = SourceGateway & {
+    softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
+    software: NonNullable<SourceGateway["software"]>;
+};
+
+export const gitHubSourceGateway: GitHubGateway = {
     sourceType: "GitHub",
-    sourceProfile: "Primary",
-    softwareExternal: { getById: getGitHubSoftwareExternalData },
-    softwareOptions: { getById: getGitHubSoftwareOptions },
-    softwareForm: { getById: getGitHubSoftwareFOrm }
+    software: {
+        getSoftwareForm: getGitHubSoftwareFOrm,
+        getSoftwareOptions: getGitHubSoftwareOptions
+    },
+    softwareExtra: {
+        getSoftwareExternal: getGitHubSoftwareExternalData
+    }
 };

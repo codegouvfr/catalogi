@@ -2,15 +2,23 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { PrimarySourceGateway } from "../../ports/SourceGateway";
+import { SourceGateway } from "../../ports/SourceGateway";
 import { getZenodoExternalData } from "./getZenodoExternalData";
 import { getZenodoSoftwareFormData } from "./getZenodoSoftwareForm";
 import { getZenodoSoftwareOptions } from "./getZenodoSoftwareOptions";
 
-export const zenodoSourceGateway: PrimarySourceGateway = {
+export type ZenodoGateway = SourceGateway & {
+    softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
+    software: NonNullable<SourceGateway["software"]>;
+};
+
+export const zenodoSourceGateway: ZenodoGateway = {
     sourceType: "Zenodo",
-    sourceProfile: "Primary",
-    softwareExternal: { getById: getZenodoExternalData },
-    softwareOptions: { getById: getZenodoSoftwareOptions },
-    softwareForm: { getById: getZenodoSoftwareFormData }
+    software: {
+        getSoftwareForm: getZenodoSoftwareFormData,
+        getSoftwareOptions: getZenodoSoftwareOptions
+    },
+    softwareExtra: {
+        getSoftwareExternal: getZenodoExternalData
+    }
 };

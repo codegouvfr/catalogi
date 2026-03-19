@@ -2,15 +2,23 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { PrimarySourceGateway } from "../../ports/SourceGateway";
+import { SourceGateway } from "../../ports/SourceGateway";
 import { getWikidataForm } from "./getSoftwareForm";
 import { getWikidataSoftware } from "./getWikidataSoftware";
 import { getWikidataSoftwareOptions } from "./getWikidataSoftwareOptions";
 
-export const wikidataSourceGateway: PrimarySourceGateway = {
+export type WikidataGateway = SourceGateway & {
+    softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
+    software: NonNullable<SourceGateway["software"]>;
+};
+
+export const wikidataSourceGateway: WikidataGateway = {
     sourceType: "wikidata",
-    sourceProfile: "Primary",
-    softwareExternal: { getById: getWikidataSoftware },
-    softwareOptions: { getById: getWikidataSoftwareOptions },
-    softwareForm: { getById: getWikidataForm }
+    software: {
+        getSoftwareOptions: getWikidataSoftwareOptions,
+        getSoftwareForm: getWikidataForm
+    },
+    softwareExtra: {
+        getSoftwareExternal: getWikidataSoftware
+    }
 };
