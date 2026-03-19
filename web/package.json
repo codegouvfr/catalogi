@@ -24,7 +24,7 @@
         "@mui/icons-material": "^5.15.14",
         "@mui/material": "^5.13.3",
         "@sentry/react": "^10.23.0",
-        "@tanstack/react-virtual": "3.0.0-beta.39",
+        "@tanstack/react-virtual": "3.13.22",
         "@trpc/client": "^10.18.0",
         "@types/react-form": "^4.0.2",
         "@uiw/react-md-editor": "^3.23.5",

@@ -190,8 +190,8 @@ importers:
         specifier: ^10.23.0
         version: 10.43.0(react@18.3.1)
       '@tanstack/react-virtual':
-        specifier: 3.0.0-beta.39
-        version: 3.0.0-beta.39(react@18.3.1)
+        specifier: 3.13.22
+        version: 3.13.22(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       '@trpc/client':
         specifier: ^10.18.0
         version: 10.45.4(@trpc/server@10.45.4)
@@ -1990,13 +1990,14 @@ packages:
     peerDependencies:
       '@svgr/core': '*'
 
-  '@tanstack/react-virtual@3.0.0-beta.39':
-    resolution: {integrity: sha512-odun31XKT4gQyJXw0ipsNmXL7AAO+mbg2omoxZyW+JJyqU5m1S3BeLpZQKMCv+Ek59mPGeGWPZXxaZd7TalnHg==}
+  '@tanstack/react-virtual@3.13.22':
+    resolution: {integrity: sha512-EaOrBBJLi3M0bTMQRjGkxLXRw7Gizwntoy5E2Q2UnSbML7Mo2a1P/Hfkw5tw9FLzK62bj34Jl6VNbQfRV6eJcA==}
     peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+      react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-  '@tanstack/virtual-core@3.0.0-beta.39':
-    resolution: {integrity: sha512-VZ1ESIo+PAPOsxqGzccFPWDD/gsJAViSTU6glhd5pLSMkYDsmtdklfYrE3bWLC3dsbLWI689yzpLgh436v26mQ==}
+  '@tanstack/virtual-core@3.13.22':
+    resolution: {integrity: sha512-isuUGKsc5TAPDoHSbWTbl1SCil54zOS2MiWz/9GCWHPUQOvNTQx8qJEWC7UWR0lShhbK0Lmkcf0SZYxvch7G3g==}
 
   '@testcontainers/postgresql@10.28.0':
     resolution: {integrity: sha512-NN25rruG5D4Q7pCNIJuHwB+G85OSeJ3xHZ2fWx0O6sPoPEfCYwvpj8mq99cyn68nxFkFYZeyrZJtSFO+FnydiA==}
@@ -7538,12 +7539,13 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@tanstack/react-virtual@3.0.0-beta.39(react@18.3.1)':
+  '@tanstack/react-virtual@3.13.22(react-dom@18.3.1(react@18.3.1))(react@18.3.1)':
     dependencies:
-      '@tanstack/virtual-core': 3.0.0-beta.39
+      '@tanstack/virtual-core': 3.13.22
       react: 18.3.1
+      react-dom: 18.3.1(react@18.3.1)
 
-  '@tanstack/virtual-core@3.0.0-beta.39': {}
+  '@tanstack/virtual-core@3.13.22': {}
 
   '@testcontainers/postgresql@10.28.0':
     dependencies:
