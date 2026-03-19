@@ -15,7 +15,7 @@ import { InitiateAuth } from "./auth/initiateAuth";
 import { HandleAuthCallback } from "./auth/handleAuthCallback";
 import { InitiateLogout } from "./auth/logout";
 import { RefreshSession } from "./auth/refreshSession";
-import { GetAndFetchSoftwareIdsByAuthorOrganization } from "./getOrganization";
+import { GetAndFetchSoftwareIdsByAuthorOrganization } from "./getAuthorOrganization";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;

@@ -162,7 +162,16 @@ type InstancesTable = {
 };
 
 type ExternalId = string;
-export type ExternalDataOriginKind = "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo" | "GitHub" | "GitLab";
+export type ExternalDataOriginKind =
+    | "wikidata"
+    | "HAL"
+    | "ComptoirDuLibre"
+    | "CNLL"
+    | "Zenodo"
+    | "GitHub"
+    | "GitLab"
+    | "RNSR"
+    | "ROR";
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 

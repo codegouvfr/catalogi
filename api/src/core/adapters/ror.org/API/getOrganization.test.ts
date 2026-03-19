@@ -1,13 +1,19 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { fetchRorOrganizationById } from "./getOrganization";
-import { describe, expect, it } from "vitest";
+import { makeRorOrgApi, RorSource } from "./index";
+import { describe, expect, it, beforeAll } from "vitest";
 
 describe("fetchRorOrganizationById - Integration Tests", () => {
+    let rorApiAgent: RorSource;
+
+    beforeAll(async () => {
+        rorApiAgent = makeRorOrgApi();
+    });
+
     it("should return a SchemaOrganization for a valid ROR ID", async () => {
-        const result = await fetchRorOrganizationById("02feahw73");
+        const result = await rorApiAgent.organization.get("02feahw73");
 
         expect(result).not.toBeNull();
 
@@ -79,7 +85,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
     });
 
     it("should return a SchemaOrganization for a valid ROR ID", async () => {
-        const result = await fetchRorOrganizationById("03cwzta72");
+        const result = await rorApiAgent.organization.get("03cwzta72");
 
         expect(result).not.toBeNull();
 
@@ -139,13 +145,13 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
     });
 
     it("should return null for an invalid ROR ID", async () => {
-        const result = await fetchRorOrganizationById("invalidRorId");
+        const result = await rorApiAgent.organization.get("invalidRorId");
 
         expect(result).toBeUndefined();
     });
 
     it("should handle API errors gracefully", async () => {
-        const result = await fetchRorOrganizationById("malformed_id");
+        const result = await rorApiAgent.organization.get("malformed_id");
 
         expect(result).toBeUndefined();
     });

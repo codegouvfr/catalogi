@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { ExternalDataOriginKind } from "../adapters/dbApi/kysely/kysely.database";
@@ -18,8 +18,8 @@ export type SearchOrganizationCriteria = {
     identifer?: {
         base: string;
         value: string;
-    }
-}
+    };
+};
 
 export interface SourceGateway {
     sourceType: ExternalDataOriginKind;
@@ -33,6 +33,6 @@ export interface SourceGateway {
     };
     organization?: {
         getOrganization: GetAuthorOrganization;
-        searchOrganization: (search: SearchOrganizationCriteria) => Promise<string[] | undefined>
+        searchOrganization?: (search: SearchOrganizationCriteria) => Promise<string[] | undefined>;
     };
 }

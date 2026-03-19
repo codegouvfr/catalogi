@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { SourceGateway } from "../../ports/SourceGateway";
-import { getOrganisationFromApi } from "./ApiAgent/getOrganisation";
+import { getOrganisation } from "./ApiAgent/getOrganisation";
 import { searchOrganizationOnWikidata } from "./getOrganization";
 import { getWikidataForm } from "./getSoftwareForm";
 import { getWikidataSoftware } from "./getWikidataSoftware";
@@ -25,11 +25,7 @@ export const wikidataSourceGateway: WikidataGateway = {
         getSoftwareExternal: getWikidataSoftware
     },
     organization: {
-        getOrganization: getOrganisationFromApi, // TODO URGENT
+        getOrganization: getOrganisation,
         searchOrganization: searchOrganizationOnWikidata
     }
 };
-
-
-
-
