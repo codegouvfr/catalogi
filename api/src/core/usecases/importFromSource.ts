@@ -20,7 +20,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
     return async ({ userEmail, source, softwareIdOnSource }) => {
         const sourceGateway = resolveAdapterFromSource(source);
 
-        if (sourceGateway.sourceProfile !== "Primary")
+        if (!sourceGateway?.software?.getSoftwareForm)
             throw new Error("[UC:Import] Import if not possible from a secondary source");
 
         const user = await dbApi.user.getByEmail(userEmail);
@@ -34,7 +34,6 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                   sub: null
               });
 
-        const getSoftwareForm = sourceGateway.softwareForm.getById;
         let result = [];
 
         const softwareIds =
@@ -45,7 +44,13 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
         console.info(`[UC:Import] Importing  ${softwareIds.length} software packages from ${source.slug}`);
 
         for (const externalId of softwareIds) {
-            const newId = await checkSoftware(dbApi, source, externalId, getSoftwareForm, userId);
+            const newId = await checkSoftware(
+                dbApi,
+                source,
+                externalId,
+                sourceGateway.software.getSoftwareForm,
+                userId
+            );
             result.push(newId);
         }
         return result.filter(val => val != undefined);

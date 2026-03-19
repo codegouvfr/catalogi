@@ -7,7 +7,7 @@ import type {
     SoftwareExternalDataOption
 } from "../../ports/GetSoftwareExternalDataOptions";
 import { Source } from "../../usecases/readWriteSillData";
-import { GitHubAPI, repoGitHubEndpointMaker } from "./api/repo";
+import { GitHubAPI, gitHubEndpointMaker } from "./api/repo";
 
 const gitHubSoftwareToExternalOption =
     ({ source }: { source: Source }) =>
@@ -29,7 +29,8 @@ export const getGitHubSoftwareOptions: GetSoftwareExternalDataOptions = async ({
     if (source.url !== "https://github.com/")
         throw new Error("This source doesn't allow custom url, please set it properly.");
 
-    const gitHubApi = repoGitHubEndpointMaker({ source });
+    const configApi = source?.configuration?.auth ? { auth: source?.configuration?.auth } : {};
+    const gitHubApi = gitHubEndpointMaker(configApi);
     const result = await gitHubApi.search.repo.searchByName(queryString);
 
     if (!result) return [];
