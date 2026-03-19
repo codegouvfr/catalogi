@@ -18,13 +18,14 @@ type SparqlResult = {
     };
 };
 
-
-export const searchOrganizationOnWikidata = async (search: SearchOrganizationCriteria): Promise<string[] | undefined> => {
+export const searchOrganizationOnWikidata = async (
+    search: SearchOrganizationCriteria
+): Promise<string[] | undefined> => {
     if (search.identifer?.base === "ROR") {
         const res = await searchOrganizationhWikidataItemId(search.identifer.value);
         return res ? [res] : undefined;
     }
-} ; 
+};
 
 export const searchOrganizationhWikidataItemId = async (rorId: string): Promise<string | undefined> => {
     const query = `

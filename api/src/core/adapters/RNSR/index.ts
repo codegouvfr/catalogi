@@ -4,18 +4,18 @@
 
 import { SourceGateway } from "../../ports/SourceGateway";
 import { Source } from "../../usecases/readWriteSillData";
-import { makeRorOrgApi } from "./API";
+import { getOrganisationFromRNSRApi } from "./API/get";
 
-export type RORSourceGateway = SourceGateway & {
+export type RNSRSourceGateway = SourceGateway & {
     organization: NonNullable<SourceGateway["organization"]>;
 };
 
-export const rorSourceGateway: RORSourceGateway = {
-    sourceType: "ROR",
+export const rnsrSourceGateway: RNSRSourceGateway = {
+    sourceType: "RNSR",
     organization: {
         getOrganization: (params: { organizationId: string; source?: Source }) => {
-            const rorApiAgent = makeRorOrgApi(params.source);
-            return rorApiAgent.organization.get(params.organizationId);
+            const org = getOrganisationFromRNSRApi({ rnsrId: params.organizationId });
+            return org;
         }
     }
 };

@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { identifersUtils } from "../../../../tools/identifiersTools";
@@ -70,18 +70,26 @@ interface RorOrganization {
     types: string[];
 }
 
-export const fetchRorOrganizationById = async (rorId: string): Promise<SchemaOrganization | undefined> => {
+const ROR_TIMEOUT_RESET = 1000;
+
+export const fetchRorOrganizationById = async (params: {
+    rorId: string;
+    requestInit?: RequestInit;
+    rateLimitRetryDuration?: number;
+}): Promise<SchemaOrganization | undefined> => {
+    const { rorId, requestInit = {}, rateLimitRetryDuration = ROR_TIMEOUT_RESET } = params;
     const url = `https://api.ror.org/v2/organizations/${rorId}`;
 
     try {
-        const response = await fetch(url, {
-            headers: {
-                Accept: "application/json"
-            }
-        });
+        const response = await fetch(url, requestInit);
 
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        if (response.status === 429) {
+            await new Promise(resolve => setTimeout(resolve, rateLimitRetryDuration));
+            return fetchRorOrganizationById(params);
         }
 
         const data: RorOrganization | undefined = await response.json();
@@ -95,7 +103,7 @@ export const fetchRorOrganizationById = async (rorId: string): Promise<SchemaOrg
     }
 };
 
-function rorToSchemaOrganization(rorOrganization: RorOrganization): SchemaOrganization {
+const rorToSchemaOrganization = (rorOrganization: RorOrganization): SchemaOrganization => {
     const schemaOrg: SchemaOrganization = {
         "@type": "Organization",
         name: rorOrganization.names.filter(org => org.types.includes("ror_display"))[0].value,
@@ -167,4 +175,4 @@ function rorToSchemaOrganization(rorOrganization: RorOrganization): SchemaOrgani
     });
 
     return schemaOrg;
-}
+};

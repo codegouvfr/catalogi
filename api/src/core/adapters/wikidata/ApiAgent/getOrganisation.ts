@@ -2,6 +2,8 @@
 // SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes <contact-logiciels-catalogue-esr@groupes.renater.fr>
 // SPDX-License-Identifier: MIT
 
+import { convertSourceConfigToRequestInit } from "../../../../tools/sourceConfig";
+import { GetAuthorOrganization } from "../../../ports/GetAuthorOrganization";
 import { SchemaOrganization, SchemaPostalAddress } from "../../dbApi/kysely/kysely.database";
 import { fetchRestWikidataEntity, RestWikidataEntity } from "./restApi";
 import { getWikimediaFileUrl } from "./wikimedia";
@@ -86,6 +88,16 @@ export const convertWikidataToSchemaOrganization = (params: {
     };
 
     return organization;
+};
+
+export const getOrganisation: GetAuthorOrganization = params => {
+    const { organizationId, source } = params;
+    const apiRequestInit = convertSourceConfigToRequestInit(source?.configuration);
+    return getOrganisationFromApi({
+        entityId: organizationId,
+        requestInit: apiRequestInit,
+        rateLimitRetryDuration: source?.configuration?.rateLimitRetryDuration
+    });
 };
 
 export const getOrganisationFromApi = async (params: {

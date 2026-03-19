@@ -8,7 +8,7 @@ import { assert } from "tsafe/assert";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalDataAll } from "../core/usecases/refreshExternalData";
-import { updateSoftwareIdsByOrganisation } from "../core/usecases/getOrganization";
+import { updateSoftwareIdsByOrganisation } from "../core/usecases/getAuthorOrganization";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { DbApiV2 } from "../core/ports/DbApiV2";
 import { uiConfigSchema } from "../core/uiConfigSchema";
