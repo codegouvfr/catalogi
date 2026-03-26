@@ -392,7 +392,14 @@
         "affiliatedStructure": "Structures associées"
     },
     "organizationCard": {
-        "seeSoftwareDetails": "Voir les {{count}} logiciels"
+        "seeSoftwareDetails": "Voir les {{count}} logiciels",
+        "organizationType": "Type",
+        "city": "Ville",
+        "organizationDescription": "Description",
+        "parentOrganizations": "Organisations parents"
+    },
+    "organizationSearch": {
+        "placeholder": "Rechercher une organisation par son nom"
     },
     "footer": {
         "contribute": "Contribuez"
@@ -413,5 +420,9 @@
         "organization is required": "Vous devez préciser l'organisation à laquelle vous appartenez",
         "update": "Mettre à jour",
         "organization": "Organisation"
+    },
+    "organizationList": {
+        "searchResults": "{{count}} organisations trouvés",
+        "softwareList": "Liste des logiciels associés à cette organisation"
     }
 }
