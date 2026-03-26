@@ -44,7 +44,7 @@ export function OrganizationSearch(props: Props) {
             <div className={cx(classes.basicSearch, className)}>
                 <SearchBar
                     className={classes.searchBar}
-                    label={t("softwareCatalogSearch.placeholder")} // TODO Change
+                    label={t("organizationSearch.placeholder")}
                     renderInput={({ className, id, placeholder, type }) => {
                         const [inputElement, setInputElement] =
                             useState<HTMLInputElement | null>(null);

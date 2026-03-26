@@ -26,6 +26,7 @@ export const thunks = {
                         {} as Record<string, ApiTypes.Organization>
                     ),
                     selected: undefined,
+                    search: undefined,
                     filtered: []
                 })
             );
@@ -38,20 +39,18 @@ export const thunks = {
 
             const orgs = await sillApi.getSoftwareIdsByOrganisation();
 
-            dispatch(
-                actions.initialized({
-                    stateDescription: "ready",
-                    error: undefined,
-                    list: orgs.reduce(
-                        (acc, item) => {
-                            acc[item.name] = item;
-                            return acc;
-                        },
-                        {} as Record<string, ApiTypes.Organization>
-                    ),
-                    selected: organizationKey,
-                    filtered: []
-                })
-            );
+            dispatch(actions.selectOrganization(organizationKey));
+        },
+    searchOrganization:
+        (params: { keySearch: string }) =>
+        async (...args): Promise<void> => {
+            const [dispatch, getState, { sillApi, evtAction }] = args;
+            const { keySearch } = params;
+
+            dispatch(actions.setSearchQuery(keySearch));
+
+            const orgs = await sillApi.getSoftwareIdsByOrganisation({ name: keySearch });
+
+            dispatch(actions.setOrganizations(orgs.map(org => org.name)));
         }
 } satisfies Thunks;

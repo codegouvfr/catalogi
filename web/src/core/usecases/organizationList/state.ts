@@ -12,6 +12,7 @@ export type State = {
     stateDescription: string;
     error: string | undefined;
     selected: string | undefined;
+    search: string | undefined;
     filtered: Array<string>;
     list: Record<string, Organization>;
 };
@@ -23,6 +24,14 @@ export const { reducer, actions } = createUsecaseActions({
     initialState: createObjectThatThrowsIfAccessed<State>(),
     reducers: {
         initialized: (_state, { payload }: { payload: State }) => payload,
-        selectOrganization: (_state, { payload }: { payload: State }) => payload
+        selectOrganization: (state, { payload }: { payload: string }) => {
+            return { ...state, selected: payload };
+        },
+        setSearchQuery: (state, { payload }: { payload: string }) => {
+            return { ...state, search: payload };
+        },
+        setOrganizations: (state, { payload }: { payload: Array<string> }) => {
+            return { ...state, filtered: payload };
+        }
     }
 });
