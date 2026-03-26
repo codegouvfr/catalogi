@@ -308,11 +308,6 @@ export function LogoURLButton(props: Props) {
     } = props;
 
     let urlToConvert = !url && type && label ? buildUrlFromType(type, label) : url;
-    console.log({
-        label,
-        type,
-        urlToConvert
-    });
 
     const urlString =
         typeof urlToConvert === "string" ? urlToConvert : urlToConvert?.href;

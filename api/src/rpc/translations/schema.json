@@ -707,10 +707,45 @@
             "properties": {
                 "seeSoftwareDetails": {
                     "type": "string"
+                },
+                "organizationType": {
+                    "type": "string"
+                },
+                "organizationDescription": {
+                    "type": "string"
+                },
+                "city": {
+                    "type": "string"
+                },
+                "parentOrganizations": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
-            "required": []
+            "required": ["organizationType", "organizationDescription", "city", "parentOrganizations"]
+        },
+        "organizationList": {
+            "type": "object",
+            "properties": {
+                "searchResults": {
+                    "type": "string"
+                },
+                "softwareList": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["searchResults", "softwareList"]
+        },
+        "organizationSearch": {
+            "type": "object",
+            "properties": {
+                "placeholder": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": ["placeholder"]
         },
         "softwareCatalogControlled": {
             "type": "object",

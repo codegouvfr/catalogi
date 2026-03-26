@@ -7,7 +7,8 @@ import { OrganizationCard } from "../../shared/OrganizationCard";
 import { OrganizationSearch } from "./OrganizationSearch";
 import type { PageRoute } from "./route";
 import { useCore, useCoreState } from "core";
-import { useLayoutEffect, useMemo, useRef } from "react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createUseDebounce } from "powerhooks/useDebounce";
 
 import { tss } from "tss-react";
 import { fr } from "@codegouvfr/react-dsfr";
@@ -21,39 +22,59 @@ type Props = {
     route: PageRoute;
 };
 
+const { useDebounce } = createUseDebounce({ delay: 400 });
+
 export default function OrganizationList(props: Props) {
     const { className, route } = props;
 
     const { t } = useTranslation();
     const { cx, classes } = useStyles();
 
-    let search = "";
-
-    const searchRequest = (req: string) => {
-        search = req;
-        console.log(req);
-    };
-
+    const { organizationList } = useCore().functions;
     const state = useCoreState("organizationList", "main");
-    console.log(state.list);
+    const [localInput, setLocalInput] = useState("");
+
+    useDebounce(() => {
+        organizationList.searchOrganization({ keySearch: localInput });
+    }, [localInput]);
+
+    const list = state.list ?? {};
+    const listToShow = state.filtered ?? [];
+
+    const toShow =
+        listToShow.length > 0
+            ? Object.fromEntries(
+                  Object.entries(list).filter(([key]) => listToShow.includes(key))
+              )
+            : list;
+    const notFound = listToShow.length === 0 && state.search && state.search.length > 0;
 
     return (
         <>
             <div className={cx(fr.cx("fr-container"), classes.root, className)}>
                 <OrganizationSearch
-                    search={search}
-                    onSearchChange={searchRequest}
+                    search={localInput}
+                    onSearchChange={setLocalInput}
                 ></OrganizationSearch>
                 <div className={classes.header}>
                     <h6 className={classes.softwareCount}>
-                        {t("softwareCatalogControlled.searchResults", {
-                            count: state.list ? Object.values(state.list).length : 0
+                        {t("organizationList.searchResults", {
+                            count: toShow ? Object.values(toShow).length : 0
                         })}
                     </h6>
                 </div>
                 <div>
+                    {notFound && <div>No result found for {state.search}</div>}
                     <RowVirtualizerDynamicWindow
-                        organizations={state.list ? Object.values(state.list) : []}
+                        organizations={
+                            toShow
+                                ? Object.values(toShow).sort(
+                                      (a, b) =>
+                                          (b.producer?.length ?? 0) -
+                                          (a.producer?.length ?? 0)
+                                  )
+                                : []
+                        }
                     ></RowVirtualizerDynamicWindow>
                 </div>
             </div>
@@ -167,6 +188,7 @@ function RowVirtualizerDynamicWindow(props: {
                                             <OrganizationCard
                                                 key={organization.name}
                                                 organization={organization}
+                                                renderingOptions={{ showLinks: false }}
                                             />
                                         );
                                     }

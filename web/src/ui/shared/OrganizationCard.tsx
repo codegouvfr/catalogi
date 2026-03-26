@@ -5,7 +5,6 @@
 import type { ApiTypes } from "api";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
-import { useResolveLocalizedString } from "ui/i18n";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { useFromNow } from "ui/datetimeUtils";
@@ -25,6 +24,7 @@ import {
 import Button from "@codegouvfr/react-dsfr/Button";
 
 type RenderingCardOptions = {
+    showLinks?: boolean;
     showSoftwareDetailsButton?: boolean;
 };
 
@@ -50,7 +50,7 @@ export const OrganizationCard = memo(
             image,
             ...rest
         } = organization;
-        const { showSoftwareDetailsButton = true } = renderingOptions;
+        const { showSoftwareDetailsButton = true, showLinks = true } = renderingOptions;
 
         const softwareName = name;
         const latestVersion = {
@@ -71,7 +71,6 @@ export const OrganizationCard = memo(
         const ui = useCoreState("uiConfig", "main");
 
         const { t } = useTranslation();
-        const { resolveLocalizedString } = useResolveLocalizedString();
         const { classes, cx } = useStyles({
             isSearchHighlighted:
                 searchHighlight !== undefined ||
@@ -99,7 +98,7 @@ export const OrganizationCard = memo(
                                 <img
                                     className={cx(classes.logo)}
                                     src={logoUrl ?? softwareLogoPlaceholder}
-                                    alt={"software logo"}
+                                    alt={"organization logo"}
                                 />
                             </div>
                         )}
@@ -152,7 +151,7 @@ export const OrganizationCard = memo(
 
                     {additionalType?.length && additionalType.length > 0 && (
                         <div>
-                            Type :
+                            {t("organizationCard.organizationType")} :{" "}
                             {additionalType.map((type: string) => (
                                 <Chip label={type} />
                             ))}
@@ -161,26 +160,30 @@ export const OrganizationCard = memo(
 
                     {description && (
                         <>
-                            <div>Description : {description}</div>
+                            <div>
+                                {t("organizationCard.organizationDescription")} :{" "}
+                                {description}
+                            </div>
                         </>
                     )}
 
                     {address && (
                         <div>
-                            City : {address.addressLocality} ({address.addressCountry})
+                            {t("organizationCard.city")} : {address.addressLocality} (
+                            {address.addressCountry})
                         </div>
                     )}
 
                     {parentOrganizations && parentOrganizations.length > 0 && (
                         <div>
-                            <div>Parents Organization</div>
+                            <div>{t("organizationCard.parentOrganizations")}</div>
                             {parentOrganizations.map((org: SchemaOrganization) => (
                                 <Chip label={org.name} />
                             ))}
                         </div>
                     )}
 
-                    {identifiers && identifiers.length > 0 && (
+                    {showLinks && identifiers && identifiers.length > 0 && (
                         <div>
                             {identifiers.map((identifier: SchemaIdentifier) => (
                                 <>

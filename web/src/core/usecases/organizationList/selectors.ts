@@ -33,14 +33,20 @@ const error = createSelector(errorState, state => state?.error);
 
 const list = createSelector(readyState, readyState => readyState?.list);
 
+const filtered = createSelector(readyState, readyState => readyState?.filtered);
+
+const search = createSelector(readyState, readyState => readyState?.search);
+
 const selected = createSelector(readyState, readyState => readyState?.selected);
 
 const main = createSelector(
     isReady,
     selected,
     list,
+    search,
+    filtered,
     error,
-    (isReady, selected, list, error) => {
+    (isReady, selected, list, search, filtered, error) => {
         if (error) {
             return {
                 isReady: false as const,
@@ -59,6 +65,8 @@ const main = createSelector(
         return {
             isReady: true as const,
             selected,
+            search,
+            filtered,
             list
         };
     }
