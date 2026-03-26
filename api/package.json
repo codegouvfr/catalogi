@@ -74,6 +74,7 @@
     },
     "dependencies": {
         "@gitbeaker/core": "^43.4.0",
+        "@gitbeaker/requester-utils": "^43.8.0",
         "@gitbeaker/rest": "^43.4.0",
         "@octokit/rest": "^22.0.0",
         "@sentry/node": "^10.23.0",
