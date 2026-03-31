@@ -19,6 +19,13 @@ export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, fea
     return resolveAdapterFromSourceType(source.kind, feature);
 };
 
+export const filterSourceByFeature = (sources: DatabaseDataType.SourceRow[], feature: Feature) => {
+    return sources.filter(source => {
+        const gateway = resolveAdapterFromSourceType(source.kind);
+        return Object.hasOwn(gateway, feature);
+    });
+};
+
 export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind, feature?: Feature): SourceGateway => {
     switch (sourceType) {
         case "HAL":
