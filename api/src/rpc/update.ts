@@ -60,7 +60,7 @@ export async function startUpdateService(params: {
     await refreshExternalData();
 
     if (uiConfig.header.menu.devOrganizations.enabled) {
-        updateSoftwareIdsByOrganisation({ dbApi });
+        await updateSoftwareIdsByOrganisation({ dbApi });
     }
 
     console.timeEnd("[RPC:Update] Fetching of external data on remote sources: Done");
