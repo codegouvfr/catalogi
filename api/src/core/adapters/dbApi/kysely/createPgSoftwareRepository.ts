@@ -838,10 +838,11 @@ FROM
                 result.push(orgaRowA);
             }
 
+            filtertedResult = result;
             if (search) {
                 if (search.name) {
                     const searchCrit = search.name;
-                    filtertedResult = result.filter(row =>
+                    filtertedResult = filtertedResult.filter(row =>
                         row.organization.name.toLowerCase().includes(searchCrit.toLowerCase())
                     );
                 }
@@ -849,7 +850,7 @@ FROM
                     const searchCritValue = search.identifier.value;
                     if (search.identifier.key) {
                         const searchCritKey = search.identifier.key;
-                        filtertedResult = result.filter(row =>
+                        filtertedResult = filtertedResult.filter(row =>
                             row.organization.identifiers?.some(
                                 id =>
                                     id.subjectOf?.additionalType?.includes(searchCritKey) &&
@@ -857,7 +858,7 @@ FROM
                             )
                         );
                     } else {
-                        filtertedResult = result.filter(row =>
+                        filtertedResult = filtertedResult.filter(row =>
                             row.organization.identifiers?.some(id => id.value.includes(searchCritValue))
                         );
                     }
