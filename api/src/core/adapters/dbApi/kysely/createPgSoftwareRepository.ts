@@ -813,64 +813,71 @@ FROM
             const resultQuery = await test.execute(db);
             const resultArray = resultQuery.rows;
 
-            type ResultFunction = {
-                organization: SchemaOrganization;
-                softwareIds: number[];
-            };
-            const result: ResultFunction[] = [];
-            let filtertedResult: ResultFunction[] = [];
+            // First innocent iteration
+            const resultMap: Map<string, SchemaOrganization> = resultArray.reduce((map, org) => {
+                const actual = { ...org.organization, producer: [org.softwareId.toString()] };
+                const saved = map.get(org.organization.name);
+                if (!saved) {
+                    map.set(org.organization.name, actual);
+                } else {
+                    const toSet = mergeOrganizations(saved, actual);
 
-            while (resultArray.length !== 0) {
-                let orgaRowA: ResultFunction = {
-                    organization: resultArray[0].organization,
-                    softwareIds: [Number(resultArray[0].softwareId)]
-                };
-                resultArray.splice(0, 1);
+                    map.set(org.organization.name, toSet);
+                }
+                return map;
+            }, new Map());
 
-                resultArray.forEach((val: OrganizationRow, index: number) => {
-                    if (isSameOrganization(val.organization, orgaRowA.organization)) {
-                        orgaRowA.organization = mergeOrganizations(orgaRowA.organization, val.organization);
-                        orgaRowA.softwareIds.push(Number(val.softwareId));
-                        resultArray.splice(index, 1);
+            // Second
+            const keys = Array.from(resultMap.keys());
+            const deduplicatedResultMap = new Map<string, SchemaOrganization>();
+
+            for (let i = 0; i < keys.length; i++) {
+                const currentKey = keys[i];
+                const currentOrg = resultMap.get(currentKey)!;
+
+                let isDuplicate = false;
+
+                for (const [existingKey, existingOrg] of deduplicatedResultMap) {
+                    if (isSameOrganization(currentOrg, existingOrg)) {
+                        const mergedOrg = mergeOrganizations(existingOrg, currentOrg);
+                        deduplicatedResultMap.set(existingKey, mergedOrg);
+                        isDuplicate = true;
+                        break;
                     }
-                });
-                delete orgaRowA.organization.parentOrganizations;
-                result.push(orgaRowA);
+                }
+
+                if (!isDuplicate) {
+                    deduplicatedResultMap.set(currentKey, currentOrg);
+                }
             }
 
-            filtertedResult = result;
+            let sortedArray = Array.from(deduplicatedResultMap.values());
+
             if (search) {
                 if (search.name) {
                     const searchCrit = search.name;
-                    filtertedResult = filtertedResult.filter(row =>
-                        row.organization.name.toLowerCase().includes(searchCrit.toLowerCase())
-                    );
+                    sortedArray = sortedArray.filter(row => row.name.toLowerCase().includes(searchCrit.toLowerCase()));
                 }
                 if (search.identifier) {
                     const searchCritValue = search.identifier.value;
                     if (search.identifier.key) {
                         const searchCritKey = search.identifier.key;
-                        filtertedResult = filtertedResult.filter(row =>
-                            row.organization.identifiers?.some(
+                        sortedArray = sortedArray.filter(row =>
+                            row.identifiers?.some(
                                 id =>
                                     id.subjectOf?.additionalType?.includes(searchCritKey) &&
                                     id.value.includes(searchCritValue)
                             )
                         );
                     } else {
-                        filtertedResult = filtertedResult.filter(row =>
-                            row.organization.identifiers?.some(id => id.value.includes(searchCritValue))
+                        sortedArray = sortedArray.filter(row =>
+                            row.identifiers?.some(id => id.value.includes(searchCritValue))
                         );
                     }
                 }
             }
 
-            return filtertedResult.map(row => {
-                return {
-                    ...row.organization,
-                    producer: row.softwareIds.map(a => a.toString())
-                };
-            });
+            return sortedArray;
         }
     };
 };
