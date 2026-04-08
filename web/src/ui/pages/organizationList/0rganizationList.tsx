@@ -12,6 +12,7 @@ import { createUseDebounce } from "powerhooks/useDebounce";
 
 import { tss } from "tss-react";
 import { fr } from "@codegouvfr/react-dsfr";
+import { Tabs } from "@codegouvfr/react-dsfr/Tabs";
 import { useBreakpointsValues } from "@codegouvfr/react-dsfr/useBreakpointsValues";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { useWindowInnerSize } from "powerhooks/useWindowInnerSize";
@@ -47,7 +48,58 @@ export default function OrganizationList(props: Props) {
                   Object.entries(list).filter(([key]) => listToShow.includes(key))
               )
             : list;
-    const notFound = listToShow.length === 0 && state.search && state.search.length > 0;
+
+    type TypeRow = {
+        count: number;
+        key: string;
+        label: string;
+    };
+    const orgTypeMap = new Map<string, TypeRow>();
+
+    for (const org of Object.values(toShow)) {
+        if (org.additionalType) {
+            for (const type of org.additionalType) {
+                const key = type
+                    .replace(/[^a-zA-Z0-9_]/g, "_")
+                    .replace(/^(\d)/, "_$1")
+                    .toLowerCase();
+
+                if (orgTypeMap.has(key)) {
+                    const existing = orgTypeMap.get(key)!;
+                    orgTypeMap.set(key, {
+                        ...existing,
+                        count: existing.count + 1
+                    });
+                } else {
+                    orgTypeMap.set(key, {
+                        count: 1,
+                        key: key,
+                        label: type
+                    });
+                }
+            }
+        }
+    }
+
+    const typeTabs = Array.from(orgTypeMap.values()).map(row => ({
+        tabId: row.key,
+        label: row.label
+    }));
+
+    const [selectedTabId, setSelectedTabId] = useState("all");
+
+    let orgArray = toShow
+        ? Object.values(toShow).sort(
+              (a, b) => (b.producer?.length ?? 0) - (a.producer?.length ?? 0)
+          )
+        : [];
+
+    if (selectedTabId && selectedTabId != "all")
+        orgArray = orgArray.filter(org =>
+            org.additionalType?.includes(orgTypeMap.get(selectedTabId)?.label ?? "")
+        );
+
+    const notFound = orgArray.length === 0 && state.search && state.search.length > 0;
 
     return (
         <>
@@ -59,24 +111,22 @@ export default function OrganizationList(props: Props) {
                 <div className={classes.header}>
                     <h6 className={classes.softwareCount}>
                         {t("organizationList.searchResults", {
-                            count: toShow ? Object.values(toShow).length : 0
+                            count: orgArray ? Object.values(orgArray).length : 0
                         })}
                     </h6>
                 </div>
-                <div>
+                <Tabs
+                    selectedTabId={selectedTabId}
+                    tabs={[{ tabId: "all", label: "all" }, ...typeTabs]}
+                    onTabChange={setSelectedTabId}
+                >
                     {notFound && <div>No result found for {state.search}</div>}
-                    <RowVirtualizerDynamicWindow
-                        organizations={
-                            toShow
-                                ? Object.values(toShow).sort(
-                                      (a, b) =>
-                                          (b.producer?.length ?? 0) -
-                                          (a.producer?.length ?? 0)
-                                  )
-                                : []
-                        }
-                    ></RowVirtualizerDynamicWindow>
-                </div>
+                    {!notFound && (
+                        <RowVirtualizerDynamicWindow
+                            organizations={orgArray}
+                        ></RowVirtualizerDynamicWindow>
+                    )}
+                </Tabs>
             </div>
         </>
     );
