@@ -245,13 +245,23 @@
         "openSourceProvenance": "View data sources"
     },
     "sourceProvenance": {
-        "drawerTitle": "Data sources",
+        "modalTitle": "Data sources",
         "popoverTitle": "Values for {{field}}",
         "noData": "No source data available",
         "sourceEmpty": "This source contributes nothing to this software",
-        "lastFetchedAt": "Last fetched {{when}}",
-        "lastEditedAt": "Last edited {{when}}",
-        "useThisValue": "Use this value"
+        "fieldColumnHeader": "Field",
+        "lastFetchedAt": "Last fetched: {{when}}",
+        "lastEditedAt": "Last edited: {{when}}",
+        "neverFetched": "Never fetched",
+        "useThisValue": "Use this value",
+        "sourceLabel_user_input": "User input",
+        "sourceLabel_wikidata": "Wikidata",
+        "sourceLabel_HAL": "HAL",
+        "sourceLabel_ComptoirDuLibre": "Comptoir du Libre",
+        "sourceLabel_CNLL": "CNLL",
+        "sourceLabel_Zenodo": "Zenodo",
+        "sourceLabel_GitLab": "GitLab",
+        "sourceLabel_GitHub": "GitHub"
     },
     "previewTab": {
         "about": "About",

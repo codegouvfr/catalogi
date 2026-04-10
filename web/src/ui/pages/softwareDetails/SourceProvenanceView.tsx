@@ -2,12 +2,14 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { memo } from "react";
+import React, { memo } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { Table } from "@codegouvfr/react-dsfr/Table";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
-import { useResolveLocalizedString, type LocalizedString } from "ui/i18n";
+import { useLang, useResolveLocalizedString, type LocalizedString } from "ui/i18n";
+import { getFormattedDate } from "ui/datetimeUtils";
 import type { ApiTypes } from "api";
 
 export type SourceFieldKey = keyof Omit<
@@ -54,7 +56,15 @@ const makeRenderValue =
                     .filter(Boolean)
                     .join(" — ");
             }
-            return resolveLocalizedString(value as LocalizedString);
+            // Treat as LocalizedString. resolveLocalizedString asserts that at
+            // least one entry is a non-empty string, so filter first.
+            const localized = Object.fromEntries(
+                Object.entries(value as Record<string, unknown>).filter(
+                    ([, v]) => typeof v === "string" && v.length > 0
+                )
+            ) as LocalizedString;
+            if (Object.keys(localized).length === 0) return "";
+            return resolveLocalizedString(localized);
         }
         return String(value);
     };
@@ -88,7 +98,17 @@ const isFieldPopulated = (
     const v = source[field] as unknown;
     if (v === undefined || v === null) return false;
     if (Array.isArray(v)) return v.length > 0;
-    if (typeof v === "object") return Object.keys(v as object).length > 0;
+    if (typeof v === "object") {
+        // Catch empty LocalizedString-like objects ({}, {fr: ""}, {fr: null})
+        // and version objects with no usable fields.
+        return Object.values(v as object).some(
+            x =>
+                x !== null &&
+                x !== undefined &&
+                x !== "" &&
+                (!Array.isArray(x) || x.length > 0)
+        );
+    }
     if (typeof v === "string") return v.length > 0;
     return true;
 };
@@ -97,8 +117,49 @@ export const SourceProvenanceView = memo((props: Props) => {
     const { dataBySource, fields, onUseValue, className } = props;
     const { classes, cx } = useStyles();
     const { t } = useTranslation();
+    const { lang } = useLang();
     const { resolveLocalizedString } = useResolveLocalizedString();
     const renderValue = makeRenderValue(resolveLocalizedString);
+
+    const renderFetchInfo = (source: ApiTypes.SoftwareSourceData) => {
+        if (!source.lastDataFetchAt) {
+            return source.kind === "user_input"
+                ? null
+                : t("sourceProvenance.neverFetched");
+        }
+        const when = getFormattedDate({
+            time: source.lastDataFetchAt,
+            lang,
+            doAlwaysShowYear: true,
+            showTime: false
+        });
+        return source.kind === "user_input"
+            ? t("sourceProvenance.lastEditedAt", { when })
+            : t("sourceProvenance.lastFetchedAt", { when });
+    };
+
+    const getSourceLabel = (source: ApiTypes.SoftwareSourceData): string => {
+        switch (source.kind) {
+            case "user_input":
+                return t("sourceProvenance.sourceLabel_user_input");
+            case "wikidata":
+                return t("sourceProvenance.sourceLabel_wikidata");
+            case "HAL":
+                return t("sourceProvenance.sourceLabel_HAL");
+            case "ComptoirDuLibre":
+                return t("sourceProvenance.sourceLabel_ComptoirDuLibre");
+            case "CNLL":
+                return t("sourceProvenance.sourceLabel_CNLL");
+            case "Zenodo":
+                return t("sourceProvenance.sourceLabel_Zenodo");
+            case "GitLab":
+                return t("sourceProvenance.sourceLabel_GitLab");
+            case "GitHub":
+                return t("sourceProvenance.sourceLabel_GitHub");
+            default:
+                return source.sourceSlug;
+        }
+    };
 
     // Popover variant: one row per source for the single requested field.
     if (fields && fields.length === 1) {
@@ -122,8 +183,7 @@ export const SourceProvenanceView = memo((props: Props) => {
                     {rows.map(source => (
                         <li key={source.sourceSlug} className={classes.popoverRow}>
                             <div className={classes.popoverRowHeader}>
-                                <strong>{source.sourceSlug}</strong>
-                                <span className={classes.kind}>{source.kind}</span>
+                                <strong>{getSourceLabel(source)}</strong>
                             </div>
                             <div className={classes.popoverValue}>
                                 {renderValue(source[field])}
@@ -150,107 +210,74 @@ export const SourceProvenanceView = memo((props: Props) => {
         );
     }
 
-    // Drawer variant: one card per source, every populated field listed.
+    // Modal variant: a comparison table — rows = fields, columns = sources.
+    if (dataBySource.length === 0) {
+        return (
+            <div className={cx(classes.modalRoot, className)}>
+                <p>{t("sourceProvenance.noData")}</p>
+            </div>
+        );
+    }
+
+    const headers: React.ReactNode[] = [
+        t("sourceProvenance.fieldColumnHeader"),
+        ...dataBySource.map(source => {
+            const fetchInfo = renderFetchInfo(source);
+            return (
+                <span key={source.sourceSlug}>
+                    {getSourceLabel(source)}
+                    {fetchInfo && <span className={classes.timestamp}>{fetchInfo}</span>}
+                </span>
+            );
+        })
+    ];
+
+    const rows: React.ReactNode[][] = FIELD_KEYS.map(key => [
+        <span key="label" className={classes.fieldKey}>
+            {key}
+        </span>,
+        ...dataBySource.map(source => {
+            if (!isFieldPopulated(source, key))
+                return <span className={classes.empty}>—</span>;
+            return <span className={classes.fieldValue}>{renderValue(source[key])}</span>;
+        })
+    ]);
+
     return (
-        <div className={cx(classes.drawerRoot, className)}>
-            <h5 className={classes.drawerTitle}>{t("sourceProvenance.drawerTitle")}</h5>
-            {dataBySource.length === 0 && <p>{t("sourceProvenance.noData")}</p>}
-            {dataBySource.map(source => {
-                const populated = FIELD_KEYS.filter(key => isFieldPopulated(source, key));
-                return (
-                    <section key={source.sourceSlug} className={classes.sourceCard}>
-                        <header className={classes.sourceCardHeader}>
-                            <strong>{source.sourceSlug}</strong>
-                            <span className={classes.kind}>{source.kind}</span>
-                            {source.lastDataFetchAt && (
-                                <span className={classes.timestamp}>
-                                    {source.kind === "user_input"
-                                        ? t("sourceProvenance.lastEditedAt", {
-                                              when: source.lastDataFetchAt
-                                          })
-                                        : t("sourceProvenance.lastFetchedAt", {
-                                              when: source.lastDataFetchAt
-                                          })}
-                                </span>
-                            )}
-                        </header>
-                        {populated.length === 0 ? (
-                            <p className={fr.cx("fr-text--sm")}>
-                                {t("sourceProvenance.sourceEmpty")}
-                            </p>
-                        ) : (
-                            <dl className={classes.fieldList}>
-                                {populated.map(key => (
-                                    <div key={key} className={classes.fieldRow}>
-                                        <dt className={classes.fieldKey}>{key}</dt>
-                                        <dd className={classes.fieldValue}>
-                                            {renderValue(source[key])}
-                                        </dd>
-                                    </div>
-                                ))}
-                            </dl>
-                        )}
-                    </section>
-                );
-            })}
+        <div className={cx(classes.modalRoot, className)}>
+            <Table
+                bordered
+                fixed
+                headers={headers}
+                data={rows}
+                noCaption
+                caption={t("sourceProvenance.modalTitle")}
+            />
         </div>
     );
 });
 
 const useStyles = tss.withName({ SourceProvenanceView }).create({
-    drawerRoot: {
-        padding: fr.spacing("4v"),
-        minWidth: 360,
-        maxWidth: 520
-    },
-    drawerTitle: {
-        marginBottom: fr.spacing("4v")
-    },
-    sourceCard: {
-        marginBottom: fr.spacing("4v"),
-        padding: fr.spacing("3v"),
-        borderLeft: `3px solid ${fr.colors.decisions.border.actionHigh.blueFrance.default}`,
-        background: fr.colors.decisions.background.alt.grey.default
-    },
-    sourceCardHeader: {
-        display: "flex",
-        alignItems: "center",
-        gap: fr.spacing("2v"),
-        marginBottom: fr.spacing("2v"),
-        flexWrap: "wrap"
-    },
-    kind: {
-        color: fr.colors.decisions.text.mention.grey.default,
-        fontSize: "0.8rem"
+    modalRoot: {
+        display: "block"
     },
     timestamp: {
+        display: "block",
         color: fr.colors.decisions.text.mention.grey.default,
-        fontSize: "0.8rem"
-    },
-    fieldList: {
-        margin: 0,
-        padding: 0
-    },
-    fieldRow: {
-        display: "grid",
-        gridTemplateColumns: "140px 1fr",
-        gap: fr.spacing("2v"),
-        padding: `${fr.spacing("1v")} 0`,
-        borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-        "&:last-child": {
-            borderBottom: "none"
-        }
+        fontSize: "0.75rem",
+        fontWeight: "normal",
+        marginTop: fr.spacing("1v")
     },
     fieldKey: {
-        margin: 0,
-        color: fr.colors.decisions.text.mention.grey.default,
-        fontSize: "0.85rem",
+        fontWeight: "bold",
         wordBreak: "break-word"
     },
     fieldValue: {
-        margin: 0,
         fontSize: "0.9rem",
         wordBreak: "break-word"
+    },
+    empty: {
+        color: fr.colors.decisions.text.mention.grey.default
     },
     popoverRoot: {
         padding: fr.spacing("3v"),
