@@ -244,7 +244,17 @@
         "you are user": "Vous l'utilisez",
         "you are referent": "Vous êtes référent",
         "software dereferenced": "Depuis {{when}}, ce logiciel n'est plus recommandé",
-        "software dereferenced last version": "Dernière version recommandée : {{lastRecommendedVersion}}"
+        "software dereferenced last version": "Dernière version recommandée : {{lastRecommendedVersion}}",
+        "openSourceProvenance": "Voir les sources de données"
+    },
+    "sourceProvenance": {
+        "drawerTitle": "Sources des données",
+        "popoverTitle": "Valeurs pour {{field}}",
+        "noData": "Aucune donnée source disponible",
+        "sourceEmpty": "Cette source ne contribue à aucun champ pour ce logiciel",
+        "lastFetchedAt": "Dernière récupération {{when}}",
+        "lastEditedAt": "Dernière modification {{when}}",
+        "useThisValue": "Utiliser cette valeur"
     },
     "previewTab": {
         "about": "À propos",

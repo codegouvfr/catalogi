@@ -4,7 +4,7 @@
 
 import { Kysely } from "kysely";
 import { DatabaseDataType, SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
-import { Database, DatabaseRowOutput } from "./kysely.database";
+import { Database, DatabaseRowOutput, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import type { SoftwareExternal } from "../../../types/SoftwareTypes";
 
@@ -94,7 +94,11 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .then(row => (row ? cleanDataForExternalData(row) : undefined));
     },
     getIds: async ({ minuteSkipSince }) => {
-        let request = db.selectFrom("software_external_datas").select(["externalId", "sourceSlug"]);
+        // Skip the `user_input` pseudo-source: it has no gateway to refresh.
+        let request = db
+            .selectFrom("software_external_datas")
+            .select(["externalId", "sourceSlug"])
+            .where("sourceSlug", "!=", USER_INPUT_SOURCE_SLUG);
 
         if (minuteSkipSince) {
             const thresholdDate = new Date(Date.now() - minuteSkipSince * 1000 * 60);

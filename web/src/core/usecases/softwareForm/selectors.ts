@@ -27,13 +27,16 @@ const isSubmitting = createSelector(readyState, readyState => readyState?.isSubm
 
 const isLastStep = createSelector(readyState, readyState => readyState?.step === 4);
 
+const dataBySource = createSelector(readyState, readyState => readyState?.dataBySource);
+
 const main = createSelector(
     isReady,
     step,
     formData,
     isSubmitting,
     isLastStep,
-    (isReady, step, formData, isSubmitting, isLastStep) => {
+    dataBySource,
+    (isReady, step, formData, isSubmitting, isLastStep, dataBySource) => {
         if (!isReady) {
             return {
                 isReady: false as const
@@ -44,13 +47,15 @@ const main = createSelector(
         assert(formData !== undefined);
         assert(isSubmitting !== undefined);
         assert(isLastStep !== undefined);
+        assert(dataBySource !== undefined);
 
         return {
             isReady: true as const,
             step,
             formData,
             isSubmitting,
-            isLastStep
+            isLastStep,
+            dataBySource
         };
     }
 );

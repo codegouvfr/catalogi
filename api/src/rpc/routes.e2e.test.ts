@@ -147,6 +147,7 @@ describe("RPC e2e tests", () => {
                     .selectFrom("software_external_datas")
                     .select("externalId")
                     .where("softwareId", "=", actualSoftwareId)
+                    .where("sourceSlug", "=", softwareFormData.sourceSlug)
                     .executeTakeFirst();
                 expect(result!.externalId).toEqual(softwareFormData.externalIdForSource);
 
@@ -178,7 +179,7 @@ describe("RPC e2e tests", () => {
         it("gets the new software in the list", async () => {
             const softwares = await apiCaller.getSoftwareList();
             expect(softwares).toHaveLength(1);
-            expectToMatchObject(softwares[0], { name: softwareFormData.name });
+            expectToMatchObject(softwares[0], { name: { fr: softwareFormData.name } });
         });
 
         it("adds a user as user of the software", async () => {

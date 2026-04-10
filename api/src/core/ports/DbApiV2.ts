@@ -9,6 +9,7 @@ import type {
     Instance,
     InstanceFormData,
     Software,
+    SoftwareDetail,
     SoftwareInList,
     UserWithId
 } from "../usecases/readWriteSillData";
@@ -61,7 +62,7 @@ export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow & Pick<DatabaseData
 export interface SoftwareRepository {
     getFullList: () => Promise<SoftwareInList[]>;
     getPublicList: () => Promise<Software[]>;
-    getDetails: (softwareId: number) => Promise<Software | undefined>;
+    getDetails: (softwareId: number) => Promise<SoftwareDetail | undefined>;
     create: (params: { software: SoftwareExtrinsicCreation }) => Promise<number>;
     update: (params: { softwareId: number; software: SoftwareExtrinsicRow }) => Promise<void>;
     getSoftwareIdByExternalIdAndSlug: (params: {

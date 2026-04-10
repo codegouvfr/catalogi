@@ -4,6 +4,7 @@
 
 import { Feature, SourceGateway } from "../ports/SourceGateway";
 import { DatabaseDataType } from "../ports/DbApiV2";
+import { USER_INPUT_SOURCE_SLUG } from "./dbApi/kysely/kysely.database";
 import { halSourceGateway } from "./hal";
 import { wikidataSourceGateway } from "./wikidata";
 import { comptoirDuLibreSourceGateway } from "./comptoirDuLibre";
@@ -42,6 +43,10 @@ export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, fea
             if (feature && !Object.hasOwn(gitLabSourceGateway, feature))
                 throw new Error(`gitLabSourceGateway doesn't implemend ${feature}`);
             return gitLabSourceGateway;
+        case USER_INPUT_SOURCE_SLUG:
+            throw new Error(
+                `user_input is not a fetchable source — the gateway should not be resolved for slug "${source.slug}"`
+            );
         default:
             const unreachableCase: never = source.kind;
             throw new Error(`Unreachable case: ${unreachableCase}`);

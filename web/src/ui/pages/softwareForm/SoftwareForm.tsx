@@ -39,10 +39,8 @@ export default function SoftwareForm(props: Props) {
     /** Assert to make sure all props are deconstructed */
     assert<Equals<typeof rest, {}>>();
 
-    const { isReady, step, formData, isSubmitting, isLastStep } = useCoreState(
-        "softwareForm",
-        "main"
-    );
+    const { isReady, step, formData, isSubmitting, isLastStep, dataBySource } =
+        useCoreState("softwareForm", "main");
 
     const { evtSoftwareForm } = useCore().evts;
     const { softwareForm } = useCore().functions;
@@ -215,6 +213,7 @@ export default function SoftwareForm(props: Props) {
                     className={classes.step2}
                     isUpdateForm={route.name === "softwareUpdateForm"}
                     initialFormData={formData.step2}
+                    dataBySource={dataBySource ?? []}
                     onSubmit={formData =>
                         softwareForm.setStep2Data({
                             formDataStep2: formData

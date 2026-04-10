@@ -5,6 +5,7 @@
 import type { LocalizedString } from "../../ports/GetSoftwareExternalData";
 import { DatabaseDataType } from "../../ports/DbApiV2";
 import {
+    ExternalDataOriginKind,
     RepoMetadata,
     SchemaIdentifier,
     SchemaOrganization,
@@ -73,6 +74,46 @@ export type Software = {
     referencePublications?: ScholarlyArticle[];
     identifiers?: SchemaIdentifier[];
     repoMetadata?: RepoMetadata;
+};
+
+/**
+ * The content one source contributes to a software. Mirrors the columns of
+ * `software_external_datas` plus the source discriminators (`sourceSlug`, `priority`, `kind`).
+ *
+ * For the `user_input` source, `lastDataFetchAt` is semantically "last edited at" — the
+ * schema is unchanged but the UI labels it differently.
+ */
+export type SoftwareSourceData = {
+    sourceSlug: string;
+    priority: number;
+    kind: ExternalDataOriginKind;
+    sourceUrl: string;
+    externalId: string | undefined;
+    lastDataFetchAt: string | undefined;
+    name?: LocalizedString | string;
+    description?: LocalizedString | string;
+    image?: string;
+    url?: string;
+    codeRepositoryUrl?: string;
+    softwareHelp?: string;
+    license?: string;
+    latestVersion?: { version: string | undefined; releaseDate: string | undefined };
+    keywords?: string[];
+    programmingLanguages?: string[];
+    applicationCategories?: string[];
+    authors?: Array<SchemaPerson | SchemaOrganization>;
+    identifiers?: SchemaIdentifier[];
+    referencePublications?: ScholarlyArticle[];
+    providers?: SchemaOrganization[];
+    repoMetadata?: RepoMetadata;
+    operatingSystems?: Partial<Record<Os, boolean>>;
+    runtimePlatforms?: RuntimePlatform[];
+    isLibreSoftware?: boolean;
+};
+
+export type SoftwareDetail = Software & {
+    /** Ordered by precedence (highest first). Only sources that actually contribute a row appear. */
+    dataBySource: SoftwareSourceData[];
 };
 
 export type Source = DatabaseDataType.SourceRow;

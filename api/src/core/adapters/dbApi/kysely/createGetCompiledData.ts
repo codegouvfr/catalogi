@@ -30,7 +30,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .select(["src.kind", "src.priority", "src.url as sourceUrl", "src.slug"])
         .where("ext.softwareId", "is not", null)
         .orderBy("ext.softwareId", "asc")
-        .orderBy("src.priority", "desc")
+        .orderBy("src.priority", "asc")
         .execute();
 
     const externalDataBySoftwareId = externalDataRows.reduce(
