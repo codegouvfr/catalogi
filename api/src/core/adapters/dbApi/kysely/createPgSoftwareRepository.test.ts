@@ -5,7 +5,7 @@
 import { Kysely } from "kysely";
 import { describe, it, beforeEach, expect } from "vitest";
 import { resetDB, testPgUrl } from "../../../../tools/test.helpers";
-import { Database } from "./kysely.database";
+import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { createPgDialect } from "./kysely.dialect";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 
@@ -132,11 +132,85 @@ describe("createPgSoftwareRepository", () => {
 
             const list = await repository.getFullList();
             expect(list).toHaveLength(1);
-            expect(list[0].name).toBe("Active");
+            expect(list[0].name).toEqual({ fr: "Active" });
         });
     });
 
     describe("getDetails", () => {
+        it("falls back to software row content when there is no external data", async () => {
+            const softwareId = await insertSoftware(db, {
+                name: "Manual Software",
+                description: JSON.stringify({ fr: "Manual Description" }),
+                license: "Apache-2.0",
+                image: "https://example.com/logo.png",
+                url: "https://example.com",
+                codeRepositoryUrl: "https://example.com/repo",
+                softwareHelp: "https://example.com/help",
+                keywords: JSON.stringify(["manual"]),
+                programmingLanguages: JSON.stringify(["TypeScript"]),
+                applicationCategories: JSON.stringify(["development"]),
+                operatingSystems: JSON.stringify({ linux: true }),
+                runtimePlatforms: JSON.stringify(["cloud"])
+            });
+
+            const details = await repository.getDetails(softwareId);
+            expect(details).toBeDefined();
+            expect(details?.name).toEqual({ fr: "Manual Software" });
+            expect(details?.description).toEqual({ fr: "Manual Description" });
+            expect(details?.license).toBe("Apache-2.0");
+            expect(details?.image).toBe("https://example.com/logo.png");
+            expect(details?.url).toBe("https://example.com");
+            expect(details?.codeRepositoryUrl).toBe("https://example.com/repo");
+            expect(details?.softwareHelp).toBe("https://example.com/help");
+            expect(details?.keywords).toEqual(["manual"]);
+            expect(details?.programmingLanguages).toEqual(["TypeScript"]);
+            expect(details?.applicationCategories).toEqual(["development"]);
+            expect(details?.operatingSystems).toEqual({ linux: true });
+            expect(details?.runtimePlatforms).toEqual(["cloud"]);
+            expect(details?.externalId).toBeUndefined();
+            expect(details?.sourceSlug).toBeUndefined();
+        });
+
+        it("uses real external data for identity fields instead of the user_input sentinel", async () => {
+            const softwareId = await insertSoftware(db, { name: "Manual Software" });
+
+            await db
+                .insertInto("software_external_datas")
+                .values([
+                    {
+                        softwareId,
+                        sourceSlug: USER_INPUT_SOURCE_SLUG,
+                        externalId: softwareId.toString(),
+                        name: JSON.stringify({ fr: "Manual Override" }),
+                        description: JSON.stringify({ fr: "Manual Description" }),
+                        isLibreSoftware: true,
+                        authors: JSON.stringify([])
+                    },
+                    {
+                        softwareId,
+                        sourceSlug: "wikidata",
+                        externalId: "Q123456",
+                        name: JSON.stringify({ fr: "Wikidata Name" }),
+                        description: JSON.stringify({ fr: "Wikidata Description" }),
+                        isLibreSoftware: true,
+                        authors: JSON.stringify([])
+                    }
+                ])
+                .execute();
+
+            const details = await repository.getDetails(softwareId);
+            expect(details).toBeDefined();
+            expect(details?.name).toEqual({ fr: "Manual Override" });
+            expect(details?.externalId).toBe("Q123456");
+            expect(details?.sourceSlug).toBe("wikidata");
+
+            const publicList = await repository.getPublicList();
+            expect(publicList.find(software => software.id === softwareId)).toMatchObject({
+                externalId: "Q123456",
+                sourceSlug: "wikidata"
+            });
+        });
+
         it("merges external data based on priority (lower number = higher priority)", async () => {
             const softwareId = await insertSoftware(db);
 
