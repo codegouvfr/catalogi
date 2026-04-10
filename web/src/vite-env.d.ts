@@ -48,6 +48,7 @@ type ImportMetaEnv = {
   MODE: string
   DEV: boolean
   PROD: boolean
+  VITE_CSP: string
   ENVIRONMENT: string
   VERSION: string
   NODE_ENV: string

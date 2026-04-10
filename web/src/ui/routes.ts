@@ -15,12 +15,27 @@ export const { getPreviousRouteName } = (() => {
     let previousRouteName: keyof typeof realRoutes | false = false;
     let currentRouteName: keyof typeof realRoutes | false =
         session.getInitialRoute().name;
+    let previousUrl: string | null = null;
 
+    function dispatchRouteChange() {
+        const newUrl = window.location.href;
+        // public contract — VITE_HEAD listeners in deployment repos depend on this shape
+        window.dispatchEvent(
+            new CustomEvent("routechange", {
+                detail: { url: newUrl, referrer: previousUrl }
+            })
+        );
+        previousUrl = newUrl;
+    }
+
+    // Single source of truth for all pageviews (initial + SPA navigations).
     session.listen(nextRoute => {
         previousRouteName = currentRouteName;
-
         currentRouteName = nextRoute.name;
+        dispatchRouteChange();
     });
+
+    dispatchRouteChange();
 
     function getPreviousRouteName() {
         return previousRouteName;
