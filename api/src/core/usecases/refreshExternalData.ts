@@ -4,6 +4,7 @@
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
+import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
@@ -39,7 +40,10 @@ const getExternalDataIdsForSoftwareIds = async (
             ]);
 
             return [
-                ...(externalDataBinded ?? []).map(({ externalId, sourceSlug }) => ({ externalId, sourceSlug })),
+                // user_input rows have a null externalId and no gateway — skip them.
+                ...(externalDataBinded ?? [])
+                    .filter((row): row is typeof row & { externalId: string } => row.externalId != null)
+                    .map(({ externalId, sourceSlug }) => ({ externalId, sourceSlug })),
                 ...simularExternalDataIDs.map(({ externalId, sourceSlug }) => ({ externalId, sourceSlug }))
             ];
         })
@@ -89,6 +93,9 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
     };
 
     for (const source of sources) {
+        // user_input is a pseudo-source with no gateway; nothing to discover.
+        if (source.kind === USER_INPUT_SOURCE_SLUG) continue;
+
         const gateway = resolveAdapterFromSource(source);
 
         if (!gateway.discoverSoftwareLinks) continue;
@@ -208,10 +215,13 @@ export const makeRefreshExternalDataForSoftware = (
             return false;
         }
 
-        const idsArray = externalDataBinded.map(externdalDataItem => ({
-            externalId: externdalDataItem.externalId,
-            sourceSlug: externdalDataItem.sourceSlug
-        }));
+        const idsArray = externalDataBinded
+            // user_input rows have no externalId and no gateway; skip them.
+            .filter((row): row is typeof row & { externalId: string } => row.externalId != null)
+            .map(externdalDataItem => ({
+                externalId: externdalDataItem.externalId,
+                sourceSlug: externdalDataItem.sourceSlug
+            }));
         return refreshExternalDataByExternalIdAndSlug({ dbApi, ids: idsArray.concat(simularExternalDataIDs) });
     };
 };

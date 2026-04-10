@@ -17,11 +17,14 @@ import type { ReturnType } from "tsafe";
 import { useResolveLocalizedString } from "ui/i18n";
 import { Trans, useTranslation } from "react-i18next";
 import { useStyles } from "tss-react";
+import type { ApiTypes } from "api";
+import { FieldSourcePopover } from "./FieldSourcePopover";
 
 export type Step2Props = {
     className?: string;
     isUpdateForm: boolean;
     initialFormData: FormData["step2"] | undefined;
+    dataBySource: ApiTypes.SoftwareSourceData[];
     onSubmit: (formData: FormData["step2"]) => void;
     evtActionSubmit: NonPostableEvt<void>;
     getAutofillDataFromWikidata: ReturnType<
@@ -43,6 +46,7 @@ export function SoftwareFormStep2(props: Step2Props) {
         className,
         isUpdateForm,
         initialFormData,
+        dataBySource,
         onSubmit,
         evtActionSubmit,
         getLibreSoftwareWikidataOptions,
@@ -303,62 +307,106 @@ export function SoftwareFormStep2(props: Step2Props) {
                     />
                 )}
             </div>
-            <CircularProgressWrapper
-                isInProgress={isAutocompleteInProgress}
-                renderChildren={({ style }) => (
-                    <Input
-                        disabled={isAutocompleteInProgress}
-                        style={{
-                            ...style,
-                            marginTop: fr.spacing("4v")
-                        }}
-                        label={t("softwareFormStep2.software name")}
-                        nativeInputProps={{
-                            ...register("name", { required: true })
-                        }}
-                        state={errors.name !== undefined ? "error" : undefined}
-                        stateRelatedMessage={t("app.required")}
-                    />
-                )}
-            />
-            <CircularProgressWrapper
-                isInProgress={isAutocompleteInProgress}
-                renderChildren={({ style }) => (
-                    <Input
-                        disabled={isAutocompleteInProgress}
-                        style={{
-                            ...style,
-                            marginTop: fr.spacing("4v")
-                        }}
-                        label={t("softwareFormStep2.software feature")}
-                        hintText={t("softwareFormStep2.software feature hint")}
-                        nativeInputProps={{
-                            ...register("description", { required: true })
-                        }}
-                        state={errors.description !== undefined ? "error" : undefined}
-                        stateRelatedMessage={t("app.required")}
-                    />
-                )}
-            />
-            <CircularProgressWrapper
-                isInProgress={isAutocompleteInProgress}
-                renderChildren={({ style }) => (
-                    <Input
-                        disabled={isAutocompleteInProgress}
-                        style={{
-                            ...style,
-                            marginTop: fr.spacing("4v")
-                        }}
-                        label={t("softwareFormStep2.license")}
-                        hintText={t("softwareFormStep2.license hint")}
-                        nativeInputProps={{
-                            ...register("license", { required: true })
-                        }}
-                        state={errors.license !== undefined ? "error" : undefined}
-                        stateRelatedMessage={t("app.required")}
-                    />
-                )}
-            />
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <CircularProgressWrapper
+                    className={css({ flex: 1 })}
+                    isInProgress={isAutocompleteInProgress}
+                    renderChildren={({ style }) => (
+                        <Input
+                            disabled={isAutocompleteInProgress}
+                            style={{
+                                ...style,
+                                marginTop: fr.spacing("4v")
+                            }}
+                            label={t("softwareFormStep2.software name")}
+                            nativeInputProps={{
+                                ...register("name", { required: true })
+                            }}
+                            state={errors.name !== undefined ? "error" : undefined}
+                            stateRelatedMessage={t("app.required")}
+                        />
+                    )}
+                />
+                <FieldSourcePopover
+                    dataBySource={dataBySource}
+                    field="name"
+                    onUseValue={value =>
+                        setValue(
+                            "name",
+                            typeof value === "string"
+                                ? value
+                                : ((value as { fr?: string; en?: string })?.fr ??
+                                      (value as { fr?: string; en?: string })?.en ??
+                                      "")
+                        )
+                    }
+                />
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <CircularProgressWrapper
+                    className={css({ flex: 1 })}
+                    isInProgress={isAutocompleteInProgress}
+                    renderChildren={({ style }) => (
+                        <Input
+                            disabled={isAutocompleteInProgress}
+                            style={{
+                                ...style,
+                                marginTop: fr.spacing("4v")
+                            }}
+                            label={t("softwareFormStep2.software feature")}
+                            hintText={t("softwareFormStep2.software feature hint")}
+                            nativeInputProps={{
+                                ...register("description", { required: true })
+                            }}
+                            state={errors.description !== undefined ? "error" : undefined}
+                            stateRelatedMessage={t("app.required")}
+                        />
+                    )}
+                />
+                <FieldSourcePopover
+                    dataBySource={dataBySource}
+                    field="description"
+                    onUseValue={value =>
+                        setValue(
+                            "description",
+                            typeof value === "string"
+                                ? value
+                                : ((value as { fr?: string; en?: string })?.fr ??
+                                      (value as { fr?: string; en?: string })?.en ??
+                                      "")
+                        )
+                    }
+                />
+            </div>
+            <div style={{ display: "flex", alignItems: "flex-end" }}>
+                <CircularProgressWrapper
+                    className={css({ flex: 1 })}
+                    isInProgress={isAutocompleteInProgress}
+                    renderChildren={({ style }) => (
+                        <Input
+                            disabled={isAutocompleteInProgress}
+                            style={{
+                                ...style,
+                                marginTop: fr.spacing("4v")
+                            }}
+                            label={t("softwareFormStep2.license")}
+                            hintText={t("softwareFormStep2.license hint")}
+                            nativeInputProps={{
+                                ...register("license", { required: true })
+                            }}
+                            state={errors.license !== undefined ? "error" : undefined}
+                            stateRelatedMessage={t("app.required")}
+                        />
+                    )}
+                />
+                <FieldSourcePopover
+                    dataBySource={dataBySource}
+                    field="license"
+                    onUseValue={value =>
+                        setValue("license", typeof value === "string" ? value : "")
+                    }
+                />
+            </div>
 
             <Input
                 disabled={isAutocompleteInProgress}

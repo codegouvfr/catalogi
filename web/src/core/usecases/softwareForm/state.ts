@@ -23,6 +23,12 @@ namespace SoftwareFormState {
         formData: Partial<FormData>;
         softwareSillId?: number;
         isSubmitting: boolean;
+        /**
+         * Per-source contributions for the software being edited. Used to render
+         * per-field "i" popovers in the form so editors can see what each source has.
+         * Empty array on create; populated on update.
+         */
+        dataBySource: ApiTypes.SoftwareSourceData[];
     };
 }
 
@@ -66,7 +72,8 @@ export const { reducer, actions } = createUsecaseActions({
                 formData: {},
                 softwareSillId: undefined,
                 step: 1,
-                isSubmitting: false
+                isSubmitting: false,
+                dataBySource: []
             }),
         initializedForCreateWithPreSelectedSoftware: (
             _state,
@@ -99,7 +106,8 @@ export const { reducer, actions } = createUsecaseActions({
                 },
                 softwareSillId: undefined,
                 step: 1,
-                isSubmitting: false
+                isSubmitting: false,
+                dataBySource: []
             });
         },
         initializedForUpdate: (
@@ -110,17 +118,19 @@ export const { reducer, actions } = createUsecaseActions({
                 payload: {
                     softwareSillId: number;
                     formData: FormData;
+                    dataBySource: ApiTypes.SoftwareSourceData[];
                 };
             }
         ) => {
-            const { formData, softwareSillId } = payload;
+            const { formData, softwareSillId, dataBySource } = payload;
 
             return {
                 stateDescription: "ready",
                 step: 1,
                 softwareSillId,
                 formData,
-                isSubmitting: false
+                isSubmitting: false,
+                dataBySource
             };
         },
         initializationStarted: state => {

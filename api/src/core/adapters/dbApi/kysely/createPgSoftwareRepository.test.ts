@@ -79,7 +79,7 @@ describe("createPgSoftwareRepository", () => {
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
-        repository = createPgSoftwareRepository(db);
+        repository = createPgSoftwareRepository(db, { userInputEnabled: false });
         // Seed sources for priority testing
         await db
             .insertInto("sources")

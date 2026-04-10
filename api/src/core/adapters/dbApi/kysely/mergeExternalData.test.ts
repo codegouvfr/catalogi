@@ -35,7 +35,8 @@ describe("mergeExternalData", () => {
 
         expect(merged).toBeDefined();
         expect(merged?.name).toBe("High Label");
-        expect(merged?.keywords).toEqual(["low", "high"]);
+        // keywords are the union, with the highest-precedence source contributing first.
+        expect(merged?.keywords).toEqual(["high", "low"]);
     });
 
     it("preserves keyword order when merging multiple items", () => {
@@ -52,7 +53,7 @@ describe("mergeExternalData", () => {
         } as unknown as PopulatedExternalData;
 
         const merged = mergeExternalData([highPrioData, lowPrioData]);
-        expect(merged?.keywords).toEqual(["d", "e", "a", "b", "c"]);
+        expect(merged?.keywords).toEqual(["a", "b", "c", "d", "e"]);
     });
 
     it("preserves fields from lower priority if higher priority is missing them", () => {
