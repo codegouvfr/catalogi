@@ -28,27 +28,14 @@ export async function up(db: Kysely<any>): Promise<void> {
         )
         .execute();
 
-    // 2. Make externalId nullable (user_input rows have NULL externalId).
-    await db.schema
-        .alterTable("software_external_datas")
-        .alterColumn("externalId", col => col.dropNotNull())
-        .execute();
-
-    // 3. Enforce at most one NULL-externalId row per (softwareId, sourceSlug).
-    await sql`
-        CREATE UNIQUE INDEX software_external_datas_user_input_unique
-        ON software_external_datas ("softwareId", "sourceSlug")
-        WHERE "externalId" IS NULL
-    `.execute(db);
-
-    // 4. Per-deployment opt-in: if neither edit nor add is enabled, stop here.
+    // 2. Per-deployment opt-in: if neither edit nor add is enabled, stop here.
     const userInputEnabled =
         rawUiConfig?.home?.usecases?.editSoftware?.enabled ||
         rawUiConfig?.home?.usecases?.addSoftwareOrService?.enabled;
 
     if (!userInputEnabled) return;
 
-    // 5. Seed the user_input source row. Existing convention is lower priority number = higher
+    // 3. Seed the user_input source row. Existing convention is lower priority number = higher
     // precedence (wikidata=1, cdl=2, cnll=3). We pick MIN(existing) - 1 so user_input wins by
     // default; admins can re-rank via the sources table if they want an external source to take
     // precedence.
@@ -58,9 +45,11 @@ export async function up(db: Kysely<any>): Promise<void> {
         FROM sources
     `.execute(db);
 
-    // 6. Backfill: for every existing software, copy its content columns into a user_input row.
-    // name/description/license/operatingSystems/runtimePlatforms/applicationCategories/keywords
-    // are NOT NULL on softwares, so every software gets a user_input row unconditionally.
+    // 4. Backfill: for every existing software, copy its content columns into a user_input row.
+    // The `externalId` column is part of the primary key on `software_external_datas`, so it
+    // can't be NULL — we use `softwareId::text` as a stable sentinel that's unique per software
+    // within the `user_input` source. Refresh/import jobs skip `kind='user_input'` so this
+    // sentinel never gets fed to an external gateway.
     await sql`
         INSERT INTO software_external_datas (
             "externalId", "sourceSlug", "softwareId",
@@ -71,7 +60,7 @@ export async function up(db: Kysely<any>): Promise<void> {
             "lastDataFetchAt"
         )
         SELECT
-            NULL, 'user_input', s.id,
+            s.id::text, 'user_input', s.id,
             '[]'::jsonb, jsonb_build_object('fr', s.name), s.description,
             s."isLibreSoftware", s.image, s.url, s."codeRepositoryUrl", s."softwareHelp",
             s.license, s."latestVersion", s.keywords, s."programmingLanguages",
@@ -84,11 +73,6 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
     await sql`DELETE FROM software_external_datas WHERE "sourceSlug" = 'user_input'`.execute(db);
     await sql`DELETE FROM sources WHERE slug = 'user_input'`.execute(db);
-    await sql`DROP INDEX IF EXISTS software_external_datas_user_input_unique`.execute(db);
-    await db.schema
-        .alterTable("software_external_datas")
-        .alterColumn("externalId", col => col.setNotNull())
-        .execute();
 
     await db.schema
         .alterTable("sources")

@@ -96,8 +96,11 @@ type UserInputWriteValues = {
     runtimePlatforms: RuntimePlatform[];
 };
 
+// `externalId` is part of the primary key and can't be NULL, so we use `softwareId::text`
+// as a stable sentinel that's unique per software within the `user_input` source. Refresh/
+// import jobs skip `kind='user_input'` so this sentinel never gets fed to an external gateway.
 const toUserInputRowValues = (v: UserInputWriteValues) => ({
-    externalId: null,
+    externalId: v.softwareId.toString(),
     sourceSlug: USER_INPUT_SOURCE_SLUG,
     softwareId: v.softwareId,
     authors: JSON.stringify([]),
@@ -464,18 +467,15 @@ export const createPgSoftwareRepository = (
                 {} as Record<string, { userCount: number; referentCount: number }>
             );
 
-            // Similar-softwares rows join through a NOT NULL similarExternalId, so externalId is always set here.
-            const similarSoftwares: SimilarSoftware[] = similarSoftwareRows
-                .filter((row): row is typeof row & { externalId: string } => row.externalId != null)
-                .map(row => ({
-                    externalId: row.externalId,
-                    sourceSlug: row.sourceSlug,
-                    name: row.name,
-                    description: row.description,
-                    isLibreSoftware: row.isLibreSoftware ?? undefined,
-                    isInCatalogi: row.linkedSoftwareId !== null && row.linkedSoftwareDereferencing === null,
-                    softwareId: row.linkedSoftwareId ?? undefined
-                }));
+            const similarSoftwares: SimilarSoftware[] = similarSoftwareRows.map(row => ({
+                externalId: row.externalId,
+                sourceSlug: row.sourceSlug,
+                name: row.name,
+                description: row.description,
+                isLibreSoftware: row.isLibreSoftware ?? undefined,
+                isInCatalogi: row.linkedSoftwareId !== null && row.linkedSoftwareDereferencing === null,
+                softwareId: row.linkedSoftwareId ?? undefined
+            }));
 
             const deref = softwareRow.dereferencing;
             const latestVersion = extData?.latestVersion;
@@ -708,9 +708,6 @@ export const createPgSoftwareRepository = (
                         runtimePlatforms
                     });
 
-                    // Conflict target is the partial unique index
-                    // (softwareId, sourceSlug) WHERE externalId IS NULL — must be mentioned
-                    // in the WHERE clause so Postgres matches the right index.
                     const {
                         externalId: _externalId,
                         sourceSlug: _sourceSlug,
@@ -721,12 +718,7 @@ export const createPgSoftwareRepository = (
                     await trx
                         .insertInto("software_external_datas")
                         .values(userInputValues)
-                        .onConflict(oc =>
-                            oc
-                                .columns(["softwareId", "sourceSlug"])
-                                .where("externalId", "is", null)
-                                .doUpdateSet(updateSet)
-                        )
+                        .onConflict(oc => oc.columns(["externalId", "sourceSlug"]).doUpdateSet(updateSet))
                         .execute();
                 }
             });
@@ -833,11 +825,10 @@ export const createPgSoftwareRepository = (
                 .innerJoin("software_external_datas as ext", "ext.externalId", "similar.similarExternalId")
                 .select(["ext.softwareId", "ext.externalId", "ext.sourceSlug"])
                 .where("similar.softwareId", "=", softwareId)
-                .where("ext.externalId", "is not", null)
                 .execute();
 
             return similarIds.map(({ externalId, sourceSlug, softwareId }) => ({
-                externalId: externalId!,
+                externalId,
                 sourceSlug,
                 softwareId: softwareId ?? undefined
             }));

@@ -4,8 +4,8 @@
 
 import { Kysely } from "kysely";
 import { DatabaseDataType, SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
-import { Database, DatabaseRowOutput } from "./kysely.database";
-import { transformNullToUndefined } from "./kysely.utils";
+import { Database, DatabaseRowOutput, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import type { SoftwareExternal } from "../../../types/SoftwareTypes";
 
 const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) => transformNullToUndefined(row);
@@ -94,11 +94,11 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .then(row => (row ? cleanDataForExternalData(row) : undefined));
     },
     getIds: async ({ minuteSkipSince }) => {
-        // Skip user_input rows (externalId IS NULL): they have no gateway to refresh.
+        // Skip the `user_input` pseudo-source: it has no gateway to refresh.
         let request = db
             .selectFrom("software_external_datas")
             .select(["externalId", "sourceSlug"])
-            .where("externalId", "is not", null);
+            .where("sourceSlug", "!=", USER_INPUT_SOURCE_SLUG);
 
         if (minuteSkipSince) {
             const thresholdDate = new Date(Date.now() - minuteSkipSince * 1000 * 60);
@@ -107,9 +107,7 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             );
         }
 
-        return request
-            .execute()
-            .then(rows => rows.map(row => ({ sourceSlug: row.sourceSlug, externalId: row.externalId! })));
+        return request.execute().then(rows => rows.map(row => stripNullOrUndefinedValues(row)));
     },
     getBySoftwareId: async ({ softwareId }) => {
         return db
