@@ -248,13 +248,23 @@
         "openSourceProvenance": "Voir les sources de données"
     },
     "sourceProvenance": {
-        "drawerTitle": "Sources des données",
+        "modalTitle": "Sources des données",
         "popoverTitle": "Valeurs pour {{field}}",
         "noData": "Aucune donnée source disponible",
         "sourceEmpty": "Cette source ne contribue à aucun champ pour ce logiciel",
-        "lastFetchedAt": "Dernière récupération {{when}}",
-        "lastEditedAt": "Dernière modification {{when}}",
-        "useThisValue": "Utiliser cette valeur"
+        "fieldColumnHeader": "Champ",
+        "lastFetchedAt": "Dernière récupération : {{when}}",
+        "lastEditedAt": "Dernière modification : {{when}}",
+        "neverFetched": "Jamais récupéré",
+        "useThisValue": "Utiliser cette valeur",
+        "sourceLabel_user_input": "Saisie utilisateur",
+        "sourceLabel_wikidata": "Wikidata",
+        "sourceLabel_HAL": "HAL",
+        "sourceLabel_ComptoirDuLibre": "Comptoir du Libre",
+        "sourceLabel_CNLL": "CNLL",
+        "sourceLabel_Zenodo": "Zenodo",
+        "sourceLabel_GitLab": "GitLab",
+        "sourceLabel_GitHub": "GitHub"
     },
     "previewTab": {
         "about": "À propos",

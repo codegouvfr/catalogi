@@ -11,12 +11,15 @@ import type { Equals } from "tsafe";
 import { fr } from "@codegouvfr/react-dsfr";
 import { getFormattedDate } from "ui/datetimeUtils";
 import type { ApiTypes } from "api";
-import { Drawer, Popover } from "@mui/material";
+import { Popover } from "@mui/material";
 import React from "react";
 import { AuthorCard } from "ui/shared/AuthorCard";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { useCoreState } from "../../../core";
-import { SourceProvenanceView } from "./SourceProvenanceView";
+import {
+    SourceProvenanceModal,
+    openSourceProvenanceModal
+} from "./SourceProvenanceModal";
 
 export type Props = {
     className?: string;
@@ -69,7 +72,6 @@ export const HeaderDetailCard = memo((props: Props) => {
     const { lang } = useLang();
 
     const [anchorEl, setAnchorEl] = React.useState<HTMLElement | null>(null);
-    const [isProvenanceDrawerOpen, setIsProvenanceDrawerOpen] = React.useState(false);
 
     const handlePopoverOpen = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorEl(anchorEl ? null : event.currentTarget);
@@ -106,7 +108,7 @@ export const HeaderDetailCard = memo((props: Props) => {
                             <button
                                 type="button"
                                 className={classes.provenanceTrigger}
-                                onClick={() => setIsProvenanceDrawerOpen(true)}
+                                onClick={() => openSourceProvenanceModal()}
                                 aria-label={t("headerDetailCard.openSourceProvenance")}
                                 title={t("headerDetailCard.openSourceProvenance")}
                             >
@@ -267,13 +269,7 @@ export const HeaderDetailCard = memo((props: Props) => {
                     />
                 )}
             </div>
-            <Drawer
-                anchor="right"
-                open={isProvenanceDrawerOpen}
-                onClose={() => setIsProvenanceDrawerOpen(false)}
-            >
-                <SourceProvenanceView dataBySource={dataBySource} />
-            </Drawer>
+            <SourceProvenanceModal dataBySource={dataBySource} />
         </div>
     );
 });
