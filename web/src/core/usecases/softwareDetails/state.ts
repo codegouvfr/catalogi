@@ -101,6 +101,8 @@ export namespace State {
         runtimePlatforms: ApiTypes.RuntimePlatform[];
         identifiers: ApiTypes.Identifier[];
         repoMetadata?: ApiTypes.RepoMetadata;
+        /** Per-source contributions, ordered priority-asc (winner first). */
+        dataBySource: ApiTypes.SoftwareSourceData[];
     };
 }
 

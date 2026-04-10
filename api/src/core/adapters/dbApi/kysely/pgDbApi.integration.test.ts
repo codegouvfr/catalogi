@@ -254,7 +254,8 @@ describe("pgDbApi", () => {
                         userCount: 1,
                         referentCount: 0
                     }
-                }
+                },
+                dataBySource: expect.any(Array)
             });
 
             console.log("getting all sill software external ids");

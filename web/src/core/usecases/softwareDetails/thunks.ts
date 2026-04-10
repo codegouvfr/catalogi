@@ -165,7 +165,7 @@ const { getContext } = createUsecaseContextApi(() => ({
 }));
 
 function apiSoftwareToSoftware(params: {
-    apiSoftware: ApiTypes.Software;
+    apiSoftware: ApiTypes.SoftwareDetail;
     apiInstances: ApiTypes.Instance[];
     softwareList: ApiTypes.SoftwareInList[];
 }): State.Software {
@@ -198,7 +198,8 @@ function apiSoftwareToSoftware(params: {
         referencePublications,
         applicationCategories,
         identifiers,
-        repoMetadata
+        repoMetadata,
+        dataBySource
     } = apiSoftware;
 
     return {
@@ -286,6 +287,7 @@ function apiSoftwareToSoftware(params: {
         operatingSystems,
         runtimePlatforms,
         identifiers: identifiers ?? [],
-        repoMetadata
+        repoMetadata,
+        dataBySource
     };
 }
