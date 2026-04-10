@@ -93,17 +93,19 @@ export const thunks = {
                         };
                     }
 
+                    const softwareName = software.name;
+
                     return {
                         isReferent:
                             user.declarations.find(
                                 d =>
-                                    d.softwareName === apiSoftware.name &&
+                                    d.softwareName === softwareName &&
                                     d.declarationType === "referent"
                             ) !== undefined,
                         isUser:
                             user.declarations.find(
                                 d =>
-                                    d.softwareName === apiSoftware.name &&
+                                    d.softwareName === softwareName &&
                                     d.declarationType === "user"
                             ) !== undefined
                     };
