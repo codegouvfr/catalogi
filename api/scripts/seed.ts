@@ -39,7 +39,8 @@ const seed = async () => {
         description: undefined,
         url: "https://www.wikidata.org/",
         kind: "wikidata",
-        priority: 1
+        priority: 1,
+        configuration: undefined
     } satisfies Source;
     await db.insertInto("sources").values(source).execute();
 

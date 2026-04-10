@@ -2,6 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-export const name = "externalDataOrigin";
-
-export const reducer = null;
+import { lazy } from "react";
+export * from "./route";
+export const LazyComponent = lazy(() => import("./0rganizationList"));

@@ -2,15 +2,23 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { PrimarySourceGateway } from "../../ports/SourceGateway";
+import { SourceGateway } from "../../ports/SourceGateway";
 import { getGitLabSoftwareExternalData } from "./getExternalData";
 import { getGitLabSoftwareForm } from "./getSoftwareFormData";
 import { getGitLabSoftwareOptions } from "./getSoftwareOptions";
 
-export const gitLabSourceGateway: PrimarySourceGateway = {
+export const gitLabSourceGateway: GitLabGateway = {
     sourceType: "GitLab",
-    sourceProfile: "Primary",
-    softwareExternal: { getById: getGitLabSoftwareExternalData },
-    softwareOptions: { getById: getGitLabSoftwareOptions },
-    softwareForm: { getById: getGitLabSoftwareForm }
+    software: {
+        getSoftwareForm: getGitLabSoftwareForm,
+        getSoftwareOptions: getGitLabSoftwareOptions
+    },
+    softwareExtra: {
+        getSoftwareExternal: getGitLabSoftwareExternalData
+    }
+};
+
+export type GitLabGateway = SourceGateway & {
+    softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
+    software: NonNullable<SourceGateway["software"]>;
 };

@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { DbApiV2 } from "../ports/DbApiV2";
-import { halAPIGateway } from "../adapters/hal/HalAPI";
+import { makeHalAPIGateway } from "../adapters/hal/HalAPI";
 import { makeCreateSofware } from "./createSoftware";
 import { Source } from "./readWriteSillData";
 import { GetSoftwareFormData } from "../ports/GetSoftwareFormData";
@@ -20,7 +20,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
     return async ({ userEmail, source, softwareIdOnSource }) => {
         const sourceGateway = resolveAdapterFromSource(source);
 
-        if (sourceGateway.sourceProfile !== "Primary")
+        if (!sourceGateway?.software?.getSoftwareForm)
             throw new Error("[UC:Import] Import if not possible from a secondary source");
 
         const user = await dbApi.user.getByEmail(userEmail);
@@ -34,7 +34,6 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                   sub: null
               });
 
-        const getSoftwareForm = sourceGateway.softwareForm.getById;
         let result = [];
 
         const softwareIds =
@@ -45,7 +44,13 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
         console.info(`[UC:Import] Importing  ${softwareIds.length} software packages from ${source.slug}`);
 
         for (const externalId of softwareIds) {
-            const newId = await checkSoftware(dbApi, source, externalId, getSoftwareForm, userId);
+            const newId = await checkSoftware(
+                dbApi,
+                source,
+                externalId,
+                sourceGateway.software.getSoftwareForm,
+                userId
+            );
             result.push(newId);
         }
         return result.filter(val => val != undefined);
@@ -55,9 +60,10 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
 const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]> => {
     switch (source.kind) {
         case "HAL":
+            const halAPIGateway = makeHalAPIGateway(source);
             return (await halAPIGateway.software.getAll({ SWHFilter: true })).map(doc => doc.docid);
         case "Zenodo":
-            const zenodoAPI = makeZenodoApi();
+            const zenodoAPI = makeZenodoApi(source);
             return (await zenodoAPI.records.getAllSoftware()).hits.hits.map(item => item.id.toString());
         case "ComptoirDuLibre":
         case "wikidata":
@@ -66,7 +72,9 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
             throw new Error("[UC:Import] Not Implemented, but you can specify the list of ids you want to import");
         // Secondary Sources
         case "CNLL":
-            throw new Error("[UC:Import] Import if not possible from a secondary source");
+        case "RNSR":
+        case "ROR":
+            throw new Error("[UC:Import] Import if not possible from a secondary or non software source");
         default:
             const shouldNotBeReached: never = source.kind;
             throw new Error("[UC:Import] Not Implemented", shouldNotBeReached);
