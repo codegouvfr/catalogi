@@ -4,7 +4,7 @@
 
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
 import type { Language } from "api";
 import { createResolveLocalizedString } from "i18nifty";
 import { name, actions, type FormData } from "./state";
@@ -86,7 +86,7 @@ export const thunks = {
                         // sources contribute stay blank; the per-field popover lets the
                         // editor pull from them on demand.
                         const userInputSource = software.dataBySource.find(
-                            source => source.kind === "user_input"
+                            source => source.kind === USER_INPUT_SOURCE_SLUG
                         );
 
                         dispatch(

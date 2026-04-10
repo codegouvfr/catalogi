@@ -1027,7 +1027,7 @@
         "sourceProvenance": {
             "type": "object",
             "properties": {
-                "drawerTitle": {
+                "modalTitle": {
                     "type": "string"
                 },
                 "popoverTitle": {
@@ -1039,25 +1039,65 @@
                 "sourceEmpty": {
                     "type": "string"
                 },
+                "fieldColumnHeader": {
+                    "type": "string"
+                },
                 "lastFetchedAt": {
                     "type": "string"
                 },
                 "lastEditedAt": {
                     "type": "string"
                 },
+                "neverFetched": {
+                    "type": "string"
+                },
                 "useThisValue": {
+                    "type": "string"
+                },
+                "sourceLabel_user_input": {
+                    "type": "string"
+                },
+                "sourceLabel_wikidata": {
+                    "type": "string"
+                },
+                "sourceLabel_HAL": {
+                    "type": "string"
+                },
+                "sourceLabel_ComptoirDuLibre": {
+                    "type": "string"
+                },
+                "sourceLabel_CNLL": {
+                    "type": "string"
+                },
+                "sourceLabel_Zenodo": {
+                    "type": "string"
+                },
+                "sourceLabel_GitLab": {
+                    "type": "string"
+                },
+                "sourceLabel_GitHub": {
                     "type": "string"
                 }
             },
             "additionalProperties": false,
             "required": [
-                "drawerTitle",
+                "modalTitle",
                 "popoverTitle",
                 "noData",
                 "sourceEmpty",
+                "fieldColumnHeader",
                 "lastFetchedAt",
                 "lastEditedAt",
-                "useThisValue"
+                "neverFetched",
+                "useThisValue",
+                "sourceLabel_user_input",
+                "sourceLabel_wikidata",
+                "sourceLabel_HAL",
+                "sourceLabel_ComptoirDuLibre",
+                "sourceLabel_CNLL",
+                "sourceLabel_Zenodo",
+                "sourceLabel_GitLab",
+                "sourceLabel_GitHub"
             ]
         },
         "previewTab": {

@@ -144,6 +144,47 @@ const toUserInputRowValues = (v: UserInputWriteValues) => ({
     lastDataFetchAt: new Date()
 });
 
+const buildUserInputWriteValues = (
+    softwareId: number,
+    software: {
+        name: string;
+        description: LocalizedString;
+        license: string;
+        image?: string | null;
+        isLibreSoftware?: boolean | null;
+        url?: string | null;
+        codeRepositoryUrl?: string | null;
+        softwareHelp?: string | null;
+        latestVersion?: { version?: string | null; releaseDate?: string | null } | null;
+        keywords: string[];
+        programmingLanguages?: string[] | null;
+        applicationCategories: string[];
+        operatingSystems: Partial<Record<Os, boolean>>;
+        runtimePlatforms: RuntimePlatform[];
+    }
+): UserInputWriteValues => ({
+    softwareId,
+    name: software.name,
+    description: software.description,
+    license: software.license,
+    image: software.image ?? null,
+    isLibreSoftware: software.isLibreSoftware ?? null,
+    url: software.url ?? null,
+    codeRepositoryUrl: software.codeRepositoryUrl ?? null,
+    softwareHelp: software.softwareHelp ?? null,
+    latestVersion: software.latestVersion
+        ? {
+              version: software.latestVersion.version ?? null,
+              releaseDate: software.latestVersion.releaseDate ?? null
+          }
+        : null,
+    keywords: software.keywords,
+    programmingLanguages: software.programmingLanguages ?? null,
+    applicationCategories: software.applicationCategories,
+    operatingSystems: software.operatingSystems,
+    runtimePlatforms: software.runtimePlatforms
+});
+
 export const createPgSoftwareRepository = (
     db: Kysely<Database>,
     options: { userInputEnabled: boolean }
@@ -215,7 +256,6 @@ export const createPgSoftwareRepository = (
                         .execute()
                 ]);
 
-            // Aggregate external data by softwareId
             const externalBySoftwareId = externalRows.reduce(
                 (acc, row) => ({
                     ...acc,
@@ -232,14 +272,12 @@ export const createPgSoftwareRepository = (
                 {} as Record<number, DatabaseDataType.SoftwareExternalDataRow>
             );
 
-            // Aggregate counts
             const allCountRows: CountRow[] = [
                 ...userCountRows.map(r => ({ ...r, countType: "userCount" })),
                 ...referentCountRows.map(r => ({ ...r, countType: "referentCount" }))
             ];
             const countsMap = aggregateCounts(allCountRows);
 
-            // Aggregate similar softwares
             const similarMap = aggregateEnrichedSimilars(enrichedSimilarRows as EnrichedSimilarRow[]);
 
             return softwareRows.map(software => {
@@ -418,7 +456,6 @@ export const createPgSoftwareRepository = (
             });
         },
         getDetails: async (softwareId: number): Promise<SoftwareDetail | undefined> => {
-            // Execute queries for single software in parallel
             const [softwareRow, externalDataRows, userCounts, referentCounts, similarSoftwareRows] = await Promise.all([
                 // The `softwares` content columns are still written and read as a fallback for
                 // any field the merged external data doesn't provide. They'll be dropped in a
@@ -480,7 +517,6 @@ export const createPgSoftwareRepository = (
             const extData = mergeExternalData(populatedExternalRows);
             const dataBySource: SoftwareSourceData[] = populatedExternalRows.map(toSoftwareSourceData);
 
-            // Aggregate user/referent counts
             const userAndReferentCountByOrganization = [
                 ...userCounts.map(r => ({ ...r, countType: "userCount" as const })),
                 ...referentCounts.map(r => ({ ...r, countType: "referentCount" as const }))
@@ -629,30 +665,7 @@ export const createPgSoftwareRepository = (
                 if (userInputEnabled) {
                     await trx
                         .insertInto("software_external_datas")
-                        .values(
-                            toUserInputRowValues({
-                                softwareId,
-                                name,
-                                description,
-                                license,
-                                image: image ?? null,
-                                isLibreSoftware: isLibreSoftware ?? null,
-                                url: url ?? null,
-                                codeRepositoryUrl: codeRepositoryUrl ?? null,
-                                softwareHelp: softwareHelp ?? null,
-                                latestVersion: latestVersion
-                                    ? {
-                                          version: latestVersion.version ?? null,
-                                          releaseDate: latestVersion.releaseDate ?? null
-                                      }
-                                    : null,
-                                keywords,
-                                programmingLanguages: programmingLanguages ?? null,
-                                applicationCategories,
-                                operatingSystems,
-                                runtimePlatforms
-                            })
-                        )
+                        .values(toUserInputRowValues(buildUserInputWriteValues(softwareId, software)))
                         .execute();
                 }
 
@@ -714,29 +727,7 @@ export const createPgSoftwareRepository = (
                     .execute();
 
                 if (userInputEnabled) {
-                    const userInputValues = toUserInputRowValues({
-                        softwareId,
-                        name,
-                        description,
-                        license,
-                        image: image ?? null,
-                        isLibreSoftware: isLibreSoftware ?? null,
-                        url: url ?? null,
-                        codeRepositoryUrl: codeRepositoryUrl ?? null,
-                        softwareHelp: softwareHelp ?? null,
-                        latestVersion: latestVersion
-                            ? {
-                                  version: latestVersion.version ?? null,
-                                  releaseDate: latestVersion.releaseDate ?? null
-                              }
-                            : null,
-                        keywords,
-                        programmingLanguages: programmingLanguages ?? null,
-                        applicationCategories,
-                        operatingSystems,
-                        runtimePlatforms
-                    });
-
+                    const userInputValues = toUserInputRowValues(buildUserInputWriteValues(softwareId, software));
                     const {
                         externalId: _externalId,
                         sourceSlug: _sourceSlug,

@@ -2,13 +2,14 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { memo } from "react";
+import { memo, useMemo } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
-import { useResolveLocalizedString, type LocalizedString } from "ui/i18n";
-import type { ApiTypes } from "api";
+import { useLang, useResolveLocalizedString, type LocalizedString } from "ui/i18n";
+import { getFormattedDate } from "ui/datetimeUtils";
+import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
 
 export type SourceFieldKey = keyof Omit<
     ApiTypes.SoftwareSourceData,
@@ -17,11 +18,8 @@ export type SourceFieldKey = keyof Omit<
 
 export type Props = {
     dataBySource: ApiTypes.SoftwareSourceData[];
-    /**
-     * If omitted, renders the drawer variant (one card per source with every non-empty field).
-     * If set, renders the popover variant scoped to a single field.
-     */
-    fields?: SourceFieldKey[];
+    /** If set, renders the popover variant scoped to this single field. */
+    field?: SourceFieldKey;
     /** Popover variant only: called when the editor picks a value from a source. */
     onUseValue?: (params: {
         sourceSlug: string;
@@ -54,7 +52,15 @@ const makeRenderValue =
                     .filter(Boolean)
                     .join(" — ");
             }
-            return resolveLocalizedString(value as LocalizedString);
+            // Treat as LocalizedString. resolveLocalizedString asserts that at
+            // least one entry is a non-empty string, so filter first.
+            const localized = Object.fromEntries(
+                Object.entries(value as Record<string, unknown>).filter(
+                    ([, v]) => typeof v === "string" && v.length > 0
+                )
+            ) as LocalizedString;
+            if (Object.keys(localized).length === 0) return "";
+            return resolveLocalizedString(localized);
         }
         return String(value);
     };
@@ -88,21 +94,56 @@ const isFieldPopulated = (
     const v = source[field] as unknown;
     if (v === undefined || v === null) return false;
     if (Array.isArray(v)) return v.length > 0;
-    if (typeof v === "object") return Object.keys(v as object).length > 0;
+    if (typeof v === "object") {
+        // Catch empty LocalizedString-like objects ({}, {fr: ""}, {fr: null})
+        // and version objects with no usable fields.
+        return Object.values(v as object).some(
+            x =>
+                x !== null &&
+                x !== undefined &&
+                x !== "" &&
+                (!Array.isArray(x) || x.length > 0)
+        );
+    }
     if (typeof v === "string") return v.length > 0;
     return true;
 };
 
 export const SourceProvenanceView = memo((props: Props) => {
-    const { dataBySource, fields, onUseValue, className } = props;
+    const { dataBySource, field, onUseValue, className } = props;
     const { classes, cx } = useStyles();
     const { t } = useTranslation();
+    const { lang } = useLang();
     const { resolveLocalizedString } = useResolveLocalizedString();
-    const renderValue = makeRenderValue(resolveLocalizedString);
+    const renderValue = useMemo(
+        () => makeRenderValue(resolveLocalizedString),
+        [resolveLocalizedString]
+    );
+
+    const renderFetchInfo = (source: ApiTypes.SoftwareSourceData) => {
+        if (!source.lastDataFetchAt) {
+            return source.kind === USER_INPUT_SOURCE_SLUG
+                ? null
+                : t("sourceProvenance.neverFetched");
+        }
+        const when = getFormattedDate({
+            time: source.lastDataFetchAt,
+            lang,
+            doAlwaysShowYear: true,
+            showTime: false
+        });
+        return source.kind === USER_INPUT_SOURCE_SLUG
+            ? t("sourceProvenance.lastEditedAt", { when })
+            : t("sourceProvenance.lastFetchedAt", { when });
+    };
+
+    const getSourceLabel = (source: ApiTypes.SoftwareSourceData): string =>
+        t(`sourceProvenance.sourceLabel_${source.kind}`, {
+            defaultValue: source.sourceSlug
+        });
 
     // Popover variant: one row per source for the single requested field.
-    if (fields && fields.length === 1) {
-        const [field] = fields;
+    if (field) {
         const rows = dataBySource.filter(source => isFieldPopulated(source, field));
 
         if (rows.length === 0) {
@@ -122,8 +163,7 @@ export const SourceProvenanceView = memo((props: Props) => {
                     {rows.map(source => (
                         <li key={source.sourceSlug} className={classes.popoverRow}>
                             <div className={classes.popoverRowHeader}>
-                                <strong>{source.sourceSlug}</strong>
-                                <span className={classes.kind}>{source.kind}</span>
+                                <strong>{getSourceLabel(source)}</strong>
                             </div>
                             <div className={classes.popoverValue}>
                                 {renderValue(source[field])}
@@ -150,107 +190,152 @@ export const SourceProvenanceView = memo((props: Props) => {
         );
     }
 
-    // Drawer variant: one card per source, every populated field listed.
+    // Modal variant: a comparison table — rows = fields, columns = sources.
+    if (dataBySource.length === 0) {
+        return (
+            <div className={cx(classes.modalRoot, className)}>
+                <p>{t("sourceProvenance.noData")}</p>
+            </div>
+        );
+    }
+
     return (
-        <div className={cx(classes.drawerRoot, className)}>
-            <h5 className={classes.drawerTitle}>{t("sourceProvenance.drawerTitle")}</h5>
-            {dataBySource.length === 0 && <p>{t("sourceProvenance.noData")}</p>}
-            {dataBySource.map(source => {
-                const populated = FIELD_KEYS.filter(key => isFieldPopulated(source, key));
-                return (
-                    <section key={source.sourceSlug} className={classes.sourceCard}>
-                        <header className={classes.sourceCardHeader}>
-                            <strong>{source.sourceSlug}</strong>
-                            <span className={classes.kind}>{source.kind}</span>
-                            {source.lastDataFetchAt && (
-                                <span className={classes.timestamp}>
-                                    {source.kind === "user_input"
-                                        ? t("sourceProvenance.lastEditedAt", {
-                                              when: source.lastDataFetchAt
-                                          })
-                                        : t("sourceProvenance.lastFetchedAt", {
-                                              when: source.lastDataFetchAt
-                                          })}
-                                </span>
-                            )}
-                        </header>
-                        {populated.length === 0 ? (
-                            <p className={fr.cx("fr-text--sm")}>
-                                {t("sourceProvenance.sourceEmpty")}
-                            </p>
-                        ) : (
-                            <dl className={classes.fieldList}>
-                                {populated.map(key => (
-                                    <div key={key} className={classes.fieldRow}>
-                                        <dt className={classes.fieldKey}>{key}</dt>
-                                        <dd className={classes.fieldValue}>
-                                            {renderValue(source[key])}
-                                        </dd>
-                                    </div>
+        <div className={cx(classes.modalRoot, className)}>
+            <div className={classes.tableScroll}>
+                <table className={classes.compareTable}>
+                    <thead>
+                        <tr>
+                            <th className={cx(classes.headCell, classes.firstColHead)}>
+                                {t("sourceProvenance.fieldColumnHeader")}
+                            </th>
+                            {dataBySource.map(source => {
+                                const fetchInfo = renderFetchInfo(source);
+                                return (
+                                    <th
+                                        key={source.sourceSlug}
+                                        className={classes.headCell}
+                                    >
+                                        {getSourceLabel(source)}
+                                        {fetchInfo && (
+                                            <div className={classes.timestamp}>
+                                                {fetchInfo}
+                                            </div>
+                                        )}
+                                    </th>
+                                );
+                            })}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {FIELD_KEYS.map(key => (
+                            <tr key={key}>
+                                <th
+                                    scope="row"
+                                    className={cx(classes.bodyCell, classes.firstCol)}
+                                >
+                                    {key}
+                                </th>
+                                {dataBySource.map(source => (
+                                    <td
+                                        key={source.sourceSlug}
+                                        className={classes.bodyCell}
+                                    >
+                                        {isFieldPopulated(source, key) ? (
+                                            renderValue(source[key])
+                                        ) : (
+                                            <span className={classes.empty}>—</span>
+                                        )}
+                                    </td>
                                 ))}
-                            </dl>
-                        )}
-                    </section>
-                );
-            })}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 });
 
+const BORDER = `1px solid ${fr.colors.decisions.border.default.grey.default}`;
+
 const useStyles = tss.withName({ SourceProvenanceView }).create({
-    drawerRoot: {
-        padding: fr.spacing("4v"),
-        minWidth: 360,
-        maxWidth: 520
+    modalRoot: {
+        display: "flex",
+        flexDirection: "column",
+        flex: "1 1 auto",
+        minHeight: 0
     },
-    drawerTitle: {
+    tableScroll: {
+        overflow: "auto",
+        flex: "1 1 auto",
+        minHeight: 0,
+        maxWidth: "100%",
+        scrollbarWidth: "thin",
+        scrollbarGutter: "stable"
+    },
+    compareTable: {
+        borderCollapse: "separate",
+        borderSpacing: 0,
+        width: "max-content",
+        minWidth: "100%",
+        fontSize: "0.9rem",
+        lineHeight: 1.35,
+        // A bit of breathing room so the user clearly sees they reached
+        // the last row. `padding-bottom` on the scroll container is
+        // ignored by browsers when content overflows; `margin-bottom`
+        // on a child element is included in the scroll height.
         marginBottom: fr.spacing("4v")
     },
-    sourceCard: {
-        marginBottom: fr.spacing("4v"),
-        padding: fr.spacing("3v"),
-        borderLeft: `3px solid ${fr.colors.decisions.border.actionHigh.blueFrance.default}`,
-        background: fr.colors.decisions.background.alt.grey.default
+    headCell: {
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+        background: fr.colors.decisions.background.alt.blueFrance.default,
+        textAlign: "left",
+        verticalAlign: "top",
+        padding: `${fr.spacing("2v")} ${fr.spacing("3v")}`,
+        borderBottom: BORDER,
+        borderRight: BORDER,
+        fontWeight: 700,
+        maxWidth: 320,
+        minWidth: 200,
+        wordBreak: "break-word"
     },
-    sourceCardHeader: {
-        display: "flex",
-        alignItems: "center",
-        gap: fr.spacing("2v"),
-        marginBottom: fr.spacing("2v"),
-        flexWrap: "wrap"
+    firstColHead: {
+        left: 0,
+        zIndex: 3,
+        maxWidth: 200,
+        minWidth: 160
     },
-    kind: {
-        color: fr.colors.decisions.text.mention.grey.default,
-        fontSize: "0.8rem"
+    bodyCell: {
+        padding: `${fr.spacing("2v")} ${fr.spacing("3v")}`,
+        verticalAlign: "top",
+        borderBottom: BORDER,
+        borderRight: BORDER,
+        maxWidth: 320,
+        minWidth: 200,
+        background: fr.colors.decisions.background.default.grey.default,
+        wordBreak: "break-word",
+        overflowWrap: "anywhere"
+    },
+    firstCol: {
+        position: "sticky",
+        left: 0,
+        zIndex: 1,
+        textAlign: "left",
+        fontWeight: 700,
+        maxWidth: 200,
+        minWidth: 160
     },
     timestamp: {
+        display: "block",
         color: fr.colors.decisions.text.mention.grey.default,
-        fontSize: "0.8rem"
+        fontSize: "0.75rem",
+        fontWeight: "normal",
+        marginTop: fr.spacing("1v")
     },
-    fieldList: {
-        margin: 0,
-        padding: 0
-    },
-    fieldRow: {
-        display: "grid",
-        gridTemplateColumns: "140px 1fr",
-        gap: fr.spacing("2v"),
-        padding: `${fr.spacing("1v")} 0`,
-        borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-        "&:last-child": {
-            borderBottom: "none"
-        }
-    },
-    fieldKey: {
-        margin: 0,
-        color: fr.colors.decisions.text.mention.grey.default,
-        fontSize: "0.85rem",
-        wordBreak: "break-word"
-    },
-    fieldValue: {
-        margin: 0,
-        fontSize: "0.9rem",
-        wordBreak: "break-word"
+    empty: {
+        color: fr.colors.decisions.text.mention.grey.default
     },
     popoverRoot: {
         padding: fr.spacing("3v"),

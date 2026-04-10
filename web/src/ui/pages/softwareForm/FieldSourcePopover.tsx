@@ -51,7 +51,7 @@ export const FieldSourcePopover = memo((props: Props) => {
             >
                 <SourceProvenanceView
                     dataBySource={dataBySource}
-                    fields={[field]}
+                    field={field}
                     onUseValue={
                         onUseValue
                             ? ({ value }) => {
