@@ -5,12 +5,20 @@
 import { getHalSoftwareOptions } from "./getHalSoftwareOptions";
 import { getHalSoftwareExternal } from "./getHalSoftwareExternalData";
 import { getHalSoftwareForm } from "./getSoftwareForm";
-import { PrimarySourceGateway } from "../../ports/SourceGateway";
+import { SourceGateway } from "../../ports/SourceGateway";
 
-export const halSourceGateway: PrimarySourceGateway = {
+export type HALGateway = SourceGateway & {
+    softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
+    software: NonNullable<SourceGateway["software"]>;
+};
+
+export const halSourceGateway: HALGateway = {
     sourceType: "HAL",
-    sourceProfile: "Primary",
-    softwareExternal: { getById: getHalSoftwareExternal },
-    softwareOptions: { getById: getHalSoftwareOptions },
-    softwareForm: { getById: getHalSoftwareForm }
+    software: {
+        getSoftwareForm: getHalSoftwareForm,
+        getSoftwareOptions: getHalSoftwareOptions
+    },
+    softwareExtra: {
+        getSoftwareExternal: getHalSoftwareExternal
+    }
 };

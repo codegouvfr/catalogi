@@ -163,11 +163,11 @@ export function createRouter(params: {
                 const mainSource = await dbApi.source.getMainSource();
                 const sourceGateway = resolveAdapterFromSource(mainSource);
 
-                if (sourceGateway.sourceProfile !== "Primary")
+                if (!sourceGateway.software?.getSoftwareOptions)
                     throw new Error("Getting option is not possible from a secondary source");
 
                 const [queryResults, softwareExternalDataIds] = await Promise.all([
-                    sourceGateway.softwareOptions.getById({ queryString, language, source: mainSource }),
+                    sourceGateway.software.getSoftwareOptions({ queryString, language, source: mainSource }),
                     dbApi.software.getAllSillSoftwareExternalIds(mainSource.slug)
                 ]);
 

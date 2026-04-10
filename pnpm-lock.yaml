@@ -29,6 +29,9 @@ importers:
       '@gitbeaker/core':
         specifier: ^43.4.0
         version: 43.8.0
+      '@gitbeaker/requester-utils':
+        specifier: ^43.8.0
+        version: 43.8.0
       '@gitbeaker/rest':
         specifier: ^43.4.0
         version: 43.8.0

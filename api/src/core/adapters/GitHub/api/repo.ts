@@ -32,11 +32,8 @@ const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
     };
 };
 
-export const repoGitHubEndpointMaker = (params: { githubPersonalAccessTokenForApiRateLimit?: string }) => {
-    const { githubPersonalAccessTokenForApiRateLimit } = params;
-    const octokit = new Octokit({
-        auth: githubPersonalAccessTokenForApiRateLimit
-    });
+export const gitHubEndpointMaker = (params?: { auth?: string }) => {
+    const octokit = new Octokit(params?.auth ? { auth: params.auth } : {});
 
     return {
         repo: {

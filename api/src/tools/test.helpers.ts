@@ -152,7 +152,8 @@ export const testSource = {
     priority: 1,
     url: "https://www.wikidata.org",
     description: undefined,
-    kind: "wikidata"
+    kind: "wikidata",
+    configuration: undefined
 } satisfies Source;
 
 export const resetDB = async (db: Kysely<Database>) => {
