@@ -188,7 +188,7 @@ type SoftwareAttributeDefinitionsTable = {
 type RuntimePlatform = "cloud" | "mobile" | "desktop";
 
 export type SoftwareExternalDatasTable = {
-    externalId: ExternalId | null;
+    externalId: ExternalId;
     sourceSlug: string;
     softwareId: number | null;
     authors: JSONColumnType<Array<SchemaOrganization | SchemaPerson>>;
