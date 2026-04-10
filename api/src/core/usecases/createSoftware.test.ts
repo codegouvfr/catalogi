@@ -57,7 +57,7 @@ describe("Create software - Trying all the cases", () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
 
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
 
         userId = await dbApi.user.add({
             email: "myuser@example.com",
@@ -82,7 +82,7 @@ describe("Create software - Trying all the cases", () => {
 
         const softwareListFromApiItem = await dbApi.software.getDetails(softwareListFromApi[0].id);
         expectToMatchObject(softwareListFromApiItem, {
-            name: "Create react app",
+            name: { fr: "Create react app" },
             similarSoftwares: [
                 {
                     externalId: viteOption.externalId,

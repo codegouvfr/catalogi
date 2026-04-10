@@ -78,6 +78,29 @@ const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, S
         {} as Record<number, SimilarSoftware[]>
     );
 
+const isBlankText = (value: unknown) => typeof value === "string" && value.trim() === "";
+
+const isBlankLocalizedString = (value: unknown) => {
+    if (value === undefined || value === null) return true;
+    if (isBlankText(value)) return true;
+    if (typeof value !== "object" || Array.isArray(value)) return false;
+
+    const values = Object.values(value as Record<string, unknown>);
+    return values.length === 0 || values.every(item => item === undefined || item === null || isBlankText(item));
+};
+
+const resolveLocalizedString = (value: unknown, fallback: LocalizedString): LocalizedString =>
+    isBlankLocalizedString(value) ? fallback : (value as LocalizedString);
+
+const resolveText = (value: string | null | undefined, fallback: string | null | undefined): string | undefined =>
+    value === undefined || value === null || isBlankText(value) ? (fallback ?? undefined) : value;
+
+const resolveArray = <T>(value: T[] | null | undefined, fallback: T[] | null | undefined = []): T[] =>
+    value && value.length > 0 ? value : (fallback ?? []);
+
+const resolveOptionalArray = <T>(value: T[] | null | undefined): T[] | undefined =>
+    value && value.length > 0 ? value : undefined;
+
 type UserInputWriteValues = {
     softwareId: number;
     name: string;
@@ -221,28 +244,30 @@ export const createPgSoftwareRepository = (
 
             return softwareRows.map(software => {
                 const extData = externalDataRecord[software.id];
-                const latestVersion = extData?.latestVersion;
+                const resolvedLatestVersion = extData?.latestVersion ?? software.latestVersion;
                 return {
                     id: software.id,
-                    name: (extData?.name ?? {}) as LocalizedString,
-                    description: (extData?.description ?? {}) as LocalizedString,
-                    image: extData?.image ?? undefined,
-                    latestVersion: latestVersion
+                    name: resolveLocalizedString(extData?.name, { fr: software.name } as LocalizedString),
+                    description: resolveLocalizedString(extData?.description, software.description as LocalizedString),
+                    image: resolveText(extData?.image, software.image),
+                    latestVersion: resolvedLatestVersion
                         ? {
-                              version: latestVersion.version ?? undefined,
+                              version: resolvedLatestVersion.version ?? undefined,
                               releaseDate:
-                                  latestVersion.releaseDate ??
+                                  resolvedLatestVersion.releaseDate ??
                                   (extData?.dateCreated ? extData.dateCreated.toISOString().slice(0, 10) : undefined)
                           }
                         : undefined,
                     addedTime: software.addedTime,
                     updateTime: software.updateTime,
-                    applicationCategories: extData?.applicationCategories ?? [],
-                    keywords: extData?.keywords ?? [],
-                    operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
-                    runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
+                    applicationCategories: resolveArray(extData?.applicationCategories, software.applicationCategories),
+                    keywords: resolveArray(extData?.keywords, software.keywords),
+                    operatingSystems: (extData?.operatingSystems ?? software.operatingSystems ?? {}) as Partial<
+                        Record<Os, boolean>
+                    >,
+                    runtimePlatforms: resolveArray(extData?.runtimePlatforms, software.runtimePlatforms),
                     customAttributes: software.customAttributes ?? undefined,
-                    programmingLanguages: extData?.programmingLanguages ?? [],
+                    programmingLanguages: resolveArray(extData?.programmingLanguages, software.programmingLanguages),
                     authors: extData?.authors ?? [],
                     userAndReferentCountByOrganization: countsMap[software.id] ?? {},
                     similarSoftwares: similarMap[software.id] ?? []
@@ -335,17 +360,24 @@ export const createPgSoftwareRepository = (
             return softwareRows.map(softwareRow => {
                 const extData = externalDataRecord[softwareRow.id];
                 const deref = softwareRow.dereferencing;
-                const latestVersion = extData?.latestVersion;
+                const resolvedLatestVersion = extData?.latestVersion ?? softwareRow.latestVersion;
+                const externalIdentitySource = externalBySoftwareId[softwareRow.id]?.find(
+                    row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG
+                );
+
                 return {
                     id: softwareRow.id,
-                    name: (extData?.name ?? {}) as LocalizedString,
-                    description: (extData?.description ?? {}) as LocalizedString,
-                    image: extData?.image ?? undefined,
-                    latestVersion: latestVersion
+                    name: resolveLocalizedString(extData?.name, { fr: softwareRow.name } as LocalizedString),
+                    description: resolveLocalizedString(
+                        extData?.description,
+                        softwareRow.description as LocalizedString
+                    ),
+                    image: resolveText(extData?.image, softwareRow.image),
+                    latestVersion: resolvedLatestVersion
                         ? {
-                              version: latestVersion.version ?? undefined,
+                              version: resolvedLatestVersion.version ?? undefined,
                               releaseDate:
-                                  latestVersion.releaseDate ??
+                                  resolvedLatestVersion.releaseDate ??
                                   (extData?.dateCreated ? extData.dateCreated.toISOString().slice(0, 10) : undefined)
                           }
                         : undefined,
@@ -358,24 +390,29 @@ export const createPgSoftwareRepository = (
                               lastRecommendedVersion: deref.lastRecommendedVersion
                           }
                         : undefined,
-                    applicationCategories: extData?.applicationCategories ?? [],
+                    applicationCategories: resolveArray(
+                        extData?.applicationCategories,
+                        softwareRow.applicationCategories
+                    ),
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     userAndReferentCountByOrganization: countsMap[softwareRow.id] ?? {},
                     authors: extData?.authors ?? [],
-                    url: extData?.url ?? undefined,
-                    codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
-                    softwareHelp: extData?.softwareHelp ?? undefined,
-                    license: extData?.license ?? "",
-                    externalId: extData?.externalId,
-                    sourceSlug: extData?.sourceSlug,
-                    operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
-                    runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
+                    url: resolveText(extData?.url, softwareRow.url),
+                    codeRepositoryUrl: resolveText(extData?.codeRepositoryUrl, softwareRow.codeRepositoryUrl),
+                    softwareHelp: resolveText(extData?.softwareHelp, softwareRow.softwareHelp),
+                    license: resolveText(extData?.license, softwareRow.license) ?? "",
+                    externalId: externalIdentitySource?.externalId,
+                    sourceSlug: externalIdentitySource?.sourceSlug,
+                    operatingSystems: (extData?.operatingSystems ?? softwareRow.operatingSystems ?? {}) as Partial<
+                        Record<Os, boolean>
+                    >,
+                    runtimePlatforms: resolveArray(extData?.runtimePlatforms, softwareRow.runtimePlatforms),
                     similarSoftwares: similarMap[softwareRow.id] ?? [],
-                    keywords: extData?.keywords ?? [],
-                    programmingLanguages: extData?.programmingLanguages ?? [],
+                    keywords: resolveArray(extData?.keywords, softwareRow.keywords),
+                    programmingLanguages: resolveArray(extData?.programmingLanguages, softwareRow.programmingLanguages),
                     providers: extData?.providers ?? [],
-                    referencePublications: extData?.referencePublications,
-                    identifiers: extData?.identifiers,
+                    referencePublications: resolveOptionalArray(extData?.referencePublications),
+                    identifiers: resolveOptionalArray(extData?.identifiers),
                     repoMetadata: extData?.repoMetadata
                 };
             });
@@ -383,21 +420,10 @@ export const createPgSoftwareRepository = (
         getDetails: async (softwareId: number): Promise<SoftwareDetail | undefined> => {
             // Execute queries for single software in parallel
             const [softwareRow, externalDataRows, userCounts, referentCounts, similarSoftwareRows] = await Promise.all([
-                // Only catalog metadata is read from `softwares`; all content comes from
-                // `software_external_datas` via the unified merge.
-                db
-                    .selectFrom("softwares")
-                    .select([
-                        "id",
-                        "addedTime",
-                        "updateTime",
-                        "dereferencing",
-                        "isStillInObservation",
-                        "customAttributes",
-                        "addedByUserId"
-                    ])
-                    .where("id", "=", softwareId)
-                    .executeTakeFirst(),
+                // The `softwares` content columns are still written and read as a fallback for
+                // any field the merged external data doesn't provide. They'll be dropped in a
+                // follow-up release once the user_input source is the only writer.
+                db.selectFrom("softwares").selectAll().where("id", "=", softwareId).executeTakeFirst(),
 
                 db
                     .selectFrom("software_external_datas as ext")
@@ -478,20 +504,21 @@ export const createPgSoftwareRepository = (
             }));
 
             const deref = softwareRow.dereferencing;
-            const latestVersion = extData?.latestVersion;
-            const name = (extData?.name ?? {}) as LocalizedString;
-            const description = (extData?.description ?? {}) as LocalizedString;
+            const resolvedLatestVersion = extData?.latestVersion ?? softwareRow.latestVersion;
+            // Identity fields (externalId/sourceSlug) must come from a real external source —
+            // the user_input row's sentinel externalId would otherwise leak into the response.
+            const externalIdentitySource = populatedExternalRows.find(row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG);
 
             return {
                 id: softwareRow.id,
-                name,
-                description,
-                image: extData?.image ?? undefined,
-                latestVersion: latestVersion
+                name: resolveLocalizedString(extData?.name, { fr: softwareRow.name } as LocalizedString),
+                description: resolveLocalizedString(extData?.description, softwareRow.description as LocalizedString),
+                image: resolveText(extData?.image, softwareRow.image),
+                latestVersion: resolvedLatestVersion
                     ? {
-                          version: latestVersion.version ?? undefined,
+                          version: resolvedLatestVersion.version ?? undefined,
                           releaseDate:
-                              latestVersion.releaseDate ??
+                              resolvedLatestVersion.releaseDate ??
                               (extData?.dateCreated ? extData.dateCreated.toISOString().slice(0, 10) : undefined)
                       }
                     : undefined,
@@ -504,24 +531,26 @@ export const createPgSoftwareRepository = (
                           lastRecommendedVersion: deref.lastRecommendedVersion
                       }
                     : undefined,
-                applicationCategories: extData?.applicationCategories ?? [],
+                applicationCategories: resolveArray(extData?.applicationCategories, softwareRow.applicationCategories),
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 userAndReferentCountByOrganization,
                 authors: extData?.authors ?? [],
-                url: extData?.url ?? undefined,
-                codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
-                softwareHelp: extData?.softwareHelp ?? undefined,
-                license: extData?.license ?? "",
-                externalId: extData?.externalId,
-                sourceSlug: extData?.sourceSlug,
-                operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
-                runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
+                url: resolveText(extData?.url, softwareRow.url),
+                codeRepositoryUrl: resolveText(extData?.codeRepositoryUrl, softwareRow.codeRepositoryUrl),
+                softwareHelp: resolveText(extData?.softwareHelp, softwareRow.softwareHelp),
+                license: resolveText(extData?.license, softwareRow.license) ?? "",
+                externalId: externalIdentitySource?.externalId,
+                sourceSlug: externalIdentitySource?.sourceSlug,
+                operatingSystems: (extData?.operatingSystems ?? softwareRow.operatingSystems ?? {}) as Partial<
+                    Record<Os, boolean>
+                >,
+                runtimePlatforms: resolveArray(extData?.runtimePlatforms, softwareRow.runtimePlatforms),
                 similarSoftwares,
-                keywords: extData?.keywords ?? [],
-                programmingLanguages: extData?.programmingLanguages ?? [],
+                keywords: resolveArray(extData?.keywords, softwareRow.keywords),
+                programmingLanguages: resolveArray(extData?.programmingLanguages, softwareRow.programmingLanguages),
                 providers: extData?.providers ?? [],
-                referencePublications: extData?.referencePublications,
-                identifiers: extData?.identifiers,
+                referencePublications: resolveOptionalArray(extData?.referencePublications),
+                identifiers: resolveOptionalArray(extData?.identifiers),
                 repoMetadata: extData?.repoMetadata,
                 dataBySource
             };
