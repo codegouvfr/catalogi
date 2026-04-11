@@ -496,13 +496,6 @@
                     "type": "string",
                     "description": "Helper text explaining the field"
                 },
-                "minimal version": {
-                    "type": "string"
-                },
-                "minimal version hint": {
-                    "type": "string",
-                    "description": "Helper text explaining the field"
-                },
                 "url or numeric id": {
                     "type": "string"
                 },
@@ -539,8 +532,6 @@
                 "software feature hint",
                 "license",
                 "license hint",
-                "minimal version",
-                "minimal version hint",
                 "url or numeric id",
                 "autofill notice",
                 "logo url",
@@ -894,9 +885,6 @@
                 "register date": {
                     "type": "string"
                 },
-                "minimal version": {
-                    "type": "string"
-                },
                 "license": {
                     "type": "string"
                 },
@@ -972,7 +960,6 @@
                 "last version date",
                 "register",
                 "register date",
-                "minimal version",
                 "license",
                 "declare oneself referent",
                 "hasDesktopApp",
@@ -1018,6 +1005,9 @@
                 },
                 "software dereferenced last version": {
                     "type": "string"
+                },
+                "openSourceProvenance": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -1030,7 +1020,84 @@
                 "you are user",
                 "you are referent",
                 "software dereferenced",
-                "software dereferenced last version"
+                "software dereferenced last version",
+                "openSourceProvenance"
+            ]
+        },
+        "sourceProvenance": {
+            "type": "object",
+            "properties": {
+                "modalTitle": {
+                    "type": "string"
+                },
+                "popoverTitle": {
+                    "type": "string"
+                },
+                "noData": {
+                    "type": "string"
+                },
+                "sourceEmpty": {
+                    "type": "string"
+                },
+                "fieldColumnHeader": {
+                    "type": "string"
+                },
+                "lastFetchedAt": {
+                    "type": "string"
+                },
+                "lastEditedAt": {
+                    "type": "string"
+                },
+                "neverFetched": {
+                    "type": "string"
+                },
+                "useThisValue": {
+                    "type": "string"
+                },
+                "sourceLabel_user_input": {
+                    "type": "string"
+                },
+                "sourceLabel_wikidata": {
+                    "type": "string"
+                },
+                "sourceLabel_HAL": {
+                    "type": "string"
+                },
+                "sourceLabel_ComptoirDuLibre": {
+                    "type": "string"
+                },
+                "sourceLabel_CNLL": {
+                    "type": "string"
+                },
+                "sourceLabel_Zenodo": {
+                    "type": "string"
+                },
+                "sourceLabel_GitLab": {
+                    "type": "string"
+                },
+                "sourceLabel_GitHub": {
+                    "type": "string"
+                }
+            },
+            "additionalProperties": false,
+            "required": [
+                "modalTitle",
+                "popoverTitle",
+                "noData",
+                "sourceEmpty",
+                "fieldColumnHeader",
+                "lastFetchedAt",
+                "lastEditedAt",
+                "neverFetched",
+                "useThisValue",
+                "sourceLabel_user_input",
+                "sourceLabel_wikidata",
+                "sourceLabel_HAL",
+                "sourceLabel_ComptoirDuLibre",
+                "sourceLabel_CNLL",
+                "sourceLabel_Zenodo",
+                "sourceLabel_GitLab",
+                "sourceLabel_GitHub"
             ]
         },
         "previewTab": {
@@ -1052,9 +1119,6 @@
                     "type": "string"
                 },
                 "register": {
-                    "type": "string"
-                },
-                "minimal version": {
                     "type": "string"
                 },
                 "metadata": {
@@ -1101,6 +1165,18 @@
                 },
                 "supportedOS": {
                     "type": "string"
+                },
+                "repoMetadata": {
+                    "type": "string"
+                },
+                "repoLastCommit": {
+                    "type": "string"
+                },
+                "repoLastClosedIssuePullRequest": {
+                    "type": "string"
+                },
+                "repoLastClosedIssue": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -1108,9 +1184,9 @@
                 "about",
                 "useful links",
                 "customAttributesTitle",
+                "supportedPlatforms",
                 "last version",
                 "register",
-                "minimal version",
                 "metadata",
                 "license",
                 "hasDesktopApp",
@@ -1125,7 +1201,11 @@
                 "softwareType-desktop/mobile",
                 "softwareType-stack",
                 "softwareType-cloud",
-                "supportedOS"
+                "supportedOS",
+                "repoMetadata",
+                "repoLastCommit",
+                "repoLastClosedIssuePullRequest",
+                "repoLastClosedIssue"
             ]
         },
         "referencedInstancesTab": {
@@ -1660,7 +1740,6 @@
         "softwareForm",
         "softwareFormStep1",
         "softwareFormStep2",
-        "softwareFormStep3",
         "softwareFormStep4",
         "instanceForm",
         "instanceFormStep1",
@@ -1670,6 +1749,7 @@
         "softwareCatalogSearch",
         "softwareDetails",
         "headerDetailCard",
+        "sourceProvenance",
         "previewTab",
         "referencedInstancesTab",
         "similarSoftwareTab",

@@ -142,7 +142,7 @@ describe("fetches software extra data (from different providers)", () => {
 
         await sql`SELECT setval('softwares_id_seq', 11, false)`.execute(db);
 
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
 
         const userId = await dbApi.user.add({
             email: "myuser@example.com",

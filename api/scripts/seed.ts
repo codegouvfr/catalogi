@@ -33,15 +33,24 @@ const seed = async () => {
 
     console.info("Data cleared");
 
-    console.info("Adding source");
-    const source = {
-        slug: "wikidata",
-        description: undefined,
-        url: "https://www.wikidata.org/",
-        kind: "wikidata",
-        priority: 1
-    } satisfies Source;
-    await db.insertInto("sources").values(source).execute();
+    console.info("Adding sources");
+    const sources = [
+        {
+            slug: "wikidata",
+            description: undefined,
+            url: "https://www.wikidata.org/",
+            kind: "wikidata",
+            priority: 1
+        },
+        {
+            slug: "user_input",
+            description: undefined,
+            url: "",
+            kind: "user_input",
+            priority: 0
+        }
+    ] satisfies Source[];
+    await db.insertInto("sources").values(sources).execute();
 
     const someUser: OmitFromExisting<DbUser, "id"> = {
         email: "some@user.com",

@@ -165,9 +165,20 @@ export const resetDB = async (db: Kysely<Database>) => {
 
     return db
         .insertInto("sources")
-        .values({
-            ...testSource,
-            kind: testSource.kind as ExternalDataOriginKind
-        })
+        .values([
+            {
+                ...testSource,
+                kind: testSource.kind as ExternalDataOriginKind
+            },
+            // The repository writes a user_input row on every create/update when the flag
+            // is on (the default from ui-config). Seed the source so the FK is satisfied.
+            {
+                slug: "user_input",
+                priority: 0,
+                url: "",
+                description: null,
+                kind: "user_input" satisfies ExternalDataOriginKind
+            }
+        ])
         .execute();
 };

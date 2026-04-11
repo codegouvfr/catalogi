@@ -104,6 +104,7 @@ export default function SoftwareDetails(props: Props) {
                         officialWebsite={software.url}
                         documentationWebsite={software.softwareHelp}
                         sourceCodeRepository={software.codeRepositoryUrl}
+                        dataBySource={software.dataBySource}
                         onGoBackClick={() => {
                             const previousRouteName = getPreviousRouteName();
 

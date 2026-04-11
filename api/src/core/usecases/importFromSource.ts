@@ -9,6 +9,7 @@ import { Source } from "./readWriteSillData";
 import { GetSoftwareFormData } from "../ports/GetSoftwareFormData";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { makeZenodoApi } from "../adapters/zenodo/zenodoAPI";
+import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 
 export type ImportFromSource = (params: {
     userEmail: string;
@@ -67,6 +68,8 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
         // Secondary Sources
         case "CNLL":
             throw new Error("[UC:Import] Import if not possible from a secondary source");
+        case USER_INPUT_SOURCE_SLUG:
+            throw new Error("[UC:Import] user_input is not importable: it has no gateway");
         default:
             const shouldNotBeReached: never = source.kind;
             throw new Error("[UC:Import] Not Implemented", shouldNotBeReached);

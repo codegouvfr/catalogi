@@ -244,7 +244,27 @@
         "you are user": "Vous l'utilisez",
         "you are referent": "Vous êtes référent",
         "software dereferenced": "Depuis {{when}}, ce logiciel n'est plus recommandé",
-        "software dereferenced last version": "Dernière version recommandée : {{lastRecommendedVersion}}"
+        "software dereferenced last version": "Dernière version recommandée : {{lastRecommendedVersion}}",
+        "openSourceProvenance": "Voir les sources de données"
+    },
+    "sourceProvenance": {
+        "modalTitle": "Sources des données",
+        "popoverTitle": "Valeurs pour {{field}}",
+        "noData": "Aucune donnée source disponible",
+        "sourceEmpty": "Cette source ne contribue à aucun champ pour ce logiciel",
+        "fieldColumnHeader": "Champ",
+        "lastFetchedAt": "Dernière récupération : {{when}}",
+        "lastEditedAt": "Dernière modification : {{when}}",
+        "neverFetched": "Jamais récupéré",
+        "useThisValue": "Utiliser cette valeur",
+        "sourceLabel_user_input": "Saisie utilisateur",
+        "sourceLabel_wikidata": "Wikidata",
+        "sourceLabel_HAL": "HAL",
+        "sourceLabel_ComptoirDuLibre": "Comptoir du Libre",
+        "sourceLabel_CNLL": "CNLL",
+        "sourceLabel_Zenodo": "Zenodo",
+        "sourceLabel_GitLab": "GitLab",
+        "sourceLabel_GitHub": "GitHub"
     },
     "previewTab": {
         "about": "À propos",

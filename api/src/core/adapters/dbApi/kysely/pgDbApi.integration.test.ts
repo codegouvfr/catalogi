@@ -154,7 +154,7 @@ describe("pgDbApi", () => {
     let dbApi: DbApiV2;
 
     beforeEach(async () => {
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
         await resetDB(db);
     });
 
@@ -208,7 +208,7 @@ describe("pgDbApi", () => {
                 softwareHelp: softwareExternalData.softwareHelp,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
-                keywords: ["bob", "l'éponge"],
+                keywords: softwareExternalData.keywords,
                 latestVersion: {
                     "releaseDate": "2019-06-26",
                     "version": "1.0.0"
@@ -238,9 +238,9 @@ describe("pgDbApi", () => {
                         softwareId: undefined
                     }
                 ],
-                description: { fr: "Super software" },
+                description: softwareExternalData.description,
                 id: expect.any(Number),
-                name: softwareFormData.name,
+                name: softwareExternalData.name,
                 operatingSystems: {
                     android: true,
                     ios: true,
@@ -254,7 +254,8 @@ describe("pgDbApi", () => {
                         userCount: 1,
                         referentCount: 0
                     }
-                }
+                },
+                dataBySource: expect.any(Array)
             });
 
             console.log("getting all sill software external ids");

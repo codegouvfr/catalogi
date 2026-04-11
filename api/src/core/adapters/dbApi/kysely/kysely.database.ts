@@ -130,7 +130,22 @@ type InstancesTable = {
 };
 
 type ExternalId = string;
-export type ExternalDataOriginKind = "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo" | "GitHub" | "GitLab";
+export type ExternalDataOriginKind =
+    | "wikidata"
+    | "HAL"
+    | "ComptoirDuLibre"
+    | "CNLL"
+    | "Zenodo"
+    | "GitHub"
+    | "GitLab"
+    | "user_input";
+
+/**
+ * Slug AND kind of the pseudo-source that tracks form-entered content. Used as both
+ * `sources.slug` and `sources.kind` so the same identifier resolves to the correct row
+ * whether you're discriminating on slug (write path) or kind (refresh/import paths).
+ */
+export const USER_INPUT_SOURCE_SLUG = "user_input" as const;
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
