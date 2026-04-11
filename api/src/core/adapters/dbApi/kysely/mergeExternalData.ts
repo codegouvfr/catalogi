@@ -9,6 +9,23 @@ import type { Os } from "../../../types";
 type Merged = DatabaseDataType.SoftwareExternalDataRow;
 
 /**
+ * Coerce a value into a lowercase string suitable for dedup. Handles raw
+ * strings, numbers, and the localized-label objects that wikidata sometimes
+ * stuffs into keyword/language arrays (e.g. `{ value: "Python", language: "en" }`
+ * or `{ "@value": "Python" }`).
+ */
+const stringKey = (v: unknown): string => {
+    if (typeof v === "string") return v.toLowerCase();
+    if (typeof v === "number" || typeof v === "boolean") return String(v).toLowerCase();
+    if (v && typeof v === "object") {
+        const o = v as Record<string, unknown>;
+        const candidate = o["value"] ?? o["@value"] ?? o["name"] ?? o["label"] ?? o["text"];
+        if (typeof candidate === "string") return candidate.toLowerCase();
+    }
+    return "";
+};
+
+/**
  * Merge rows from different sources describing the same software.
  *
  * Convention: **lower priority number = higher precedence** (wikidata=1 wins over cdl=2).
@@ -78,10 +95,13 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
             "authors",
             a => (a as { "@id"?: string })["@id"] ?? a.name?.toLowerCase() ?? ""
         ),
-        keywords: unionArrays<string>("keywords", s => s.toLowerCase()),
-        programmingLanguages: unionArrays<string>("programmingLanguages", s => s.toLowerCase()),
-        applicationCategories: unionArrays<string>("applicationCategories", s => s.toLowerCase()),
-        runtimePlatforms: unionArrays<string>("runtimePlatforms", s => s.toLowerCase()) as Merged["runtimePlatforms"],
+        // Real-world keyword/language/category arrays sometimes contain
+        // objects (e.g. wikidata localized labels) instead of bare strings,
+        // so coerce defensively before lowercasing.
+        keywords: unionArrays<string>("keywords", stringKey),
+        programmingLanguages: unionArrays<string>("programmingLanguages", stringKey),
+        applicationCategories: unionArrays<string>("applicationCategories", stringKey),
+        runtimePlatforms: unionArrays<string>("runtimePlatforms", stringKey) as Merged["runtimePlatforms"],
         identifiers: unionArrays<SchemaIdentifier>("identifiers", i => `${i.name ?? ""}:${i.value}`),
         referencePublications: unionArrays<ScholarlyArticle>("referencePublications", p => p["@id"] ?? ""),
         providers: unionArrays<SchemaOrganization>("providers", p => p.url ?? p.name?.toLowerCase() ?? ""),

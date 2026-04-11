@@ -37,32 +37,36 @@ export function SourceProvenanceModal(props: Props) {
 
 const useStyles = tss.withName({ SourceProvenanceModal }).create({
     modal: {
-        // Widen the dialog beyond DSFR's "large" preset.
+        // Widen the dialog beyond DSFR's "large" preset. DSFR caps the
+        // .fr-container at its breakpoint width AND limits the inner
+        // .fr-col to 8/12 at lg, so both rules below are required to
+        // actually use the available horizontal space.
         "& .fr-container": {
-            maxWidth: "min(1700px, 98vw)"
+            maxWidth: "min(1900px, 98vw)"
         },
-        // Cap the body well below the viewport. DSFR's grid centers the
-        // dialog with non-trivial top padding (~4rem in practice), so a
-        // 100vh max-height pushes the bottom edge below the fold. Leave
-        // ~8rem of safety margin to keep the body's bottom within view
-        // on every screen size.
+        "& .fr-grid-row > [class*='fr-col-']": {
+            flex: "0 0 100% !important",
+            maxWidth: "100% !important",
+            width: "100% !important"
+        },
+        // DSFR computes the modal body's max-height dynamically based on
+        // the actual room the dialog has — DO NOT override it with a vh
+        // calc, or the body will overflow its parent and the bottom of
+        // the table will be silently clipped. We only flip the body's
+        // overflow off so the table is the only scrolling viewport, and
+        // turn the body/content into flex columns so the table fills the
+        // available space.
         "& .fr-modal__body": {
-            maxHeight: "calc(100vh - 8rem) !important",
-            // DSFR already sets overflow-y: auto on .fr-modal__body —
-            // we just need to keep that behaviour. Force a visible
-            // scrollbar on macOS instead of the auto-hide overlay one.
-            scrollbarWidth: "thin",
-            scrollbarGutter: "stable"
+            overflow: "hidden !important",
+            display: "flex",
+            flexDirection: "column"
         },
         "& .fr-modal__content": {
-            maxHeight: "none !important"
-        },
-        // Compact the comparison table rows.
-        "& .fr-table td, & .fr-table th": {
-            paddingTop: "0.35rem",
-            paddingBottom: "0.35rem",
-            verticalAlign: "top",
-            lineHeight: 1.35
+            display: "flex",
+            flexDirection: "column",
+            flex: "1 1 auto",
+            minHeight: 0,
+            paddingBottom: "1rem"
         }
     }
 });

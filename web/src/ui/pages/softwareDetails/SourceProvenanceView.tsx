@@ -2,10 +2,9 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import React, { memo } from "react";
+import { memo } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { Table } from "@codegouvfr/react-dsfr/Table";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
 import { useLang, useResolveLocalizedString, type LocalizedString } from "ui/i18n";
@@ -219,47 +218,133 @@ export const SourceProvenanceView = memo((props: Props) => {
         );
     }
 
-    const headers: React.ReactNode[] = [
-        t("sourceProvenance.fieldColumnHeader"),
-        ...dataBySource.map(source => {
-            const fetchInfo = renderFetchInfo(source);
-            return (
-                <span key={source.sourceSlug}>
-                    {getSourceLabel(source)}
-                    {fetchInfo && <span className={classes.timestamp}>{fetchInfo}</span>}
-                </span>
-            );
-        })
-    ];
-
-    const rows: React.ReactNode[][] = FIELD_KEYS.map(key => [
-        <span key="label" className={classes.fieldKey}>
-            {key}
-        </span>,
-        ...dataBySource.map(source => {
-            if (!isFieldPopulated(source, key))
-                return <span className={classes.empty}>—</span>;
-            return <span className={classes.fieldValue}>{renderValue(source[key])}</span>;
-        })
-    ]);
-
     return (
         <div className={cx(classes.modalRoot, className)}>
-            <Table
-                bordered
-                fixed
-                headers={headers}
-                data={rows}
-                noCaption
-                caption={t("sourceProvenance.modalTitle")}
-            />
+            <div className={classes.tableScroll}>
+                <table className={classes.compareTable}>
+                    <thead>
+                        <tr>
+                            <th className={cx(classes.headCell, classes.firstColHead)}>
+                                {t("sourceProvenance.fieldColumnHeader")}
+                            </th>
+                            {dataBySource.map(source => {
+                                const fetchInfo = renderFetchInfo(source);
+                                return (
+                                    <th
+                                        key={source.sourceSlug}
+                                        className={classes.headCell}
+                                    >
+                                        {getSourceLabel(source)}
+                                        {fetchInfo && (
+                                            <div className={classes.timestamp}>
+                                                {fetchInfo}
+                                            </div>
+                                        )}
+                                    </th>
+                                );
+                            })}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {FIELD_KEYS.map(key => (
+                            <tr key={key}>
+                                <th
+                                    scope="row"
+                                    className={cx(classes.bodyCell, classes.firstCol)}
+                                >
+                                    {key}
+                                </th>
+                                {dataBySource.map(source => (
+                                    <td
+                                        key={source.sourceSlug}
+                                        className={classes.bodyCell}
+                                    >
+                                        {isFieldPopulated(source, key) ? (
+                                            renderValue(source[key])
+                                        ) : (
+                                            <span className={classes.empty}>—</span>
+                                        )}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     );
 });
 
+const BORDER = `1px solid ${fr.colors.decisions.border.default.grey.default}`;
+
 const useStyles = tss.withName({ SourceProvenanceView }).create({
     modalRoot: {
-        display: "block"
+        display: "flex",
+        flexDirection: "column",
+        flex: "1 1 auto",
+        minHeight: 0
+    },
+    tableScroll: {
+        overflow: "auto",
+        flex: "1 1 auto",
+        minHeight: 0,
+        maxWidth: "100%",
+        scrollbarWidth: "thin",
+        scrollbarGutter: "stable"
+    },
+    compareTable: {
+        borderCollapse: "separate",
+        borderSpacing: 0,
+        width: "max-content",
+        minWidth: "100%",
+        fontSize: "0.9rem",
+        lineHeight: 1.35,
+        // A bit of breathing room so the user clearly sees they reached
+        // the last row. `padding-bottom` on the scroll container is
+        // ignored by browsers when content overflows; `margin-bottom`
+        // on a child element is included in the scroll height.
+        marginBottom: fr.spacing("4v")
+    },
+    headCell: {
+        position: "sticky",
+        top: 0,
+        zIndex: 2,
+        background: fr.colors.decisions.background.alt.blueFrance.default,
+        textAlign: "left",
+        verticalAlign: "top",
+        padding: `${fr.spacing("2v")} ${fr.spacing("3v")}`,
+        borderBottom: BORDER,
+        borderRight: BORDER,
+        fontWeight: 700,
+        maxWidth: 320,
+        minWidth: 200,
+        wordBreak: "break-word"
+    },
+    firstColHead: {
+        left: 0,
+        zIndex: 3,
+        maxWidth: 200,
+        minWidth: 160
+    },
+    bodyCell: {
+        padding: `${fr.spacing("2v")} ${fr.spacing("3v")}`,
+        verticalAlign: "top",
+        borderBottom: BORDER,
+        borderRight: BORDER,
+        maxWidth: 320,
+        minWidth: 200,
+        background: fr.colors.decisions.background.default.grey.default,
+        wordBreak: "break-word",
+        overflowWrap: "anywhere"
+    },
+    firstCol: {
+        position: "sticky",
+        left: 0,
+        zIndex: 1,
+        textAlign: "left",
+        fontWeight: 700,
+        maxWidth: 200,
+        minWidth: 160
     },
     timestamp: {
         display: "block",
@@ -267,14 +352,6 @@ const useStyles = tss.withName({ SourceProvenanceView }).create({
         fontSize: "0.75rem",
         fontWeight: "normal",
         marginTop: fr.spacing("1v")
-    },
-    fieldKey: {
-        fontWeight: "bold",
-        wordBreak: "break-word"
-    },
-    fieldValue: {
-        fontSize: "0.9rem",
-        wordBreak: "break-word"
     },
     empty: {
         color: fr.colors.decisions.text.mention.grey.default
