@@ -332,7 +332,11 @@ const useStyles = tss.withName({ HeaderDetailCard }).create({
         cursor: "pointer",
         padding: fr.spacing("1v"),
         marginLeft: fr.spacing("1v"),
-        color: fr.colors.decisions.text.actionHigh.blueFrance.default
+        color: fr.colors.decisions.text.actionHigh.blueFrance.default,
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center"
     },
     authors: {
         color: fr.colors.decisions.text.mention.grey.default

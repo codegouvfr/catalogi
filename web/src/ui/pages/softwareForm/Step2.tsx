@@ -41,6 +41,8 @@ export type Step2Props = {
     >;
 };
 
+const fieldRowStyle = { display: "flex", alignItems: "flex-end" } as const;
+
 export function SoftwareFormStep2(props: Step2Props) {
     const {
         className,
@@ -55,6 +57,21 @@ export function SoftwareFormStep2(props: Step2Props) {
 
     const { t } = useTranslation();
     const { resolveLocalizedString } = useResolveLocalizedString();
+
+    const resolveToString = (value: unknown): string => {
+        if (typeof value === "string") return value;
+        if (value && typeof value === "object" && !Array.isArray(value)) {
+            const entries = Object.entries(value).filter(
+                ([, v]) => typeof v === "string" && v.length > 0
+            );
+            if (entries.length > 0) {
+                return resolveLocalizedString(
+                    Object.fromEntries(entries) as Record<string, string>
+                );
+            }
+        }
+        return "";
+    };
 
     const {
         handleSubmit,
@@ -307,7 +324,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                     />
                 )}
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <div className={css(fieldRowStyle)}>
                 <CircularProgressWrapper
                     className={css({ flex: 1 })}
                     isInProgress={isAutocompleteInProgress}
@@ -330,19 +347,10 @@ export function SoftwareFormStep2(props: Step2Props) {
                 <FieldSourcePopover
                     dataBySource={dataBySource}
                     field="name"
-                    onUseValue={value =>
-                        setValue(
-                            "name",
-                            typeof value === "string"
-                                ? value
-                                : ((value as { fr?: string; en?: string })?.fr ??
-                                      (value as { fr?: string; en?: string })?.en ??
-                                      "")
-                        )
-                    }
+                    onUseValue={value => setValue("name", resolveToString(value))}
                 />
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <div className={css(fieldRowStyle)}>
                 <CircularProgressWrapper
                     className={css({ flex: 1 })}
                     isInProgress={isAutocompleteInProgress}
@@ -366,19 +374,10 @@ export function SoftwareFormStep2(props: Step2Props) {
                 <FieldSourcePopover
                     dataBySource={dataBySource}
                     field="description"
-                    onUseValue={value =>
-                        setValue(
-                            "description",
-                            typeof value === "string"
-                                ? value
-                                : ((value as { fr?: string; en?: string })?.fr ??
-                                      (value as { fr?: string; en?: string })?.en ??
-                                      "")
-                        )
-                    }
+                    onUseValue={value => setValue("description", resolveToString(value))}
                 />
             </div>
-            <div style={{ display: "flex", alignItems: "flex-end" }}>
+            <div className={css(fieldRowStyle)}>
                 <CircularProgressWrapper
                     className={css({ flex: 1 })}
                     isInProgress={isAutocompleteInProgress}
@@ -402,9 +401,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                 <FieldSourcePopover
                     dataBySource={dataBySource}
                     field="license"
-                    onUseValue={value =>
-                        setValue("license", typeof value === "string" ? value : "")
-                    }
+                    onUseValue={value => setValue("license", resolveToString(value))}
                 />
             </div>
 
