@@ -3,6 +3,16 @@
 // SPDX-License-Identifier: MIT
 
 export namespace HAL {
+    export type APIReponse<T> = {
+        "response": {
+            "numFound": number;
+            "start": number;
+            "maxScore": number;
+            "numFoundExact": boolean;
+            "docs": Array<T>;
+        };
+    };
+
     // HAL implementation of https://schema.org/Organization
     export type Organization = {
         "@type": "Organization";
@@ -276,6 +286,7 @@ export namespace HAL {
             parentValid_s: string;
             ror_s: string | string[];
             rorUrl_s: string;
+            rnsr_s: string | string[];
             text: string;
             exte_autocomplete: string;
             type_s: string;

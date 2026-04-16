@@ -16,6 +16,8 @@ import * as softwareUserAndReferent from "./softwareUserAndReferent";
 import * as terms from "./terms";
 import * as redirect from "./redirect";
 import * as userProfile from "./userProfile";
+import * as organizationList from "./organizationList";
+import * as organizationDetails from "./orgnizationDetails";
 
 import { objectKeys } from "tsafe/objectKeys";
 import type { UnionToIntersection } from "tsafe";
@@ -27,6 +29,8 @@ export const pages = {
     home,
     instanceForm,
     readme,
+    organizationList,
+    organizationDetails,
     softwareCatalog,
     softwareDetails,
     softwareForm,

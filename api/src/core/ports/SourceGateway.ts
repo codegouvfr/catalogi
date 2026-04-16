@@ -1,27 +1,38 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { ExternalDataOriginKind } from "../adapters/dbApi/kysely/kysely.database";
+import { GetAuthorOrganization } from "./GetAuthorOrganization";
 import { GetSoftwareExternal } from "./GetSoftwareExternal";
 import { GetSoftwareExternalDataOptions } from "./GetSoftwareExternalDataOptions";
 import { GetSoftwareFormData } from "./GetSoftwareFormData";
 
+export type Feature = "software" | "softwareExtra";
+export type Features = Feature[];
+
 export type SoftwareLink = { externalId: string; softwareId: number; softwareName?: string };
 
-export type BaseSourceGateway = {
-    sourceProfile: "Primary" | "Secondary";
+export type SearchOrganizationCriteria = {
+    name?: string;
+    identifer?: {
+        base: string;
+        value: string;
+    };
+};
+
+export interface SourceGateway {
     sourceType: ExternalDataOriginKind;
-    softwareExternal: { getById: GetSoftwareExternal };
-    discoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
-};
-
-export type PrimarySourceGateway = BaseSourceGateway & {
-    sourceProfile: "Primary";
-    softwareOptions: { getById: GetSoftwareExternalDataOptions };
-    softwareForm: { getById: GetSoftwareFormData };
-};
-
-export type SecondarySourceGateway = BaseSourceGateway & {
-    sourceProfile: "Secondary";
-};
+    software?: {
+        getSoftwareOptions: GetSoftwareExternalDataOptions;
+        getSoftwareForm: GetSoftwareFormData;
+    };
+    softwareExtra?: {
+        getSoftwareExternal: GetSoftwareExternal;
+        getDiscoverSoftwareLinks?: () => Promise<SoftwareLink[]>;
+    };
+    organization?: {
+        getOrganization: GetAuthorOrganization;
+        searchOrganization?: (search: SearchOrganizationCriteria) => Promise<string[] | undefined>;
+    };
+}

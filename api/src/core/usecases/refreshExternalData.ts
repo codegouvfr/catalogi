@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
-import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
+import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
@@ -88,15 +88,17 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
         return activeSoftwareId ?? link.softwareId;
     };
 
-    for (const source of sources) {
-        const gateway = resolveAdapterFromSource(source);
+    const filteredSources = filterSourceByFeature(sources, "softwareExtra");
 
-        if (!gateway.discoverSoftwareLinks) continue;
+    for (const source of filteredSources) {
+        const gateway = resolveAdapterFromSource(source, "softwareExtra");
+
+        if (!gateway.softwareExtra?.getDiscoverSoftwareLinks) continue;
 
         console.log(`${useCaseLogTitle} Discovering software links for source "${source.slug}"`);
 
         try {
-            const links = await gateway.discoverSoftwareLinks();
+            const links = await gateway.softwareExtra.getDiscoverSoftwareLinks();
             if (links.length === 0) continue;
 
             const linksToInsert: { sourceSlug: string; externalId: string; softwareId: number }[] = [];
@@ -241,7 +243,10 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
             const actualExternalDataRow = await dbApi.softwareExternalData.get({ sourceSlug, externalId });
 
             const sourceGateway = resolveAdapterFromSource(source);
-            const externalData = await sourceGateway.softwareExternal.getById({
+            if (!sourceGateway?.softwareExtra?.getSoftwareExternal)
+                throw new Error(`Not implemetend on type ${sourceGateway.sourceType}`);
+
+            const externalData = await sourceGateway.softwareExtra.getSoftwareExternal({
                 externalId: externalId,
                 source: source
             });

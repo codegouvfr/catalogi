@@ -8,7 +8,7 @@ import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
 import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
-import { repoGitHubEndpointMaker } from "./api/repo";
+import { gitHubEndpointMaker } from "./api/repo";
 
 export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
@@ -16,7 +16,8 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
 
-        const gitHubApi = repoGitHubEndpointMaker({});
+        const configApi = source?.configuration?.auth ? { auth: source?.configuration?.auth } : {};
+        const gitHubApi = gitHubEndpointMaker(configApi);
         if (!gitHubApi) throw new Error("This GitHub url provided doesn't work.");
 
         const repoUrl = externalId.includes("https://github.com") ? externalId : `https://github.com/${externalId}`;
@@ -27,7 +28,8 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         const repoLanguages = await gitHubApi.repo.getLanguages({ repoUrl });
         const devIds =
             repoDevs
-                ?.map(dev => dev.id)
+                ?.filter(dev => dev && dev.type === "User") // FILTER BOT
+                .map(dev => dev.id)
                 .filter(a => {
                     return a !== undefined;
                 }) ?? [];
@@ -61,9 +63,21 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
                 "@type": "Person",
                 name: dev.name ?? dev.login,
                 identifiers: [
-                    identifersUtils.makeUserGitHubIdentifer({ username: dev.name ?? dev.login, userId: dev.id })
+                    identifersUtils.makeUserGitHubIdentifer({
+                        name: dev.name ?? dev.login,
+                        userId: dev.id,
+                        url: dev.html_url
+                    }),
+                    ...(dev.twitter_username
+                        ? [identifersUtils.makeTwitterPersonIdentifer({ username: dev.twitter_username })]
+                        : []),
+                    ...(dev.gravatar_id
+                        ? [identifersUtils.makeGravatarPersonIdentifer({ gravatarId: dev.gravatar_id })]
+                        : [])
+                    // TODO Orcid when available
                 ],
-                url: dev.blog ?? undefined,
+                ...(dev.email ? { email: dev.email } : {}),
+                url: dev.blog ?? dev.html_url,
                 affiliations: dev.company
                     ? [
                           {
