@@ -85,7 +85,7 @@
         "generate-schema": "^2.6.0",
         "jsdom": "^26.0.0",
         "kysely": "^0.28.2",
-        "kysely-ctl": "^0.12.0",
+        "kysely-ctl": "^0.20.0",
         "pg": "^8.11.5",
         "tsafe": "^1.6.6",
         "zod": "^3.21.4"
