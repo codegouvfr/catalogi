@@ -62,18 +62,11 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .select([
             "s.id",
             "s.addedByUserId",
-            "s.applicationCategories",
             "s.dereferencing",
-            "s.description",
             "s.customAttributes",
             "s.isStillInObservation",
-            "s.keywords",
-            "s.license",
-            "s.image",
             "s.name",
             "s.addedTime",
-            "s.operatingSystems",
-            "s.runtimePlatforms",
             "s.updateTime",
             ({ fn }) => fn.jsonAgg("similarExt").distinct().as("similarExternalSoftwares"),
             ({ fn }) => fn.jsonAgg("software_users").distinct().as("users"),
@@ -96,15 +89,8 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     instances,
                     updateTime,
                     addedTime,
-                    applicationCategories,
-                    operatingSystems,
-                    runtimePlatforms,
-                    description,
                     name,
-                    isStillInObservation,
-                    keywords,
-                    license,
-                    image
+                    isStillInObservation
                 }): CompiledData.Software<"private"> => {
                     const softwareExternalData = mergeExternalData(externalDataBySoftwareId[id] ?? []);
                     const publicationTime = softwareExternalData?.latestVersion?.releaseDate
@@ -118,22 +104,28 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                               }
                             : undefined;
 
+                    const description = softwareExternalData?.description;
+
                     return {
                         id,
                         name,
                         description:
-                            typeof description === "string"
-                                ? description
-                                : ((description as Record<string, string>)?.fr ?? ""),
+                            description == null
+                                ? ""
+                                : typeof description === "string"
+                                  ? description
+                                  : ((description as Record<string, string>)?.fr ?? ""),
                         referencedSinceTime: new Date(addedTime).getTime(),
                         updateTime: new Date(updateTime).getTime(),
                         isStillInObservation,
-                        license,
-                        image: image ?? undefined,
-                        keywords: keywords ?? [],
-                        categories: applicationCategories ?? [],
-                        operatingSystems: (operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
-                        runtimePlatforms: (runtimePlatforms ?? []) as RuntimePlatform[],
+                        license: softwareExternalData?.license ?? "",
+                        image: softwareExternalData?.image ?? undefined,
+                        keywords: softwareExternalData?.keywords ?? [],
+                        categories: softwareExternalData?.applicationCategories ?? [],
+                        operatingSystems: (softwareExternalData?.operatingSystems ?? {}) as Partial<
+                            Record<Os, boolean>
+                        >,
+                        runtimePlatforms: (softwareExternalData?.runtimePlatforms ?? []) as RuntimePlatform[],
                         customAttributes,
                         addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData ?? undefined,

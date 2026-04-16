@@ -154,7 +154,7 @@ describe("pgDbApi", () => {
     let dbApi: DbApiV2;
 
     beforeEach(async () => {
-        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
+        dbApi = createKyselyPgDbApi(db);
         await resetDB(db);
     });
 
@@ -208,7 +208,7 @@ describe("pgDbApi", () => {
                 softwareHelp: softwareExternalData.softwareHelp,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
-                keywords: softwareExternalData.keywords,
+                keywords: [...softwareFormData.keywords, ...softwareExternalData.keywords],
                 latestVersion: {
                     "releaseDate": "2019-06-26",
                     "version": "1.0.0"
@@ -223,8 +223,9 @@ describe("pgDbApi", () => {
                 },
                 programmingLanguages: ["C++"],
                 repoMetadata: undefined,
-                referencePublications: undefined,
+                referencePublications: [],
                 identifiers: undefined,
+                isLibreSoftware: softwareExternalData.isLibreSoftware,
                 dereferencing: undefined,
                 providers: [],
                 similarSoftwares: [
@@ -238,9 +239,9 @@ describe("pgDbApi", () => {
                         softwareId: undefined
                     }
                 ],
-                description: softwareExternalData.description,
+                description: { fr: softwareFormData.description },
                 id: expect.any(Number),
-                name: softwareExternalData.name,
+                name: softwareFormData.name,
                 operatingSystems: {
                     android: true,
                     ios: true,

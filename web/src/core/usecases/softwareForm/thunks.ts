@@ -81,7 +81,7 @@ export const thunks = {
                             fallbackLanguage: "en"
                         });
 
-                        // Pre-fill from the user_input source only: editors see values
+                        // Pre-fill from the UserInput source only: editors see values
                         // they (or a prior editor) explicitly pinned. Fields only external
                         // sources contribute stay blank; the per-field popover lets the
                         // editor pull from them on demand.

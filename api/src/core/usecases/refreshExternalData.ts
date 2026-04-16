@@ -40,7 +40,7 @@ const getExternalDataIdsForSoftwareIds = async (
             ]);
 
             return [
-                // Skip the user_input pseudo-source — it has no gateway to refresh.
+                // Skip the UserInput pseudo-source — it has no gateway to refresh.
                 ...(externalDataBinded ?? [])
                     .filter(row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG)
                     .map(({ externalId, sourceSlug }) => ({ externalId, sourceSlug })),
@@ -216,7 +216,7 @@ export const makeRefreshExternalDataForSoftware = (
         }
 
         const idsArray = externalDataBinded
-            // Skip the user_input pseudo-source — it has no gateway to refresh.
+            // Skip the UserInput pseudo-source — it has no gateway to refresh.
             .filter(row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG)
             .map(externdalDataItem => ({
                 externalId: externdalDataItem.externalId,

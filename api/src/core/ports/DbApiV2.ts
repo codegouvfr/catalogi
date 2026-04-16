@@ -4,6 +4,7 @@
 
 import type { Database, DatabaseRowOutput } from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
+import type { LocalizedString } from "../ports/GetSoftwareExternalData";
 import type {
     CreateUserParams,
     Instance,
@@ -19,31 +20,29 @@ import type { CompiledData } from "./CompileData";
 import type { SoftwareExternal } from "../types/SoftwareTypes";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
 import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
+import type { Os, RuntimePlatform } from "../types";
 
 export type WithUserId = { userId: number };
 
-// Other data, intrinsic are managed internally by the database
+// DB-only fields + content fields (content is routed to the UserInput external-data row)
 export type SoftwareExtrinsicRow = Pick<
     DatabaseDataType.SoftwareRow,
-    | "name"
-    | "description"
-    | "license"
-    | "image"
-    | "dereferencing"
-    | "isStillInObservation"
-    | "customAttributes"
-    | "operatingSystems"
-    | "runtimePlatforms"
-    | "applicationCategories"
-    | "keywords"
-    | "addedByUserId"
-    | "isLibreSoftware"
-    | "url"
-    | "codeRepositoryUrl"
-    | "softwareHelp"
-    | "latestVersion"
-    | "programmingLanguages"
->;
+    "name" | "dereferencing" | "isStillInObservation" | "customAttributes" | "addedByUserId"
+> & {
+    description: LocalizedString;
+    license: string;
+    image: string | undefined;
+    isLibreSoftware: boolean | undefined;
+    url: string | undefined;
+    codeRepositoryUrl: string | undefined;
+    softwareHelp: string | undefined;
+    latestVersion: { version: string | undefined; releaseDate: string | undefined } | undefined;
+    keywords: string[];
+    programmingLanguages: string[] | undefined;
+    applicationCategories: string[];
+    operatingSystems: Partial<Record<Os, boolean>>;
+    runtimePlatforms: RuntimePlatform[];
+};
 
 export namespace DatabaseDataType {
     export type UserRow = TransformRepoToCleanedRow<DatabaseRowOutput.User>;

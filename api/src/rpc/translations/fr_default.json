@@ -257,7 +257,7 @@
         "lastEditedAt": "Dernière modification : {{when}}",
         "neverFetched": "Jamais récupéré",
         "useThisValue": "Utiliser cette valeur",
-        "sourceLabel_user_input": "Saisie utilisateur",
+        "sourceLabel_UserInput": "Saisie utilisateur",
         "sourceLabel_wikidata": "Wikidata",
         "sourceLabel_HAL": "HAL",
         "sourceLabel_ComptoirDuLibre": "Comptoir du Libre",

@@ -4,6 +4,7 @@
 
 import { DatabaseDataType, PopulatedExternalData } from "../../../ports/DbApiV2";
 import type { SchemaOrganization, SchemaPerson, SchemaIdentifier, ScholarlyArticle } from "./kysely.database";
+import { USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import type { Os } from "../../../types";
 
 type Merged = DatabaseDataType.SoftwareExternalDataRow;
@@ -39,8 +40,9 @@ const stringKey = (v: unknown): string => {
 export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undefined => {
     if (rows.length === 0) return undefined;
 
-    const pickScalar = <K extends keyof Merged>(key: K): Merged[K] => {
+    const pickScalar = <K extends keyof Merged>(key: K, opts?: { skipUserInput: boolean }): Merged[K] => {
         for (const row of rows) {
+            if (opts?.skipUserInput && row.sourceSlug === USER_INPUT_SOURCE_SLUG) continue;
             const v = (row as unknown as Record<string, unknown>)[key as string];
             if (v !== null && v !== undefined) return v as Merged[K];
         }
@@ -75,8 +77,9 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
     };
 
     return {
-        externalId: pickScalar("externalId"),
-        sourceSlug: pickScalar("sourceSlug"),
+        // Identity fields should come from a real external source, not UserInput.
+        externalId: pickScalar("externalId", { skipUserInput: true }),
+        sourceSlug: pickScalar("sourceSlug", { skipUserInput: true }),
         softwareId: pickScalar("softwareId"),
         name: pickScalar("name"),
         description: pickScalar("description"),
