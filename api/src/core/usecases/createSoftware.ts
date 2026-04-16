@@ -32,8 +32,8 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
         softwareHelp: softwareForm.softwareHelp,
         latestVersion: softwareForm.latestVersion
             ? {
-                  version: softwareForm.latestVersion.version ?? null,
-                  releaseDate: softwareForm.latestVersion.releaseDate ?? null
+                  version: softwareForm.latestVersion.version ?? undefined,
+                  releaseDate: softwareForm.latestVersion.releaseDate ?? undefined
               }
             : undefined,
         programmingLanguages: softwareForm.programmingLanguages

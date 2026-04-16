@@ -5,6 +5,7 @@
 import type { LocalizedString } from "../../ports/GetSoftwareExternalData";
 import { DatabaseDataType } from "../../ports/DbApiV2";
 import {
+    ExternalDataOriginKind,
     RepoMetadata,
     SchemaIdentifier,
     SchemaOrganization,
@@ -14,6 +15,29 @@ import {
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
 import type { Os, RuntimePlatform, SimilarSoftware } from "../../types";
+
+/** Content fields shared by `Software` (the merged result) and `SoftwareSourceData` (per-source slice). */
+export type SoftwareData = {
+    name: LocalizedString;
+    description: LocalizedString;
+    image: string | undefined;
+    url: string | undefined;
+    codeRepositoryUrl: string | undefined;
+    softwareHelp: string | undefined;
+    license: string;
+    latestVersion: { version: string | undefined; releaseDate: string | undefined } | undefined;
+    keywords: string[];
+    programmingLanguages: string[];
+    applicationCategories: string[];
+    authors: Array<SchemaPerson | SchemaOrganization>;
+    providers: SchemaOrganization[];
+    operatingSystems: Partial<Record<Os, boolean>>;
+    runtimePlatforms: RuntimePlatform[];
+    isLibreSoftware: boolean | undefined;
+    referencePublications?: ScholarlyArticle[];
+    identifiers?: SchemaIdentifier[];
+    repoMetadata?: RepoMetadata;
+};
 
 export type SoftwareInList = {
     id: number;
@@ -34,18 +58,8 @@ export type SoftwareInList = {
     similarSoftwares: SimilarSoftware[];
 };
 
-export type Software = {
+export type Software = SoftwareData & {
     id: number;
-    name: LocalizedString;
-    description: LocalizedString;
-    image: string | undefined;
-    providers: SchemaOrganization[];
-    latestVersion:
-        | {
-              version: string | undefined;
-              releaseDate: string | undefined;
-          }
-        | undefined;
     addedTime: string;
     updateTime: string;
     dereferencing:
@@ -55,24 +69,32 @@ export type Software = {
               lastRecommendedVersion: string | undefined;
           }
         | undefined;
-    applicationCategories: string[];
     customAttributes: CustomAttributes | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
-    authors: Array<SchemaPerson | SchemaOrganization>;
-    url: string | undefined;
-    codeRepositoryUrl: string | undefined;
-    softwareHelp: string | undefined;
-    license: string;
+    similarSoftwares: SimilarSoftware[];
     externalId: string | undefined;
     sourceSlug: string | undefined;
-    operatingSystems: Partial<Record<Os, boolean>>;
-    runtimePlatforms: RuntimePlatform[];
-    similarSoftwares: SimilarSoftware[];
-    keywords: string[];
-    programmingLanguages: string[];
-    referencePublications?: ScholarlyArticle[];
-    identifiers?: SchemaIdentifier[];
-    repoMetadata?: RepoMetadata;
+};
+
+/**
+ * The content one source contributes to a software. Mirrors the columns of
+ * `software_external_datas` plus the source discriminators (`sourceSlug`, `priority`, `kind`).
+ *
+ * For the `UserInput` source, `lastDataFetchAt` is semantically "last edited at" — the
+ * schema is unchanged but the UI labels it differently.
+ */
+export type SoftwareSourceData = Partial<SoftwareData> & {
+    sourceSlug: string;
+    priority: number;
+    kind: ExternalDataOriginKind;
+    sourceUrl: string;
+    externalId: string | undefined;
+    lastDataFetchAt: string | undefined;
+};
+
+export type SoftwareDetail = Software & {
+    /** Ordered by precedence (highest first). Only sources that actually contribute a row appear. */
+    dataBySource: SoftwareSourceData[];
 };
 
 export type Source = DatabaseDataType.SourceRow;

@@ -16,6 +16,10 @@ import React from "react";
 import { AuthorCard } from "ui/shared/AuthorCard";
 import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { useCoreState } from "../../../core";
+import {
+    SourceProvenanceModal,
+    openSourceProvenanceModal
+} from "./SourceProvenanceModal";
 
 export type Props = {
     className?: string;
@@ -39,6 +43,7 @@ export type Props = {
               isReferent: boolean;
           }
         | undefined;
+    dataBySource: ApiTypes.SoftwareSourceData[];
 };
 
 export const HeaderDetailCard = memo((props: Props) => {
@@ -53,6 +58,7 @@ export const HeaderDetailCard = memo((props: Props) => {
         onGoBackClick,
         userDeclaration,
         softwareDereferencing,
+        dataBySource,
         ...rest
     } = props;
     const { uiConfig } = useCoreState("uiConfig", "main")!;
@@ -99,6 +105,15 @@ export const HeaderDetailCard = memo((props: Props) => {
                     <div className={classes.mainInfo}>
                         <div className={classes.titleAndTagWrapper}>
                             <h4 className={classes.softwareName}>{softwareName}</h4>
+                            <button
+                                type="button"
+                                className={classes.provenanceTrigger}
+                                onClick={() => openSourceProvenanceModal()}
+                                aria-label={t("headerDetailCard.openSourceProvenance")}
+                                title={t("headerDetailCard.openSourceProvenance")}
+                            >
+                                <i className={fr.cx("fr-icon-information-line")} />
+                            </button>
                             &nbsp; &nbsp;
                             {userDeclaration?.isReferent ? (
                                 <span
@@ -254,6 +269,7 @@ export const HeaderDetailCard = memo((props: Props) => {
                     />
                 )}
             </div>
+            <SourceProvenanceModal dataBySource={dataBySource} />
         </div>
     );
 });
@@ -309,6 +325,18 @@ const useStyles = tss.withName({ HeaderDetailCard }).create({
     },
     softwareName: {
         marginBottom: fr.spacing("1v")
+    },
+    provenanceTrigger: {
+        background: "none",
+        border: "none",
+        cursor: "pointer",
+        padding: fr.spacing("1v"),
+        marginLeft: fr.spacing("1v"),
+        color: fr.colors.decisions.text.actionHigh.blueFrance.default,
+        borderRadius: "50%",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center"
     },
     authors: {
         color: fr.colors.decisions.text.mention.grey.default

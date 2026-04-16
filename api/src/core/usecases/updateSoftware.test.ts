@@ -8,14 +8,7 @@ import { DbApiV2 } from "../ports/DbApiV2";
 import { Kysely } from "kysely";
 import { Database } from "../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../adapters/dbApi/kysely/kysely.dialect";
-import {
-    emptyExternalData,
-    expectToEqual,
-    expectToMatchObject,
-    resetDB,
-    testPgUrl,
-    testSource
-} from "../../tools/test.helpers";
+import { expectToEqual, expectToMatchObject, resetDB, testPgUrl, testSource } from "../../tools/test.helpers";
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { makeUpdateSoftware, UpdateSoftware } from "./updateSoftware";
@@ -83,17 +76,10 @@ describe("Create software, than updates it adding a similar software", () => {
         expectToEqual(softwareList.length, 1);
         expectToMatchObject(softwareList[0], {
             "addedByUserId": userId,
-            "applicationCategories": [],
             "dereferencing": null,
-            "description": { "fr": "To create React apps." },
             "isStillInObservation": false,
-            "keywords": ["Productivity", "Task", "Management"],
-            "license": "MIT",
-            "image": "https://example.com/logo.png",
             "name": "Create react app",
             "addedTime": expect.any(String),
-            "operatingSystems": {},
-            "runtimePlatforms": [],
             "customAttributes": {
                 "isPresentInSupportContract": true,
                 "isFromFrenchPublicService": true,
@@ -101,30 +87,18 @@ describe("Create software, than updates it adding a similar software", () => {
             }
         });
 
-        const viteOption = craSoftwareFormData.similarSoftwareExternalDataItems[0]!;
-
-        const initialExternalSoftwarePackagesBeforeFetching = [
-            emptyExternalData({
-                externalId: "Q118629387",
-                sourceSlug: "wikidata",
-                softwareId: craSoftwareId
-            }),
-            emptyExternalData({
-                externalId: "Q111590996",
-                sourceSlug: "wikidata",
-                name: viteOption.name,
-                description: viteOption.description,
-                isLibreSoftware: viteOption.isLibreSoftware
-            })
-        ];
-
         const softwareExternalDatas = await db
             .selectFrom("software_external_datas")
             .selectAll()
             .orderBy("softwareId", "asc")
+            .orderBy("sourceSlug", "asc")
             .execute();
 
-        expectToMatchObject(softwareExternalDatas, initialExternalSoftwarePackagesBeforeFetching);
+        // Expect: UserInput row + wikidata placeholder + vite similar
+        expect(softwareExternalDatas.length).toBe(3);
+        expect(softwareExternalDatas.map(r => r.sourceSlug).sort()).toEqual(
+            ["UserInput", "wikidata", "wikidata"].sort()
+        );
 
         const similarSofts = await dbApi.software.getSimilarSoftwareExternalDataPks({ softwareId: craSoftwareId });
         expectToMatchObject(similarSofts, [

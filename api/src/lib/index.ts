@@ -10,7 +10,8 @@ export type TrpcRouterInput = inferRouterInputs<TrpcRouter>;
 export type TrpcRouterOutput = inferRouterOutputs<TrpcRouter>;
 
 export { type Language, type LocalizedString, languages } from "../core/ports/GetSoftwareExternalData";
-export type { ExternalDataOriginKind } from "../core/adapters/dbApi/kysely/kysely.database";
+export { USER_INPUT_SOURCE_SLUG, type ExternalDataOriginKind } from "../core/adapters/dbApi/kysely/kysely.database";
+export type { SoftwareData, SoftwareDetail, SoftwareSourceData } from "../core/usecases/readWriteSillData/types";
 
 import type * as ApiTypes from "./ApiTypes";
 

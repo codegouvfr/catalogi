@@ -126,17 +126,12 @@ describe("RPC e2e tests", () => {
                 actualSoftwareId = softwareRows[0].id;
 
                 expectToMatchObject(softwareRows[0], {
-                    "description": { "fr": softwareFormData.description },
                     "customAttributes": {
                         "doRespectRgaa": softwareFormData.customAttributes?.doRespectRgaa ?? undefined,
                         "isFromFrenchPublicService": softwareFormData.customAttributes?.isFromFrenchPublicService,
                         "isPresentInSupportContract": softwareFormData.customAttributes?.isPresentInSupportContract
                     },
-                    "keywords": softwareFormData.keywords,
-                    "license": softwareFormData.license,
-                    "image": softwareFormData.image,
                     "name": softwareFormData.name,
-                    "applicationCategories": [],
                     "isStillInObservation": false,
                     "id": expect.any(Number),
                     "addedByUserId": user.id
@@ -147,6 +142,7 @@ describe("RPC e2e tests", () => {
                     .selectFrom("software_external_datas")
                     .select("externalId")
                     .where("softwareId", "=", actualSoftwareId)
+                    .where("sourceSlug", "=", softwareFormData.sourceSlug)
                     .executeTakeFirst();
                 expect(result!.externalId).toEqual(softwareFormData.externalIdForSource);
 
@@ -178,7 +174,7 @@ describe("RPC e2e tests", () => {
         it("gets the new software in the list", async () => {
             const softwares = await apiCaller.getSoftwareList();
             expect(softwares).toHaveLength(1);
-            expectToMatchObject(softwares[0], { name: softwareFormData.name });
+            expectToMatchObject(softwares[0], { name: { fr: softwareFormData.name } });
         });
 
         it("adds a user as user of the software", async () => {

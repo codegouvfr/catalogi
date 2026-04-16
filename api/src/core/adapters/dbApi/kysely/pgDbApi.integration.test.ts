@@ -208,7 +208,7 @@ describe("pgDbApi", () => {
                 softwareHelp: softwareExternalData.softwareHelp,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
-                keywords: ["bob", "l'éponge"],
+                keywords: [...softwareFormData.keywords, ...softwareExternalData.keywords],
                 latestVersion: {
                     "releaseDate": "2019-06-26",
                     "version": "1.0.0"
@@ -225,6 +225,7 @@ describe("pgDbApi", () => {
                 repoMetadata: undefined,
                 referencePublications: undefined,
                 identifiers: undefined,
+                isLibreSoftware: softwareExternalData.isLibreSoftware,
                 dereferencing: undefined,
                 providers: [],
                 similarSoftwares: [
@@ -238,9 +239,9 @@ describe("pgDbApi", () => {
                         softwareId: undefined
                     }
                 ],
-                description: { fr: "Super software" },
+                description: { fr: softwareFormData.description },
                 id: expect.any(Number),
-                name: softwareFormData.name,
+                name: { fr: softwareFormData.name },
                 operatingSystems: {
                     android: true,
                     ios: true,
@@ -254,7 +255,8 @@ describe("pgDbApi", () => {
                         userCount: 1,
                         referentCount: 0
                     }
-                }
+                },
+                dataBySource: expect.any(Array)
             });
 
             console.log("getting all sill software external ids");

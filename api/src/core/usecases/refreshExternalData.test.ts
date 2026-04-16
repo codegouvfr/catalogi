@@ -54,15 +54,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
         .insertInto("softwares")
         .values({
             id: apacheSoftwareId,
-            operatingSystems: JSON.stringify({ ios: false, mac: false, linux: true, android: false, windows: false }),
-            runtimePlatforms: JSON.stringify(["desktop"]),
             name: "Apache HTTP Server",
-            description: JSON.stringify({ fr: "Serveur Web & Reverse Proxy" }),
-            license: "Apache-2.0",
-            image: "https://sill.code.gouv.fr/logo/apache-http.png",
-            keywords: JSON.stringify(["serveur", "http", "web", "server", "apache"]),
             isStillInObservation: false,
-            applicationCategories: JSON.stringify([]),
             addedByUserId: userId,
             dereferencing: null,
             addedTime: new Date(1728462232094).toISOString(),
@@ -94,15 +87,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
         .insertInto("softwares")
         .values({
             id: acceleroId,
-            operatingSystems: JSON.stringify({}),
-            runtimePlatforms: JSON.stringify([]),
             name: "Acceleo",
-            description: JSON.stringify({ fr: "Outil et/ou plugin de génération de tout ou partie du code" }),
-            license: "EPL-2.0",
-            image: null,
-            keywords: JSON.stringify(["modélisation", "génération", "code", "modeling", "code generation"]),
             isStillInObservation: false,
-            applicationCategories: JSON.stringify(["Other Development Tools"]),
             addedByUserId: userId,
             dereferencing: null,
             addedTime: new Date(1514764800000).toISOString(),
@@ -178,6 +164,11 @@ describe("fetches software extra data (from different providers)", () => {
                 "softwareId": 6,
                 "sourceSlug": "wikidata"
             }),
+            expect.objectContaining({
+                externalId: "11",
+                sourceSlug: "UserInput",
+                softwareId: 11
+            }),
             emptyExternalData({
                 externalId: "Q118629387",
                 sourceSlug: "wikidata",
@@ -215,7 +206,7 @@ describe("fetches software extra data (from different providers)", () => {
         "gets software external data and saves it, and does not save other extra data if there is nothing relevant",
         async () => {
             const softwareExternalDatas = await db.selectFrom("software_external_datas").selectAll().execute();
-            expect(softwareExternalDatas).toHaveLength(4);
+            expect(softwareExternalDatas).toHaveLength(5);
 
             const source = await db
                 .selectFrom("sources")
@@ -223,8 +214,6 @@ describe("fetches software extra data (from different providers)", () => {
                 .orderBy("priority", "desc")
                 .executeTakeFirstOrThrow();
             if (!source) throw new Error("Source not found");
-
-            expect(softwareExternalDatas[0].lastDataFetchAt).toBe(null);
 
             await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: craSoftwareId });
 
@@ -240,6 +229,11 @@ describe("fetches software extra data (from different providers)", () => {
                     "externalId": "Q11354",
                     "softwareId": 6,
                     "sourceSlug": "wikidata"
+                }),
+                expect.objectContaining({
+                    externalId: "11",
+                    sourceSlug: "UserInput",
+                    softwareId: craSoftwareId
                 }),
                 {
                     applicationCategories: [],
@@ -386,7 +380,7 @@ describe("fetches software extra data (from different providers)", () => {
             if (!source) throw new Error("Source not found");
 
             const softwareExternalDatas = await dbApi.softwareExternalData.getAll();
-            expect(softwareExternalDatas).toHaveLength(4);
+            expect(softwareExternalDatas).toHaveLength(5);
 
             await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: apacheSoftwareId });
 
@@ -474,6 +468,11 @@ describe("fetches software extra data (from different providers)", () => {
                     operatingSystems: undefined,
                     runtimePlatforms: undefined
                 },
+                expect.objectContaining({
+                    externalId: "11",
+                    sourceSlug: "UserInput",
+                    softwareId: craSoftwareId
+                }),
                 emptyExternalDataCleaned({
                     externalId: "Q118629387",
                     sourceSlug: "wikidata",

@@ -8,14 +8,7 @@ import { DbApiV2 } from "../ports/DbApiV2";
 import { Kysely } from "kysely";
 import { Database } from "../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../adapters/dbApi/kysely/kysely.dialect";
-import {
-    emptyExternalData,
-    expectToEqual,
-    expectToMatchObject,
-    resetDB,
-    testPgUrl,
-    testSource
-} from "../../tools/test.helpers";
+import { expectToEqual, expectToMatchObject, resetDB, testPgUrl, testSource } from "../../tools/test.helpers";
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
@@ -82,7 +75,7 @@ describe("Create software - Trying all the cases", () => {
 
         const softwareListFromApiItem = await dbApi.software.getDetails(softwareListFromApi[0].id);
         expectToMatchObject(softwareListFromApiItem, {
-            name: "Create react app",
+            name: { fr: "Create react app" },
             similarSoftwares: [
                 {
                     externalId: viteOption.externalId,
@@ -101,17 +94,10 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareListFromDb.length, 1);
         expectToMatchObject(softwareListFromDb[0], {
             "addedByUserId": userId,
-            "applicationCategories": [],
             "dereferencing": null,
-            "description": { "fr": "To create React apps." },
             "isStillInObservation": false,
-            "keywords": ["Productivity", "Task", "Management"],
-            "license": "MIT",
-            "image": "https://example.com/logo.png",
             "name": "Create react app",
             "addedTime": expect.any(String),
-            "operatingSystems": {},
-            "runtimePlatforms": [],
             "customAttributes": {
                 "isFromFrenchPublicService": true,
                 "isPresentInSupportContract": true,
@@ -119,26 +105,18 @@ describe("Create software - Trying all the cases", () => {
             }
         });
 
-        const initialExternalSoftwarePackagesBeforeFetching = [
-            emptyExternalData({
-                externalId: "Q118629387",
-                sourceSlug: "wikidata",
-                softwareId: craSoftwareId
-            }),
-            emptyExternalData({
-                ...viteOption,
-                externalId: "Q111590996",
-                sourceSlug: "wikidata"
-            })
-        ];
-
         const softwareExternalDatas = await db
             .selectFrom("software_external_datas")
             .selectAll()
             .orderBy("softwareId", "asc")
+            .orderBy("sourceSlug", "asc")
             .execute();
 
-        expectToMatchObject(softwareExternalDatas, initialExternalSoftwarePackagesBeforeFetching);
+        // Expect: UserInput row (for form content) + wikidata placeholder + vite similar
+        expect(softwareExternalDatas.length).toBe(3);
+        expect(softwareExternalDatas.map(r => r.sourceSlug).sort()).toEqual(
+            ["UserInput", "wikidata", "wikidata"].sort()
+        );
 
         const similarId = await dbApi.software.getSimilarSoftwareExternalDataPks({ softwareId: craSoftwareId });
         expectToMatchObject(similarId, [
@@ -181,10 +159,10 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 3);
+        expectToEqual(externdalDataList.length, 4);
 
         const externalIdForSoft = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalIdForSoft?.length, 2);
+        expectToEqual(externalIdForSoft?.length, 3);
     });
 
     it("Insert a software when externalData is already saved with no related software, should not create another externalData and linked the existing one to the new software", async () => {
@@ -207,11 +185,11 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 2);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalDataUpdated = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalDataUpdated?.length, 1);
-        expectToEqual(externalDataUpdated?.[0].externalId, "Q118629387");
+        expectToEqual(externalDataUpdated?.length, 2);
+        expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
     it("Insert a software when externalData is already saved with related software, should not create another software neither new externalData", async () => {
@@ -221,7 +199,7 @@ describe("Create software - Trying all the cases", () => {
         });
 
         const externdalDataListBefore = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataListBefore.length, 2);
+        expectToEqual(externdalDataListBefore.length, 3);
 
         const alteredNameForm = {
             ...craSoftwareFormData,
@@ -237,11 +215,11 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 2);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalDataUpdated = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalDataUpdated?.length, 1);
-        expectToEqual(externalDataUpdated?.[0].externalId, "Q118629387");
+        expectToEqual(externalDataUpdated?.length, 2);
+        expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
     it("Insert a software when similarExternalData is already saved, should linked the existing externalData to the new software row", async () => {
@@ -264,11 +242,11 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 2);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalDataUpdated = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalDataUpdated?.length, 1);
-        expectToEqual(externalDataUpdated?.[0].externalId, "Q118629387");
+        expectToEqual(externalDataUpdated?.length, 2);
+        expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
     it("Insert a software with multiples similarExternalData with one already existing, should create one and update the other one", async () => {
@@ -309,7 +287,7 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externalDataList.length, 3);
+        expectToEqual(externalDataList.length, 4);
 
         const similarExternalData = await dbApi.software.getSimilarSoftwareExternalDataPks({
             softwareId: craSoftwareId
@@ -340,7 +318,7 @@ describe("Create software - Trying all the cases", () => {
         });
 
         const externalDataListUpdated = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externalDataListUpdated.length, 4);
+        expectToEqual(externalDataListUpdated.length, 5);
 
         const similarExternalDataUpdated = await dbApi.software.getSimilarSoftwareExternalDataPks({
             softwareId: craSoftwareId

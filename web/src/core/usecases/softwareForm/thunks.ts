@@ -4,7 +4,7 @@
 
 import type { Thunks } from "core/bootstrap";
 import { assert } from "tsafe/assert";
-import type { ApiTypes } from "api";
+import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
 import type { Language } from "api";
 import { createResolveLocalizedString } from "i18nifty";
 import { name, actions, type FormData } from "./state";
@@ -76,30 +76,49 @@ export const thunks = {
 
                         assert(software !== undefined);
 
-                        const softwareList = await sillApi.getSoftwareList();
-
                         const { resolveLocalizedString } = createResolveLocalizedString({
                             currentLanguage: "fr",
                             fallbackLanguage: "en"
                         });
 
+                        // Pre-fill from the UserInput source only: editors see values
+                        // they (or a prior editor) explicitly pinned. Fields only external
+                        // sources contribute stay blank; the per-field popover lets the
+                        // editor pull from them on demand.
+                        const userInputSource = software.dataBySource.find(
+                            source => source.kind === USER_INPUT_SOURCE_SLUG
+                        );
+
                         dispatch(
                             actions.initializedForUpdate({
                                 softwareSillId: software.id,
+                                dataBySource: software.dataBySource,
                                 formData: {
                                     step1: {
-                                        operatingSystems: software.operatingSystems,
-                                        runtimePlatforms: software.runtimePlatforms
+                                        operatingSystems:
+                                            userInputSource?.operatingSystems ??
+                                            software.operatingSystems,
+                                        runtimePlatforms:
+                                            userInputSource?.runtimePlatforms ??
+                                            software.runtimePlatforms
                                     },
                                     step2: {
                                         externalId: software.externalId,
-                                        description: resolveLocalizedString(
-                                            software.description
-                                        ),
-                                        license: software.license,
-                                        name: resolveLocalizedString(software.name),
-                                        image: software.image,
-                                        keywords: software.keywords
+                                        description:
+                                            userInputSource?.description === undefined
+                                                ? ""
+                                                : resolveLocalizedString(
+                                                      userInputSource.description
+                                                  ),
+                                        license: userInputSource?.license ?? "",
+                                        name:
+                                            userInputSource?.name === undefined
+                                                ? ""
+                                                : resolveLocalizedString(
+                                                      userInputSource.name
+                                                  ),
+                                        image: userInputSource?.image,
+                                        keywords: userInputSource?.keywords ?? []
                                     },
                                     step3: software.customAttributes,
                                     step4: {

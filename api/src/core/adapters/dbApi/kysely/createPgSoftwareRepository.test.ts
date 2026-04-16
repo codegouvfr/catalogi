@@ -5,7 +5,7 @@
 import { Kysely } from "kysely";
 import { describe, it, beforeEach, expect } from "vitest";
 import { resetDB, testPgUrl } from "../../../../tools/test.helpers";
-import { Database } from "./kysely.database";
+import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { createPgDialect } from "./kysely.dialect";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
 
@@ -33,27 +33,68 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
         }
     }
 
+    // Content fields from overrides are routed to the UserInput external-data row.
+    const {
+        description = JSON.stringify({ fr: "Description" }),
+        license = "MIT",
+        image = null,
+        keywords = JSON.stringify([]),
+        applicationCategories = JSON.stringify([]),
+        operatingSystems = JSON.stringify({}),
+        runtimePlatforms = JSON.stringify(["cloud"]),
+        isLibreSoftware = null,
+        url = null,
+        codeRepositoryUrl = null,
+        softwareHelp = null,
+        latestVersion = null,
+        programmingLanguages = null,
+        ...softwareOverrides
+    } = overrides;
+
     const { id } = await db
         .insertInto("softwares")
         .values({
             name: "Test Software",
-            description: JSON.stringify({ fr: "Description" }),
-            license: "MIT",
             addedTime: new Date().toISOString(),
             updateTime: new Date().toISOString(),
             isStillInObservation: false,
             customAttributes: JSON.stringify({}),
-            operatingSystems: JSON.stringify({}),
-            runtimePlatforms: JSON.stringify(["cloud"]),
-            applicationCategories: JSON.stringify([]),
-            keywords: JSON.stringify([]),
-            image: null,
             dereferencing: null,
-            ...overrides,
+            ...softwareOverrides,
             addedByUserId
         })
         .returning("id")
         .executeTakeFirstOrThrow();
+
+    // Insert UserInput row with content fields
+    await db
+        .insertInto("software_external_datas")
+        .values({
+            externalId: id.toString(),
+            sourceSlug: USER_INPUT_SOURCE_SLUG,
+            softwareId: id,
+            authors: JSON.stringify([]),
+            name:
+                typeof overrides.name === "string"
+                    ? JSON.stringify({ fr: overrides.name })
+                    : JSON.stringify({ fr: "Test Software" }),
+            description,
+            isLibreSoftware,
+            image,
+            url,
+            codeRepositoryUrl,
+            softwareHelp,
+            license,
+            latestVersion,
+            keywords,
+            programmingLanguages,
+            applicationCategories,
+            operatingSystems,
+            runtimePlatforms,
+            lastDataFetchAt: new Date()
+        })
+        .execute();
+
     return id;
 };
 
@@ -132,11 +173,87 @@ describe("createPgSoftwareRepository", () => {
 
             const list = await repository.getFullList();
             expect(list).toHaveLength(1);
-            expect(list[0].name).toBe("Active");
+            expect(list[0].name).toEqual({ fr: "Active" });
         });
     });
 
     describe("getDetails", () => {
+        it("reads content from UserInput external-data row", async () => {
+            const softwareId = await insertSoftware(db, {
+                name: "Manual Software",
+                description: JSON.stringify({ fr: "Manual Description" }),
+                license: "Apache-2.0",
+                image: "https://example.com/logo.png",
+                url: "https://example.com",
+                codeRepositoryUrl: "https://example.com/repo",
+                softwareHelp: "https://example.com/help",
+                keywords: JSON.stringify(["manual"]),
+                programmingLanguages: JSON.stringify(["TypeScript"]),
+                applicationCategories: JSON.stringify(["development"]),
+                operatingSystems: JSON.stringify({ linux: true }),
+                runtimePlatforms: JSON.stringify(["cloud"])
+            });
+
+            const details = await repository.getDetails(softwareId);
+            expect(details).toBeDefined();
+            expect(details?.name).toEqual({ fr: "Manual Software" });
+            expect(details?.description).toEqual({ fr: "Manual Description" });
+            expect(details?.license).toBe("Apache-2.0");
+            expect(details?.image).toBe("https://example.com/logo.png");
+            expect(details?.url).toBe("https://example.com");
+            expect(details?.codeRepositoryUrl).toBe("https://example.com/repo");
+            expect(details?.softwareHelp).toBe("https://example.com/help");
+            expect(details?.keywords).toEqual(["manual"]);
+            expect(details?.programmingLanguages).toEqual(["TypeScript"]);
+            expect(details?.applicationCategories).toEqual(["development"]);
+            expect(details?.operatingSystems).toEqual({ linux: true });
+            expect(details?.runtimePlatforms).toEqual(["cloud"]);
+            expect(details?.externalId).toBeUndefined();
+            expect(details?.sourceSlug).toBeUndefined();
+        });
+
+        it("uses real external data for identity fields instead of the UserInput sentinel", async () => {
+            const softwareId = await insertSoftware(db, { name: "Manual Software" });
+
+            // Update the UserInput row already created by insertSoftware
+            await db
+                .updateTable("software_external_datas")
+                .set({
+                    name: JSON.stringify({ fr: "Manual Override" }),
+                    description: JSON.stringify({ fr: "Manual Description" }),
+                    isLibreSoftware: true
+                })
+                .where("softwareId", "=", softwareId)
+                .where("sourceSlug", "=", USER_INPUT_SOURCE_SLUG)
+                .execute();
+
+            // Insert a real external data row
+            await db
+                .insertInto("software_external_datas")
+                .values({
+                    softwareId,
+                    sourceSlug: "wikidata",
+                    externalId: "Q123456",
+                    name: JSON.stringify({ fr: "Wikidata Name" }),
+                    description: JSON.stringify({ fr: "Wikidata Description" }),
+                    isLibreSoftware: true,
+                    authors: JSON.stringify([])
+                })
+                .execute();
+
+            const details = await repository.getDetails(softwareId);
+            expect(details).toBeDefined();
+            expect(details?.name).toEqual({ fr: "Manual Override" });
+            expect(details?.externalId).toBe("Q123456");
+            expect(details?.sourceSlug).toBe("wikidata");
+
+            const publicList = await repository.getPublicList();
+            expect(publicList.find(software => software.id === softwareId)).toMatchObject({
+                externalId: "Q123456",
+                sourceSlug: "wikidata"
+            });
+        });
+
         it("merges external data based on priority (lower number = higher priority)", async () => {
             const softwareId = await insertSoftware(db);
 
