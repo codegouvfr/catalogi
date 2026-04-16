@@ -56,7 +56,7 @@
         "cheerio": "1.0.0-rc.12",
         "compression": "^1.7.4",
         "cors": "^2.8.5",
-        "dotenv-cli": "^7.4.2",
+        "dotenv-cli": "^11.0.0",
         "esbuild": "^0.25.0",
         "evt": "^2.5.7",
         "express": "^4.17.2",
