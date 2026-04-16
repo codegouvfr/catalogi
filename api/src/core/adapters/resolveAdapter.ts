@@ -45,7 +45,7 @@ export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, fea
             return gitLabSourceGateway;
         case USER_INPUT_SOURCE_SLUG:
             throw new Error(
-                `user_input is not a fetchable source — the gateway should not be resolved for slug "${source.slug}"`
+                `UserInput is not a fetchable source — the gateway should not be resolved for slug "${source.slug}"`
             );
         default:
             const unreachableCase: never = source.kind;

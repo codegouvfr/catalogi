@@ -20,6 +20,7 @@ export type {
     UserWithId,
     Instance,
     Software,
+    SoftwareData,
     SoftwareDetail,
     SoftwareSourceData,
     SoftwareInList,

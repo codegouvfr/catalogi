@@ -8,14 +8,7 @@ import { DbApiV2 } from "../ports/DbApiV2";
 import { Kysely } from "kysely";
 import { Database } from "../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../adapters/dbApi/kysely/kysely.dialect";
-import {
-    emptyExternalData,
-    expectToEqual,
-    expectToMatchObject,
-    resetDB,
-    testPgUrl,
-    testSource
-} from "../../tools/test.helpers";
+import { expectToEqual, expectToMatchObject, resetDB, testPgUrl, testSource } from "../../tools/test.helpers";
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
@@ -57,7 +50,7 @@ describe("Create software - Trying all the cases", () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
 
-        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
+        dbApi = createKyselyPgDbApi(db);
 
         userId = await dbApi.user.add({
             email: "myuser@example.com",
@@ -101,17 +94,10 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareListFromDb.length, 1);
         expectToMatchObject(softwareListFromDb[0], {
             "addedByUserId": userId,
-            "applicationCategories": [],
             "dereferencing": null,
-            "description": { "fr": "To create React apps." },
             "isStillInObservation": false,
-            "keywords": ["Productivity", "Task", "Management"],
-            "license": "MIT",
-            "image": "https://example.com/logo.png",
             "name": "Create react app",
             "addedTime": expect.any(String),
-            "operatingSystems": {},
-            "runtimePlatforms": [],
             "customAttributes": {
                 "isFromFrenchPublicService": true,
                 "isPresentInSupportContract": true,
@@ -119,26 +105,18 @@ describe("Create software - Trying all the cases", () => {
             }
         });
 
-        const initialExternalSoftwarePackagesBeforeFetching = [
-            emptyExternalData({
-                externalId: "Q118629387",
-                sourceSlug: "wikidata",
-                softwareId: craSoftwareId
-            }),
-            emptyExternalData({
-                ...viteOption,
-                externalId: "Q111590996",
-                sourceSlug: "wikidata"
-            })
-        ];
-
         const softwareExternalDatas = await db
             .selectFrom("software_external_datas")
             .selectAll()
             .orderBy("softwareId", "asc")
+            .orderBy("sourceSlug", "asc")
             .execute();
 
-        expectToMatchObject(softwareExternalDatas, initialExternalSoftwarePackagesBeforeFetching);
+        // Expect: UserInput row (for form content) + wikidata placeholder + vite similar
+        expect(softwareExternalDatas.length).toBe(3);
+        expect(softwareExternalDatas.map(r => r.sourceSlug).sort()).toEqual(
+            ["UserInput", "wikidata", "wikidata"].sort()
+        );
 
         const similarId = await dbApi.software.getSimilarSoftwareExternalDataPks({ softwareId: craSoftwareId });
         expectToMatchObject(similarId, [

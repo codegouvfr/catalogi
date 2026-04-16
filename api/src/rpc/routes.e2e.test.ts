@@ -126,17 +126,12 @@ describe("RPC e2e tests", () => {
                 actualSoftwareId = softwareRows[0].id;
 
                 expectToMatchObject(softwareRows[0], {
-                    "description": { "fr": softwareFormData.description },
                     "customAttributes": {
                         "doRespectRgaa": softwareFormData.customAttributes?.doRespectRgaa ?? undefined,
                         "isFromFrenchPublicService": softwareFormData.customAttributes?.isFromFrenchPublicService,
                         "isPresentInSupportContract": softwareFormData.customAttributes?.isPresentInSupportContract
                     },
-                    "keywords": softwareFormData.keywords,
-                    "license": softwareFormData.license,
-                    "image": softwareFormData.image,
                     "name": softwareFormData.name,
-                    "applicationCategories": [],
                     "isStillInObservation": false,
                     "id": expect.any(Number),
                     "addedByUserId": user.id

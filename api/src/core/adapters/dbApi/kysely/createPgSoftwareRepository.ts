@@ -3,8 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
-import type { Equals } from "tsafe";
-import { assert } from "tsafe/assert";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
@@ -12,6 +10,9 @@ import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
 import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
+
+const resolveLocalizedField = (extValue: unknown, fallback: string): LocalizedString =>
+    extValue ? (extValue as LocalizedString) : ({ fr: fallback } as LocalizedString);
 
 const toSoftwareSourceData = (row: PopulatedExternalData): SoftwareSourceData => {
     const { slug, lastDataFetchAt, latestVersion, authors, softwareId: _softwareId, ...rest } = row;
@@ -78,29 +79,6 @@ const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, S
         {} as Record<number, SimilarSoftware[]>
     );
 
-const isBlankText = (value: unknown) => typeof value === "string" && value.trim() === "";
-
-const isBlankLocalizedString = (value: unknown) => {
-    if (value === undefined || value === null) return true;
-    if (isBlankText(value)) return true;
-    if (typeof value !== "object" || Array.isArray(value)) return false;
-
-    const values = Object.values(value as Record<string, unknown>);
-    return values.length === 0 || values.every(item => item === undefined || item === null || isBlankText(item));
-};
-
-const resolveLocalizedString = (value: unknown, fallback: LocalizedString): LocalizedString =>
-    isBlankLocalizedString(value) ? fallback : (value as LocalizedString);
-
-const resolveText = (value: string | null | undefined, fallback: string | null | undefined): string | undefined =>
-    value === undefined || value === null || isBlankText(value) ? (fallback ?? undefined) : value;
-
-const resolveArray = <T>(value: T[] | null | undefined, fallback: T[] | null | undefined = []): T[] =>
-    value && value.length > 0 ? value : (fallback ?? []);
-
-const resolveOptionalArray = <T>(value: T[] | null | undefined): T[] | undefined =>
-    value && value.length > 0 ? value : undefined;
-
 type UserInputWriteValues = {
     softwareId: number;
     name: string;
@@ -120,8 +98,8 @@ type UserInputWriteValues = {
 };
 
 // `externalId` is part of the primary key and can't be NULL, so we use `softwareId::text`
-// as a stable sentinel that's unique per software within the `user_input` source. Refresh/
-// import jobs skip `kind='user_input'` so this sentinel never gets fed to an external gateway.
+// as a stable sentinel that's unique per software within the `UserInput` source. Refresh/
+// import jobs skip `kind='UserInput'` so this sentinel never gets fed to an external gateway.
 const toUserInputRowValues = (v: UserInputWriteValues) => ({
     externalId: v.softwareId.toString(),
     sourceSlug: USER_INPUT_SOURCE_SLUG,
@@ -185,11 +163,7 @@ const buildUserInputWriteValues = (
     runtimePlatforms: software.runtimePlatforms
 });
 
-export const createPgSoftwareRepository = (
-    db: Kysely<Database>,
-    options: { userInputEnabled: boolean }
-): SoftwareRepository => {
-    const { userInputEnabled } = options;
+export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     return {
         getFullList: async (): Promise<SoftwareInList[]> => {
             const [softwareRows, userCountRows, referentCountRows, enrichedSimilarRows, externalRows] =
@@ -282,12 +256,12 @@ export const createPgSoftwareRepository = (
 
             return softwareRows.map(software => {
                 const extData = externalDataRecord[software.id];
-                const resolvedLatestVersion = extData?.latestVersion ?? software.latestVersion;
+                const resolvedLatestVersion = extData?.latestVersion;
                 return {
                     id: software.id,
-                    name: resolveLocalizedString(extData?.name, { fr: software.name } as LocalizedString),
-                    description: resolveLocalizedString(extData?.description, software.description as LocalizedString),
-                    image: resolveText(extData?.image, software.image),
+                    name: resolveLocalizedField(extData?.name, software.name),
+                    description: resolveLocalizedField(extData?.description, ""),
+                    image: extData?.image ?? undefined,
                     latestVersion: resolvedLatestVersion
                         ? {
                               version: resolvedLatestVersion.version ?? undefined,
@@ -298,14 +272,12 @@ export const createPgSoftwareRepository = (
                         : undefined,
                     addedTime: software.addedTime,
                     updateTime: software.updateTime,
-                    applicationCategories: resolveArray(extData?.applicationCategories, software.applicationCategories),
-                    keywords: resolveArray(extData?.keywords, software.keywords),
-                    operatingSystems: (extData?.operatingSystems ?? software.operatingSystems ?? {}) as Partial<
-                        Record<Os, boolean>
-                    >,
-                    runtimePlatforms: resolveArray(extData?.runtimePlatforms, software.runtimePlatforms),
+                    applicationCategories: extData?.applicationCategories ?? [],
+                    keywords: extData?.keywords ?? [],
+                    operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                    runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
                     customAttributes: software.customAttributes ?? undefined,
-                    programmingLanguages: resolveArray(extData?.programmingLanguages, software.programmingLanguages),
+                    programmingLanguages: extData?.programmingLanguages ?? [],
                     authors: extData?.authors ?? [],
                     userAndReferentCountByOrganization: countsMap[software.id] ?? {},
                     similarSoftwares: similarMap[software.id] ?? []
@@ -395,22 +367,24 @@ export const createPgSoftwareRepository = (
             const countsMap = aggregateCounts(allCountRows);
             const similarMap = aggregateEnrichedSimilars(enrichedSimilarRows as EnrichedSimilarRow[]);
 
+            const identitySourceBySoftwareId: Record<number, PopulatedExternalData | undefined> = {};
+            for (const [softwareId, rows] of Object.entries(externalBySoftwareId)) {
+                identitySourceBySoftwareId[Number(softwareId)] = rows.find(
+                    row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG
+                );
+            }
+
             return softwareRows.map(softwareRow => {
                 const extData = externalDataRecord[softwareRow.id];
                 const deref = softwareRow.dereferencing;
-                const resolvedLatestVersion = extData?.latestVersion ?? softwareRow.latestVersion;
-                const externalIdentitySource = externalBySoftwareId[softwareRow.id]?.find(
-                    row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG
-                );
+                const resolvedLatestVersion = extData?.latestVersion;
+                const externalIdentitySource = identitySourceBySoftwareId[softwareRow.id];
 
                 return {
                     id: softwareRow.id,
-                    name: resolveLocalizedString(extData?.name, { fr: softwareRow.name } as LocalizedString),
-                    description: resolveLocalizedString(
-                        extData?.description,
-                        softwareRow.description as LocalizedString
-                    ),
-                    image: resolveText(extData?.image, softwareRow.image),
+                    name: resolveLocalizedField(extData?.name, softwareRow.name),
+                    description: resolveLocalizedField(extData?.description, ""),
+                    image: extData?.image ?? undefined,
                     latestVersion: resolvedLatestVersion
                         ? {
                               version: resolvedLatestVersion.version ?? undefined,
@@ -428,38 +402,35 @@ export const createPgSoftwareRepository = (
                               lastRecommendedVersion: deref.lastRecommendedVersion
                           }
                         : undefined,
-                    applicationCategories: resolveArray(
-                        extData?.applicationCategories,
-                        softwareRow.applicationCategories
-                    ),
+                    applicationCategories: extData?.applicationCategories ?? [],
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     userAndReferentCountByOrganization: countsMap[softwareRow.id] ?? {},
                     authors: extData?.authors ?? [],
-                    url: resolveText(extData?.url, softwareRow.url),
-                    codeRepositoryUrl: resolveText(extData?.codeRepositoryUrl, softwareRow.codeRepositoryUrl),
-                    softwareHelp: resolveText(extData?.softwareHelp, softwareRow.softwareHelp),
-                    license: resolveText(extData?.license, softwareRow.license) ?? "",
+                    url: extData?.url ?? undefined,
+                    codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
+                    softwareHelp: extData?.softwareHelp ?? undefined,
+                    license: extData?.license ?? "",
                     externalId: externalIdentitySource?.externalId,
                     sourceSlug: externalIdentitySource?.sourceSlug,
-                    operatingSystems: (extData?.operatingSystems ?? softwareRow.operatingSystems ?? {}) as Partial<
-                        Record<Os, boolean>
-                    >,
-                    runtimePlatforms: resolveArray(extData?.runtimePlatforms, softwareRow.runtimePlatforms),
+                    operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                    runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
                     similarSoftwares: similarMap[softwareRow.id] ?? [],
-                    keywords: resolveArray(extData?.keywords, softwareRow.keywords),
-                    programmingLanguages: resolveArray(extData?.programmingLanguages, softwareRow.programmingLanguages),
+                    keywords: extData?.keywords ?? [],
+                    programmingLanguages: extData?.programmingLanguages ?? [],
                     providers: extData?.providers ?? [],
-                    referencePublications: resolveOptionalArray(extData?.referencePublications),
-                    identifiers: resolveOptionalArray(extData?.identifiers),
-                    repoMetadata: extData?.repoMetadata
+                    referencePublications:
+                        extData?.referencePublications && extData.referencePublications.length > 0
+                            ? extData.referencePublications
+                            : undefined,
+                    identifiers:
+                        extData?.identifiers && extData.identifiers.length > 0 ? extData.identifiers : undefined,
+                    repoMetadata: extData?.repoMetadata,
+                    isLibreSoftware: extData?.isLibreSoftware ?? undefined
                 };
             });
         },
         getDetails: async (softwareId: number): Promise<SoftwareDetail | undefined> => {
             const [softwareRow, externalDataRows, userCounts, referentCounts, similarSoftwareRows] = await Promise.all([
-                // The `softwares` content columns are still written and read as a fallback for
-                // any field the merged external data doesn't provide. They'll be dropped in a
-                // follow-up release once the user_input source is the only writer.
                 db.selectFrom("softwares").selectAll().where("id", "=", softwareId).executeTakeFirst(),
 
                 db
@@ -500,7 +471,6 @@ export const createPgSoftwareRepository = (
                         "ext.sourceSlug",
                         "ext.softwareId as linkedSoftwareId",
                         "linkedSoft.name as linkedSoftwareName",
-                        "linkedSoft.description as linkedSoftwareDescription",
                         "linkedSoft.dereferencing as linkedSoftwareDereferencing",
                         "ext.name",
                         "ext.description",
@@ -540,16 +510,16 @@ export const createPgSoftwareRepository = (
             }));
 
             const deref = softwareRow.dereferencing;
-            const resolvedLatestVersion = extData?.latestVersion ?? softwareRow.latestVersion;
+            const resolvedLatestVersion = extData?.latestVersion;
             // Identity fields (externalId/sourceSlug) must come from a real external source —
-            // the user_input row's sentinel externalId would otherwise leak into the response.
+            // the UserInput row's sentinel externalId would otherwise leak into the response.
             const externalIdentitySource = populatedExternalRows.find(row => row.sourceSlug !== USER_INPUT_SOURCE_SLUG);
 
             return {
                 id: softwareRow.id,
-                name: resolveLocalizedString(extData?.name, { fr: softwareRow.name } as LocalizedString),
-                description: resolveLocalizedString(extData?.description, softwareRow.description as LocalizedString),
-                image: resolveText(extData?.image, softwareRow.image),
+                name: resolveLocalizedField(extData?.name, softwareRow.name),
+                description: resolveLocalizedField(extData?.description, ""),
+                image: extData?.image ?? undefined,
                 latestVersion: resolvedLatestVersion
                     ? {
                           version: resolvedLatestVersion.version ?? undefined,
@@ -567,27 +537,29 @@ export const createPgSoftwareRepository = (
                           lastRecommendedVersion: deref.lastRecommendedVersion
                       }
                     : undefined,
-                applicationCategories: resolveArray(extData?.applicationCategories, softwareRow.applicationCategories),
+                applicationCategories: extData?.applicationCategories ?? [],
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 userAndReferentCountByOrganization,
                 authors: extData?.authors ?? [],
-                url: resolveText(extData?.url, softwareRow.url),
-                codeRepositoryUrl: resolveText(extData?.codeRepositoryUrl, softwareRow.codeRepositoryUrl),
-                softwareHelp: resolveText(extData?.softwareHelp, softwareRow.softwareHelp),
-                license: resolveText(extData?.license, softwareRow.license) ?? "",
+                url: extData?.url ?? undefined,
+                codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
+                softwareHelp: extData?.softwareHelp ?? undefined,
+                license: extData?.license ?? "",
                 externalId: externalIdentitySource?.externalId,
                 sourceSlug: externalIdentitySource?.sourceSlug,
-                operatingSystems: (extData?.operatingSystems ?? softwareRow.operatingSystems ?? {}) as Partial<
-                    Record<Os, boolean>
-                >,
-                runtimePlatforms: resolveArray(extData?.runtimePlatforms, softwareRow.runtimePlatforms),
+                operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
+                runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
                 similarSoftwares,
-                keywords: resolveArray(extData?.keywords, softwareRow.keywords),
-                programmingLanguages: resolveArray(extData?.programmingLanguages, softwareRow.programmingLanguages),
+                keywords: extData?.keywords ?? [],
+                programmingLanguages: extData?.programmingLanguages ?? [],
                 providers: extData?.providers ?? [],
-                referencePublications: resolveOptionalArray(extData?.referencePublications),
-                identifiers: resolveOptionalArray(extData?.identifiers),
+                referencePublications:
+                    extData?.referencePublications && extData.referencePublications.length > 0
+                        ? extData.referencePublications
+                        : undefined,
+                identifiers: extData?.identifiers && extData.identifiers.length > 0 ? extData.identifiers : undefined,
                 repoMetadata: extData?.repoMetadata,
+                isLibreSoftware: extData?.isLibreSoftware ?? undefined,
                 dataBySource
             };
         },
@@ -605,142 +577,64 @@ export const createPgSoftwareRepository = (
             return row ? stripNullOrUndefinedValues(row) : row;
         },
         create: async ({ software }) => {
-            const {
-                name,
-                description,
-                license,
-                image,
-                addedTime,
-                isStillInObservation,
-                dereferencing,
-                customAttributes,
-                operatingSystems,
-                runtimePlatforms,
-                applicationCategories,
-                keywords,
-                addedByUserId,
-                isLibreSoftware,
-                url,
-                codeRepositoryUrl,
-                softwareHelp,
-                latestVersion,
-                programmingLanguages,
-                ...rest
-            } = software;
-
-            assert<Equals<typeof rest, {}>>();
+            const { name, addedTime, isStillInObservation, dereferencing, customAttributes, addedByUserId } = software;
 
             const now = new Date().toISOString();
 
             return db.transaction().execute(async trx => {
-                // Step A–E keep writing content to `softwares` columns so older deployments can
-                // be redeployed on top of this data without losing form-entered content.
                 const { softwareId } = await trx
                     .insertInto("softwares")
                     .values({
                         name,
-                        description: JSON.stringify(description),
-                        license,
-                        image,
                         addedTime,
                         updateTime: now,
                         dereferencing: JSON.stringify(dereferencing),
                         isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
-                        operatingSystems: JSON.stringify(operatingSystems),
-                        runtimePlatforms: JSON.stringify(runtimePlatforms),
-                        applicationCategories: JSON.stringify(applicationCategories),
-                        addedByUserId,
-                        keywords: JSON.stringify(keywords),
-                        isLibreSoftware: isLibreSoftware ?? null,
-                        url: url ?? null,
-                        codeRepositoryUrl: codeRepositoryUrl ?? null,
-                        softwareHelp: softwareHelp ?? null,
-                        latestVersion: latestVersion ? JSON.stringify(latestVersion) : null,
-                        programmingLanguages: programmingLanguages ? JSON.stringify(programmingLanguages) : null
+                        addedByUserId
                     })
                     .returning("id as softwareId")
                     .executeTakeFirstOrThrow();
 
-                if (userInputEnabled) {
-                    await trx
-                        .insertInto("software_external_datas")
-                        .values(toUserInputRowValues(buildUserInputWriteValues(softwareId, software)))
-                        .execute();
-                }
+                await trx
+                    .insertInto("software_external_datas")
+                    .values(toUserInputRowValues(buildUserInputWriteValues(softwareId, software)))
+                    .execute();
 
                 return softwareId;
             });
         },
         update: async ({ software, softwareId }) => {
-            const {
-                name,
-                description,
-                license,
-                image,
-                dereferencing,
-                isStillInObservation,
-                customAttributes,
-                operatingSystems,
-                runtimePlatforms,
-                applicationCategories,
-                keywords,
-                addedByUserId,
-                isLibreSoftware,
-                url,
-                codeRepositoryUrl,
-                softwareHelp,
-                latestVersion,
-                programmingLanguages,
-                ...rest
-            } = software;
-
-            assert<Equals<typeof rest, {}>>();
+            const { name, dereferencing, customAttributes, addedByUserId } = software;
 
             const now = new Date().toISOString();
             await db.transaction().execute(async trx => {
-                // Step A–E keep updating `softwares` columns for reversibility.
                 await trx
                     .updateTable("softwares")
                     .set({
                         name,
-                        description: JSON.stringify(description),
-                        license,
-                        image: image ?? null,
                         dereferencing: JSON.stringify(dereferencing),
                         updateTime: now,
                         isStillInObservation: false,
                         customAttributes: JSON.stringify(customAttributes),
-                        operatingSystems: JSON.stringify(operatingSystems),
-                        runtimePlatforms: JSON.stringify(runtimePlatforms),
-                        applicationCategories: JSON.stringify(applicationCategories),
-                        addedByUserId,
-                        keywords: JSON.stringify(keywords),
-                        isLibreSoftware: isLibreSoftware ?? null,
-                        url: url ?? null,
-                        codeRepositoryUrl: codeRepositoryUrl ?? null,
-                        softwareHelp: softwareHelp ?? null,
-                        latestVersion: latestVersion ? JSON.stringify(latestVersion) : null,
-                        programmingLanguages: programmingLanguages ? JSON.stringify(programmingLanguages) : null
+                        addedByUserId
                     })
                     .where("id", "=", softwareId)
                     .execute();
 
-                if (userInputEnabled) {
-                    const userInputValues = toUserInputRowValues(buildUserInputWriteValues(softwareId, software));
-                    const {
-                        externalId: _externalId,
-                        sourceSlug: _sourceSlug,
-                        softwareId: _softwareId,
-                        ...updateSet
-                    } = userInputValues;
+                const userInputValues = toUserInputRowValues(buildUserInputWriteValues(softwareId, software));
+                const {
+                    externalId: _externalId,
+                    sourceSlug: _sourceSlug,
+                    softwareId: _softwareId,
+                    ...updateSet
+                } = userInputValues;
 
-                    await trx
-                        .insertInto("software_external_datas")
-                        .values(userInputValues)
-                        .onConflict(oc => oc.columns(["externalId", "sourceSlug"]).doUpdateSet(updateSet))
-                        .execute();
-                }
+                await trx
+                    .insertInto("software_external_datas")
+                    .values(userInputValues)
+                    .onConflict(oc => oc.columns(["externalId", "sourceSlug"]).doUpdateSet(updateSet))
+                    .execute();
             });
         },
         getSoftwareIdByExternalIdAndSlug: async ({ externalId, sourceSlug }) => {

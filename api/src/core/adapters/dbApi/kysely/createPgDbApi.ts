@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
-import rawUiConfig from "../../../../customization/ui-config.json";
 import { DbApiV2 } from "../../../ports/DbApiV2";
 import { createGetCompiledData } from "./createGetCompiledData";
 import { createPgUserRepository } from "./createPgUserRepository";
@@ -19,36 +18,10 @@ import {
 } from "./createPgUserAndReferentRepository";
 import { Database } from "./kysely.database";
 
-export type CreateKyselyPgDbApiOptions = {
-    /**
-     * When true, form-based create/update writes also upsert a `user_input` row into
-     * `software_external_datas` so it participates in the unified merge. On reuser
-     * deployments with forms disabled, set this to false — writes still touch the
-     * legacy `softwares` columns but no user_input row is maintained.
-     */
-    userInputEnabled: boolean;
-};
-
-/**
- * Derives `userInputEnabled` from the deployment's ui-config. Mirrors the check the
- * add-user-input-source migration runs so that runtime and migration stay in sync.
- */
-export const getUserInputEnabledFromUiConfig = (): boolean =>
-    Boolean(
-        rawUiConfig?.home?.usecases?.editSoftware?.enabled || rawUiConfig?.home?.usecases?.addSoftwareOrService?.enabled
-    );
-
-const defaultOptions = (): CreateKyselyPgDbApiOptions => ({
-    userInputEnabled: getUserInputEnabledFromUiConfig()
-});
-
-export const createKyselyPgDbApi = (
-    db: Kysely<Database>,
-    options: CreateKyselyPgDbApiOptions = defaultOptions()
-): DbApiV2 => {
+export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
     return {
         source: createPgSourceRepository(db),
-        software: createPgSoftwareRepository(db, options),
+        software: createPgSoftwareRepository(db),
         softwareExternalData: createPgSoftwareExternalDataRepository(db),
         instance: createPgInstanceRepository(db),
         user: createPgUserRepository(db),
@@ -62,13 +35,10 @@ export const createKyselyPgDbApi = (
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
-export const getDbApiAndInitializeCache = (
-    dbConfig: PgDbConfig,
-    options?: CreateKyselyPgDbApiOptions
-): { dbApi: DbApiV2 } => {
+export const getDbApiAndInitializeCache = (dbConfig: PgDbConfig): { dbApi: DbApiV2 } => {
     if (dbConfig.dbKind === "kysely") {
         return {
-            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb, options)
+            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb)
         };
     }
 

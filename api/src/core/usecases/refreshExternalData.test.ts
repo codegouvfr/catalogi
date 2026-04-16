@@ -54,15 +54,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
         .insertInto("softwares")
         .values({
             id: apacheSoftwareId,
-            operatingSystems: JSON.stringify({ ios: false, mac: false, linux: true, android: false, windows: false }),
-            runtimePlatforms: JSON.stringify(["desktop"]),
             name: "Apache HTTP Server",
-            description: JSON.stringify({ fr: "Serveur Web & Reverse Proxy" }),
-            license: "Apache-2.0",
-            image: "https://sill.code.gouv.fr/logo/apache-http.png",
-            keywords: JSON.stringify(["serveur", "http", "web", "server", "apache"]),
             isStillInObservation: false,
-            applicationCategories: JSON.stringify([]),
             addedByUserId: userId,
             dereferencing: null,
             addedTime: new Date(1728462232094).toISOString(),
@@ -94,15 +87,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
         .insertInto("softwares")
         .values({
             id: acceleroId,
-            operatingSystems: JSON.stringify({}),
-            runtimePlatforms: JSON.stringify([]),
             name: "Acceleo",
-            description: JSON.stringify({ fr: "Outil et/ou plugin de génération de tout ou partie du code" }),
-            license: "EPL-2.0",
-            image: null,
-            keywords: JSON.stringify(["modélisation", "génération", "code", "modeling", "code generation"]),
             isStillInObservation: false,
-            applicationCategories: JSON.stringify(["Other Development Tools"]),
             addedByUserId: userId,
             dereferencing: null,
             addedTime: new Date(1514764800000).toISOString(),
@@ -142,7 +128,7 @@ describe("fetches software extra data (from different providers)", () => {
 
         await sql`SELECT setval('softwares_id_seq', 11, false)`.execute(db);
 
-        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
+        dbApi = createKyselyPgDbApi(db);
 
         const userId = await dbApi.user.add({
             email: "myuser@example.com",

@@ -37,8 +37,8 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 softwareHelp: formFields.softwareHelp,
                 latestVersion: formFields.latestVersion
                     ? {
-                          version: formFields.latestVersion.version ?? null,
-                          releaseDate: formFields.latestVersion.releaseDate ?? null
+                          version: formFields.latestVersion.version ?? undefined,
+                          releaseDate: formFields.latestVersion.releaseDate ?? undefined
                       }
                     : undefined,
                 programmingLanguages: formFields.programmingLanguages

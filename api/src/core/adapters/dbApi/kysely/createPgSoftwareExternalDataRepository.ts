@@ -94,7 +94,7 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .then(row => (row ? cleanDataForExternalData(row) : undefined));
     },
     getIds: async ({ minuteSkipSince }) => {
-        // Skip the `user_input` pseudo-source: it has no gateway to refresh.
+        // Skip the `UserInput` pseudo-source: it has no gateway to refresh.
         let request = db
             .selectFrom("software_external_datas")
             .select(["externalId", "sourceSlug"])

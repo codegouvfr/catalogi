@@ -75,7 +75,7 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
         case "CNLL":
             throw new Error("[UC:Import] Import if not possible from a secondary source");
         case USER_INPUT_SOURCE_SLUG:
-            throw new Error("[UC:Import] user_input is not importable: it has no gateway");
+            throw new Error("[UC:Import] UserInput is not importable: it has no gateway");
         default:
             const shouldNotBeReached: never = source.kind;
             throw new Error("[UC:Import] Not Implemented", shouldNotBeReached);

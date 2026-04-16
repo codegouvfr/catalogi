@@ -138,14 +138,14 @@ export type ExternalDataOriginKind =
     | "Zenodo"
     | "GitHub"
     | "GitLab"
-    | "user_input";
+    | "UserInput";
 
 /**
  * Slug AND kind of the pseudo-source that tracks form-entered content. Used as both
  * `sources.slug` and `sources.kind` so the same identifier resolves to the correct row
  * whether you're discriminating on slug (write path) or kind (refresh/import paths).
  */
-export const USER_INPUT_SOURCE_SLUG = "user_input" as const;
+export const USER_INPUT_SOURCE_SLUG = "UserInput" as const;
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
@@ -216,8 +216,7 @@ export type SoftwareExternalDatasTable = {
 
 type SoftwaresTable = {
     id: Generated<number>;
-    name: string;
-    description: JSONColumnType<LocalizedString>;
+    name: string; // kept: denormalized for ORDER BY and getByName lookups
     addedTime: string;
     updateTime: string;
     dereferencing: JSONColumnType<{
@@ -227,19 +226,7 @@ type SoftwaresTable = {
     }> | null;
     isStillInObservation: boolean;
     customAttributes: JSONColumnType<Record<string, any>> | null;
-    license: string;
-    operatingSystems: JSONColumnType<Partial<Record<Os, boolean>>>;
-    runtimePlatforms: JSONColumnType<RuntimePlatform[]>;
-    applicationCategories: JSONColumnType<string[]>;
     addedByUserId: number;
-    image: string | null;
-    keywords: JSONColumnType<string[]>;
-    isLibreSoftware: boolean | null;
-    url: string | null;
-    codeRepositoryUrl: string | null;
-    softwareHelp: string | null;
-    latestVersion: JSONColumnType<{ version: string | null; releaseDate: string | null }> | null;
-    programmingLanguages: JSONColumnType<string[]> | null;
 };
 
 export namespace DatabaseRowOutput {

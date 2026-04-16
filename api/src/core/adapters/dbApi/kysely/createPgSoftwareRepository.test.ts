@@ -33,27 +33,68 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
         }
     }
 
+    // Content fields from overrides are routed to the UserInput external-data row.
+    const {
+        description = JSON.stringify({ fr: "Description" }),
+        license = "MIT",
+        image = null,
+        keywords = JSON.stringify([]),
+        applicationCategories = JSON.stringify([]),
+        operatingSystems = JSON.stringify({}),
+        runtimePlatforms = JSON.stringify(["cloud"]),
+        isLibreSoftware = null,
+        url = null,
+        codeRepositoryUrl = null,
+        softwareHelp = null,
+        latestVersion = null,
+        programmingLanguages = null,
+        ...softwareOverrides
+    } = overrides;
+
     const { id } = await db
         .insertInto("softwares")
         .values({
             name: "Test Software",
-            description: JSON.stringify({ fr: "Description" }),
-            license: "MIT",
             addedTime: new Date().toISOString(),
             updateTime: new Date().toISOString(),
             isStillInObservation: false,
             customAttributes: JSON.stringify({}),
-            operatingSystems: JSON.stringify({}),
-            runtimePlatforms: JSON.stringify(["cloud"]),
-            applicationCategories: JSON.stringify([]),
-            keywords: JSON.stringify([]),
-            image: null,
             dereferencing: null,
-            ...overrides,
+            ...softwareOverrides,
             addedByUserId
         })
         .returning("id")
         .executeTakeFirstOrThrow();
+
+    // Insert UserInput row with content fields
+    await db
+        .insertInto("software_external_datas")
+        .values({
+            externalId: id.toString(),
+            sourceSlug: USER_INPUT_SOURCE_SLUG,
+            softwareId: id,
+            authors: JSON.stringify([]),
+            name:
+                typeof overrides.name === "string"
+                    ? JSON.stringify({ fr: overrides.name })
+                    : JSON.stringify({ fr: "Test Software" }),
+            description,
+            isLibreSoftware,
+            image,
+            url,
+            codeRepositoryUrl,
+            softwareHelp,
+            license,
+            latestVersion,
+            keywords,
+            programmingLanguages,
+            applicationCategories,
+            operatingSystems,
+            runtimePlatforms,
+            lastDataFetchAt: new Date()
+        })
+        .execute();
+
     return id;
 };
 
@@ -79,7 +120,7 @@ describe("createPgSoftwareRepository", () => {
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
-        repository = createPgSoftwareRepository(db, { userInputEnabled: false });
+        repository = createPgSoftwareRepository(db);
         // Seed sources for priority testing
         await db
             .insertInto("sources")
@@ -137,7 +178,7 @@ describe("createPgSoftwareRepository", () => {
     });
 
     describe("getDetails", () => {
-        it("falls back to software row content when there is no external data", async () => {
+        it("reads content from UserInput external-data row", async () => {
             const softwareId = await insertSoftware(db, {
                 name: "Manual Software",
                 description: JSON.stringify({ fr: "Manual Description" }),
@@ -171,7 +212,7 @@ describe("createPgSoftwareRepository", () => {
             expect(details?.sourceSlug).toBeUndefined();
         });
 
-        it("uses real external data for identity fields instead of the user_input sentinel", async () => {
+        it("uses real external data for identity fields instead of the UserInput sentinel", async () => {
             const softwareId = await insertSoftware(db, { name: "Manual Software" });
 
             await db

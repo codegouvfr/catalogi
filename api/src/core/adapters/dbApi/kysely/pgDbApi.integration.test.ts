@@ -154,7 +154,7 @@ describe("pgDbApi", () => {
     let dbApi: DbApiV2;
 
     beforeEach(async () => {
-        dbApi = createKyselyPgDbApi(db, { userInputEnabled: false });
+        dbApi = createKyselyPgDbApi(db);
         await resetDB(db);
     });
 
@@ -225,6 +225,7 @@ describe("pgDbApi", () => {
                 repoMetadata: undefined,
                 referencePublications: undefined,
                 identifiers: undefined,
+                isLibreSoftware: softwareExternalData.isLibreSoftware,
                 dereferencing: undefined,
                 providers: [],
                 similarSoftwares: [
