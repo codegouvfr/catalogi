@@ -215,28 +215,30 @@ describe("createPgSoftwareRepository", () => {
         it("uses real external data for identity fields instead of the UserInput sentinel", async () => {
             const softwareId = await insertSoftware(db, { name: "Manual Software" });
 
+            // Update the UserInput row already created by insertSoftware
+            await db
+                .updateTable("software_external_datas")
+                .set({
+                    name: JSON.stringify({ fr: "Manual Override" }),
+                    description: JSON.stringify({ fr: "Manual Description" }),
+                    isLibreSoftware: true
+                })
+                .where("softwareId", "=", softwareId)
+                .where("sourceSlug", "=", USER_INPUT_SOURCE_SLUG)
+                .execute();
+
+            // Insert a real external data row
             await db
                 .insertInto("software_external_datas")
-                .values([
-                    {
-                        softwareId,
-                        sourceSlug: USER_INPUT_SOURCE_SLUG,
-                        externalId: softwareId.toString(),
-                        name: JSON.stringify({ fr: "Manual Override" }),
-                        description: JSON.stringify({ fr: "Manual Description" }),
-                        isLibreSoftware: true,
-                        authors: JSON.stringify([])
-                    },
-                    {
-                        softwareId,
-                        sourceSlug: "wikidata",
-                        externalId: "Q123456",
-                        name: JSON.stringify({ fr: "Wikidata Name" }),
-                        description: JSON.stringify({ fr: "Wikidata Description" }),
-                        isLibreSoftware: true,
-                        authors: JSON.stringify([])
-                    }
-                ])
+                .values({
+                    softwareId,
+                    sourceSlug: "wikidata",
+                    externalId: "Q123456",
+                    name: JSON.stringify({ fr: "Wikidata Name" }),
+                    description: JSON.stringify({ fr: "Wikidata Description" }),
+                    isLibreSoftware: true,
+                    authors: JSON.stringify([])
+                })
                 .execute();
 
             const details = await repository.getDetails(softwareId);

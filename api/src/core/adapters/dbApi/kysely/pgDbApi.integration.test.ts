@@ -208,7 +208,7 @@ describe("pgDbApi", () => {
                 softwareHelp: softwareExternalData.softwareHelp,
                 sourceSlug: testSource.slug,
                 externalId: externalIdForSource,
-                keywords: softwareExternalData.keywords,
+                keywords: [...softwareFormData.keywords, ...softwareExternalData.keywords],
                 latestVersion: {
                     "releaseDate": "2019-06-26",
                     "version": "1.0.0"
@@ -239,9 +239,9 @@ describe("pgDbApi", () => {
                         softwareId: undefined
                     }
                 ],
-                description: softwareExternalData.description,
+                description: { fr: softwareFormData.description },
                 id: expect.any(Number),
-                name: softwareExternalData.name,
+                name: { fr: softwareFormData.name },
                 operatingSystems: {
                     android: true,
                     ios: true,

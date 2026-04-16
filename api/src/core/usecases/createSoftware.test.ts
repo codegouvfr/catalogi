@@ -159,10 +159,10 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 3);
+        expectToEqual(externdalDataList.length, 4);
 
         const externalIdForSoft = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalIdForSoft?.length, 2);
+        expectToEqual(externalIdForSoft?.length, 3);
     });
 
     it("Insert a software when externalData is already saved with no related software, should not create another externalData and linked the existing one to the new software", async () => {
@@ -185,11 +185,11 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 2);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalDataUpdated = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalDataUpdated?.length, 1);
-        expectToEqual(externalDataUpdated?.[0].externalId, "Q118629387");
+        expectToEqual(externalDataUpdated?.length, 2);
+        expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
     it("Insert a software when externalData is already saved with related software, should not create another software neither new externalData", async () => {
@@ -199,7 +199,7 @@ describe("Create software - Trying all the cases", () => {
         });
 
         const externdalDataListBefore = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataListBefore.length, 2);
+        expectToEqual(externdalDataListBefore.length, 3);
 
         const alteredNameForm = {
             ...craSoftwareFormData,
@@ -215,11 +215,11 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 2);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalDataUpdated = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalDataUpdated?.length, 1);
-        expectToEqual(externalDataUpdated?.[0].externalId, "Q118629387");
+        expectToEqual(externalDataUpdated?.length, 2);
+        expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
     it("Insert a software when similarExternalData is already saved, should linked the existing externalData to the new software row", async () => {
@@ -242,11 +242,11 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 2);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalDataUpdated = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalDataUpdated?.length, 1);
-        expectToEqual(externalDataUpdated?.[0].externalId, "Q118629387");
+        expectToEqual(externalDataUpdated?.length, 2);
+        expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
     it("Insert a software with multiples similarExternalData with one already existing, should create one and update the other one", async () => {
@@ -287,7 +287,7 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externalDataList.length, 3);
+        expectToEqual(externalDataList.length, 4);
 
         const similarExternalData = await dbApi.software.getSimilarSoftwareExternalDataPks({
             softwareId: craSoftwareId
@@ -318,7 +318,7 @@ describe("Create software - Trying all the cases", () => {
         });
 
         const externalDataListUpdated = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externalDataListUpdated.length, 4);
+        expectToEqual(externalDataListUpdated.length, 5);
 
         const similarExternalDataUpdated = await dbApi.software.getSimilarSoftwareExternalDataPks({
             softwareId: craSoftwareId
