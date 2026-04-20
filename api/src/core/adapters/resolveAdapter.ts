@@ -10,10 +10,24 @@ import { comptoirDuLibreSourceGateway } from "./comptoirDuLibre";
 import { zenodoSourceGateway } from "./zenodo";
 import { cnllSourceGateway } from "./CNLL";
 import { gitHubSourceGateway } from "./GitHub";
+import { rorSourceGateway } from "./ror.org";
+import { rnsrSourceGateway } from "./RNSR";
 import { gitLabSourceGateway } from "./GitLab";
+import { ExternalDataOriginKind } from "./dbApi/kysely/kysely.database";
 
 export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, feature?: Feature): SourceGateway => {
-    switch (source.kind) {
+    return resolveAdapterFromSourceType(source.kind, feature);
+};
+
+export const filterSourceByFeature = (sources: DatabaseDataType.SourceRow[], feature: Feature) => {
+    return sources.filter(source => {
+        const gateway = resolveAdapterFromSourceType(source.kind);
+        return Object.hasOwn(gateway, feature);
+    });
+};
+
+export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind, feature?: Feature): SourceGateway => {
+    switch (sourceType) {
         case "HAL":
             if (feature && !Object.hasOwn(halSourceGateway, feature))
                 throw new Error(`halSourceGateway doesn't implemend ${feature}`);
@@ -42,8 +56,16 @@ export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, fea
             if (feature && !Object.hasOwn(gitLabSourceGateway, feature))
                 throw new Error(`gitLabSourceGateway doesn't implemend ${feature}`);
             return gitLabSourceGateway;
+        case "ROR":
+            if (feature && !Object.hasOwn(rorSourceGateway, feature))
+                throw new Error(`rorSourceGateway doesn't implemend ${feature}`);
+            return rorSourceGateway;
+        case "RNSR":
+            if (feature && !Object.hasOwn(rnsrSourceGateway, feature))
+                throw new Error(`rnsrSourceGateway doesn't implemend ${feature}`);
+            return rnsrSourceGateway;
         default:
-            const unreachableCase: never = source.kind;
+            const unreachableCase: never = sourceType;
             throw new Error(`Unreachable case: ${unreachableCase}`);
     }
 };

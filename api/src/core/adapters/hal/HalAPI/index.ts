@@ -79,7 +79,8 @@ export const makeHalAPIGateway = (source?: Source): HALAPIGateway => {
         }
 
         if (res.status === 404) {
-            throw new HAL.API.FetchError(res.status);
+            console.error(`Got 404 on ${url}`);
+            return undefined;
         }
 
         const json = await res.json();

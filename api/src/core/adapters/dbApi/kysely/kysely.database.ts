@@ -34,6 +34,36 @@ export type SchemaOrganization = {
     url?: string;
     identifiers?: SchemaIdentifier[];
     parentOrganizations?: SchemaOrganization[];
+    //
+    foundingDate?: string;
+    alternateName?: string[]; // Accronym
+    description?: string;
+    sameAs?: string[];
+    address?: SchemaPostalAddress;
+    memberOf?: SchemaOrganization[];
+    additionalType?: string[]; // education, government, facility, funder
+    image?: URL | string; // logo
+    //
+    producer?: string[]; // software Ids
+};
+
+export type SchemaPostalAddress = {
+    "@type": "PostalAddress";
+    addressCountry?: string;
+    addressCountryCode?: string;
+    addressRegion?: string;
+    addressLocality?: string;
+    postalCode?: string;
+    streetAddress?: string;
+    postOfficeBoxNumber?: string;
+    geo?: SchemaGeoCoordinates;
+};
+
+type SchemaGeoCoordinates = {
+    "@type": "GeoCoordinates";
+    latitude: number;
+    longitude: number;
+    elevation?: number;
 };
 
 // from https://schema.org/Person
@@ -43,6 +73,7 @@ export type SchemaPerson = {
     identifiers?: SchemaIdentifier[];
     url?: string;
     affiliations?: SchemaOrganization[];
+    producer?: Array<string>;
 };
 
 // from https://schema.org/WebSite
@@ -85,6 +116,7 @@ export type Database = {
     sources: SourcesTable;
     user_sessions: SessionsTable;
     software_attribute_definitions: SoftwareAttributeDefinitionsTable;
+    author_organizations: AuthorOrganizationsTable;
 };
 
 type UsersTable = {
@@ -130,7 +162,16 @@ type InstancesTable = {
 };
 
 type ExternalId = string;
-export type ExternalDataOriginKind = "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo" | "GitHub" | "GitLab";
+export type ExternalDataOriginKind =
+    | "wikidata"
+    | "HAL"
+    | "ComptoirDuLibre"
+    | "CNLL"
+    | "Zenodo"
+    | "GitHub"
+    | "GitLab"
+    | "RNSR"
+    | "ROR";
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
@@ -252,6 +293,11 @@ type SessionsTable = {
     createdAt: Date;
     updatedAt: Date;
     loggedOutAt: Date | null;
+};
+
+type AuthorOrganizationsTable = {
+    id: string;
+    organization: SchemaOrganization;
 };
 
 // ---------- compiled data ----------

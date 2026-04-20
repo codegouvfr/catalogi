@@ -367,6 +367,7 @@
         "siteTitle": "République <br /> Française",
         "home title": "Home - Interministerial Free Software Catalog",
         "title": "Interministerial Free Software Catalog",
+        "devOrganizations": "Devloper Organizations",
         "navigation welcome": "Welcome to the $t(common.appAccronym)",
         "navigation catalog": "Software catalog",
         "navigation add software": "Add software or instance",
@@ -382,6 +383,16 @@
     },
     "authorCard": {
         "affiliatedStructure": "Affiliated structures"
+    },
+    "organizationCard": {
+        "seeSoftwareDetails": "See {{count}} software items",
+        "organizationType": "Type",
+        "city": "City",
+        "organizationDescription": "Description",
+        "parentOrganizations": "Parent organizations"
+    },
+    "organizationSearch": {
+        "placeholder": "Search for organization by name"
     },
     "footer": {
         "contribute": "Contribute"
@@ -402,5 +413,9 @@
         "organization is required": "You need to provide an organization to be able to use Sill. Please provide one below.",
         "update": "Update",
         "organization": "Organization"
+    },
+    "organizationList": {
+        "searchResults": "{{count}} organizations found",
+        "softwareList": "Software list associated with this organization"
     }
 }

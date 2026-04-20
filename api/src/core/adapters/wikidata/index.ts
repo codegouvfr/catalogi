@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: MIT
 
 import { SourceGateway } from "../../ports/SourceGateway";
+import { getOrganisation } from "./ApiAgent/getOrganisation";
+import { searchOrganizationOnWikidata } from "./getOrganization";
 import { getWikidataForm } from "./getSoftwareForm";
 import { getWikidataSoftware } from "./getWikidataSoftware";
 import { getWikidataSoftwareOptions } from "./getWikidataSoftwareOptions";
@@ -10,6 +12,7 @@ import { getWikidataSoftwareOptions } from "./getWikidataSoftwareOptions";
 export type WikidataGateway = SourceGateway & {
     softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
     software: NonNullable<SourceGateway["software"]>;
+    organization: NonNullable<SourceGateway["organization"]>;
 };
 
 export const wikidataSourceGateway: WikidataGateway = {
@@ -20,5 +23,9 @@ export const wikidataSourceGateway: WikidataGateway = {
     },
     softwareExtra: {
         getSoftwareExternal: getWikidataSoftware
+    },
+    organization: {
+        getOrganization: getOrganisation,
+        searchOrganization: searchOrganizationOnWikidata
     }
 };
