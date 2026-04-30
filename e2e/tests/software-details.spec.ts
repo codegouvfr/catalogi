@@ -11,8 +11,9 @@ test("view desktop software details: name, license, keywords, platforms", async 
     await expect(page).toHaveURL(/\/detail/);
 
     await expect(page.getByRole("heading", { name: "Git" })).toBeVisible();
-    await expect(page.getByText("GPL-2.0")).toBeVisible();
-    await expect(page.getByText("vcs")).toBeVisible();
+    const previewTab = page.getByLabel("Aperçu");
+    await expect(previewTab.getByText("GPL-2.0")).toBeVisible();
+    await expect(previewTab.getByText("vcs")).toBeVisible();
     await expect(page.getByText(/plateformes supportées/i)).toBeVisible();
 
     // Back navigation returns to catalog
@@ -31,7 +32,7 @@ test("view cloud software details and instances", async ({ page }) => {
     await expect(page).toHaveURL(/\/detail/);
 
     await expect(page.getByRole("heading", { name: "Onyxia", exact: true })).toBeVisible();
-    await expect(page.getByText(/datascience/i)).toBeVisible();
+    await expect(page.getByLabel("Aperçu").getByText(/datascience/i)).toBeVisible();
 
     // Instances tab: expand accordion to see instance URL
     await page.getByRole("tab", { name: /instance/i }).click();
