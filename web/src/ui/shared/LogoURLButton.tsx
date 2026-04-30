@@ -26,6 +26,13 @@ const resolveLogoFromURL = (
 ): { URLlogo: URL | undefined; textFromURL: string | undefined } => {
     const urlString = typeof linkURL === "string" ? linkURL : linkURL.href;
 
+    if (!urlString.includes("http")) {
+        return {
+            URLlogo: undefined,
+            textFromURL: urlString
+        };
+    }
+
     if (urlString.includes("orcid")) {
         return resolveLogoFromType("Orcid");
     }
