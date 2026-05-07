@@ -41,7 +41,8 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                           releaseDate: formFields.latestVersion.releaseDate ?? undefined
                       }
                     : undefined,
-                programmingLanguages: formFields.programmingLanguages
+                programmingLanguages: formFields.programmingLanguages,
+                userInputOverrides: formFields.userInputOverrides ?? {}
             },
             softwareId
         });

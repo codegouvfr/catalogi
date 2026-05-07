@@ -118,7 +118,19 @@ export const thunks = {
                                                       userInputSource.name
                                                   ),
                                         image: userInputSource?.image,
-                                        keywords: userInputSource?.keywords ?? []
+                                        keywords: userInputSource?.keywords ?? [],
+                                        // A non-null UserInput value means a prior
+                                        // editor explicitly overrode that field, so
+                                        // open the form in state 3 for it.
+                                        userInputOverrides: {
+                                            name: userInputSource?.name !== undefined,
+                                            description:
+                                                userInputSource?.description !==
+                                                undefined,
+                                            license:
+                                                userInputSource?.license !== undefined,
+                                            image: userInputSource?.image !== undefined
+                                        }
                                     },
                                     step3: software.customAttributes,
                                     step4: {
@@ -222,7 +234,8 @@ export const thunks = {
                     })
                 ),
                 image: step2.image,
-                keywords: step2.keywords
+                keywords: step2.keywords,
+                userInputOverrides: step2.userInputOverrides
             };
 
             dispatch(actions.submissionStarted());

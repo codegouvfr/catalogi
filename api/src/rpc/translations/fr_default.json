@@ -126,7 +126,12 @@
         "must be an url": "Doit être un URL valide",
         "keywords": "Mot-clés",
         "keywords hint": "mots-clés pour aider à la recherche du logiciel, séparés par des virgules",
-        "logo preview alt": "Aperçu du logo du logiciel"
+        "logo preview alt": "Aperçu du logo du logiciel",
+        "source external": "Source : {{sourceName}}",
+        "source user input": "Source : saisie utilisateur",
+        "override field title": "Surcharger la valeur de {{fieldLabel}}",
+        "cancel override title": "Revenir à « {{value}} » ({{sourceName}})",
+        "keywords from source": "Inclus par {{sourceName}} : {{keywords}}"
     },
     "softwareFormStep4": {
         "similar software": "Ce logiciel est une alternative à ...",
@@ -420,6 +425,13 @@
         "do you confirm_using": "Confirmez vous ne plus utiliser",
         "stop being_user": "Ne plus être utilisateur de {{softwareName}}",
         "stop being_referent": "Ne plus être référent de {{softwareName}}"
+    },
+    "overrideWarningModal": {
+        "title": "Surcharger la valeur de {{fieldLabel}} ?",
+        "body": "La valeur que vous saisissez deviendra prépondérante sur <b>{{sourceName}}</b>. Les mises à jour automatiques depuis cette source ne seront plus reflétées dans la fiche.",
+        "editAtSource": "Si possible, modifiez la donnée directement sur <sourceLink>{{sourceName}}</sourceLink> afin que tous les consommateurs en bénéficient.",
+        "cancel": "Annuler",
+        "confirm": "Confirmer la surcharge"
     },
     "smartLogo": {
         "software logo": "Logo du logiciel"

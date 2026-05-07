@@ -47,7 +47,12 @@ const softwareFormData: SoftwareFormData = {
         isFromFrenchPublicService: false,
         isPresentInSupportContract: true,
         doRespectRgaa: true
-    }
+    },
+    // Mark description, license and image as explicit user overrides so the
+    // UserInput row shadows the external source for those fields. Other scalars
+    // (url, codeRepositoryUrl, …) stay un-overridden and bubble up from the
+    // external source via mergeExternalData.
+    userInputOverrides: { description: true, license: true, image: true }
 };
 
 const softwareExternalData = {
@@ -264,6 +269,85 @@ describe("pgDbApi", () => {
             expect(softwareExternalIds).toHaveLength(2);
             expect(softwareExternalIds).include(externalIdForSource);
             expect(softwareExternalIds).include(similarExternalId);
+        });
+
+        it("UserInput is sparse: scalar fields without an explicit override are NULL and yield to external sources via merge", async () => {
+            // Pre-seed an external source row so the create() flow finds it and binds it.
+            await db
+                .insertInto("software_external_datas")
+                .values({
+                    externalId: externalIdForSource,
+                    sourceSlug: testSource.slug,
+                    softwareId: null,
+                    authors: JSON.stringify([]),
+                    name: JSON.stringify({ en: "External Name" }),
+                    description: JSON.stringify({ en: "External description" }),
+                    license: "GPL-3.0",
+                    image: "https://external.example.com/logo.png",
+                    url: "https://external.example.com",
+                    codeRepositoryUrl: "https://external.example.com/src",
+                    softwareHelp: null,
+                    isLibreSoftware: true,
+                    keywords: JSON.stringify(["external-kw"]),
+                    programmingLanguages: null,
+                    applicationCategories: null,
+                    operatingSystems: null,
+                    runtimePlatforms: null,
+                    latestVersion: null,
+                    referencePublications: null,
+                    identifiers: null,
+                    repoMetadata: null,
+                    providers: null,
+                    dateCreated: null,
+                    lastDataFetchAt: new Date()
+                })
+                .execute();
+
+            const userId = await dbApi.user.add({ ...insertedUser, email: "sparse@example.com" });
+
+            // Submit a form where the user explicitly overrides ONLY description.
+            await makeCreateSofware(dbApi)({
+                formData: {
+                    ...softwareFormData,
+                    name: "Sparse Software",
+                    description: "User-provided description",
+                    license: "Whatever-the-user-typed",
+                    image: "https://user-typed.example.com/logo.png",
+                    userInputOverrides: { description: true }
+                },
+                userId
+            });
+
+            const softwares = await dbApi.software.getFullList();
+            const sparseSoftware = softwares.find(s => s.name === "Sparse Software");
+            expect(sparseSoftware).toBeDefined();
+
+            const userInputRow = await db
+                .selectFrom("software_external_datas")
+                .selectAll()
+                .where("softwareId", "=", sparseSoftware!.id)
+                .where("sourceSlug", "=", "UserInput")
+                .executeTakeFirstOrThrow();
+
+            // description was explicitly overridden — it sits in UserInput row.
+            expect(userInputRow.description).toEqual({ fr: "User-provided description" });
+            // license, image, url were not overridden — UserInput stores NULL so external source drives display.
+            expect(userInputRow.license).toBeNull();
+            expect(userInputRow.image).toBeNull();
+            expect(userInputRow.url).toBeNull();
+            expect(userInputRow.name).toBeNull();
+
+            const details = await dbApi.software.getDetails(sparseSoftware!.id);
+            expect(details).toBeDefined();
+            // User override wins for description.
+            expect(details!.description).toEqual({ fr: "User-provided description" });
+            // External source drives the rest.
+            expect(details!.license).toBe("GPL-3.0");
+            expect(details!.image).toBe("https://external.example.com/logo.png");
+            expect(details!.url).toBe("https://external.example.com");
+            expect(details!.codeRepositoryUrl).toBe("https://external.example.com/src");
+            // softwares.name (denormalized) stays as the form's name regardless of override.
+            expect(details!.name).toBe("Sparse Software");
         });
     });
 

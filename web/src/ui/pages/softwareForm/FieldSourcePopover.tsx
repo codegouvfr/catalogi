@@ -16,15 +16,16 @@ import {
 export type Props = {
     dataBySource: ApiTypes.SoftwareSourceData[];
     field: SourceFieldKey;
-    onUseValue?: (value: unknown) => void;
 };
 
 /**
- * A small "i" button that opens a popover showing what every source contributes for
- * a single form field, plus an optional "use this value" handler.
+ * A small "i" button that opens a read-only popover showing what every source
+ * contributes for a single form field. The popover is purely informational —
+ * the editor opts into a UserInput override via the per-field pencil affordance,
+ * not from here.
  */
 export const FieldSourcePopover = memo((props: Props) => {
-    const { dataBySource, field, onUseValue } = props;
+    const { dataBySource, field } = props;
     const { classes } = useStyles();
     const { t } = useTranslation();
     const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
@@ -49,18 +50,7 @@ export const FieldSourcePopover = memo((props: Props) => {
                 anchorOrigin={{ vertical: "bottom", horizontal: "left" }}
                 transformOrigin={{ vertical: "top", horizontal: "left" }}
             >
-                <SourceProvenanceView
-                    dataBySource={dataBySource}
-                    field={field}
-                    onUseValue={
-                        onUseValue
-                            ? ({ value }) => {
-                                  onUseValue(value);
-                                  setAnchorEl(null);
-                              }
-                            : undefined
-                    }
-                />
+                <SourceProvenanceView dataBySource={dataBySource} field={field} />
             </Popover>
         </>
     );

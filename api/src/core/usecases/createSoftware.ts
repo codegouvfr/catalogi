@@ -36,7 +36,8 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
                   releaseDate: softwareForm.latestVersion.releaseDate ?? undefined
               }
             : undefined,
-        programmingLanguages: softwareForm.programmingLanguages
+        programmingLanguages: softwareForm.programmingLanguages,
+        userInputOverrides: softwareForm.userInputOverrides ?? {}
     };
 };
 

@@ -124,7 +124,12 @@
         "must be an url": "Must be an URL",
         "keywords": "Keywords",
         "keywords hint": "Keywords for making it pop up in the search results, coma separated",
-        "logo preview alt": "Preview of the logo"
+        "logo preview alt": "Preview of the logo",
+        "source external": "Source: {{sourceName}}",
+        "source user input": "Source: user input",
+        "override field title": "Override the value of {{fieldLabel}}",
+        "cancel override title": "Revert to \"{{value}}\" (from {{sourceName}})",
+        "keywords from source": "Included from {{sourceName}}: {{keywords}}"
     },
     "softwareFormStep4": {
         "similar software": "This software is an alternative to ...",
@@ -413,6 +418,13 @@
         "do you confirm_using": "Do you confirm that you're no longer using",
         "stop being_user": "Stop being a user of {{softwareName}}",
         "stop being_referent": "Stop being a referent of {{softwareName}}"
+    },
+    "overrideWarningModal": {
+        "title": "Override the value of {{fieldLabel}}?",
+        "body": "The value you enter will take precedence over <b>{{sourceName}}</b>. Future automatic refreshes from that source will no longer be reflected on this page.",
+        "editAtSource": "If possible, edit the data directly on <sourceLink>{{sourceName}}</sourceLink> so every consumer benefits from your change.",
+        "cancel": "Cancel",
+        "confirm": "Confirm override"
     },
     "smartLogo": {
         "software logo": "Software logo"

@@ -16,6 +16,7 @@ import {
     DeclarationFormData,
     InstanceFormData,
     SoftwareFormData,
+    SoftwareUserInputOverridableField,
     UserWithId
 } from "../core/usecases/readWriteSillData";
 import type { Os, RuntimePlatform } from "../core/types";
@@ -453,6 +454,27 @@ const zRuntimePlatform = z.enum(["cloud", "mobile", "desktop"]);
     assert<Equals<Got, Expected>>();
 }
 
+const zSoftwareUserInputOverrides = z
+    .object({
+        "name": z.boolean().optional(),
+        "description": z.boolean().optional(),
+        "license": z.boolean().optional(),
+        "image": z.boolean().optional(),
+        "isLibreSoftware": z.boolean().optional(),
+        "url": z.boolean().optional(),
+        "codeRepositoryUrl": z.boolean().optional(),
+        "softwareHelp": z.boolean().optional(),
+        "latestVersion": z.boolean().optional()
+    })
+    .strict()
+    .optional();
+
+{
+    type Got = keyof NonNullable<z.infer<typeof zSoftwareUserInputOverrides>>;
+    type Expected = SoftwareUserInputOverridableField;
+    assert<Equals<Got, Expected>>();
+}
+
 const zSoftwareFormData = (() => {
     const zOut: z.ZodType<OptionalIfCanBeUndefined<SoftwareFormData>> = z.object({
         "operatingSystems": z.record(zOs, z.boolean()),
@@ -465,7 +487,8 @@ const zSoftwareFormData = (() => {
         "similarSoftwareExternalDataItems": z.array(softwareExternalDataOptionSchema),
         "image": z.string().optional(),
         "keywords": z.array(z.string()),
-        "customAttributes": z.record(z.string(), z.any()).optional()
+        "customAttributes": z.record(z.string(), z.any()).optional(),
+        "userInputOverrides": zSoftwareUserInputOverrides
     });
 
     return zOut as z.ZodType<SoftwareFormData>;

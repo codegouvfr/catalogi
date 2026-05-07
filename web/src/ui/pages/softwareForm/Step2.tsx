@@ -2,9 +2,10 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { useEffect, useState, useId } from "react";
+import { useEffect, useMemo, useState, useId } from "react";
 import { SearchInput } from "ui/shared/SearchInput";
 import { fr } from "@codegouvfr/react-dsfr";
+import { Button } from "@codegouvfr/react-dsfr/Button";
 import { useForm, Controller } from "react-hook-form";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { CircularProgressWrapper } from "ui/shared/CircularProgressWrapper";
@@ -17,8 +18,13 @@ import type { ReturnType } from "tsafe";
 import { useResolveLocalizedString } from "ui/i18n";
 import { Trans, useTranslation } from "react-i18next";
 import { useStyles } from "tss-react";
-import type { ApiTypes } from "api";
+import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
 import { FieldSourcePopover } from "./FieldSourcePopover";
+import { OverrideWarningModal, openOverrideWarningModal } from "./OverrideWarningModal";
+import {
+    hasMeaningfulValue,
+    makeRenderValue
+} from "ui/pages/softwareDetails/SourceProvenanceView";
 
 export type Step2Props = {
     className?: string;
@@ -41,7 +47,16 @@ export type Step2Props = {
     >;
 };
 
+type ScalarOverridableField = keyof FormData["step2"]["userInputOverrides"];
+
 const fieldRowStyle = { display: "flex", alignItems: "flex-end" } as const;
+
+const SCALAR_FIELDS: ScalarOverridableField[] = [
+    "name",
+    "description",
+    "license",
+    "image"
+];
 
 export function SoftwareFormStep2(props: Step2Props) {
     const {
@@ -57,21 +72,10 @@ export function SoftwareFormStep2(props: Step2Props) {
 
     const { t } = useTranslation();
     const { resolveLocalizedString } = useResolveLocalizedString();
-
-    const resolveToString = (value: unknown): string => {
-        if (typeof value === "string") return value;
-        if (value && typeof value === "object" && !Array.isArray(value)) {
-            const entries = Object.entries(value).filter(
-                ([, v]) => typeof v === "string" && v.length > 0
-            );
-            if (entries.length > 0) {
-                return resolveLocalizedString(
-                    Object.fromEntries(entries) as Record<string, string>
-                );
-            }
-        }
-        return "";
-    };
+    const renderValue = useMemo(
+        () => makeRenderValue(resolveLocalizedString),
+        [resolveLocalizedString]
+    );
 
     const {
         handleSubmit,
@@ -95,7 +99,12 @@ export function SoftwareFormStep2(props: Step2Props) {
                 return undefined;
             }
 
-            const { externalId, keywords, ...rest } = initialFormData ?? {};
+            const {
+                externalId,
+                keywords,
+                userInputOverrides: _o,
+                ...rest
+            } = initialFormData ?? {};
 
             return {
                 ...rest,
@@ -111,6 +120,110 @@ export function SoftwareFormStep2(props: Step2Props) {
             };
         })()
     });
+
+    const [userInputOverrides, setUserInputOverrides] = useState<
+        FormData["step2"]["userInputOverrides"]
+    >(() => initialFormData?.userInputOverrides ?? {});
+
+    // dataBySource is empty in create mode until the software is persisted.
+    // Without a stand-in, every field would land in state 1 and any user
+    // interaction would silently force an override. virtualSource feeds the
+    // same code path as a real persisted source so create and update behave
+    // identically.
+    const [virtualSource, setVirtualSource] = useState<
+        ApiTypes.SoftwareSourceData | undefined
+    >(undefined);
+
+    const effectiveDataBySource = useMemo(
+        () => (virtualSource ? [virtualSource, ...dataBySource] : dataBySource),
+        [virtualSource, dataBySource]
+    );
+
+    type FieldUiState = {
+        externalSource: ApiTypes.SoftwareSourceData | undefined;
+        hasExternal: boolean;
+        isOverridden: boolean;
+        isEditable: boolean;
+        showPencil: boolean;
+        showCross: boolean;
+        externalValue: string;
+        hintText: string | undefined;
+    };
+
+    const fieldUiStates = useMemo(() => {
+        const out = {} as Record<ScalarOverridableField, FieldUiState>;
+        for (const field of SCALAR_FIELDS) {
+            // effectiveDataBySource is ordered highest-precedence first; first
+            // non-UserInput source with a value wins.
+            const externalSource = effectiveDataBySource.find(
+                s =>
+                    s.kind !== USER_INPUT_SOURCE_SLUG &&
+                    hasMeaningfulValue((s as Record<string, unknown>)[field])
+            );
+            const hasExternal = externalSource !== undefined;
+            const isOverridden = userInputOverrides[field] === true;
+            const externalValue = externalSource
+                ? renderValue((externalSource as Record<string, unknown>)[field])
+                : "";
+            out[field] = {
+                externalSource,
+                hasExternal,
+                isOverridden,
+                isEditable: !hasExternal || isOverridden,
+                showPencil: hasExternal && !isOverridden,
+                showCross: hasExternal && isOverridden,
+                externalValue,
+                hintText: !hasExternal
+                    ? undefined
+                    : isOverridden
+                      ? t("softwareFormStep2.source user input")
+                      : t("softwareFormStep2.source external", {
+                            sourceName: externalSource!.sourceSlug
+                        })
+            };
+        }
+        return out;
+    }, [effectiveDataBySource, userInputOverrides, renderValue, t]);
+
+    const requestOverride = (field: ScalarOverridableField, fieldLabel: string) => {
+        const ui = fieldUiStates[field];
+        if (!ui.hasExternal) return;
+        openOverrideWarningModal({
+            fieldLabel,
+            sourceName: ui.externalSource!.sourceSlug,
+            sourceUrl: ui.externalSource!.sourceUrl,
+            onConfirm: () => {
+                setUserInputOverrides(prev => ({ ...prev, [field]: true }));
+                setValue(field, ui.externalValue, { shouldValidate: true });
+            }
+        });
+    };
+
+    // External-source keyword contributions surfaced under the keywords input.
+    // Read-only — the union merge cannot un-include external keywords (v1 limitation).
+    const keywordContributions = useMemo(
+        () =>
+            effectiveDataBySource.reduce<
+                { source: ApiTypes.SoftwareSourceData; keywords: string[] }[]
+            >((acc, source) => {
+                if (source.kind === USER_INPUT_SOURCE_SLUG) return acc;
+                const keywords = Array.isArray(source.keywords) ? source.keywords : [];
+                if (keywords.length > 0) acc.push({ source, keywords });
+                return acc;
+            }, []),
+        [effectiveDataBySource]
+    );
+
+    const cancelOverride = (field: ScalarOverridableField) => {
+        setUserInputOverrides(prev => {
+            // Absence and `false` both mean "no UserInput override"; keep the
+            // payload compact while letting submit recompute explicit false flags.
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
+        setValue(field, "", { shouldValidate: true });
+    };
 
     const [submitButtonElement, setSubmitButtonElement] =
         useState<HTMLButtonElement | null>(null);
@@ -131,10 +244,13 @@ export function SoftwareFormStep2(props: Step2Props) {
     const { isAutocompleteInProgress } = (function useClosure() {
         const [isAutocompleteInProgress, setIsAutocompleteInProgress] = useState(false);
 
-        const wikiDataEntry = watch("wikidataEntry");
+        const wikidataExternalId = watch("wikidataEntry")?.externalId;
 
         useEffect(() => {
-            if (wikiDataEntry === undefined || isUpdateForm) {
+            if (isUpdateForm) return;
+            if (wikidataExternalId === undefined) {
+                setIsAutocompleteInProgress(false);
+                setVirtualSource(undefined);
                 return;
             }
 
@@ -142,65 +258,203 @@ export function SoftwareFormStep2(props: Step2Props) {
 
             (async () => {
                 setIsAutocompleteInProgress(true);
+                setUserInputOverrides({});
+                for (const field of SCALAR_FIELDS) {
+                    setValue(field, "", { shouldValidate: true });
+                }
+                setVirtualSource(undefined);
 
-                const { name, description, license, image } =
-                    await getAutofillDataFromWikidata({
-                        externalId: wikiDataEntry.externalId
+                try {
+                    const autofill = await getAutofillDataFromWikidata({
+                        externalId: wikidataExternalId
                     });
 
-                if (!isActive) {
-                    return;
-                }
+                    if (!isActive) return;
 
-                {
                     const [wikidataInputElement] =
                         document.getElementsByClassName(wikidataInputId);
-
                     assert(wikidataInputElement !== null);
-
                     wikidataInputElement.scrollIntoView({ behavior: "smooth" });
-                }
 
-                if (description !== undefined) {
-                    setValue("description", description);
+                    setVirtualSource({
+                        sourceSlug: "wikidata",
+                        priority: 1,
+                        kind: "wikidata",
+                        sourceUrl: `https://www.wikidata.org/wiki/${wikidataExternalId}`,
+                        externalId: wikidataExternalId,
+                        lastDataFetchAt: undefined,
+                        name: autofill.name ? { fr: autofill.name } : undefined,
+                        description: autofill.description
+                            ? { fr: autofill.description }
+                            : undefined,
+                        license: autofill.license,
+                        image: autofill.image
+                    });
+                } catch (error) {
+                    if (isActive) {
+                        console.error("Failed to autofill software form from Wikidata", {
+                            wikidataExternalId,
+                            error
+                        });
+                    }
+                } finally {
+                    if (isActive) setIsAutocompleteInProgress(false);
                 }
-
-                if (license !== undefined) {
-                    setValue("license", license);
-                }
-
-                if (name !== undefined) {
-                    setValue("name", name);
-                }
-
-                if (image !== undefined) {
-                    setValue("image", image);
-                }
-
-                setIsAutocompleteInProgress(false);
             })();
 
             return () => {
                 isActive = false;
             };
-        }, [wikiDataEntry]);
+        }, [wikidataExternalId, isUpdateForm, setValue]);
 
         return { isAutocompleteInProgress };
     })();
 
     const { css } = useStyles();
 
+    const renderToggleButton = (
+        action: "override" | "cancel",
+        field: ScalarOverridableField,
+        fieldLabel: string,
+        ui: FieldUiState
+    ) => {
+        const label =
+            action === "override"
+                ? t("softwareFormStep2.override field title", { fieldLabel })
+                : t("softwareFormStep2.cancel override title", {
+                      value: ui.externalValue,
+                      sourceName: ui.externalSource!.sourceSlug
+                  });
+        return (
+            <Button
+                type="button"
+                iconId={
+                    action === "override" ? "fr-icon-edit-line" : "fr-icon-close-line"
+                }
+                priority="tertiary no outline"
+                title={label}
+                onClick={() =>
+                    action === "override"
+                        ? requestOverride(field, fieldLabel)
+                        : cancelOverride(field)
+                }
+            >
+                <span className="fr-sr-only">{label}</span>
+            </Button>
+        );
+    };
+
+    const renderField = (
+        field: ScalarOverridableField,
+        fieldLabel: string,
+        opts: {
+            hintText?: string;
+            isRequired: boolean;
+            pattern?: RegExp;
+            errorMessage?: string;
+        }
+    ) => {
+        const ui = fieldUiStates[field];
+        const showError = opts.isRequired && ui.isEditable && errors[field] !== undefined;
+
+        return (
+            <div className={css(fieldRowStyle)}>
+                <CircularProgressWrapper
+                    className={css({ flex: 1 })}
+                    isInProgress={isAutocompleteInProgress}
+                    renderChildren={({ style }) => (
+                        <Input
+                            disabled={isAutocompleteInProgress || !ui.isEditable}
+                            style={{ ...style, marginTop: fr.spacing("4v") }}
+                            label={fieldLabel}
+                            hintText={ui.hintText ?? opts.hintText}
+                            nativeInputProps={{
+                                // Skip `required` when an external source already
+                                // provides a value: an empty input then means
+                                // "fall back to the source", not an error.
+                                ...register(field, {
+                                    required:
+                                        opts.isRequired &&
+                                        ui.isEditable &&
+                                        !ui.hasExternal,
+                                    pattern: opts.pattern
+                                }),
+                                value: ui.isEditable ? watch(field) : ui.externalValue
+                            }}
+                            state={showError ? "error" : undefined}
+                            stateRelatedMessage={
+                                showError ? opts.errorMessage : undefined
+                            }
+                        />
+                    )}
+                />
+                {ui.showPencil && renderToggleButton("override", field, fieldLabel, ui)}
+                {ui.showCross && renderToggleButton("cancel", field, fieldLabel, ui)}
+                <FieldSourcePopover dataBySource={effectiveDataBySource} field={field} />
+            </div>
+        );
+    };
+
+    const imagePreviewUrl = fieldUiStates.image.isEditable
+        ? watch("image")
+        : fieldUiStates.image.externalValue;
+
     return (
         <form
             className={className}
             onSubmit={handleSubmit(
-                ({ wikidataEntry, image, keywordsInputValue, ...rest }) =>
+                ({
+                    wikidataEntry,
+                    image,
+                    keywordsInputValue,
+                    name,
+                    description,
+                    license
+                }) => {
+                    // Empty value + external source available = implicit fallback
+                    // to state 2 (drop the override). The cross button is the
+                    // explicit affordance; emptying the input is a shortcut.
+                    const resolveField = (
+                        field: ScalarOverridableField,
+                        value: string | undefined
+                    ): { value: string | undefined; isOverridden: boolean } => {
+                        const ui = fieldUiStates[field];
+                        const isEmpty = value === undefined || value === "";
+                        if (ui.hasExternal && (!ui.isOverridden || isEmpty)) {
+                            return { value: ui.externalValue, isOverridden: false };
+                        }
+                        return { value, isOverridden: ui.isOverridden || !isEmpty };
+                    };
+
+                    const resolved = {
+                        name: resolveField("name", name),
+                        description: resolveField("description", description),
+                        license: resolveField("license", license),
+                        image: resolveField("image", image)
+                    };
+
                     onSubmit({
-                        ...rest,
-                        image: image === "" ? undefined : image,
-                        keywords: keywordsInputValue.split(",").map(s => s.trim()),
-                        externalId: wikidataEntry?.externalId
-                    })
+                        externalId: wikidataEntry?.externalId,
+                        name: resolved.name.value ?? "",
+                        description: resolved.description.value ?? "",
+                        license: resolved.license.value ?? "",
+                        image:
+                            resolved.image.value === undefined ||
+                            resolved.image.value === ""
+                                ? undefined
+                                : resolved.image.value,
+                        keywords: keywordsInputValue
+                            .split(",")
+                            .map(s => s.trim())
+                            .filter(Boolean),
+                        userInputOverrides: {
+                            name: resolved.name.isOverridden,
+                            description: resolved.description.isOverridden,
+                            license: resolved.license.isOverridden,
+                            image: resolved.image.isOverridden
+                        }
+                    });
+                }
             )}
         >
             <Controller
@@ -287,31 +541,15 @@ export function SoftwareFormStep2(props: Step2Props) {
                     alignItems: "end"
                 }}
             >
-                <CircularProgressWrapper
-                    className={css({ flex: 1 })}
-                    isInProgress={isAutocompleteInProgress}
-                    renderChildren={({ style }) => (
-                        <Input
-                            disabled={isAutocompleteInProgress}
-                            style={{
-                                ...style,
-                                marginTop: fr.spacing("4v")
-                            }}
-                            label={t("softwareFormStep2.logo url")}
-                            hintText={t("softwareFormStep2.logo url hint")}
-                            nativeInputProps={{
-                                ...register("image", {
-                                    pattern: /^(?:https:)?\/\//
-                                })
-                            }}
-                            state={errors.image !== undefined ? "error" : undefined}
-                            stateRelatedMessage={t("softwareFormStep2.must be an url")}
-                        />
-                    )}
-                />
-                {watch("image") && (
+                {renderField("image", t("softwareFormStep2.logo url"), {
+                    hintText: t("softwareFormStep2.logo url hint"),
+                    isRequired: false,
+                    pattern: /^(?:https:)?\/\//,
+                    errorMessage: t("softwareFormStep2.must be an url")
+                })}
+                {imagePreviewUrl && (
                     <img
-                        src={watch("image")}
+                        src={imagePreviewUrl}
                         alt={t("softwareFormStep2.logo preview alt")}
                         style={{
                             marginLeft: fr.spacing("4v"),
@@ -324,86 +562,20 @@ export function SoftwareFormStep2(props: Step2Props) {
                     />
                 )}
             </div>
-            <div className={css(fieldRowStyle)}>
-                <CircularProgressWrapper
-                    className={css({ flex: 1 })}
-                    isInProgress={isAutocompleteInProgress}
-                    renderChildren={({ style }) => (
-                        <Input
-                            disabled={isAutocompleteInProgress}
-                            style={{
-                                ...style,
-                                marginTop: fr.spacing("4v")
-                            }}
-                            label={t("softwareFormStep2.software name")}
-                            nativeInputProps={{
-                                ...register("name", { required: true })
-                            }}
-                            state={errors.name !== undefined ? "error" : undefined}
-                            stateRelatedMessage={t("app.required")}
-                        />
-                    )}
-                />
-                <FieldSourcePopover
-                    dataBySource={dataBySource}
-                    field="name"
-                    onUseValue={value => setValue("name", resolveToString(value))}
-                />
-            </div>
-            <div className={css(fieldRowStyle)}>
-                <CircularProgressWrapper
-                    className={css({ flex: 1 })}
-                    isInProgress={isAutocompleteInProgress}
-                    renderChildren={({ style }) => (
-                        <Input
-                            disabled={isAutocompleteInProgress}
-                            style={{
-                                ...style,
-                                marginTop: fr.spacing("4v")
-                            }}
-                            label={t("softwareFormStep2.software feature")}
-                            hintText={t("softwareFormStep2.software feature hint")}
-                            nativeInputProps={{
-                                ...register("description", { required: true })
-                            }}
-                            state={errors.description !== undefined ? "error" : undefined}
-                            stateRelatedMessage={t("app.required")}
-                        />
-                    )}
-                />
-                <FieldSourcePopover
-                    dataBySource={dataBySource}
-                    field="description"
-                    onUseValue={value => setValue("description", resolveToString(value))}
-                />
-            </div>
-            <div className={css(fieldRowStyle)}>
-                <CircularProgressWrapper
-                    className={css({ flex: 1 })}
-                    isInProgress={isAutocompleteInProgress}
-                    renderChildren={({ style }) => (
-                        <Input
-                            disabled={isAutocompleteInProgress}
-                            style={{
-                                ...style,
-                                marginTop: fr.spacing("4v")
-                            }}
-                            label={t("softwareFormStep2.license")}
-                            hintText={t("softwareFormStep2.license hint")}
-                            nativeInputProps={{
-                                ...register("license", { required: true })
-                            }}
-                            state={errors.license !== undefined ? "error" : undefined}
-                            stateRelatedMessage={t("app.required")}
-                        />
-                    )}
-                />
-                <FieldSourcePopover
-                    dataBySource={dataBySource}
-                    field="license"
-                    onUseValue={value => setValue("license", resolveToString(value))}
-                />
-            </div>
+            {renderField("name", t("softwareFormStep2.software name"), {
+                isRequired: true,
+                errorMessage: t("app.required")
+            })}
+            {renderField("description", t("softwareFormStep2.software feature"), {
+                hintText: t("softwareFormStep2.software feature hint"),
+                isRequired: true,
+                errorMessage: t("app.required")
+            })}
+            {renderField("license", t("softwareFormStep2.license"), {
+                hintText: t("softwareFormStep2.license hint"),
+                isRequired: true,
+                errorMessage: t("app.required")
+            })}
 
             <Input
                 disabled={isAutocompleteInProgress}
@@ -416,11 +588,32 @@ export function SoftwareFormStep2(props: Step2Props) {
                     ...register("keywordsInputValue")
                 }}
             />
+            {keywordContributions.length > 0 && (
+                <ul
+                    className={fr.cx("fr-text--xs")}
+                    style={{
+                        marginTop: fr.spacing("1v"),
+                        color: fr.colors.decisions.text.mention.grey.default,
+                        listStyle: "none",
+                        paddingLeft: 0
+                    }}
+                >
+                    {keywordContributions.map(({ source, keywords }) => (
+                        <li key={source.sourceSlug}>
+                            {t("softwareFormStep2.keywords from source", {
+                                sourceName: source.sourceSlug,
+                                keywords: keywords.join(", ")
+                            })}
+                        </li>
+                    ))}
+                </ul>
+            )}
             <button
                 style={{ display: "none" }}
                 ref={setSubmitButtonElement}
                 type="submit"
             />
+            <OverrideWarningModal />
         </form>
     );
 }

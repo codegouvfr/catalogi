@@ -4,7 +4,6 @@
 
 import { memo, useMemo } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
-import { Button } from "@codegouvfr/react-dsfr/Button";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
 import { useLang, useResolveLocalizedString, type LocalizedString } from "ui/i18n";
@@ -20,16 +19,10 @@ export type Props = {
     dataBySource: ApiTypes.SoftwareSourceData[];
     /** If set, renders the popover variant scoped to this single field. */
     field?: SourceFieldKey;
-    /** Popover variant only: called when the editor picks a value from a source. */
-    onUseValue?: (params: {
-        sourceSlug: string;
-        field: SourceFieldKey;
-        value: unknown;
-    }) => void;
     className?: string;
 };
 
-const makeRenderValue =
+export const makeRenderValue =
     (resolveLocalizedString: (v: LocalizedString) => string) =>
     (value: unknown): string => {
         if (value === undefined || value === null) return "";
@@ -87,17 +80,14 @@ const FIELD_KEYS = [
     "isLibreSoftware"
 ] as const satisfies readonly SourceFieldKey[];
 
-const isFieldPopulated = (
-    source: ApiTypes.SoftwareSourceData,
-    field: SourceFieldKey
-): boolean => {
-    const v = source[field] as unknown;
-    if (v === undefined || v === null) return false;
-    if (Array.isArray(v)) return v.length > 0;
-    if (typeof v === "object") {
+/** True when `value` is a meaningful contribution (non-empty string/array/object). */
+export const hasMeaningfulValue = (value: unknown): boolean => {
+    if (value === undefined || value === null) return false;
+    if (Array.isArray(value)) return value.length > 0;
+    if (typeof value === "object") {
         // Catch empty LocalizedString-like objects ({}, {fr: ""}, {fr: null})
         // and version objects with no usable fields.
-        return Object.values(v as object).some(
+        return Object.values(value as object).some(
             x =>
                 x !== null &&
                 x !== undefined &&
@@ -105,12 +95,17 @@ const isFieldPopulated = (
                 (!Array.isArray(x) || x.length > 0)
         );
     }
-    if (typeof v === "string") return v.length > 0;
+    if (typeof value === "string") return value.length > 0;
     return true;
 };
 
+const isFieldPopulated = (
+    source: ApiTypes.SoftwareSourceData,
+    field: SourceFieldKey
+): boolean => hasMeaningfulValue(source[field]);
+
 export const SourceProvenanceView = memo((props: Props) => {
-    const { dataBySource, field, onUseValue, className } = props;
+    const { dataBySource, field, className } = props;
     const { classes, cx } = useStyles();
     const { t } = useTranslation();
     const { lang } = useLang();
@@ -180,21 +175,6 @@ export const SourceProvenanceView = memo((props: Props) => {
                             <div className={classes.popoverValue}>
                                 {renderValue(source[field])}
                             </div>
-                            {onUseValue && (
-                                <Button
-                                    size="small"
-                                    priority="tertiary"
-                                    onClick={() =>
-                                        onUseValue({
-                                            sourceSlug: source.sourceSlug,
-                                            field,
-                                            value: source[field]
-                                        })
-                                    }
-                                >
-                                    {t("sourceProvenance.useThisValue")}
-                                </Button>
-                            )}
                         </li>
                     ))}
                 </ul>

@@ -5,6 +5,7 @@
 import { Kysely } from "kysely";
 import { describe, it, beforeEach, expect } from "vitest";
 import { resetDB, testPgUrl } from "../../../../tools/test.helpers";
+import type { SoftwareExtrinsicRow } from "../../../ports/DbApiV2";
 import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { createPgDialect } from "./kysely.dialect";
 import { createPgSoftwareRepository } from "./createPgSoftwareRepository";
@@ -112,6 +113,60 @@ const insertUser = async (db: Kysely<Database>, email: string, organization: str
         .executeTakeFirstOrThrow();
     return id;
 };
+
+const makeSoftwareUpdate = (
+    addedByUserId: number,
+    overrides: Partial<SoftwareExtrinsicRow> = {}
+): SoftwareExtrinsicRow => ({
+    name: "Updated Software",
+    description: { fr: "Updated Description" },
+    license: "MIT",
+    image: "https://example.com/updated-logo.png",
+    isLibreSoftware: undefined,
+    url: undefined,
+    codeRepositoryUrl: undefined,
+    softwareHelp: undefined,
+    latestVersion: undefined,
+    dereferencing: undefined,
+    isStillInObservation: false,
+    customAttributes: {},
+    addedByUserId,
+    keywords: [],
+    programmingLanguages: undefined,
+    applicationCategories: [],
+    operatingSystems: {},
+    runtimePlatforms: ["cloud"],
+    userInputOverrides: {},
+    ...overrides
+});
+
+const getAddedByUserId = async (db: Kysely<Database>, softwareId: number) =>
+    db
+        .selectFrom("softwares")
+        .select("addedByUserId")
+        .where("id", "=", softwareId)
+        .executeTakeFirstOrThrow()
+        .then(({ addedByUserId }) => addedByUserId);
+
+const getUserInputRow = async (db: Kysely<Database>, softwareId: number) =>
+    db
+        .selectFrom("software_external_datas")
+        .selectAll()
+        .where("softwareId", "=", softwareId)
+        .where("sourceSlug", "=", USER_INPUT_SOURCE_SLUG)
+        .executeTakeFirstOrThrow();
+
+const insertExternalLicense = async (db: Kysely<Database>, softwareId: number, license: string) =>
+    db
+        .insertInto("software_external_datas")
+        .values({
+            softwareId,
+            sourceSlug: "high_prio",
+            externalId: `ext_license_${softwareId}`,
+            license,
+            authors: JSON.stringify([])
+        })
+        .execute();
 
 describe("createPgSoftwareRepository", () => {
     let db: Kysely<Database>;
@@ -334,6 +389,117 @@ describe("createPgSoftwareRepository", () => {
             // I'll assume standard columns.
 
             expect(details?.externalId).toBe("ext_high"); // High priority external ID
+        });
+
+        it("unions and deduplicates UserInput and external keywords", async () => {
+            const softwareId = await insertSoftware(db, {
+                keywords: JSON.stringify(["manual", "shared"])
+            });
+
+            await db
+                .insertInto("software_external_datas")
+                .values({
+                    softwareId,
+                    sourceSlug: "high_prio",
+                    externalId: "ext_keywords",
+                    keywords: JSON.stringify(["external", "shared"]),
+                    authors: JSON.stringify([])
+                })
+                .execute();
+
+            const details = await repository.getDetails(softwareId);
+            expect(details?.keywords).toEqual(["manual", "shared", "external"]);
+        });
+    });
+
+    describe("update", () => {
+        const updateSoftware = async (softwareId: number, overrides: Partial<SoftwareExtrinsicRow>) =>
+            repository.update({
+                softwareId,
+                software: makeSoftwareUpdate(await getAddedByUserId(db, softwareId), overrides)
+            });
+
+        it.each([
+            {
+                label: "writes a scalar UserInput override when the flag changes from false to true",
+                initialUserInputLicense: null,
+                overrideFlag: true,
+                expectedStoredLicense: "MIT",
+                expectedMergedLicense: "MIT"
+            },
+            {
+                label: "clears a scalar UserInput override when the flag changes from true to false",
+                initialUserInputLicense: "MIT",
+                overrideFlag: false,
+                expectedStoredLicense: null,
+                expectedMergedLicense: "Apache-2.0"
+            }
+        ])(
+            "$label",
+            async ({ initialUserInputLicense, overrideFlag, expectedStoredLicense, expectedMergedLicense }) => {
+                const softwareId = await insertSoftware(db, { license: initialUserInputLicense });
+                await insertExternalLicense(db, softwareId, "Apache-2.0");
+
+                await updateSoftware(softwareId, {
+                    license: "MIT",
+                    userInputOverrides: { license: overrideFlag }
+                });
+
+                expect((await getUserInputRow(db, softwareId)).license).toBe(expectedStoredLicense);
+                expect((await repository.getDetails(softwareId))?.license).toBe(expectedMergedLicense);
+            }
+        );
+
+        it("preserves omitted web scalar override fields for partial API update payloads", async () => {
+            const softwareId = await insertSoftware(db, {
+                name: "Original Name",
+                description: JSON.stringify({ fr: "Manual Description" }),
+                license: "Apache-2.0",
+                image: "https://example.com/original-logo.png"
+            });
+
+            await updateSoftware(softwareId, {
+                name: "Renamed Software",
+                userInputOverrides: { name: true }
+            });
+
+            const userInputRow = await getUserInputRow(db, softwareId);
+
+            expect(userInputRow.name).toEqual({ fr: "Renamed Software" });
+            expect(userInputRow.description).toEqual({ fr: "Manual Description" });
+            expect(userInputRow.license).toBe("Apache-2.0");
+            expect(userInputRow.image).toBe("https://example.com/original-logo.png");
+
+            const details = await repository.getDetails(softwareId);
+            expect(details?.description).toEqual({ fr: "Manual Description" });
+            expect(details?.license).toBe("Apache-2.0");
+            expect(details?.image).toBe("https://example.com/original-logo.png");
+        });
+
+        it("preserves non-web UserInput override fields when web-only flags are submitted", async () => {
+            const preservedLatestVersion = { version: "2.3.4", releaseDate: "2026-01-02" };
+            const softwareId = await insertSoftware(db, {
+                url: "https://manual.example.com",
+                latestVersion: JSON.stringify(preservedLatestVersion)
+            });
+
+            await updateSoftware(softwareId, {
+                userInputOverrides: {
+                    name: false,
+                    description: false,
+                    license: false,
+                    image: false
+                }
+            });
+
+            const userInputRow = await getUserInputRow(db, softwareId);
+
+            expect(userInputRow.url).toBe("https://manual.example.com");
+            expect(userInputRow.latestVersion).toEqual(preservedLatestVersion);
+
+            const details = await repository.getDetails(softwareId);
+            expect(details?.url).toBe("https://manual.example.com");
+            expect(details?.latestVersion).toEqual(preservedLatestVersion);
         });
     });
 });

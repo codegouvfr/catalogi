@@ -44,6 +44,12 @@ export type FormData = {
         license: string;
         image: string | undefined;
         keywords: string[];
+        userInputOverrides: {
+            name?: boolean;
+            description?: boolean;
+            license?: boolean;
+            image?: boolean;
+        };
     };
     step3: ApiTypes.CustomAttributes | undefined;
     step4: {
@@ -101,7 +107,8 @@ export const { reducer, actions } = createUsecaseActions({
                         description,
                         license,
                         image,
-                        keywords
+                        keywords,
+                        userInputOverrides: {}
                     }
                 },
                 softwareSillId: undefined,

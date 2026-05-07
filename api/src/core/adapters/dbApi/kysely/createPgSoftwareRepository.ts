@@ -5,7 +5,13 @@
 import { Kysely, sql } from "kysely";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
-import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
+import {
+    SoftwareInList,
+    Software,
+    SoftwareDetail,
+    SoftwareSourceData,
+    SoftwareUserInputOverrides
+} from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
 import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
@@ -79,11 +85,13 @@ const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, S
         {} as Record<number, SimilarSoftware[]>
     );
 
+// Scalar fields are nullable: `null` = "no override, let external sources drive the merged value".
+// Arrays always carry the form value (union-merged downstream).
 type UserInputWriteValues = {
     softwareId: number;
-    name: string;
-    description: LocalizedString;
-    license: string;
+    name: string | LocalizedString | null;
+    description: string | LocalizedString | null;
+    license: string | null;
     image: string | null;
     isLibreSoftware: boolean | null;
     url: string | null;
@@ -97,6 +105,19 @@ type UserInputWriteValues = {
     runtimePlatforms: RuntimePlatform[];
 };
 
+type ExistingUserInputValues = Pick<
+    UserInputWriteValues,
+    | "name"
+    | "description"
+    | "license"
+    | "image"
+    | "isLibreSoftware"
+    | "url"
+    | "codeRepositoryUrl"
+    | "softwareHelp"
+    | "latestVersion"
+>;
+
 // `externalId` is part of the primary key and can't be NULL, so we use `softwareId::text`
 // as a stable sentinel that's unique per software within the `UserInput` source. Refresh/
 // import jobs skip `kind='UserInput'` so this sentinel never gets fed to an external gateway.
@@ -105,8 +126,8 @@ const toUserInputRowValues = (v: UserInputWriteValues) => ({
     sourceSlug: USER_INPUT_SOURCE_SLUG,
     softwareId: v.softwareId,
     authors: JSON.stringify([]),
-    name: JSON.stringify({ fr: v.name }),
-    description: JSON.stringify(v.description),
+    name: v.name === null ? null : JSON.stringify(typeof v.name === "string" ? { fr: v.name } : v.name),
+    description: v.description === null ? null : JSON.stringify(v.description),
     isLibreSoftware: v.isLibreSoftware,
     image: v.image,
     url: v.url,
@@ -122,6 +143,9 @@ const toUserInputRowValues = (v: UserInputWriteValues) => ({
     lastDataFetchAt: new Date()
 });
 
+// On update, an omitted flag means "field not expressed by this client": keep
+// the existing UserInput value. Explicit false writes NULL so mergeExternalData
+// falls through to external sources.
 const buildUserInputWriteValues = (
     softwareId: number,
     software: {
@@ -139,29 +163,43 @@ const buildUserInputWriteValues = (
         applicationCategories: string[];
         operatingSystems: Partial<Record<Os, boolean>>;
         runtimePlatforms: RuntimePlatform[];
-    }
-): UserInputWriteValues => ({
-    softwareId,
-    name: software.name,
-    description: software.description,
-    license: software.license,
-    image: software.image ?? null,
-    isLibreSoftware: software.isLibreSoftware ?? null,
-    url: software.url ?? null,
-    codeRepositoryUrl: software.codeRepositoryUrl ?? null,
-    softwareHelp: software.softwareHelp ?? null,
-    latestVersion: software.latestVersion
-        ? {
-              version: software.latestVersion.version ?? null,
-              releaseDate: software.latestVersion.releaseDate ?? null
-          }
-        : null,
-    keywords: software.keywords,
-    programmingLanguages: software.programmingLanguages ?? null,
-    applicationCategories: software.applicationCategories,
-    operatingSystems: software.operatingSystems,
-    runtimePlatforms: software.runtimePlatforms
-});
+        userInputOverrides: SoftwareUserInputOverrides;
+    },
+    existingUserInput?: ExistingUserInputValues
+): UserInputWriteValues => {
+    const overrides = software.userInputOverrides;
+    const pickScalarField = <T>(field: keyof ExistingUserInputValues, value: T | null | undefined): T | null => {
+        const flag = overrides[field];
+        if (flag === undefined) return (existingUserInput?.[field] as T | null | undefined) ?? null;
+        return flag ? (value ?? null) : null;
+    };
+
+    const latestVersion =
+        software.latestVersion === undefined || software.latestVersion === null
+            ? null
+            : {
+                  version: software.latestVersion.version ?? null,
+                  releaseDate: software.latestVersion.releaseDate ?? null
+              };
+
+    return {
+        softwareId,
+        name: pickScalarField("name", software.name),
+        description: pickScalarField("description", software.description),
+        license: pickScalarField("license", software.license),
+        image: pickScalarField("image", software.image),
+        isLibreSoftware: pickScalarField("isLibreSoftware", software.isLibreSoftware),
+        url: pickScalarField("url", software.url),
+        codeRepositoryUrl: pickScalarField("codeRepositoryUrl", software.codeRepositoryUrl),
+        softwareHelp: pickScalarField("softwareHelp", software.softwareHelp),
+        latestVersion: pickScalarField("latestVersion", latestVersion),
+        keywords: software.keywords,
+        programmingLanguages: software.programmingLanguages ?? null,
+        applicationCategories: software.applicationCategories,
+        operatingSystems: software.operatingSystems,
+        runtimePlatforms: software.runtimePlatforms
+    };
+};
 
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     return {
@@ -616,7 +654,26 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     .where("id", "=", softwareId)
                     .execute();
 
-                const userInputValues = toUserInputRowValues(buildUserInputWriteValues(softwareId, software));
+                const existingUserInput = await trx
+                    .selectFrom("software_external_datas")
+                    .select([
+                        "name",
+                        "description",
+                        "license",
+                        "image",
+                        "isLibreSoftware",
+                        "url",
+                        "codeRepositoryUrl",
+                        "softwareHelp",
+                        "latestVersion"
+                    ])
+                    .where("softwareId", "=", softwareId)
+                    .where("sourceSlug", "=", USER_INPUT_SOURCE_SLUG)
+                    .executeTakeFirst();
+
+                const userInputValues = toUserInputRowValues(
+                    buildUserInputWriteValues(softwareId, software, existingUserInput)
+                );
                 const {
                     externalId: _externalId,
                     sourceSlug: _sourceSlug,

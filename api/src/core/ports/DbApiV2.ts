@@ -12,6 +12,7 @@ import type {
     Software,
     SoftwareDetail,
     SoftwareInList,
+    SoftwareUserInputOverrides,
     UserWithId
 } from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
@@ -42,6 +43,9 @@ export type SoftwareExtrinsicRow = Pick<
     applicationCategories: string[];
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
+    // `name` always populates `softwares.name` (denormalized for lookup); the
+    // override flag only controls whether the UserInput row carries it too.
+    userInputOverrides: SoftwareUserInputOverrides;
 };
 
 export namespace DatabaseDataType {

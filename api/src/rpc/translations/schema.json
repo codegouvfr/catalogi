@@ -521,6 +521,26 @@
                 },
                 "logo preview alt": {
                     "type": "string"
+                },
+                "source external": {
+                    "type": "string",
+                    "description": "Hint shown under a field whose value is provided by an external source (state 2)."
+                },
+                "source user input": {
+                    "type": "string",
+                    "description": "Hint shown under a field that the user explicitly overrode (state 3)."
+                },
+                "override field title": {
+                    "type": "string",
+                    "description": "Tooltip on the pencil icon that opens the override-warning modal."
+                },
+                "cancel override title": {
+                    "type": "string",
+                    "description": "Tooltip on the cross icon that reverts an override back to the external source value."
+                },
+                "keywords from source": {
+                    "type": "string",
+                    "description": "Hint listing keywords contributed by an external source (union-merged with the user's own keywords)."
                 }
             },
             "additionalProperties": false,
@@ -539,7 +559,12 @@
                 "must be an url",
                 "keywords",
                 "keywords hint",
-                "logo preview alt"
+                "logo preview alt",
+                "source external",
+                "source user input",
+                "override field title",
+                "cancel override title",
+                "keywords from source"
             ]
         },
         "softwareFormStep4": {
@@ -1686,6 +1711,18 @@
                 "stop being_referent"
             ]
         },
+        "overrideWarningModal": {
+            "type": "object",
+            "properties": {
+                "title": { "type": "string" },
+                "body": { "type": "string" },
+                "editAtSource": { "type": "string" },
+                "cancel": { "type": "string" },
+                "confirm": { "type": "string" }
+            },
+            "additionalProperties": false,
+            "required": ["title", "body", "editAtSource", "cancel", "confirm"]
+        },
         "smartLogo": {
             "type": "object",
             "properties": {
@@ -1771,6 +1808,7 @@
         "authorCard",
         "footer",
         "declarationRemovalModal",
+        "overrideWarningModal",
         "smartLogo",
         "promptForOrganization"
     ]
