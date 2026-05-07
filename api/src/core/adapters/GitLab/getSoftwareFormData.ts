@@ -22,15 +22,20 @@ export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
 
         const formData: SoftwareFormData = {
             name: project.name,
-            description: project?.description ?? "",
+            description: null,
             ...resolveOsAndPlatforms(project.topics ?? []), // Someting else to rely on ?
             externalIdForSource: project.web_url,
             sourceSlug: source.slug,
-            license: project.license.name ?? "undefined",
+            license: null,
             similarSoftwareExternalDataItems: [],
-            image: project.avatar_url ?? undefined,
+            image: null,
             keywords: project.topics || [],
-            customAttributes: undefined
+            customAttributes: undefined,
+            isLibreSoftware: null,
+            url: null,
+            codeRepositoryUrl: null,
+            softwareHelp: null,
+            latestVersion: null
         };
 
         return formData;

@@ -51,12 +51,7 @@ type ScalarOverridableField = keyof FormData["step2"]["userInputOverrides"];
 
 const fieldRowStyle = { display: "flex", alignItems: "flex-end" } as const;
 
-const SCALAR_FIELDS: ScalarOverridableField[] = [
-    "name",
-    "description",
-    "license",
-    "image"
-];
+const SCALAR_FIELDS: ScalarOverridableField[] = ["description", "license", "image"];
 
 export function SoftwareFormStep2(props: Step2Props) {
     const {
@@ -132,7 +127,24 @@ export function SoftwareFormStep2(props: Step2Props) {
     // identically.
     const [virtualSource, setVirtualSource] = useState<
         ApiTypes.SoftwareSourceData | undefined
-    >(undefined);
+    >(() => {
+        if (isUpdateForm || initialFormData?.externalId === undefined) return undefined;
+
+        return {
+            sourceSlug: "wikidata",
+            priority: 1,
+            kind: "wikidata",
+            sourceUrl: `https://www.wikidata.org/wiki/${initialFormData.externalId}`,
+            externalId: initialFormData.externalId,
+            lastDataFetchAt: undefined,
+            name: initialFormData.name ? { fr: initialFormData.name } : undefined,
+            description: initialFormData.description
+                ? { fr: initialFormData.description }
+                : undefined,
+            license: initialFormData.license,
+            image: initialFormData.image
+        };
+    });
 
     const effectiveDataBySource = useMemo(
         () => (virtualSource ? [virtualSource, ...dataBySource] : dataBySource),
@@ -275,6 +287,8 @@ export function SoftwareFormStep2(props: Step2Props) {
                         document.getElementsByClassName(wikidataInputId);
                     assert(wikidataInputElement !== null);
                     wikidataInputElement.scrollIntoView({ behavior: "smooth" });
+
+                    setValue("name", autofill.name ?? "", { shouldValidate: true });
 
                     setVirtualSource({
                         sourceSlug: "wikidata",
@@ -427,7 +441,6 @@ export function SoftwareFormStep2(props: Step2Props) {
                     };
 
                     const resolved = {
-                        name: resolveField("name", name),
                         description: resolveField("description", description),
                         license: resolveField("license", license),
                         image: resolveField("image", image)
@@ -435,7 +448,7 @@ export function SoftwareFormStep2(props: Step2Props) {
 
                     onSubmit({
                         externalId: wikidataEntry?.externalId,
-                        name: resolved.name.value ?? "",
+                        name,
                         description: resolved.description.value ?? "",
                         license: resolved.license.value ?? "",
                         image:
@@ -448,7 +461,6 @@ export function SoftwareFormStep2(props: Step2Props) {
                             .map(s => s.trim())
                             .filter(Boolean),
                         userInputOverrides: {
-                            name: resolved.name.isOverridden,
                             description: resolved.description.isOverridden,
                             license: resolved.license.isOverridden,
                             image: resolved.image.isOverridden
@@ -562,10 +574,28 @@ export function SoftwareFormStep2(props: Step2Props) {
                     />
                 )}
             </div>
-            {renderField("name", t("softwareFormStep2.software name"), {
-                isRequired: true,
-                errorMessage: t("app.required")
-            })}
+            <div className={css(fieldRowStyle)}>
+                <CircularProgressWrapper
+                    className={css({ flex: 1 })}
+                    isInProgress={isAutocompleteInProgress}
+                    renderChildren={({ style }) => (
+                        <Input
+                            disabled={isAutocompleteInProgress}
+                            style={{
+                                ...style,
+                                marginTop: fr.spacing("4v")
+                            }}
+                            label={t("softwareFormStep2.software name")}
+                            nativeInputProps={{
+                                ...register("name", { required: true })
+                            }}
+                            state={errors.name !== undefined ? "error" : undefined}
+                            stateRelatedMessage={t("app.required")}
+                        />
+                    )}
+                />
+                <FieldSourcePopover dataBySource={effectiveDataBySource} field="name" />
+            </div>
             {renderField("description", t("softwareFormStep2.software feature"), {
                 hintText: t("softwareFormStep2.software feature hint"),
                 isRequired: true,

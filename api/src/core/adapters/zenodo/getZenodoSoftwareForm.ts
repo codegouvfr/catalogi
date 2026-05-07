@@ -28,16 +28,20 @@ export const getZenodoSoftwareFormData: GetSoftwareFormData = memoize(
 const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, source: Source): SoftwareFormData => {
     return {
         name: recordSoftwareItem.title,
-        description: recordSoftwareItem.metadata.description ?? "",
+        description: null,
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
         runtimePlatforms: ["desktop"], // Probably wrong
         externalIdForSource: recordSoftwareItem.id.toString(),
         sourceSlug: source.slug,
-        license: recordSoftwareItem.metadata.license?.id ?? "Copyright",
+        license: null,
         similarSoftwareExternalDataItems: [],
-        image: undefined,
+        image: null,
         keywords: recordSoftwareItem.metadata.keywords ?? [],
-
-        customAttributes: undefined
+        customAttributes: undefined,
+        isLibreSoftware: null,
+        url: null,
+        codeRepositoryUrl: null,
+        softwareHelp: null,
+        latestVersion: null
     };
 };

@@ -23,18 +23,23 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
 
         const formData: SoftwareFormData = {
             name: repoData.full_name,
-            description: repoData?.description ? repoData.description : "",
+            description: null,
             ...resolveOsAndPlatforms(repoData.topics ?? []), // Someting else to rely on ?
             externalIdForSource: repoData.html_url
                 .replace("https://github.com/", "")
                 .replace("git+", "")
                 .replace(".git", ""),
             sourceSlug: source.slug,
-            license: repoData.license?.name ?? "undefined", // TODO 1 case to copyright
+            license: null,
             similarSoftwareExternalDataItems: [],
-            image: undefined,
+            image: null,
             keywords: repoData.topics || [],
-            customAttributes: undefined
+            customAttributes: undefined,
+            isLibreSoftware: null,
+            url: null,
+            codeRepositoryUrl: null,
+            softwareHelp: null,
+            latestVersion: null
         };
 
         return formData;

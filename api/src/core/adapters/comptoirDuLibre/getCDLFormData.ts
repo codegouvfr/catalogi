@@ -14,20 +14,24 @@ const formatCDLSoftwareToExternalData = async (
     source: Source
 ): Promise<SoftwareFormData> => {
     const keywords = await comptoirDuLibreApi.getKeywords({ comptoirDuLibreId: comptoirSoftware.id });
-    const logoUrl = await comptoirDuLibreApi.getIconUrl({ comptoirDuLibreId: comptoirSoftware.id });
 
     return {
         name: comptoirSoftware.name,
-        description: "",
+        description: null,
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
         runtimePlatforms: ["desktop"], // TODO Check Mandatory, Incorrect data
         externalIdForSource: comptoirSoftware.id.toString(),
         sourceSlug: source.slug,
-        license: comptoirSoftware.licence,
+        license: null,
         similarSoftwareExternalDataItems: [],
-        image: logoUrl,
+        image: null,
         keywords: keywords,
-        customAttributes: undefined
+        customAttributes: undefined,
+        isLibreSoftware: null,
+        url: null,
+        codeRepositoryUrl: null,
+        softwareHelp: null,
+        latestVersion: null
     };
 };
 

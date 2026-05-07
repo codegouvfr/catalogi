@@ -6,8 +6,6 @@ import { GetSoftwareFormData } from "../../ports/GetSoftwareFormData";
 import { SoftwareFormData } from "../../usecases/readWriteSillData";
 import { makeWikidataAPIAgent } from "./ApiAgent";
 import { WikidataFetchError } from "./ApiAgent/entity";
-import { toCommonsSpecialFilePathUrl } from "./commonsImage";
-import { createGetClaimDataValue } from "./getWikidataSoftware";
 
 export const getWikidataForm: GetSoftwareFormData = async ({
     externalId,
@@ -31,47 +29,26 @@ export const getWikidataForm: GetSoftwareFormData = async ({
             return undefined;
         }
 
-        const { getClaimDataValue } = createGetClaimDataValue({ entity });
-
-        const logoName = getClaimDataValue<"string">("P154")[0];
-
-        const license = await (async () => {
-            const licenseId = getClaimDataValue<"wikibase-entityid">("P275")[0]?.id;
-
-            if (licenseId === undefined) {
-                return undefined;
-            }
-
-            console.info(`I   -> fetching wiki license : ${licenseId}`);
-            const { entity } = await wikidataAgent.fetchEntity(licenseId).catch(() => ({ "entity": undefined }));
-
-            if (entity === undefined) {
-                return undefined;
-            }
-
-            return { "label": entity.aliases.en?.[0]?.value, "id": licenseId };
-        })();
-
         const name =
             entity.labels?.en?.value ?? entity.labels?.fr?.value ?? entity.labels[Object.keys(entity.labels)[0]].value;
-        const description =
-            entity.descriptions?.en?.value ??
-            entity.descriptions?.fr?.value ??
-            entity.descriptions?.[Object.keys(entity.descriptions)[0]]?.value ??
-            "";
 
         return {
             name,
-            description,
+            description: null,
             operatingSystems: { "linux": true, "windows": true, "android": false, "ios": false, "mac": false },
             runtimePlatforms: ["desktop"],
             externalIdForSource: externalId,
             sourceSlug: source.slug,
-            license: license?.label ?? "Copyright",
+            license: null,
             similarSoftwareExternalDataItems: [],
-            image: toCommonsSpecialFilePathUrl(logoName),
+            image: null,
             keywords: [],
-            customAttributes: undefined
+            customAttributes: undefined,
+            isLibreSoftware: null,
+            url: null,
+            codeRepositoryUrl: null,
+            softwareHelp: null,
+            latestVersion: null
         };
     } catch (error) {
         console.error(`Error for ${externalId} : `, error);

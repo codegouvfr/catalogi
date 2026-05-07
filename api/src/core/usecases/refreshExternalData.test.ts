@@ -44,7 +44,12 @@ const craSoftwareFormData = {
         isPresentInSupportContract: true,
         isFromFrenchPublicService: true,
         doRespectRgaa: true
-    }
+    },
+    isLibreSoftware: null,
+    url: null,
+    codeRepositoryUrl: null,
+    softwareHelp: null,
+    latestVersion: null
 } satisfies SoftwareFormData;
 
 const apacheSoftwareId = 6;

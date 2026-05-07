@@ -12,7 +12,6 @@ import type {
     Software,
     SoftwareDetail,
     SoftwareInList,
-    SoftwareUserInputOverrides,
     UserWithId
 } from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
@@ -30,22 +29,19 @@ export type SoftwareExtrinsicRow = Pick<
     DatabaseDataType.SoftwareRow,
     "name" | "dereferencing" | "isStillInObservation" | "customAttributes" | "addedByUserId"
 > & {
-    description: LocalizedString;
-    license: string;
-    image: string | undefined;
-    isLibreSoftware: boolean | undefined;
-    url: string | undefined;
-    codeRepositoryUrl: string | undefined;
-    softwareHelp: string | undefined;
-    latestVersion: { version: string | undefined; releaseDate: string | undefined } | undefined;
+    description: LocalizedString | null;
+    license: string | null;
+    image: string | null;
+    isLibreSoftware: boolean | null;
+    url: string | null;
+    codeRepositoryUrl: string | null;
+    softwareHelp: string | null;
+    latestVersion: { version: string | null; releaseDate: string | null } | null;
     keywords: string[];
     programmingLanguages: string[] | undefined;
     applicationCategories: string[];
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
-    // `name` always populates `softwares.name` (denormalized for lookup); the
-    // override flag only controls whether the UserInput row carries it too.
-    userInputOverrides: SoftwareUserInputOverrides;
 };
 
 export namespace DatabaseDataType {

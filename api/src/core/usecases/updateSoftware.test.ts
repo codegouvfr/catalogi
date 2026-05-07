@@ -36,7 +36,12 @@ const craSoftwareFormData = {
         isPresentInSupportContract: true,
         isFromFrenchPublicService: true,
         doRespectRgaa: true
-    }
+    },
+    isLibreSoftware: null,
+    url: null,
+    codeRepositoryUrl: null,
+    softwareHelp: null,
+    latestVersion: null
 } satisfies SoftwareFormData;
 
 describe("Create software, than updates it adding a similar software", () => {

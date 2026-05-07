@@ -16,7 +16,6 @@ import {
     DeclarationFormData,
     InstanceFormData,
     SoftwareFormData,
-    SoftwareUserInputOverridableField,
     UserWithId
 } from "../core/usecases/readWriteSillData";
 import type { Os, RuntimePlatform } from "../core/types";
@@ -455,27 +454,6 @@ const zRuntimePlatform = z.enum(["cloud", "mobile", "desktop"]);
     assert<Equals<Got, Expected>>();
 }
 
-const zSoftwareUserInputOverrides = z
-    .object({
-        "name": z.boolean().optional(),
-        "description": z.boolean().optional(),
-        "license": z.boolean().optional(),
-        "image": z.boolean().optional(),
-        "isLibreSoftware": z.boolean().optional(),
-        "url": z.boolean().optional(),
-        "codeRepositoryUrl": z.boolean().optional(),
-        "softwareHelp": z.boolean().optional(),
-        "latestVersion": z.boolean().optional()
-    })
-    .strict()
-    .optional();
-
-{
-    type Got = keyof NonNullable<z.infer<typeof zSoftwareUserInputOverrides>>;
-    type Expected = SoftwareUserInputOverridableField;
-    assert<Equals<Got, Expected>>();
-}
-
 const zSoftwareFormData = (() => {
     const zOut: z.ZodType<OptionalIfCanBeUndefined<SoftwareFormData>> = z.object({
         "operatingSystems": z.record(zOs, z.boolean()),
@@ -483,13 +461,23 @@ const zSoftwareFormData = (() => {
         "externalIdForSource": z.string().optional(),
         "sourceSlug": z.string(),
         "name": z.string(),
-        "description": z.string(),
-        "license": z.string(),
+        "description": z.string().nullable(),
+        "license": z.string().nullable(),
         "similarSoftwareExternalDataItems": z.array(softwareExternalDataOptionSchema),
-        "image": z.string().optional(),
+        "image": z.string().nullable(),
         "keywords": z.array(z.string()),
         "customAttributes": z.record(z.string(), z.any()).optional(),
-        "userInputOverrides": zSoftwareUserInputOverrides
+        "isLibreSoftware": z.boolean().nullable(),
+        "url": z.string().nullable(),
+        "codeRepositoryUrl": z.string().nullable(),
+        "softwareHelp": z.string().nullable(),
+        "latestVersion": z
+            .object({
+                "version": z.string().nullable(),
+                "releaseDate": z.string().nullable()
+            })
+            .nullable(),
+        "programmingLanguages": z.array(z.string()).optional()
     });
 
     return zOut as z.ZodType<SoftwareFormData>;

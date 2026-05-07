@@ -20,7 +20,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
         await dbApi.software.update({
             software: {
                 name: formFields.name,
-                description: { fr: formFields.description },
+                description: formFields.description === null ? null : { fr: formFields.description },
                 license: formFields.license,
                 image: formFields.image,
                 dereferencing: undefined,
@@ -37,12 +37,11 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 softwareHelp: formFields.softwareHelp,
                 latestVersion: formFields.latestVersion
                     ? {
-                          version: formFields.latestVersion.version ?? undefined,
-                          releaseDate: formFields.latestVersion.releaseDate ?? undefined
+                          version: formFields.latestVersion.version,
+                          releaseDate: formFields.latestVersion.releaseDate
                       }
-                    : undefined,
-                programmingLanguages: formFields.programmingLanguages,
-                userInputOverrides: formFields.userInputOverrides ?? {}
+                    : null,
+                programmingLanguages: formFields.programmingLanguages
             },
             softwareId
         });

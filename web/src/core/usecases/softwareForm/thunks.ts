@@ -113,7 +113,7 @@ export const thunks = {
                                         license: userInputSource?.license ?? "",
                                         name:
                                             userInputSource?.name === undefined
-                                                ? ""
+                                                ? resolveLocalizedString(software.name)
                                                 : resolveLocalizedString(
                                                       userInputSource.name
                                                   ),
@@ -123,7 +123,6 @@ export const thunks = {
                                         // editor explicitly overrode that field, so
                                         // open the form in state 3 for it.
                                         userInputOverrides: {
-                                            name: userInputSource?.name !== undefined,
                                             description:
                                                 userInputSource?.description !==
                                                 undefined,
@@ -215,14 +214,20 @@ export const thunks = {
             assert(step2 !== undefined);
             assert(step3 !== undefined);
 
+            const userInputSource = state.dataBySource.find(
+                source => source.kind === USER_INPUT_SOURCE_SLUG
+            );
+
             const formData: ApiTypes.SoftwareFormData = {
                 operatingSystems: step1.operatingSystems,
                 runtimePlatforms: step1.runtimePlatforms,
                 externalIdForSource: step2.externalId,
                 sourceSlug: mainSource.slug,
                 name: step2.name,
-                description: step2.description,
-                license: step2.license,
+                description: step2.userInputOverrides.description
+                    ? step2.description
+                    : null,
+                license: step2.userInputOverrides.license ? step2.license : null,
                 customAttributes: step3,
                 similarSoftwareExternalDataItems: formDataStep4.similarSoftwares.map(
                     ({ externalId, sourceSlug, name, description, isLibreSoftware }) => ({
@@ -233,9 +238,19 @@ export const thunks = {
                         isLibreSoftware
                     })
                 ),
-                image: step2.image,
+                image: step2.userInputOverrides.image ? (step2.image ?? null) : null,
                 keywords: step2.keywords,
-                userInputOverrides: step2.userInputOverrides
+                isLibreSoftware: userInputSource?.isLibreSoftware ?? null,
+                url: userInputSource?.url ?? null,
+                codeRepositoryUrl: userInputSource?.codeRepositoryUrl ?? null,
+                softwareHelp: userInputSource?.softwareHelp ?? null,
+                latestVersion: userInputSource?.latestVersion
+                    ? {
+                          version: userInputSource.latestVersion.version ?? null,
+                          releaseDate: userInputSource.latestVersion.releaseDate ?? null
+                      }
+                    : null,
+                programmingLanguages: userInputSource?.programmingLanguages
             };
 
             dispatch(actions.submissionStarted());

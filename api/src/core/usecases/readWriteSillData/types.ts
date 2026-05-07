@@ -122,42 +122,24 @@ export type Instance = {
     isPublic: boolean;
 };
 
-// Arrays (keywords, programmingLanguages, etc.) keep union-merge semantics and
-// aren't part of the override flag — the user can only add to them.
-export type SoftwareUserInputOverridableField =
-    | "name"
-    | "description"
-    | "license"
-    | "image"
-    | "isLibreSoftware"
-    | "url"
-    | "codeRepositoryUrl"
-    | "softwareHelp"
-    | "latestVersion";
-
-export type SoftwareUserInputOverrides = Partial<Record<SoftwareUserInputOverridableField, boolean>>;
-
 export type SoftwareFormData = {
     name: string;
-    description: string;
+    description: string | null;
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
     externalIdForSource: string | undefined;
     sourceSlug: string;
-    license: string;
+    license: string | null;
     similarSoftwareExternalDataItems: SoftwareExternalDataOption[];
-    image: string | undefined;
+    image: string | null;
     keywords: string[];
     customAttributes: CustomAttributes | undefined;
-    isLibreSoftware?: boolean | undefined;
-    url?: string | undefined;
-    codeRepositoryUrl?: string | undefined;
-    softwareHelp?: string | undefined;
-    latestVersion?: { version: string | undefined; releaseDate: string | undefined } | undefined;
+    isLibreSoftware: boolean | null;
+    url: string | null;
+    codeRepositoryUrl: string | null;
+    softwareHelp: string | null;
+    latestVersion: { version: string | null; releaseDate: string | null } | null;
     programmingLanguages?: string[] | undefined;
-    // Fields whose flag is absent or false write NULL to the UserInput row.
-    // Default empty = the right behavior for import jobs (no overrides).
-    userInputOverrides?: SoftwareUserInputOverrides;
 };
 
 export type DeclarationFormData = DeclarationFormData.User | DeclarationFormData.Referent;

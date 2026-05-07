@@ -13,20 +13,22 @@ export const halRawSoftwareToSoftwareForm = async (
     halSoftware: HAL.API.Software,
     source: Source
 ): Promise<SoftwareFormData> => {
-    const halAPIGateway = makeHalAPIGateway(source);
-    const codemetaSoftware = await halAPIGateway.software.getCodemetaByUrl(halSoftware.uri_s);
-
     const formData: SoftwareFormData = {
         name: halSoftware.title_s[0],
-        description: halSoftware.abstract_s ? halSoftware.abstract_s[0] : "",
+        description: null,
         ...resolveOsAndPlatforms(halSoftware.softPlatform_s ?? []),
         externalIdForSource: halSoftware.docid,
         sourceSlug: source.slug,
-        license: codemetaSoftware?.license?.[0] ?? "undefined", // TODO 1 case to copyright
+        license: null,
         similarSoftwareExternalDataItems: [],
-        image: undefined,
+        image: null,
         keywords: halSoftware.keyword_s || [],
-        customAttributes: undefined
+        customAttributes: undefined,
+        isLibreSoftware: null,
+        url: null,
+        codeRepositoryUrl: null,
+        softwareHelp: null,
+        latestVersion: null
     };
 
     return formData;

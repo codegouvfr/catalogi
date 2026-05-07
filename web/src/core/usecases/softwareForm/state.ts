@@ -45,7 +45,6 @@ export type FormData = {
         image: string | undefined;
         keywords: string[];
         userInputOverrides: {
-            name?: boolean;
             description?: boolean;
             license?: boolean;
             image?: boolean;

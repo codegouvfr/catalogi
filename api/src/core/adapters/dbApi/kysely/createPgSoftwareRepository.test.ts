@@ -122,11 +122,11 @@ const makeSoftwareUpdate = (
     description: { fr: "Updated Description" },
     license: "MIT",
     image: "https://example.com/updated-logo.png",
-    isLibreSoftware: undefined,
-    url: undefined,
-    codeRepositoryUrl: undefined,
-    softwareHelp: undefined,
-    latestVersion: undefined,
+    isLibreSoftware: null,
+    url: null,
+    codeRepositoryUrl: null,
+    softwareHelp: null,
+    latestVersion: null,
     dereferencing: undefined,
     isStillInObservation: false,
     customAttributes: {},
@@ -136,7 +136,6 @@ const makeSoftwareUpdate = (
     applicationCategories: [],
     operatingSystems: {},
     runtimePlatforms: ["cloud"],
-    userInputOverrides: {},
     ...overrides
 });
 
@@ -425,28 +424,27 @@ describe("createPgSoftwareRepository", () => {
 
         it.each([
             {
-                label: "writes a scalar UserInput override when the flag changes from false to true",
+                label: "writes a scalar UserInput override when the form value is non-null",
                 initialUserInputLicense: null,
-                overrideFlag: true,
+                submittedLicense: "MIT",
                 expectedStoredLicense: "MIT",
                 expectedMergedLicense: "MIT"
             },
             {
-                label: "clears a scalar UserInput override when the flag changes from true to false",
+                label: "clears a scalar UserInput override when the form value is null",
                 initialUserInputLicense: "MIT",
-                overrideFlag: false,
+                submittedLicense: null,
                 expectedStoredLicense: null,
                 expectedMergedLicense: "Apache-2.0"
             }
         ])(
             "$label",
-            async ({ initialUserInputLicense, overrideFlag, expectedStoredLicense, expectedMergedLicense }) => {
+            async ({ initialUserInputLicense, submittedLicense, expectedStoredLicense, expectedMergedLicense }) => {
                 const softwareId = await insertSoftware(db, { license: initialUserInputLicense });
                 await insertExternalLicense(db, softwareId, "Apache-2.0");
 
                 await updateSoftware(softwareId, {
-                    license: "MIT",
-                    userInputOverrides: { license: overrideFlag }
+                    license: submittedLicense
                 });
 
                 expect((await getUserInputRow(db, softwareId)).license).toBe(expectedStoredLicense);
@@ -454,7 +452,7 @@ describe("createPgSoftwareRepository", () => {
             }
         );
 
-        it("preserves omitted web scalar override fields for partial API update payloads", async () => {
+        it("always writes the form name to the UserInput row", async () => {
             const softwareId = await insertSoftware(db, {
                 name: "Original Name",
                 description: JSON.stringify({ fr: "Manual Description" }),
@@ -463,24 +461,15 @@ describe("createPgSoftwareRepository", () => {
             });
 
             await updateSoftware(softwareId, {
-                name: "Renamed Software",
-                userInputOverrides: { name: true }
+                name: "Renamed Software"
             });
 
             const userInputRow = await getUserInputRow(db, softwareId);
 
             expect(userInputRow.name).toEqual({ fr: "Renamed Software" });
-            expect(userInputRow.description).toEqual({ fr: "Manual Description" });
-            expect(userInputRow.license).toBe("Apache-2.0");
-            expect(userInputRow.image).toBe("https://example.com/original-logo.png");
-
-            const details = await repository.getDetails(softwareId);
-            expect(details?.description).toEqual({ fr: "Manual Description" });
-            expect(details?.license).toBe("Apache-2.0");
-            expect(details?.image).toBe("https://example.com/original-logo.png");
         });
 
-        it("preserves non-web UserInput override fields when web-only flags are submitted", async () => {
+        it("preserves non-web UserInput fields when the form submits their current values", async () => {
             const preservedLatestVersion = { version: "2.3.4", releaseDate: "2026-01-02" };
             const softwareId = await insertSoftware(db, {
                 url: "https://manual.example.com",
@@ -488,12 +477,8 @@ describe("createPgSoftwareRepository", () => {
             });
 
             await updateSoftware(softwareId, {
-                userInputOverrides: {
-                    name: false,
-                    description: false,
-                    license: false,
-                    image: false
-                }
+                url: "https://manual.example.com",
+                latestVersion: preservedLatestVersion
             });
 
             const userInputRow = await getUserInputRow(db, softwareId);

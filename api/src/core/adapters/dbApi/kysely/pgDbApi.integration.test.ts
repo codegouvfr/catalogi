@@ -48,11 +48,11 @@ const softwareFormData: SoftwareFormData = {
         isPresentInSupportContract: true,
         doRespectRgaa: true
     },
-    // Mark description, license and image as explicit user overrides so the
-    // UserInput row shadows the external source for those fields. Other scalars
-    // (url, codeRepositoryUrl, …) stay un-overridden and bubble up from the
-    // external source via mergeExternalData.
-    userInputOverrides: { description: true, license: true, image: true }
+    isLibreSoftware: null,
+    url: null,
+    codeRepositoryUrl: null,
+    softwareHelp: null,
+    latestVersion: null
 };
 
 const softwareExternalData = {
@@ -219,7 +219,7 @@ describe("pgDbApi", () => {
                     "version": "1.0.0"
                 },
                 license: "MIT",
-                image: softwareFormData.image,
+                image: softwareFormData.image ?? undefined,
                 url: softwareExternalData.url,
                 customAttributes: {
                     doRespectRgaa: true,
@@ -244,7 +244,7 @@ describe("pgDbApi", () => {
                         softwareId: undefined
                     }
                 ],
-                description: { fr: softwareFormData.description },
+                description: { fr: softwareFormData.description ?? "" },
                 id: expect.any(Number),
                 name: softwareFormData.name,
                 operatingSystems: {
@@ -311,9 +311,8 @@ describe("pgDbApi", () => {
                     ...softwareFormData,
                     name: "Sparse Software",
                     description: "User-provided description",
-                    license: "Whatever-the-user-typed",
-                    image: "https://user-typed.example.com/logo.png",
-                    userInputOverrides: { description: true }
+                    license: null,
+                    image: null
                 },
                 userId
             });
@@ -335,7 +334,8 @@ describe("pgDbApi", () => {
             expect(userInputRow.license).toBeNull();
             expect(userInputRow.image).toBeNull();
             expect(userInputRow.url).toBeNull();
-            expect(userInputRow.name).toBeNull();
+            // Name is always a catalogue identity field and always written to UserInput.
+            expect(userInputRow.name).toEqual({ fr: "Sparse Software" });
 
             const details = await dbApi.software.getDetails(sparseSoftware!.id);
             expect(details).toBeDefined();

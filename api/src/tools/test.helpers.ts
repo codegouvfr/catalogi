@@ -66,7 +66,12 @@ export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
         isPresentInSupportContract: true,
         isFromFrenchPublicService: true,
         doRespectRgaa: true
-    }
+    },
+    isLibreSoftware: null,
+    url: null,
+    codeRepositoryUrl: null,
+    softwareHelp: null,
+    latestVersion: null
 });
 export const createInstanceFormData = makeObjectFactory<InstanceFormData>({
     organization: "Default organization",
@@ -171,8 +176,8 @@ export const resetDB = async (db: Kysely<Database>) => {
                 ...testSource,
                 kind: testSource.kind as ExternalDataOriginKind
             },
-            // The repository writes a UserInput row on every create/update when the flag
-            // is on (the default from ui-config). Seed the source so the FK is satisfied.
+            // The repository writes a UserInput row on every create/update. Seed the
+            // synthetic source so the FK is satisfied.
             {
                 slug: "UserInput",
                 priority: 0,

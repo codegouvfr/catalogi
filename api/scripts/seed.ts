@@ -77,7 +77,9 @@ const seed = async () => {
     await dbApi.user.add(testUser);
 
     console.info("Adding software packages");
-    const softwarePackagesFormData: SoftwareFormData[] = [
+    const softwarePackagesFormDataWithoutNullables: Array<
+        Omit<SoftwareFormData, "isLibreSoftware" | "url" | "codeRepositoryUrl" | "softwareHelp" | "latestVersion">
+    > = [
         {
             name: "React",
             description: "A JavaScript library for building user interfaces.",
@@ -158,6 +160,15 @@ const seed = async () => {
             customAttributes: { versionMin: "0.26.25" }
         }
     ];
+
+    const softwarePackagesFormData: SoftwareFormData[] = softwarePackagesFormDataWithoutNullables.map(formData => ({
+        ...formData,
+        isLibreSoftware: null,
+        url: null,
+        codeRepositoryUrl: null,
+        softwareHelp: null,
+        latestVersion: null
+    }));
 
     for (const formData of softwarePackagesFormData) {
         await UCCreateSofware({ userId, formData });

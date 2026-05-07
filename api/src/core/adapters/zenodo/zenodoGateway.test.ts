@@ -111,9 +111,14 @@ const amdSoftwareForm = {
     sourceSlug: "zenodo",
     license: "gpl-3.0",
     similarSoftwareExternalDataItems: [],
-    image: undefined,
+    image: null,
     keywords: ["Geochronology", "Age-depth modeling", "Stratigraphy", "Sedimentology"],
-    customAttributes: undefined
+    customAttributes: undefined,
+    isLibreSoftware: null,
+    url: null,
+    codeRepositoryUrl: null,
+    softwareHelp: null,
+    latestVersion: null
 };
 
 const resultRequest = [

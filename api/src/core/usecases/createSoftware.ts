@@ -14,7 +14,7 @@ export type CreateSoftware = (
 export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => {
     return {
         name: softwareForm.name,
-        description: { fr: softwareForm.description },
+        description: softwareForm.description === null ? null : { fr: softwareForm.description },
         license: softwareForm.license,
         image: softwareForm.image,
         addedTime: new Date().toISOString(),
@@ -32,12 +32,11 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
         softwareHelp: softwareForm.softwareHelp,
         latestVersion: softwareForm.latestVersion
             ? {
-                  version: softwareForm.latestVersion.version ?? undefined,
-                  releaseDate: softwareForm.latestVersion.releaseDate ?? undefined
+                  version: softwareForm.latestVersion.version,
+                  releaseDate: softwareForm.latestVersion.releaseDate
               }
-            : undefined,
-        programmingLanguages: softwareForm.programmingLanguages,
-        userInputOverrides: softwareForm.userInputOverrides ?? {}
+            : null,
+        programmingLanguages: softwareForm.programmingLanguages
     };
 };
 
