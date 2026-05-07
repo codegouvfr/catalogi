@@ -23,8 +23,9 @@ export namespace CompiledData {
             dereferencing:
                 | {
                       reason?: string;
-                      time: number;
+                      time: string;
                       lastRecommendedVersion?: string;
+                      dereferencedByUserId: number;
                   }
                 | undefined;
             isStillInObservation: boolean;

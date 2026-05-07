@@ -67,6 +67,7 @@ export type Software = SoftwareData & {
               reason: string | undefined;
               time: string;
               lastRecommendedVersion: string | undefined;
+              dereferencedByUserId: number;
           }
         | undefined;
     customAttributes: CustomAttributes | undefined;

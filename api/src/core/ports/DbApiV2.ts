@@ -86,7 +86,12 @@ export interface SoftwareRepository {
     }) => Promise<{ sourceSlug: string; externalId: string; softwareId: number | undefined }[]>;
     countAddedByUser: (params: { userId: number }) => Promise<number>;
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
-    unreference: (params: { softwareId: number; reason: string; time: number }) => Promise<void>;
+    unreference: (params: {
+        softwareId: number;
+        reason: string;
+        time: string;
+        dereferencedByUserId: number;
+    }) => Promise<void>;
 }
 
 export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow & {

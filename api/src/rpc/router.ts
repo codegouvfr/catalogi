@@ -420,13 +420,14 @@ export function createRouter(params: {
                     "reason": z.string()
                 })
             )
-            .mutation(async ({ input }) => {
+            .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { softwareId, reason } = input;
 
                 await dbApi.software.unreference({
                     softwareId,
                     reason,
-                    time: Date.now()
+                    time: new Date().toISOString(),
+                    dereferencedByUserId: currentUser.id
                 });
             })
     });

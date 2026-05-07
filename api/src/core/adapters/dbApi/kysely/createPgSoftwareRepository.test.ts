@@ -223,7 +223,11 @@ describe("createPgSoftwareRepository", () => {
             await insertSoftware(db, { name: "Active" });
             await insertSoftware(db, {
                 name: "Dereferenced",
-                dereferencing: JSON.stringify({ reason: "deprecated", time: Date.now() })
+                dereferencing: JSON.stringify({
+                    reason: "deprecated",
+                    time: new Date().toISOString(),
+                    dereferencedByUserId: null
+                })
             });
 
             const list = await repository.getFullList();

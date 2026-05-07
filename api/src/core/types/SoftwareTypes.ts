@@ -25,6 +25,7 @@ export type Dereferencing = {
     reason: string | undefined;
     time: string;
     lastRecommendedVersion: string | undefined;
+    dereferencedByUserId: number;
 };
 
 export type SimilarSoftware = {

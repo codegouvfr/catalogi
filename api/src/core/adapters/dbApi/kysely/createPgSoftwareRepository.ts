@@ -436,8 +436,10 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     dereferencing: deref
                         ? {
                               reason: deref.reason,
+                              // Legacy rows hold epoch ms; normalize to the ISO contract.
                               time: new Date(deref.time).toISOString(),
-                              lastRecommendedVersion: deref.lastRecommendedVersion
+                              lastRecommendedVersion: deref.lastRecommendedVersion,
+                              dereferencedByUserId: deref.dereferencedByUserId
                           }
                         : undefined,
                     applicationCategories: extData?.applicationCategories ?? [],
@@ -569,7 +571,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     ? {
                           reason: deref.reason,
                           time: new Date(deref.time).toISOString(),
-                          lastRecommendedVersion: deref.lastRecommendedVersion
+                          lastRecommendedVersion: deref.lastRecommendedVersion,
+                          dereferencedByUserId: deref.dereferencedByUserId
                       }
                     : undefined,
                 applicationCategories: extData?.applicationCategories ?? [],
@@ -713,7 +716,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .executeTakeFirstOrThrow();
             return +count;
         },
-        unreference: async ({ softwareId, reason, time }) => {
+        unreference: async ({ softwareId, reason, time, dereferencedByUserId }) => {
             const row = await db
                 .selectFrom("softwares")
                 .select("customAttributes")
@@ -728,7 +731,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     dereferencing: JSON.stringify({
                         reason,
                         time,
-                        lastRecommendedVersion: versionMin
+                        lastRecommendedVersion: versionMin,
+                        dereferencedByUserId
                     })
                 })
                 .where("id", "=", softwareId)

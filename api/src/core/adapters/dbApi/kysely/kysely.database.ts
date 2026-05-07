@@ -221,8 +221,9 @@ type SoftwaresTable = {
     updateTime: string;
     dereferencing: JSONColumnType<{
         reason?: string;
-        time: number;
+        time: string;
         lastRecommendedVersion?: string;
+        dereferencedByUserId: number;
     }> | null;
     isStillInObservation: boolean;
     customAttributes: JSONColumnType<Record<string, any>> | null;
