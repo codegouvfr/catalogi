@@ -33,6 +33,7 @@ export function AuthButtons(props: Props) {
     const { classes, cx } = useStyles({ isOnPageMyAccount });
 
     const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
 
     if (!uiConfig?.header.menu.login.enabled) {
         return;
@@ -40,18 +41,16 @@ export function AuthButtons(props: Props) {
 
     if (!userAuthenticationApi.isUserLoggedIn) {
         return (
-            <>
-                <HeaderQuickAccessItem
-                    id={`login-${id}`}
-                    quickAccessItem={{
-                        iconId: "fr-icon-lock-line",
-                        buttonProps: {
-                            onClick: () => userAuthenticationApi.login()
-                        },
-                        text: t("authButtons.login")
-                    }}
-                />
-            </>
+            <HeaderQuickAccessItem
+                id={`login-${id}`}
+                quickAccessItem={{
+                    iconId: "fr-icon-lock-line",
+                    buttonProps: {
+                        onClick: () => userAuthenticationApi.login()
+                    },
+                    text: t("authButtons.login")
+                }}
+            />
         );
     }
 
@@ -73,6 +72,16 @@ export function AuthButtons(props: Props) {
                     } as const
                 }
             />
+            {currentUser?.role === "admin" && (
+                <HeaderQuickAccessItem
+                    id={`admin-${id}`}
+                    quickAccessItem={{
+                        iconId: "fr-icon-shield-line",
+                        linkProps: { ...routes.admin().link },
+                        text: t("authButtons.admin")
+                    }}
+                />
+            )}
             <HeaderQuickAccessItem
                 id={`logout-${id}`}
                 quickAccessItem={{

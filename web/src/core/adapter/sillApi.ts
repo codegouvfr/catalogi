@@ -184,6 +184,30 @@ export function createSillApi(params: { url: string }): SillApi {
             await trpcClient.unreferenceSoftware.mutate(params).catch(errorHandler);
 
             sillApi.getSoftwareList.clear();
+        },
+        getAttributeDefinitions: memoize(
+            () => trpcClient.getAttributeDefinitions.query(),
+            { promise: true }
+        ),
+        createAttributeDefinition: async params => {
+            const out = await trpcClient.createAttributeDefinition
+                .mutate(params)
+                .catch(errorHandler);
+
+            sillApi.getAttributeDefinitions.clear();
+            sillApi.getUiConfig.clear();
+
+            return out;
+        },
+        updateAttributeDefinition: async params => {
+            const out = await trpcClient.updateAttributeDefinition
+                .mutate(params)
+                .catch(errorHandler);
+
+            sillApi.getAttributeDefinitions.clear();
+            sillApi.getUiConfig.clear();
+
+            return out;
         }
     };
 

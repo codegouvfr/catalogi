@@ -410,7 +410,57 @@
         "login": "Se connecter",
         "register": "Créer un compte",
         "logout": "Se déconnecter",
-        "account": "Mon compte"
+        "account": "Mon compte",
+        "admin": "Admin"
+    },
+    "admin": {
+        "title": "Administration",
+        "customAttributes": {
+            "title": "Attributs personnalisés",
+            "subtitle": "Gérez les champs personnalisés disponibles sur les fiches logiciel.",
+            "addAttribute": "Ajouter un champ",
+            "columnName": "Identifiant",
+            "columnKind": "Type",
+            "columnLabel": "Libellé",
+            "columnDisplayInForm": "Formulaire",
+            "columnDisplayInDetails": "Détail",
+            "columnEnableFiltering": "Filtre",
+            "columnRequired": "Requis",
+            "columnDisplayInCardIcon": "Icône",
+            "columnDisplayOrder": "Ordre",
+            "columnActions": "Actions",
+            "edit": "Modifier",
+            "empty": "Aucun attribut personnalisé défini."
+        },
+        "form": {
+            "createTitle": "Ajouter un attribut personnalisé",
+            "editTitle": "Modifier un attribut personnalisé",
+            "sectionIdentifier": "Identifiant",
+            "sectionDisplay": "Affichage",
+            "sectionBehavior": "Comportement",
+            "name": "Identifiant",
+            "nameHint": "lettres et chiffres uniquement, doit commencer par une lettre",
+            "lockedAfterCreate": "Ne sera plus modifiable après création.",
+            "namePlaceholder": "isFromFrenchPublicService",
+            "kind": "Type",
+            "labelFr": "Libellé (FR)",
+            "labelEn": "Libellé (EN)",
+            "descriptionFr": "Description (FR)",
+            "descriptionEn": "Description (EN)",
+            "displayInForm": "Afficher dans le formulaire logiciel",
+            "displayInDetails": "Afficher sur la fiche détail",
+            "enableFiltering": "Activer le filtrage dans le catalogue",
+            "required": "Champ obligatoire",
+            "displayInCardIcon": "Icône dans la liste des résultats",
+            "iconNone": "aucune",
+            "displayOrder": "Ordre d'affichage",
+            "save": "Enregistrer",
+            "cancel": "Annuler",
+            "errors": {
+                "invalidName": "L'identifiant doit commencer par une lettre et ne contenir que des lettres et chiffres.",
+                "labelRequired": "Les libellés FR et EN sont obligatoires."
+            }
+        }
     },
     "authorCard": {
         "affiliatedStructure": "Structures associées"

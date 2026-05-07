@@ -18,6 +18,7 @@ import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
 import type { SoftwareExternal } from "../types/SoftwareTypes";
+import type { UserRole } from "../adapters/dbApi/kysely/kysely.database";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
 import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
 import type { Os, RuntimePlatform } from "../types";
@@ -152,6 +153,7 @@ export type DbUser = {
     organization: string | null;
     about: string | undefined;
     isPublic: boolean;
+    role: UserRole;
 };
 
 export interface UserRepository {
@@ -212,6 +214,8 @@ export interface SessionRepository {
 export interface AttributeDefinitionRepository {
     getAll: () => Promise<AttributeDefinition[]>;
     getByName: (name: string) => Promise<AttributeDefinition | undefined>;
+    add: (def: AttributeDefinition) => Promise<void>;
+    update: (name: string, patch: Partial<Omit<AttributeDefinition, "name" | "kind" | "createdAt">>) => Promise<void>;
 }
 
 export type DbApiV2 = {

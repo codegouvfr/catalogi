@@ -72,6 +72,7 @@ export const createPgUserRepository = (db: Kysely<Database>): UserRepository => 
                 "users.about",
                 "users.organization",
                 "users.sub",
+                "users.role",
                 ({ ref, fn }) =>
                     fn
                         .coalesce(
@@ -157,6 +158,7 @@ const makeGetUserBuilder = (db: Kysely<Database>) =>
             "users.about",
             "users.organization",
             "users.sub",
+            "users.role",
             ({ ref, fn }) =>
                 fn
                     .coalesce(

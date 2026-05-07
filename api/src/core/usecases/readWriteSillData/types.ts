@@ -10,7 +10,8 @@ import {
     SchemaIdentifier,
     SchemaOrganization,
     SchemaPerson,
-    ScholarlyArticle
+    ScholarlyArticle,
+    UserRole
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
@@ -109,6 +110,7 @@ export type CreateUserParams = {
     isPublic: boolean;
     about: string | undefined;
     sub: string | null;
+    role: UserRole;
 };
 
 export type UserWithId = CreateUserParams & { id: number };

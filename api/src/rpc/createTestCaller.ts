@@ -23,7 +23,8 @@ export const defaultUser: UserWithId = {
     organization: "default",
     isPublic: false,
     about: "",
-    declarations: []
+    declarations: [],
+    role: "user"
 };
 
 export type ApiCaller = Awaited<ReturnType<typeof createTestCaller>>["apiCaller"];

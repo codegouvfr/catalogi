@@ -32,7 +32,8 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                   "isPublic": false,
                   organization: "",
                   about: "This is a bot user created to import data.",
-                  sub: null
+                  sub: null,
+                  role: "user"
               });
 
         let result = [];

@@ -120,7 +120,8 @@ const insertedUser = {
     organization: "test-organization",
     isPublic: true,
     about: "test about",
-    sub: null
+    sub: null,
+    role: "user" as const
 };
 
 const db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
@@ -439,7 +440,8 @@ describe("pgDbApi", () => {
                 about: insertedUser.about,
                 isPublic: insertedUser.isPublic,
                 declarations: expectedDeclarations,
-                sub: null
+                sub: null,
+                role: "user"
             });
 
             const updatedUser: DbUser = {
@@ -448,7 +450,8 @@ describe("pgDbApi", () => {
                 about: "updated about",
                 email: "updated@test.com",
                 isPublic: !insertedUser.isPublic,
-                sub: null
+                sub: null,
+                role: "user"
             };
 
             console.log("updating user");

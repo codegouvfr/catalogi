@@ -62,7 +62,8 @@ describe("Create software - Trying all the cases", () => {
             organization: "myorg",
             about: "my about",
             isPublic: false,
-            sub: null
+            sub: null,
+            role: "user"
         });
 
         createSoftware = makeCreateSofware(dbApi);

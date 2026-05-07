@@ -63,7 +63,8 @@ describe("Create software, than updates it adding a similar software", () => {
             organization: "myorg",
             about: "my about",
             isPublic: false,
-            sub: null
+            sub: null,
+            role: "user"
         });
 
         createSoftware = makeCreateSofware(dbApi);

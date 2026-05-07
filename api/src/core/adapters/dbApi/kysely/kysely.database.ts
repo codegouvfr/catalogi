@@ -94,9 +94,12 @@ type UsersTable = {
     about: string | null;
     isPublic: boolean;
     sub: string | null;
+    role: Generated<UserRole>;
     createdAt: Date | null;
     updatedAt: Date | null;
 };
+
+export type UserRole = "user" | "admin";
 
 type Os = "windows" | "linux" | "mac" | "android" | "ios";
 

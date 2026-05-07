@@ -403,7 +403,57 @@
         "login": "Login",
         "register": "Register",
         "logout": "Logout",
-        "account": "My account"
+        "account": "My account",
+        "admin": "Admin"
+    },
+    "admin": {
+        "title": "Administration",
+        "customAttributes": {
+            "title": "Custom attributes",
+            "subtitle": "Manage the custom fields available on software entries.",
+            "addAttribute": "Add a field",
+            "columnName": "Identifier",
+            "columnKind": "Type",
+            "columnLabel": "Label",
+            "columnDisplayInForm": "Form",
+            "columnDisplayInDetails": "Detail",
+            "columnEnableFiltering": "Filter",
+            "columnRequired": "Required",
+            "columnDisplayInCardIcon": "Icon",
+            "columnDisplayOrder": "Order",
+            "columnActions": "Actions",
+            "edit": "Edit",
+            "empty": "No custom attribute defined yet."
+        },
+        "form": {
+            "createTitle": "Add a custom attribute",
+            "editTitle": "Edit a custom attribute",
+            "sectionIdentifier": "Identifier",
+            "sectionDisplay": "Display",
+            "sectionBehavior": "Behavior",
+            "name": "Identifier",
+            "nameHint": "letters and digits only, must start with a letter",
+            "lockedAfterCreate": "Cannot be changed after creation.",
+            "namePlaceholder": "isFromFrenchPublicService",
+            "kind": "Type",
+            "labelFr": "Label (FR)",
+            "labelEn": "Label (EN)",
+            "descriptionFr": "Description (FR)",
+            "descriptionEn": "Description (EN)",
+            "displayInForm": "Show in software form",
+            "displayInDetails": "Show in software detail page",
+            "enableFiltering": "Enable filtering in catalog",
+            "required": "Required field",
+            "displayInCardIcon": "Icon in the results list",
+            "iconNone": "none",
+            "displayOrder": "Display order",
+            "save": "Save",
+            "cancel": "Cancel",
+            "errors": {
+                "invalidName": "Identifier must start with a letter and contain only letters and digits.",
+                "labelRequired": "FR and EN labels are required."
+            }
+        }
     },
     "authorCard": {
         "affiliatedStructure": "Affiliated structures"

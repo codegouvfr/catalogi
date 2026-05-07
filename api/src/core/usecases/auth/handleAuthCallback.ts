@@ -50,7 +50,8 @@ export const makeHandleAuthCallback = ({
                 lastName: userInfoFromProvider.family_name ?? userInfoFromProvider.usual_name,
                 organization: null,
                 isPublic: false,
-                about: undefined
+                about: undefined,
+                role: "user"
             });
         } else {
             userId = user.id;

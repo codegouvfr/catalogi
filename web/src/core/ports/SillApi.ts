@@ -120,6 +120,18 @@ export type SillApi = {
     unreferenceSoftware: (
         params: TrpcRouterInput["unreferenceSoftware"]
     ) => Promise<TrpcRouterOutput["unreferenceSoftware"]>;
+    getAttributeDefinitions: {
+        (
+            params: TrpcRouterInput["getAttributeDefinitions"]
+        ): Promise<TrpcRouterOutput["getAttributeDefinitions"]>;
+        clear: () => void;
+    };
+    createAttributeDefinition: (
+        params: TrpcRouterInput["createAttributeDefinition"]
+    ) => Promise<TrpcRouterOutput["createAttributeDefinition"]>;
+    updateAttributeDefinition: (
+        params: TrpcRouterInput["updateAttributeDefinition"]
+    ) => Promise<TrpcRouterOutput["updateAttributeDefinition"]>;
 };
 
 //NOTE: We make sure we don't forget queries

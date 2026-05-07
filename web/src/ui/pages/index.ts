@@ -4,6 +4,7 @@
 
 import * as account from "./account";
 import * as addSoftwareLanding from "./addSoftwareLanding";
+import * as admin from "./admin";
 import * as declarationForm from "./declarationForm";
 import * as home from "./home";
 import * as instanceForm from "./instanceForm";
@@ -23,6 +24,7 @@ import type { UnionToIntersection } from "tsafe";
 export const pages = {
     account,
     addSoftwareLanding,
+    admin,
     declarationForm,
     home,
     instanceForm,

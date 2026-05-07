@@ -20,7 +20,8 @@ describe("getUser", () => {
         isPublic: false,
         about: "",
         declarations: [],
-        sub: null
+        sub: null,
+        role: "user"
     };
 
     const publicUser: UserWithId = {
@@ -30,7 +31,8 @@ describe("getUser", () => {
         isPublic: true,
         about: "",
         declarations: [],
-        sub: null
+        sub: null,
+        role: "user"
     };
 
     const currentUser: UserWithId = {
@@ -40,7 +42,8 @@ describe("getUser", () => {
         about: undefined,
         organization: null,
         sub: "user-id",
-        email: "bob@mail.com"
+        email: "bob@mail.com",
+        role: "user"
     };
 
     let userRepository: UserRepository;

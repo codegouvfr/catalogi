@@ -140,7 +140,8 @@ describe("fetches software extra data (from different providers)", () => {
             organization: "myorg",
             about: "my about",
             isPublic: false,
-            sub: null
+            sub: null,
+            role: "user"
         });
 
         const makeSoftware = makeCreateSofware(dbApi);

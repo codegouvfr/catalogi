@@ -59,7 +59,8 @@ const seed = async () => {
         about: "This is a fake user for seeding purposes.",
         isPublic: true,
         organization: "Seed Organization",
-        sub: null
+        sub: null,
+        role: "user"
     };
 
     const testUser: OmitFromExisting<DbUser, "id"> = {
@@ -67,7 +68,8 @@ const seed = async () => {
         about: undefined,
         isPublic: false,
         organization: "DINUM",
-        sub: null
+        sub: null,
+        role: "admin"
     };
 
     const UCCreateSofware = makeCreateSofware(dbApi);

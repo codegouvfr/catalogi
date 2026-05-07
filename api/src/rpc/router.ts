@@ -111,6 +111,18 @@ export function createRouter(params: {
         })
     );
 
+    const adminProcedure = protectedProcedure.use(
+        t.middleware(async ({ ctx, next }) => {
+            if (!ctx.currentUser || ctx.currentUser.role !== "admin") throw new TRPCError({ "code": "FORBIDDEN" });
+            return next({
+                ctx: {
+                    ...ctx,
+                    currentUser: ctx.currentUser
+                }
+            });
+        })
+    );
+
     const router = t.router({
         // PUBLIC PROCEDURES
         "getRedirectUrl": loggedProcedure.query(() => redirectUrl),
@@ -428,7 +440,66 @@ export function createRouter(params: {
                     time: new Date().toISOString(),
                     dereferencedByUserId: currentUser.id
                 });
-            })
+            }),
+
+        "getAttributeDefinitions": loggedProcedure.query(() => dbApi.attributeDefinition.getAll()),
+
+        "createAttributeDefinition": adminProcedure.input(zAttributeDefinitionCreate).mutation(async ({ input }) => {
+            const existing = await dbApi.attributeDefinition.getByName(input.name);
+            if (existing) {
+                throw new TRPCError({
+                    "code": "CONFLICT",
+                    "message": `An attribute with name "${input.name}" already exists.`
+                });
+            }
+
+            const all = await dbApi.attributeDefinition.getAll();
+            const orderClash = all.find(a => a.displayOrder === input.displayOrder);
+            if (orderClash) {
+                throw new TRPCError({
+                    "code": "CONFLICT",
+                    "message": `Display order ${input.displayOrder} is already used by "${orderClash.name}".`
+                });
+            }
+
+            const now = new Date();
+            await dbApi.attributeDefinition.add({
+                name: input.name,
+                kind: input.kind,
+                label: input.label,
+                description: input.description,
+                displayInForm: input.displayInForm,
+                displayInDetails: input.displayInDetails,
+                displayInCardIcon: input.displayInCardIcon,
+                enableFiltering: input.enableFiltering,
+                required: input.required,
+                displayOrder: input.displayOrder,
+                createdAt: now,
+                updatedAt: now
+            });
+        }),
+
+        "updateAttributeDefinition": adminProcedure.input(zAttributeDefinitionUpdate).mutation(async ({ input }) => {
+            const { name, ...patch } = input;
+            const existing = await dbApi.attributeDefinition.getByName(name);
+            if (!existing) {
+                throw new TRPCError({
+                    "code": "NOT_FOUND",
+                    "message": `No attribute with name "${name}".`
+                });
+            }
+            if (patch.displayOrder !== undefined && patch.displayOrder !== existing.displayOrder) {
+                const all = await dbApi.attributeDefinition.getAll();
+                const orderClash = all.find(a => a.name !== name && a.displayOrder === patch.displayOrder);
+                if (orderClash) {
+                    throw new TRPCError({
+                        "code": "CONFLICT",
+                        "message": `Display order ${patch.displayOrder} is already used by "${orderClash.name}".`
+                    });
+                }
+            }
+            await dbApi.attributeDefinition.update(name, patch);
+        })
     });
 
     return { router };
@@ -534,6 +605,38 @@ const zInstanceFormData = (() => {
 
     return zOut as z.ZodType<InstanceFormData>;
 })();
+
+const zAttributeKind = z.enum(["boolean", "string", "number", "date", "url"]);
+const zDisplayInCardIcon = z.enum(["computer", "france", "question", "thumbs-up", "chat", "star"]);
+const zLocalizedString = z.record(z.string(), z.string());
+
+const zAttributeDefinitionCreate = z.object({
+    "name": z
+        .string()
+        .min(1)
+        .regex(/^[a-zA-Z][a-zA-Z0-9]*$/, "name must start with a letter and contain only alphanumeric characters"),
+    "kind": zAttributeKind,
+    "label": zLocalizedString,
+    "description": zLocalizedString.optional(),
+    "displayInForm": z.boolean(),
+    "displayInDetails": z.boolean(),
+    "displayInCardIcon": zDisplayInCardIcon.optional(),
+    "enableFiltering": z.boolean(),
+    "required": z.boolean(),
+    "displayOrder": z.number().int()
+});
+
+const zAttributeDefinitionUpdate = z.object({
+    "name": z.string().min(1),
+    "label": zLocalizedString.optional(),
+    "description": zLocalizedString.optional(),
+    "displayInForm": z.boolean().optional(),
+    "displayInDetails": z.boolean().optional(),
+    "displayInCardIcon": zDisplayInCardIcon.optional(),
+    "enableFiltering": z.boolean().optional(),
+    "required": z.boolean().optional(),
+    "displayOrder": z.number().int().optional()
+});
 
 const zLanguage = z.union([z.literal("fr"), z.literal("en")]);
 
