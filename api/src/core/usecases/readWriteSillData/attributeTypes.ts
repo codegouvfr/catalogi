@@ -12,6 +12,7 @@ export type AttributeDefinition = {
     label: LocalizedString;
     description?: LocalizedString;
     displayInForm: boolean;
+    editableByAdminOnly: boolean;
     displayInDetails: boolean;
     displayInCardIcon: "computer" | "france" | "question" | "thumbs-up" | "chat" | "star" | undefined;
     enableFiltering: boolean;

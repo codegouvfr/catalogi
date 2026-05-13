@@ -110,6 +110,7 @@ function AttributeDefinitionsTable(props: {
         { label: t("admin.customAttributes.columnKind") },
         { label: t("admin.customAttributes.columnLabel") },
         { label: t("admin.customAttributes.columnDisplayInForm"), centered: true },
+        { label: t("admin.customAttributes.columnEditableBy"), centered: true },
         { label: t("admin.customAttributes.columnDisplayInDetails"), centered: true },
         { label: t("admin.customAttributes.columnEnableFiltering"), centered: true },
         { label: t("admin.customAttributes.columnRequired"), centered: true },
@@ -174,6 +175,11 @@ function AttributeDefinitionRow(props: { def: ApiTypes.AttributeDefinition }) {
                 </code>
             </td>
             <td className={classes.cellCentered}>{def.displayInForm ? "✅" : "❌"}</td>
+            <td className={classes.cellCentered}>
+                {def.editableByAdminOnly
+                    ? t("admin.customAttributes.editableByAdminOnly")
+                    : t("admin.customAttributes.editableByEveryone")}
+            </td>
             <td className={classes.cellCentered}>{def.displayInDetails ? "✅" : "❌"}</td>
             <td className={classes.cellCentered}>{def.enableFiltering ? "✅" : "❌"}</td>
             <td className={classes.cellCentered}>{def.required ? "✅" : "❌"}</td>

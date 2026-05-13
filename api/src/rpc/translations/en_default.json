@@ -99,7 +99,9 @@
         "add software": "Add {{name}}",
         "update software": "Update {{name}}",
         "add software button": "Add {{name}} to the $t(common.appAccronym)",
-        "update software button": "Update {{name}}"
+        "update software button": "Update {{name}}",
+        "adminOnlyCustomAttributeBadge": "Admin-only field",
+        "adminOnlyCustomAttributeHint": "You are editing this field with administrator privileges. Non-admin contributors cannot change it."
     },
     "softwareFormStep1": {
         "software desktop": "Desktop or mobile installable software",
@@ -416,6 +418,9 @@
             "columnKind": "Type",
             "columnLabel": "Label",
             "columnDisplayInForm": "Form",
+            "columnEditableBy": "Editable by",
+            "editableByEveryone": "Everyone",
+            "editableByAdminOnly": "Admins only",
             "columnDisplayInDetails": "Detail",
             "columnEnableFiltering": "Filter",
             "columnRequired": "Required",
@@ -441,6 +446,7 @@
             "descriptionFr": "Description (FR)",
             "descriptionEn": "Description (EN)",
             "displayInForm": "Show in software form",
+            "editableByAdminOnly": "Editable by administrators only",
             "displayInDetails": "Show in software detail page",
             "enableFiltering": "Enable filtering in catalog",
             "required": "Required field",

@@ -101,7 +101,9 @@
         "add software": "Ajouter {{name}}",
         "update software": "Mettre à jour {{name}}",
         "add software button": "Ajouter {{name}} au $t(common.appAccronym)",
-        "update software button": "Mettre à jour {{name}}"
+        "update software button": "Mettre à jour {{name}}",
+        "adminOnlyCustomAttributeBadge": "Champ administrateur",
+        "adminOnlyCustomAttributeHint": "Vous modifiez ce champ avec des droits administrateur. Les contributeurs non administrateurs ne peuvent pas le modifier."
     },
     "softwareFormStep1": {
         "software desktop": "Logiciel installable sur poste de travail",
@@ -423,6 +425,9 @@
             "columnKind": "Type",
             "columnLabel": "Libellé",
             "columnDisplayInForm": "Formulaire",
+            "columnEditableBy": "Modifiable par",
+            "editableByEveryone": "Tout le monde",
+            "editableByAdminOnly": "Admin uniquement",
             "columnDisplayInDetails": "Détail",
             "columnEnableFiltering": "Filtre",
             "columnRequired": "Requis",
@@ -448,6 +453,7 @@
             "descriptionFr": "Description (FR)",
             "descriptionEn": "Description (EN)",
             "displayInForm": "Afficher dans le formulaire logiciel",
+            "editableByAdminOnly": "Modifiable uniquement par les administrateurs",
             "displayInDetails": "Afficher sur la fiche détail",
             "enableFiltering": "Activer le filtrage dans le catalogue",
             "required": "Champ obligatoire",

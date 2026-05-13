@@ -50,6 +50,7 @@ type FormState = {
     descriptionFr: string;
     descriptionEn: string;
     displayInForm: boolean;
+    editableByAdminOnly: boolean;
     displayInDetails: boolean;
     enableFiltering: boolean;
     required: boolean;
@@ -74,6 +75,7 @@ function makeInitialState(params: Mode | undefined): FormState {
             descriptionFr: pickLang(def.description, "fr"),
             descriptionEn: pickLang(def.description, "en"),
             displayInForm: def.displayInForm,
+            editableByAdminOnly: def.editableByAdminOnly,
             displayInDetails: def.displayInDetails,
             enableFiltering: def.enableFiltering,
             required: def.required,
@@ -89,6 +91,7 @@ function makeInitialState(params: Mode | undefined): FormState {
         descriptionFr: "",
         descriptionEn: "",
         displayInForm: true,
+        editableByAdminOnly: false,
         displayInDetails: true,
         enableFiltering: false,
         required: false,
@@ -144,6 +147,7 @@ export function AttributeDefinitionFormModal() {
             label: { fr: form.labelFr.trim(), en: form.labelEn.trim() },
             description,
             displayInForm: form.displayInForm,
+            editableByAdminOnly: form.editableByAdminOnly,
             displayInDetails: form.displayInDetails,
             enableFiltering: form.enableFiltering,
             required: form.required,
@@ -300,6 +304,13 @@ export function AttributeDefinitionFormModal() {
                         nativeInputProps: {
                             checked: form.displayInForm,
                             onChange: e => update("displayInForm", e.target.checked)
+                        }
+                    },
+                    {
+                        label: t("admin.form.editableByAdminOnly"),
+                        nativeInputProps: {
+                            checked: form.editableByAdminOnly,
+                            onChange: e => update("editableByAdminOnly", e.target.checked)
                         }
                     },
                     {

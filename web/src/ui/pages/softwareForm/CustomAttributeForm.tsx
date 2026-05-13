@@ -1,9 +1,11 @@
+import { fr } from "@codegouvfr/react-dsfr";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
 import type { ApiTypes } from "api";
 import type { NonPostableEvt } from "evt";
 import { useEvt } from "evt/hooks";
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useCoreState } from "../../../core";
@@ -22,6 +24,15 @@ export const CustomAttributesForm = ({
     evtActionSubmit: NonPostableEvt<void>;
 }) => {
     const attributeDefinitions = useCoreState("uiConfig", "main")?.attributeDefinitions;
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
+    const isAdmin = currentUser?.role === "admin";
+    const renderedAttributeDefinitions = useMemo(
+        () =>
+            attributeDefinitions?.filter(
+                def => def.displayInForm && (!def.editableByAdminOnly || isAdmin)
+            ) ?? [],
+        [attributeDefinitions, isAdmin]
+    );
     const [submitButtonElement, setSubmitButtonElement] =
         useState<HTMLButtonElement | null>(null);
 
@@ -40,7 +51,7 @@ export const CustomAttributesForm = ({
         handleSubmit,
         register,
         formState: { errors }
-    } = useForm({
+    } = useForm<ApiTypes.CustomAttributes>({
         defaultValues: initialFormData
     });
 
@@ -51,24 +62,10 @@ export const CustomAttributesForm = ({
             className={className}
             onSubmit={handleSubmit(
                 values => {
-                    const keys = Object.keys(values);
-
-                    const valuesWithCorrectType = keys.reduce((acc, attributeName) => {
-                        const attributeDefinition = attributeDefinitions.find(
-                            def => def.name === attributeName
-                        );
-                        if (!attributeDefinition) return acc;
-                        const rawValue = values[attributeName];
-                        if (rawValue === undefined) return acc;
-
-                        return {
-                            ...acc,
-                            [attributeName]: convertRawAttributeValueToCorrectType({
-                                attributeDefinition,
-                                rawValue
-                            })
-                        } as ApiTypes.CustomAttributes;
-                    }, {} as ApiTypes.CustomAttributes);
+                    const valuesWithCorrectType = getConvertedSubmittedValues({
+                        values,
+                        renderedAttributeDefinitions
+                    });
 
                     console.log({
                         raw: values,
@@ -76,14 +73,23 @@ export const CustomAttributesForm = ({
                         errors: errors
                     });
 
-                    onSubmit(valuesWithCorrectType);
+                    const hiddenInitialValues = getHiddenInitialValues({
+                        attributeDefinitions,
+                        renderedAttributeDefinitions,
+                        initialFormData
+                    });
+
+                    onSubmit({
+                        ...valuesWithCorrectType,
+                        ...hiddenInitialValues
+                    });
                 },
                 err => {
                     console.log("ERROR in form : ", err);
                 }
             )}
         >
-            {attributeDefinitions.map(attributeDefinition => (
+            {renderedAttributeDefinitions.map(attributeDefinition => (
                 <CustomAttributeFormField
                     key={attributeDefinition.name}
                     attributeDefinition={attributeDefinition}
@@ -101,6 +107,56 @@ export const CustomAttributesForm = ({
     );
 };
 
+const getConvertedSubmittedValues = ({
+    values,
+    renderedAttributeDefinitions
+}: {
+    values: ApiTypes.CustomAttributes;
+    renderedAttributeDefinitions: ApiTypes.AttributeDefinition[];
+}): ApiTypes.CustomAttributes => {
+    const convertedValues: ApiTypes.CustomAttributes = {};
+
+    for (const [attributeName, rawValue] of Object.entries(values)) {
+        const attributeDefinition = renderedAttributeDefinitions.find(
+            def => def.name === attributeName
+        );
+        if (!attributeDefinition || rawValue === undefined) continue;
+
+        const convertedValue = convertRawAttributeValueToCorrectType({
+            attributeDefinition,
+            rawValue
+        });
+        if (convertedValue !== undefined) convertedValues[attributeName] = convertedValue;
+    }
+
+    return convertedValues;
+};
+
+const getHiddenInitialValues = ({
+    attributeDefinitions,
+    renderedAttributeDefinitions,
+    initialFormData
+}: {
+    attributeDefinitions: ApiTypes.AttributeDefinition[];
+    renderedAttributeDefinitions: ApiTypes.AttributeDefinition[];
+    initialFormData: ApiTypes.CustomAttributes | undefined;
+}): ApiTypes.CustomAttributes => {
+    const renderedAttributeNames = new Set(
+        renderedAttributeDefinitions.map(def => def.name)
+    );
+    const hiddenInitialValues: ApiTypes.CustomAttributes = {};
+
+    for (const attributeDefinition of attributeDefinitions) {
+        if (renderedAttributeNames.has(attributeDefinition.name)) continue;
+        if (!Object.hasOwn(initialFormData ?? {}, attributeDefinition.name)) continue;
+
+        const value = initialFormData?.[attributeDefinition.name];
+        if (value !== undefined) hiddenInitialValues[attributeDefinition.name] = value;
+    }
+
+    return hiddenInitialValues;
+};
+
 const CustomAttributeFormField = ({
     attributeDefinition,
     initialValue,
@@ -109,16 +165,39 @@ const CustomAttributeFormField = ({
 }: {
     attributeDefinition: ApiTypes.AttributeDefinition;
     initialValue: ApiTypes.AttributeValue | undefined;
-    register: any;
-    errors: any;
+    register: UseFormRegister<ApiTypes.CustomAttributes>;
+    errors: FieldErrors<ApiTypes.CustomAttributes>;
 }) => {
     const { lang } = useLang();
     const { t } = useTranslation();
 
-    const label =
+    const localizedLabel =
         typeof attributeDefinition.label === "string"
             ? attributeDefinition.label
             : attributeDefinition.label[lang];
+    const label = attributeDefinition.editableByAdminOnly ? (
+        <>
+            {localizedLabel}{" "}
+            <span
+                className={fr.cx(
+                    "fr-badge",
+                    "fr-badge--sm",
+                    "fr-badge--yellow-tournesol"
+                )}
+            >
+                <i
+                    className={fr.cx("fr-icon-lock-line", "fr-icon--sm", "fr-mr-1v")}
+                    aria-hidden="true"
+                />
+                {t("softwareForm.adminOnlyCustomAttributeBadge")}
+            </span>
+        </>
+    ) : (
+        localizedLabel
+    );
+    const hintText = attributeDefinition.editableByAdminOnly ? (
+        <strong>{t("softwareForm.adminOnlyCustomAttributeHint")}</strong>
+    ) : undefined;
     const attributeName = attributeDefinition.name;
     const isRequired = attributeDefinition.required;
 
@@ -132,6 +211,7 @@ const CustomAttributeFormField = ({
             return (
                 <Input
                     label={label}
+                    hintText={hintText}
                     state={
                         isRequired && errors[attributeName] !== undefined
                             ? "error"
@@ -150,6 +230,7 @@ const CustomAttributeFormField = ({
             return (
                 <RadioButtons
                     legend={label}
+                    hintText={hintText}
                     state={
                         isRequired && errors[attributeName] !== undefined
                             ? "error"
@@ -210,8 +291,9 @@ const convertRawAttributeValueToCorrectType = ({
             return rawValue !== null ? +rawValue : undefined;
         case "boolean": {
             if (typeof rawValue === "boolean") return rawValue;
-            if ((rawValue as string)?.toLowerCase() === "true") return true;
-            if ((rawValue as string)?.toLowerCase() === "false") return false;
+            if (typeof rawValue !== "string") return undefined;
+            if (rawValue.toLowerCase() === "true") return true;
+            if (rawValue.toLowerCase() === "false") return false;
             if (rawValue === "not applicable") return null;
             return undefined;
         }

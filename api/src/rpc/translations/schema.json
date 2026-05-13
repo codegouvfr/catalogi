@@ -415,6 +415,12 @@
                 "update software button": {
                     "type": "string",
                     "description": "Text for a button"
+                },
+                "adminOnlyCustomAttributeBadge": {
+                    "type": "string"
+                },
+                "adminOnlyCustomAttributeHint": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -432,7 +438,9 @@
                 "add software",
                 "update software",
                 "add software button",
-                "update software button"
+                "update software button",
+                "adminOnlyCustomAttributeBadge",
+                "adminOnlyCustomAttributeHint"
             ]
         },
         "softwareFormStep1": {
@@ -523,24 +531,21 @@
                     "type": "string"
                 },
                 "source external": {
-                    "type": "string",
-                    "description": "Hint shown under a field whose value is provided by an external source (state 2)."
+                    "type": "string"
                 },
                 "source user input": {
-                    "type": "string",
-                    "description": "Hint shown under a field that the user explicitly overrode (state 3)."
+                    "type": "string"
                 },
                 "override field title": {
                     "type": "string",
-                    "description": "Tooltip on the pencil icon that opens the override-warning modal."
+                    "description": "Title text"
                 },
                 "cancel override title": {
                     "type": "string",
-                    "description": "Tooltip on the cross icon that reverts an override back to the external source value."
+                    "description": "Title text"
                 },
                 "keywords from source": {
-                    "type": "string",
-                    "description": "Hint listing keywords contributed by an external source (union-merged with the user's own keywords)."
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -1654,10 +1659,227 @@
                 },
                 "account": {
                     "type": "string"
+                },
+                "admin": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
-            "required": ["login", "register", "logout", "account"]
+            "required": ["login", "register", "logout", "account", "admin"]
+        },
+        "admin": {
+            "type": "object",
+            "properties": {
+                "title": {
+                    "type": "string",
+                    "description": "Title text"
+                },
+                "customAttributes": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "Title text"
+                        },
+                        "subtitle": {
+                            "type": "string",
+                            "description": "Title text"
+                        },
+                        "addAttribute": {
+                            "type": "string"
+                        },
+                        "columnName": {
+                            "type": "string"
+                        },
+                        "columnKind": {
+                            "type": "string"
+                        },
+                        "columnLabel": {
+                            "type": "string"
+                        },
+                        "columnDisplayInForm": {
+                            "type": "string"
+                        },
+                        "columnEditableBy": {
+                            "type": "string"
+                        },
+                        "editableByEveryone": {
+                            "type": "string"
+                        },
+                        "editableByAdminOnly": {
+                            "type": "string"
+                        },
+                        "columnDisplayInDetails": {
+                            "type": "string"
+                        },
+                        "columnEnableFiltering": {
+                            "type": "string"
+                        },
+                        "columnRequired": {
+                            "type": "string"
+                        },
+                        "columnDisplayInCardIcon": {
+                            "type": "string"
+                        },
+                        "columnDisplayOrder": {
+                            "type": "string"
+                        },
+                        "columnActions": {
+                            "type": "string"
+                        },
+                        "edit": {
+                            "type": "string"
+                        },
+                        "empty": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "title",
+                        "subtitle",
+                        "addAttribute",
+                        "columnName",
+                        "columnKind",
+                        "columnLabel",
+                        "columnDisplayInForm",
+                        "columnEditableBy",
+                        "editableByEveryone",
+                        "editableByAdminOnly",
+                        "columnDisplayInDetails",
+                        "columnEnableFiltering",
+                        "columnRequired",
+                        "columnDisplayInCardIcon",
+                        "columnDisplayOrder",
+                        "columnActions",
+                        "edit",
+                        "empty"
+                    ]
+                },
+                "form": {
+                    "type": "object",
+                    "properties": {
+                        "createTitle": {
+                            "type": "string"
+                        },
+                        "editTitle": {
+                            "type": "string"
+                        },
+                        "sectionIdentifier": {
+                            "type": "string"
+                        },
+                        "sectionDisplay": {
+                            "type": "string"
+                        },
+                        "sectionBehavior": {
+                            "type": "string"
+                        },
+                        "name": {
+                            "type": "string"
+                        },
+                        "nameHint": {
+                            "type": "string"
+                        },
+                        "lockedAfterCreate": {
+                            "type": "string"
+                        },
+                        "namePlaceholder": {
+                            "type": "string"
+                        },
+                        "kind": {
+                            "type": "string"
+                        },
+                        "labelFr": {
+                            "type": "string",
+                            "description": "Label for a form field or button"
+                        },
+                        "labelEn": {
+                            "type": "string",
+                            "description": "Label for a form field or button"
+                        },
+                        "descriptionFr": {
+                            "type": "string"
+                        },
+                        "descriptionEn": {
+                            "type": "string"
+                        },
+                        "displayInForm": {
+                            "type": "string"
+                        },
+                        "editableByAdminOnly": {
+                            "type": "string"
+                        },
+                        "displayInDetails": {
+                            "type": "string"
+                        },
+                        "enableFiltering": {
+                            "type": "string"
+                        },
+                        "required": {
+                            "type": "string"
+                        },
+                        "displayInCardIcon": {
+                            "type": "string"
+                        },
+                        "iconNone": {
+                            "type": "string"
+                        },
+                        "displayOrder": {
+                            "type": "string"
+                        },
+                        "save": {
+                            "type": "string"
+                        },
+                        "cancel": {
+                            "type": "string"
+                        },
+                        "errors": {
+                            "type": "object",
+                            "properties": {
+                                "invalidName": {
+                                    "type": "string"
+                                },
+                                "labelRequired": {
+                                    "type": "string",
+                                    "description": "Label for a form field or button"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": ["invalidName", "labelRequired"]
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "createTitle",
+                        "editTitle",
+                        "sectionIdentifier",
+                        "sectionDisplay",
+                        "sectionBehavior",
+                        "name",
+                        "nameHint",
+                        "lockedAfterCreate",
+                        "namePlaceholder",
+                        "kind",
+                        "labelFr",
+                        "labelEn",
+                        "descriptionFr",
+                        "descriptionEn",
+                        "displayInForm",
+                        "editableByAdminOnly",
+                        "displayInDetails",
+                        "enableFiltering",
+                        "required",
+                        "displayInCardIcon",
+                        "iconNone",
+                        "displayOrder",
+                        "save",
+                        "cancel",
+                        "errors"
+                    ]
+                }
+            },
+            "additionalProperties": false,
+            "required": ["title", "customAttributes", "form"]
         },
         "authorCard": {
             "type": "object",
@@ -1714,11 +1936,22 @@
         "overrideWarningModal": {
             "type": "object",
             "properties": {
-                "title": { "type": "string" },
-                "body": { "type": "string" },
-                "editAtSource": { "type": "string" },
-                "cancel": { "type": "string" },
-                "confirm": { "type": "string" }
+                "title": {
+                    "type": "string",
+                    "description": "Title text"
+                },
+                "body": {
+                    "type": "string"
+                },
+                "editAtSource": {
+                    "type": "string"
+                },
+                "cancel": {
+                    "type": "string"
+                },
+                "confirm": {
+                    "type": "string"
+                }
             },
             "additionalProperties": false,
             "required": ["title", "body", "editAtSource", "cancel", "confirm"]
@@ -1805,6 +2038,7 @@
         "userProfile",
         "header",
         "authButtons",
+        "admin",
         "authorCard",
         "footer",
         "declarationRemovalModal",

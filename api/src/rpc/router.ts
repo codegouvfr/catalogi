@@ -8,7 +8,7 @@ import superjson from "superjson";
 import type { Equals, ReturnType } from "tsafe";
 import { assert } from "tsafe/assert";
 import { z } from "zod";
-import { DbApiV2 } from "../core/ports/DbApiV2";
+import type { DbApiV2 } from "../core/ports/DbApiV2";
 import { Language } from "../core/ports/GetSoftwareExternalData";
 import { UiConfig } from "../core/uiConfigSchema";
 import type { UseCases } from "../core/usecases";
@@ -25,6 +25,7 @@ import type { Context } from "./context";
 import type { OidcParams } from "../core/usecases/auth/oidcClient";
 import { resolveAdapterFromSource } from "../core/adapters/resolveAdapter";
 import { softwareExternalDataOptionSchema } from "../core/ports/GetSoftwareExternalDataOptions";
+import { sanitizeSoftwareFormDataCustomAttributes } from "../core/usecases/sanitizeSoftwareFormDataCustomAttributes";
 
 export type UseCasesUsedOnRouter = Pick<
     UseCases,
@@ -222,8 +223,14 @@ export function createRouter(params: {
                 }
 
                 try {
-                    const createdSoftwareId = await useCases.createSoftware({
+                    const sanitizedFormData = await sanitizeSoftwareFormDataCustomAttributes({
+                        dbApi,
                         formData,
+                        isAdmin: currentUser.role === "admin"
+                    });
+
+                    const createdSoftwareId = await useCases.createSoftware({
+                        formData: sanitizedFormData,
                         userId: currentUser.id
                     });
 
@@ -245,9 +252,16 @@ export function createRouter(params: {
             .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { softwareSillId, formData } = input;
 
+                const sanitizedFormData = await sanitizeSoftwareFormDataCustomAttributes({
+                    dbApi,
+                    formData,
+                    isAdmin: currentUser.role === "admin",
+                    softwareId: softwareSillId
+                });
+
                 await useCases.updateSoftware({
                     softwareId: softwareSillId,
-                    formData,
+                    formData: sanitizedFormData,
                     userId: currentUser.id
                 });
             }),
@@ -469,6 +483,7 @@ export function createRouter(params: {
                 label: input.label,
                 description: input.description,
                 displayInForm: input.displayInForm,
+                editableByAdminOnly: input.editableByAdminOnly,
                 displayInDetails: input.displayInDetails,
                 displayInCardIcon: input.displayInCardIcon,
                 enableFiltering: input.enableFiltering,
@@ -619,6 +634,7 @@ const zAttributeDefinitionCreate = z.object({
     "label": zLocalizedString,
     "description": zLocalizedString.optional(),
     "displayInForm": z.boolean(),
+    "editableByAdminOnly": z.boolean().default(false),
     "displayInDetails": z.boolean(),
     "displayInCardIcon": zDisplayInCardIcon.optional(),
     "enableFiltering": z.boolean(),
@@ -631,6 +647,7 @@ const zAttributeDefinitionUpdate = z.object({
     "label": zLocalizedString.optional(),
     "description": zLocalizedString.optional(),
     "displayInForm": z.boolean().optional(),
+    "editableByAdminOnly": z.boolean().optional(),
     "displayInDetails": z.boolean().optional(),
     "displayInCardIcon": zDisplayInCardIcon.optional(),
     "enableFiltering": z.boolean().optional(),

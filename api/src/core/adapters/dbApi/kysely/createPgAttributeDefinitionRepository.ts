@@ -31,6 +31,7 @@ export const createPgAttributeDefinitionRepository = (db: Kysely<Database>): Att
                 label: JSON.stringify(def.label),
                 description: def.description ? JSON.stringify(def.description) : null,
                 displayInForm: def.displayInForm,
+                editableByAdminOnly: def.editableByAdminOnly,
                 displayInDetails: def.displayInDetails,
                 displayInCardIcon: def.displayInCardIcon ?? null,
                 enableFiltering: def.enableFiltering,
@@ -48,6 +49,7 @@ export const createPgAttributeDefinitionRepository = (db: Kysely<Database>): Att
         if (patch.description !== undefined)
             set.description = patch.description ? JSON.stringify(patch.description) : null;
         if (patch.displayInForm !== undefined) set.displayInForm = patch.displayInForm;
+        if (patch.editableByAdminOnly !== undefined) set.editableByAdminOnly = patch.editableByAdminOnly;
         if (patch.displayInDetails !== undefined) set.displayInDetails = patch.displayInDetails;
         if (patch.displayInCardIcon !== undefined) set.displayInCardIcon = patch.displayInCardIcon ?? null;
         if (patch.enableFiltering !== undefined) set.enableFiltering = patch.enableFiltering;

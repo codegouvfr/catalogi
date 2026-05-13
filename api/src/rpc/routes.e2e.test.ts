@@ -82,6 +82,268 @@ describe("RPC e2e tests", () => {
         });
     });
 
+    describe("admin-only custom attributes", () => {
+        const adminUser: typeof defaultUser = {
+            ...defaultUser,
+            id: 1,
+            email: "admin.user@mail.com",
+            role: "admin"
+        };
+
+        const insertAttributeDefinition = async (params: {
+            name: string;
+            editableByAdminOnly: boolean;
+            displayOrder: number;
+        }) => {
+            await kyselyDb.deleteFrom("software_attribute_definitions").where("name", "=", params.name).execute();
+            await kyselyDb
+                .insertInto("software_attribute_definitions")
+                .values({
+                    name: params.name,
+                    kind: "boolean",
+                    label: JSON.stringify({ en: params.name, fr: params.name }),
+                    description: null,
+                    displayInForm: true,
+                    editableByAdminOnly: params.editableByAdminOnly,
+                    displayInDetails: true,
+                    displayInCardIcon: null,
+                    enableFiltering: true,
+                    required: false,
+                    displayOrder: params.displayOrder,
+                    createdAt: new Date(),
+                    updatedAt: new Date()
+                })
+                .execute();
+        };
+
+        const insertSoftwareRow = async (params: {
+            name: string;
+            customAttributes: Record<string, unknown>;
+            userId: number;
+        }) => {
+            const now = new Date().toISOString();
+            const row = await kyselyDb
+                .insertInto("softwares")
+                .values({
+                    name: params.name,
+                    addedTime: now,
+                    updateTime: now,
+                    dereferencing: null,
+                    isStillInObservation: false,
+                    customAttributes: JSON.stringify(params.customAttributes),
+                    addedByUserId: params.userId
+                })
+                .returning("id")
+                .executeTakeFirstOrThrow();
+            return row.id;
+        };
+
+        it("allows admins to create and update the admin-only editability flag", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+
+            await kyselyDb
+                .deleteFrom("software_attribute_definitions")
+                .where("name", "=", "adminOnlyRouteFlag")
+                .execute();
+
+            await apiCaller.createAttributeDefinition({
+                name: "adminOnlyRouteFlag",
+                kind: "boolean",
+                label: { en: "Admin only route flag", fr: "Admin only route flag" },
+                displayInForm: true,
+                editableByAdminOnly: true,
+                displayInDetails: true,
+                enableFiltering: false,
+                required: false,
+                displayOrder: 701
+            });
+
+            expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
+                expect.objectContaining({
+                    name: "adminOnlyRouteFlag",
+                    editableByAdminOnly: true
+                })
+            );
+
+            await apiCaller.updateAttributeDefinition({
+                name: "adminOnlyRouteFlag",
+                editableByAdminOnly: false
+            });
+
+            expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
+                expect.objectContaining({
+                    name: "adminOnlyRouteFlag",
+                    editableByAdminOnly: false
+                })
+            );
+        });
+
+        it("ignores admin-only custom attributes on non-admin software creation", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+            await insertAttributeDefinition({
+                name: "adminOnlyCreateFlag",
+                editableByAdminOnly: true,
+                displayOrder: 702
+            });
+            await insertAttributeDefinition({
+                name: "publicCreateFlag",
+                editableByAdminOnly: false,
+                displayOrder: 703
+            });
+
+            await apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin only create test",
+                    similarSoftwareExternalDataItems: [],
+                    customAttributes: {
+                        adminOnlyCreateFlag: true,
+                        publicCreateFlag: true
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("name", "=", "Admin only create test")
+                .executeTakeFirstOrThrow();
+
+            expect(software.customAttributes).toEqual({ publicCreateFlag: true });
+        });
+
+        it("preserves admin-only custom attributes on non-admin software updates", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+            await insertAttributeDefinition({
+                name: "adminOnlyUpdateFlag",
+                editableByAdminOnly: true,
+                displayOrder: 704
+            });
+            await insertAttributeDefinition({
+                name: "publicUpdateFlag",
+                editableByAdminOnly: false,
+                displayOrder: 705
+            });
+            const softwareId = await insertSoftwareRow({
+                name: "Admin only update test",
+                customAttributes: {
+                    adminOnlyUpdateFlag: null,
+                    publicUpdateFlag: true
+                },
+                userId: defaultUser.id
+            });
+
+            await apiCaller.updateSoftware({
+                softwareSillId: softwareId,
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin only update test",
+                    similarSoftwareExternalDataItems: [],
+                    customAttributes: {
+                        adminOnlyUpdateFlag: false,
+                        publicUpdateFlag: false
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.customAttributes).toEqual({
+                adminOnlyUpdateFlag: null,
+                publicUpdateFlag: false
+            });
+        });
+
+        it("preserves omitted admin-only custom attributes on non-admin software updates", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+            await insertAttributeDefinition({
+                name: "adminOnlyOmittedFlag",
+                editableByAdminOnly: true,
+                displayOrder: 706
+            });
+            await insertAttributeDefinition({
+                name: "publicOmittedFlag",
+                editableByAdminOnly: false,
+                displayOrder: 707
+            });
+            const softwareId = await insertSoftwareRow({
+                name: "Admin only omitted update test",
+                customAttributes: {
+                    adminOnlyOmittedFlag: true,
+                    publicOmittedFlag: true
+                },
+                userId: defaultUser.id
+            });
+
+            await apiCaller.updateSoftware({
+                softwareSillId: softwareId,
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin only omitted update test",
+                    similarSoftwareExternalDataItems: [],
+                    customAttributes: { publicOmittedFlag: false }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.customAttributes).toEqual({
+                adminOnlyOmittedFlag: true,
+                publicOmittedFlag: false
+            });
+        });
+
+        it("allows admins to update admin-only custom attributes", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+            await insertAttributeDefinition({
+                name: "adminOnlyAdminFlag",
+                editableByAdminOnly: true,
+                displayOrder: 706
+            });
+            const softwareId = await insertSoftwareRow({
+                name: "Admin can update admin-only test",
+                customAttributes: { adminOnlyAdminFlag: false },
+                userId: adminUser.id
+            });
+
+            await apiCaller.updateSoftware({
+                softwareSillId: softwareId,
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin can update admin-only test",
+                    similarSoftwareExternalDataItems: [],
+                    customAttributes: { adminOnlyAdminFlag: true }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.customAttributes).toEqual({ adminOnlyAdminFlag: true });
+        });
+    });
+
     // ⚠️ reminder : you need to run the whole scenarios
     // because those tests are not isolated
     // (the order is important)⚠️

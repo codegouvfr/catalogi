@@ -179,6 +179,7 @@ type SoftwareAttributeDefinitionsTable = {
     label: JSONColumnType<LocalizedString>;
     description: JSONColumnType<LocalizedString> | null;
     displayInForm: boolean;
+    editableByAdminOnly: boolean;
     displayInDetails: boolean;
     displayInCardIcon: "computer" | "france" | "question" | "thumbs-up" | "chat" | "star" | null;
     enableFiltering: boolean;
