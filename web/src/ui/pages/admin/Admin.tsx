@@ -57,7 +57,7 @@ export default function Admin(props: Props) {
     }
 
     return (
-        <div className={cx(fr.cx("fr-container--fluid", "fr-px-4w"), className)}>
+        <div className={cx(fr.cx("fr-container"), className)}>
             <div className={classes.header}>
                 <h1 className={fr.cx("fr-h2")}>{t("admin.title")}</h1>
             </div>
@@ -166,7 +166,9 @@ function AttributeDefinitionRow(props: { def: ApiTypes.AttributeDefinition }) {
         <tr>
             <td>{def.kind}</td>
             <td className={classes.labelCell}>
-                <div>{displayLabel}</div>
+                <div className={classes.labelText} title={displayLabel}>
+                    {displayLabel}
+                </div>
                 <code className={cx(fr.cx("fr-text--xs"), classes.identifier)}>
                     {def.name}
                 </code>
@@ -224,8 +226,12 @@ const useStyles = tss.withName({ Admin }).create(() => ({
         textAlign: "center"
     },
     labelCell: {
-        maxWidth: "28ch",
-        whiteSpace: "normal"
+        maxWidth: "32rem"
+    },
+    labelText: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
     },
     identifier: {
         opacity: 0.6,
