@@ -72,7 +72,9 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
             throw new Error("[UC:Import] Not Implemented, but you can specify the list of ids you want to import");
         // Secondary Sources
         case "CNLL":
-            throw new Error("[UC:Import] Import if not possible from a secondary source");
+        case "RNSR":
+        case "ROR":
+            throw new Error("[UC:Import] Import if not possible from a secondary or non software source");
         default:
             const shouldNotBeReached: never = source.kind;
             throw new Error("[UC:Import] Not Implemented", shouldNotBeReached);

@@ -169,7 +169,9 @@ export type ExternalDataOriginKind =
     | "CNLL"
     | "Zenodo"
     | "GitHub"
-    | "GitLab";
+    | "GitLab"
+    | "RNSR"
+    | "ROR";
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
