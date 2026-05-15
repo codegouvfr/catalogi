@@ -74,7 +74,9 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
             throw new Error("[UC:Import] Not Implemented, but you can specify the list of ids you want to import");
         // Secondary Sources
         case "CNLL":
-            throw new Error("[UC:Import] Import if not possible from a secondary source");
+        case "RNSR":
+        case "ROR":
+            throw new Error("[UC:Import] Import if not possible from a secondary or non software source");
         case USER_INPUT_SOURCE_SLUG:
             throw new Error("[UC:Import] UserInput is not importable: it has no gateway");
         default:

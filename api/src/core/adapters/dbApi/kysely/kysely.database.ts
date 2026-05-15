@@ -172,6 +172,8 @@ export type ExternalDataOriginKind =
     | "Zenodo"
     | "GitHub"
     | "GitLab"
+    | "RNSR"
+    | "ROR"
     | "UserInput";
 
 /**
