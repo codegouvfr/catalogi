@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
-import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
+import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
@@ -88,7 +88,9 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
         return activeSoftwareId ?? link.softwareId;
     };
 
-    for (const source of sources) {
+    const filteredSources = filterSourceByFeature(sources, "softwareExtra");
+
+    for (const source of filteredSources) {
         const gateway = resolveAdapterFromSource(source, "softwareExtra");
 
         if (!gateway.softwareExtra?.getDiscoverSoftwareLinks) continue;

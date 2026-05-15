@@ -81,6 +81,56 @@ const zenodoSource: WebSite = {
     additionalType: "Zenodo"
 };
 
+const twitterSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Twitter",
+    url: new URL("https://x.com/"),
+    additionalType: "Twitter"
+};
+
+const gravatarSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Gravatar",
+    url: new URL("https://gravatar.com/"),
+    additionalType: "Gravatar"
+};
+
+const rorSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Research Organization Registry",
+    url: new URL("https://ror.org/"),
+    additionalType: "ROR"
+};
+
+const rnsrSource: WebSite = {
+    "@type": "Website" as const,
+    name: "Répertoire national des structures de recherche",
+    url: new URL("https://www.data.gouv.fr/datasets/repertoire-national-des-structures-de-recherche-rnsr"),
+    additionalType: "RNSR"
+};
+
+type CrossRefType = "fundref";
+const crossRefSource: WebSite = {
+    "@type": "Website" as const,
+    name: "One of the official Identifier Registration Agencies",
+    url: new URL("https://www.crossref.org"),
+    additionalType: "CROSSREF"
+};
+
+const gridSource = {
+    "@type": "Website" as const,
+    name: "Global Research Identifier Database",
+    url: new URL("https://www.grid.ac"),
+    additionalType: "GRID"
+};
+
+const insiSource = {
+    "@type": "Website" as const,
+    name: "International Standard Name Identifier",
+    url: new URL("https://insi.org"),
+    additionalType: "INSI"
+};
+
 export const identifersUtils = {
     makeGenericIdentifier: (params: { value: string; url?: string | URL }): SchemaIdentifier => {
         const { value, url } = params;
@@ -213,13 +263,13 @@ export const identifersUtils = {
             ...(additionalType ? { additionalType: additionalType } : {})
         };
     },
-    makeUserGitHubIdentifer: (params: { username: string; userId: number }): SchemaIdentifier => {
-        const { username, userId } = params;
+    makeUserGitHubIdentifer: (params: { name: string; userId: number; url: string }): SchemaIdentifier => {
+        const { url, userId, name } = params;
         return {
             "@type": "PropertyValue" as const,
-            value: username,
+            value: name,
             valueReference: userId.toString(),
-            url: `https://github.com/${username}`,
+            url: url,
             subjectOf: gitHubSource,
             additionalType: "User"
         };
@@ -270,18 +320,126 @@ export const identifersUtils = {
             },
             additionalType: "User"
         };
+    },
+    makeGravatarPersonIdentifer: (params: { gravatarId: string }): SchemaIdentifier => {
+        const { gravatarId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: gravatarId,
+            url: `https://www.gravatar.com/${gravatarId}`, // username or hash md5 of email address
+            subjectOf: gravatarSource,
+            additionalType: "Person"
+        };
+    },
+    makeTwitterPersonIdentifer: (params: { username: string }): SchemaIdentifier => {
+        const { username } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: username,
+            url: `https://twitter.com/${username}`,
+            subjectOf: twitterSource,
+            additionalType: "Person"
+        };
+    },
+    makeOrcidPersonIdentifer: (params: { orcidId: string; username?: string }): SchemaIdentifier => {
+        const { orcidId, username } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: orcidId,
+            url: `https://orcid.org/${orcidId}`,
+            subjectOf: orcidSource,
+            ...(username ? { name: `ID on ${username}` } : {}),
+            additionalType: "Person"
+        };
+    },
+    makeRorOrgaIdentifer: (params: { rorId: string }): SchemaIdentifier => {
+        const { rorId } = params;
+        const cleanRORUrl = (output: string) => (output.includes("https://ror.org") ? output.split("/")[3] : output);
+        const rorID = cleanRORUrl(rorId);
+        return {
+            "@type": "PropertyValue" as const,
+            value: rorID,
+            url: `https://ror.org/${rorID}`,
+            subjectOf: rorSource,
+            additionalType: "Organization"
+        };
+    },
+    makeRNSROrgaIdentifer: (params: { rnrsId: string }): SchemaIdentifier => {
+        const { rnrsId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: rnrsId,
+            url: `https://appliweb.dgri.education.fr/rnsr/PresenteStruct.jsp?PUBLIC=OK&numNatStruct=${rnrsId}`,
+            subjectOf: rnsrSource,
+            additionalType: "Organization"
+        };
+    },
+    makeCrossRefIdentifier: (params: { type: CrossRefType; crossRefId: string }): SchemaIdentifier => {
+        const { type, crossRefId } = params;
+
+        const base = {
+            "@type": "PropertyValue" as const,
+            value: crossRefId,
+            subjectOf: crossRefSource,
+            additionalType: type
+        };
+
+        switch (type) {
+            case "fundref":
+                return {
+                    ...base,
+                    url: `https://api.crossref.org/funders/${crossRefId}`
+                };
+            default:
+                const unreachableCase: never = type;
+                throw new Error(`Unreachable case: ${unreachableCase}`);
+        }
+    },
+    makeGridIdentifier: (params: { gridId: string }): SchemaIdentifier => {
+        const { gridId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: gridId,
+            subjectOf: gridSource
+        };
+    },
+    makeINSIIdentifier: (params: { insiId: string }): SchemaIdentifier => {
+        const { insiId } = params;
+        return {
+            "@type": "PropertyValue" as const,
+            value: insiId,
+            url: `http://isni.org/isni/${insiId}`,
+            subjectOf: insiSource
+        };
     }
 };
 
-const compareIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): boolean => {
-    if (id1.value === id2.value && id1.subjectOf?.url === id2.subjectOf?.url) return true;
+export const compareIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): boolean => {
+    if (id1.value === id2.value && id1.subjectOf?.url.toString() === id2.subjectOf?.url.toString()) return true;
     return false;
 };
 
+export const deduplicateIdentifierArray = (arr: SchemaIdentifier[]): SchemaIdentifier[] => {
+    const deduplicated: SchemaIdentifier[] = [];
+
+    for (const identier of arr) {
+        if (!deduplicated.some(identier1 => compareIdentifier(identier1, identier))) {
+            deduplicated.push(identier);
+        }
+    }
+
+    return deduplicated;
+};
+
 export const mergeDepuplicateIdentifierArray = (
-    arr1: SchemaIdentifier[],
-    arr2: SchemaIdentifier[]
+    arr1: SchemaIdentifier[] | undefined,
+    arr2: SchemaIdentifier[] | undefined
 ): SchemaIdentifier[] => {
+    if (!arr1 || arr1.length === 0) {
+        if (!arr2 || arr2.length === 0) return [];
+        return arr2;
+    }
+    if (!arr2 || arr2.length === 0) return arr1;
     const filtered = arr2.filter(identier => !arr1.some(identier1 => compareIdentifier(identier1, identier)));
 
     return arr1.concat(filtered);
