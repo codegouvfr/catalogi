@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
-import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
+import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
@@ -94,7 +94,9 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
         return activeSoftwareId ?? link.softwareId;
     };
 
-    for (const source of sources) {
+    const filteredSources = filterSourceByFeature(sources, "softwareExtra");
+
+    for (const source of filteredSources) {
         // UserInput is a pseudo-source with no gateway; nothing to discover.
         if (source.kind === USER_INPUT_SOURCE_SLUG) continue;
 

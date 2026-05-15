@@ -12,9 +12,25 @@ import { zenodoSourceGateway } from "./zenodo";
 import { cnllSourceGateway } from "./CNLL";
 import { gitHubSourceGateway } from "./GitHub";
 import { gitLabSourceGateway } from "./GitLab";
+import { ExternalDataOriginKind } from "./dbApi/kysely/kysely.database";
+
+const userInputNoGateway = {
+    "sourceType": USER_INPUT_SOURCE_SLUG
+};
 
 export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, feature?: Feature): SourceGateway => {
-    switch (source.kind) {
+    return resolveAdapterFromSourceType(source.kind, feature);
+};
+
+export const filterSourceByFeature = (sources: DatabaseDataType.SourceRow[], feature: Feature) => {
+    return sources.filter(source => {
+        const gateway = resolveAdapterFromSourceType(source.kind);
+        return Object.hasOwn(gateway, feature);
+    });
+};
+
+export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind, feature?: Feature): SourceGateway => {
+    switch (sourceType) {
         case "HAL":
             if (feature && !Object.hasOwn(halSourceGateway, feature))
                 throw new Error(`halSourceGateway doesn't implemend ${feature}`);
@@ -44,11 +60,13 @@ export const resolveAdapterFromSource = (source: DatabaseDataType.SourceRow, fea
                 throw new Error(`gitLabSourceGateway doesn't implemend ${feature}`);
             return gitLabSourceGateway;
         case USER_INPUT_SOURCE_SLUG:
-            throw new Error(
-                `UserInput is not a fetchable source — the gateway should not be resolved for slug "${source.slug}"`
-            );
+            if (feature && !Object.hasOwn(userInputNoGateway, feature))
+                throw new Error(
+                    `UserInput is not a fetchable source — the gateway should not be resolved for this slug`
+                );
+            return userInputNoGateway;
         default:
-            const unreachableCase: never = source.kind;
+            const unreachableCase: never = sourceType;
             throw new Error(`Unreachable case: ${unreachableCase}`);
     }
 };
