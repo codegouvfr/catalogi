@@ -13,6 +13,8 @@ import { cnllSourceGateway } from "./CNLL";
 import { gitHubSourceGateway } from "./GitHub";
 import { gitLabSourceGateway } from "./GitLab";
 import { ExternalDataOriginKind } from "./dbApi/kysely/kysely.database";
+import { rorSourceGateway } from "./ror.org";
+import { rnsrSourceGateway } from "./RNSR";
 
 const userInputNoGateway = {
     "sourceType": USER_INPUT_SOURCE_SLUG
@@ -59,6 +61,14 @@ export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind,
             if (feature && !Object.hasOwn(gitLabSourceGateway, feature))
                 throw new Error(`gitLabSourceGateway doesn't implemend ${feature}`);
             return gitLabSourceGateway;
+        case "ROR":
+            if (feature && !Object.hasOwn(rorSourceGateway, feature))
+                throw new Error(`rorSourceGateway doesn't implemend ${feature}`);
+            return rorSourceGateway;
+        case "RNSR":
+            if (feature && !Object.hasOwn(rnsrSourceGateway, feature))
+                throw new Error(`rnsrSourceGateway doesn't implemend ${feature}`);
+            return rnsrSourceGateway;
         case USER_INPUT_SOURCE_SLUG:
             if (feature && !Object.hasOwn(userInputNoGateway, feature))
                 throw new Error(
