@@ -184,7 +184,9 @@ export function createSillApi(params: { url: string }): SillApi {
             await trpcClient.unreferenceSoftware.mutate(params).catch(errorHandler);
 
             sillApi.getSoftwareList.clear();
-        }
+        },
+        getSoftwareIdsByOrganisation: params =>
+            trpcClient.getSoftwareIdsByOrganisation.query(params)
     };
 
     return sillApi;
