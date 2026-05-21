@@ -33,6 +33,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "createSoftware"
     | "updateSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
+    | "getAndFetchSoftwareIdsByAuthorOrganization"
     | "auth"
 >;
 
@@ -149,7 +150,21 @@ export function createRouter(params: {
             return { referentCount };
         }),
         "getCurrentUser": loggedProcedure.query(({ ctx: { currentUser } }): UserWithId | undefined => currentUser),
-
+        "getSoftwareIdsByOrganisation": loggedProcedure
+            .input(
+                z
+                    .object({
+                        name: z.string().optional(),
+                        identifier: z
+                            .object({
+                                key: z.string().optional(),
+                                value: z.string()
+                            })
+                            .optional()
+                    })
+                    .optional()
+            )
+            .query(async ({ input }) => useCases.getAndFetchSoftwareIdsByAuthorOrganization({ search: input })),
         // -------------- PROTECTED PROCEDURES --------------
         "getExternalSoftwareOptions": protectedProcedure
             .input(

@@ -8,8 +8,11 @@ import { assert } from "tsafe/assert";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalDataAll } from "../core/usecases/refreshExternalData";
+import { updateSoftwareIdsByOrganisation } from "../core/usecases/getAuthorOrganization";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { DbApiV2 } from "../core/ports/DbApiV2";
+import { uiConfigSchema } from "../core/uiConfigSchema";
+import rawUiConfig from "../customization/ui-config.json";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -35,6 +38,7 @@ export async function startUpdateService(params: {
     console.log("[RPC:Update] Starting fetching of external data on remote sources");
     console.time("[RPC:Update] Fetching of external data on remote sources: Done");
     const { isDevEnvironnement, databaseUrl, updateSkipTimingInMinutes, updateSoftwareIds, ...rest } = params;
+    const uiConfig = uiConfigSchema.parse(rawUiConfig);
 
     assert<Equals<typeof rest, {}>>();
 
@@ -47,13 +51,17 @@ export async function startUpdateService(params: {
         "kyselyDb": kyselyDb
     });
 
-    const refreshExternalData = await makeRefreshExternalDataAll({
+    const refreshExternalData = makeRefreshExternalDataAll({
         dbApi,
         minuteSkipSince: updateSkipTimingInMinutes ?? 180,
         softwareIdsToRefresh: updateSoftwareIds
     });
 
     await refreshExternalData();
+
+    if (uiConfig.header.menu.devOrganizations.enabled) {
+        await updateSoftwareIdsByOrganisation({ dbApi });
+    }
 
     console.timeEnd("[RPC:Update] Fetching of external data on remote sources: Done");
 }

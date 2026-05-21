@@ -148,3 +148,7 @@ export type InstanceFormData = {
     instanceUrl: string | undefined;
     isPublic: boolean;
 };
+
+export interface UIOrganization extends SchemaOrganization {
+    producer?: Array<string>;
+}

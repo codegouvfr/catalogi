@@ -9,9 +9,15 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
-import { Database } from "./kysely.database";
+import { Database, SchemaOrganization, SchemaPerson } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
-import { mergeExternalData } from "./mergeExternalData";
+import {
+    isSameOrganization,
+    isSamePerson,
+    mergeExternalData,
+    mergeOrganizations,
+    mergePersons
+} from "./mergeExternalData";
 
 type CountRow = { softwareId: number; organization: string | null; countType: string; count: string };
 const aggregateCounts = (
@@ -686,6 +692,192 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 sourceSlug,
                 softwareId: softwareId ?? undefined
             }));
+        },
+        // Alternative index
+        getSoftwareIdsByAuthors: async ({ search }) => {
+            type ResultQ = {
+                softwareId: number | null;
+                authors: SchemaOrganization | SchemaPerson;
+            }[];
+            type ResultFunction = {
+                authors: SchemaOrganization | SchemaPerson;
+                softwareIds: number[];
+            };
+            const resultQuery = await db
+                .selectFrom("software_external_datas")
+                .select([
+                    "software_external_datas.softwareId as softwareId",
+                    sql<
+                        SchemaOrganization | SchemaPerson
+                    >`jsonb_array_elements("software_external_datas"."authors")`.as("authors")
+                ])
+                .execute();
+
+            const result: ResultFunction[] = [];
+
+            while (resultQuery.length !== 0) {
+                let personA: ResultFunction = {
+                    authors: resultQuery[0].authors,
+                    softwareIds: [Number(resultQuery[0].softwareId)]
+                };
+                resultQuery.splice(0, 1);
+
+                if (personA.authors["@type"] === "Person") {
+                    resultQuery.reduce(
+                        (
+                            acc: ResultQ,
+                            val: { softwareId: number | null; authors: SchemaOrganization | SchemaPerson },
+                            index: number
+                        ) => {
+                            if (val.authors["@type"] === "Person" && personA.authors["@type"] === "Person") {
+                                if (isSamePerson(val.authors, personA.authors)) {
+                                    personA.authors = mergePersons(personA.authors, val.authors);
+                                    personA.softwareIds.push(Number(val.softwareId));
+                                    resultQuery.splice(index, 1);
+                                }
+                                return acc;
+                            }
+                            // If Orga or not the same
+                            acc.push(val);
+                            return acc;
+                        },
+                        []
+                    );
+                }
+
+                result.push(personA);
+            }
+
+            if (search) {
+                if (search.name) {
+                    const searchCrit = search.name;
+                    result.filter(row => row.authors.name.includes(searchCrit));
+                }
+                if (search.identifier) {
+                    const searchCritValue = search.identifier.value;
+                    if (search.identifier.key) {
+                        const searchCritKey = search.identifier.key;
+                        result.filter(row =>
+                            row.authors.identifiers?.some(
+                                id =>
+                                    id.subjectOf?.additionalType?.includes(searchCritKey) &&
+                                    id.value.includes(searchCritValue)
+                            )
+                        );
+                    } else {
+                        result.filter(row => row.authors.identifiers?.some(id => id.value.includes(searchCritValue)));
+                    }
+                }
+            }
+
+            return result.map(row => {
+                return {
+                    ...row.authors,
+                    producer: row.softwareIds.map(a => a.toString())
+                };
+            });
+        },
+        getSoftwareIdsByOrganisation: async ({ search }) => {
+            type OrganizationRow = {
+                organization: SchemaOrganization;
+                softwareId: number;
+            };
+
+            const test = sql<OrganizationRow>`WITH RECURSIVE FlattenedOrganizations AS (
+    -- Base case: Select the root affiliations
+    SELECT
+        jsonb_array_elements(author->'affiliations') AS orga,
+        software_external_datas."softwareId" AS "softwareId"
+    FROM
+        software_external_datas,
+        jsonb_array_elements(software_external_datas.authors) AS author
+        
+        UNION ALL
+
+    -- Recursive case: Select parent organizations
+    SELECT
+        jsonb_array_elements(fo.orga->'parentOrganizations') AS orga,
+        fo."softwareId"
+    FROM
+        FlattenedOrganizations AS fo
+    WHERE
+        fo.orga->'parentOrganizations' IS NOT NULL
+)
+
+SELECT DISTINCT
+    orga AS organization,
+    "softwareId"
+FROM
+    FlattenedOrganizations;`;
+
+            const resultQuery = await test.execute(db);
+            const resultArray = resultQuery.rows;
+
+            // First innocent iteration
+            const resultMap: Map<string, SchemaOrganization> = resultArray.reduce((map, org) => {
+                const actual = { ...org.organization, producer: [org.softwareId.toString()] };
+                const saved = map.get(org.organization.name);
+                if (!saved) {
+                    map.set(org.organization.name, actual);
+                } else {
+                    const toSet = mergeOrganizations(saved, actual);
+
+                    map.set(org.organization.name, toSet);
+                }
+                return map;
+            }, new Map());
+
+            // Second
+            const keys = Array.from(resultMap.keys());
+            const deduplicatedResultMap = new Map<string, SchemaOrganization>();
+
+            for (let i = 0; i < keys.length; i++) {
+                const currentKey = keys[i];
+                const currentOrg = resultMap.get(currentKey)!;
+
+                let isDuplicate = false;
+
+                for (const [existingKey, existingOrg] of deduplicatedResultMap) {
+                    if (isSameOrganization(currentOrg, existingOrg)) {
+                        const mergedOrg = mergeOrganizations(existingOrg, currentOrg);
+                        deduplicatedResultMap.set(existingKey, mergedOrg);
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!isDuplicate) {
+                    deduplicatedResultMap.set(currentKey, currentOrg);
+                }
+            }
+
+            let sortedArray = Array.from(deduplicatedResultMap.values());
+
+            if (search) {
+                if (search.name) {
+                    const searchCrit = search.name;
+                    sortedArray = sortedArray.filter(row => row.name.toLowerCase().includes(searchCrit.toLowerCase()));
+                }
+                if (search.identifier) {
+                    const searchCritValue = search.identifier.value;
+                    if (search.identifier.key) {
+                        const searchCritKey = search.identifier.key;
+                        sortedArray = sortedArray.filter(row =>
+                            row.identifiers?.some(
+                                id =>
+                                    id.subjectOf?.additionalType?.includes(searchCritKey) &&
+                                    id.value.includes(searchCritValue)
+                            )
+                        );
+                    } else {
+                        sortedArray = sortedArray.filter(row =>
+                            row.identifiers?.some(id => id.value.includes(searchCritValue))
+                        );
+                    }
+                }
+            }
+
+            return sortedArray;
         }
     };
 };

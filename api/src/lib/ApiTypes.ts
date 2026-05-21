@@ -10,7 +10,6 @@ export type {
     ExternalDataOriginKind,
     SchemaIdentifier as Identifier,
     SchemaPerson as Person,
-    SchemaOrganization as Organization,
     ScholarlyArticle,
     RepoMetadata
 } from "../core/adapters/dbApi/kysely/kysely.database";
@@ -24,7 +23,8 @@ export type {
     SoftwareFormData,
     DeclarationFormData,
     InstanceFormData,
-    Source
+    Source,
+    UIOrganization as Organization
 } from "../core/usecases/readWriteSillData";
 
 export type {
