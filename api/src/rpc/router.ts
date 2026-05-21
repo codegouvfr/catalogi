@@ -115,7 +115,6 @@ export function createRouter(params: {
     const router = t.router({
         // PUBLIC PROCEDURES
         "getRedirectUrl": loggedProcedure.query(() => redirectUrl),
-        "getExternalSoftwareDataOrigin": loggedProcedure.query(async () => (await dbApi.source.getMainSource()).kind),
         "getApiVersion": loggedProcedure.query(() => projectVersion),
         "getOidcManageProfileUrl": loggedProcedure.query(() => oidcParams.manageProfileUrl),
         "getUiConfig": loggedProcedure.query(async () => ({
