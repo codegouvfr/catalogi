@@ -101,7 +101,13 @@
         "add software button": "Add {{name}} to the $t(common.appAccronym)",
         "update software button": "Update {{name}}",
         "adminOnlyCustomAttributeBadge": "Admin-only field",
-        "adminOnlyCustomAttributeHint": "You are editing this field with administrator privileges. Non-admin contributors cannot change it."
+        "adminOnlyCustomAttributeHint": "You are editing this field with administrator privileges. Non-admin contributors cannot change it.",
+        "dereferencingProtectionLabel": "Protect this software from dereferencing",
+        "dereferencingProtectionHint": "Only administrators can change this protection.",
+        "dereferencingProtectionReasonLabel": "Protection reason",
+        "editionProtectionLabel": "Protect this software from editing",
+        "editionProtectionHint": "Only administrators can edit protected software.",
+        "editionProtectionReasonLabel": "Protection reason"
     },
     "softwareFormStep1": {
         "software desktop": "Desktop or mobile installable software",
@@ -232,6 +238,10 @@
         "become referent": "Become referent",
         "please provide a reason for unreferencing this software": "Please provide a reason why you think this software should not be in the $t(common.appAccronym) anymore",
         "unreference software": "Dereference the software",
+        "protectedFromUnreferencingTitle": "Protected software",
+        "protectedFromUnreferencingDescription": "This software is protected and cannot be dereferenced. Contact an administrator if you think it should be removed from the catalogue.",
+        "protectedFromEditingTitle": "Protected software",
+        "protectedFromEditingDescription": "This software is protected and cannot be edited. Contact an administrator if changes are needed.",
         "error": {
             "title": "Software not found",
             "notFound": "The requested software could not be found in the catalog. It may have been removed or the name might be incorrect.",

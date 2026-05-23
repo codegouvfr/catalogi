@@ -2,5 +2,14 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-export type { Os, RuntimePlatform, SimilarSoftware, Software } from "./SoftwareTypes";
+export type {
+    Os,
+    RuntimePlatform,
+    SimilarSoftware,
+    Software,
+    SoftwareProtection,
+    SoftwareProtections,
+    SoftwareProtectionData,
+    SoftwareProtectionsData
+} from "./SoftwareTypes";
 export { osValues } from "./SoftwareTypes";

@@ -31,6 +31,7 @@ export type SoftwareExtrinsicRow = Pick<
     "name" | "dereferencing" | "isStillInObservation" | "customAttributes" | "addedByUserId"
 > & {
     nameOverride: string | null;
+    protections?: DatabaseDataType.SoftwareRow["protections"];
     description: LocalizedString | null;
     license: string | null;
     image: string | null;

@@ -4,22 +4,41 @@
 
 import { DbApiV2, WithUserId } from "../ports/DbApiV2";
 import { SoftwareFormData } from "./readWriteSillData";
+import { resolveSoftwareFormDataProtections } from "./resolveSoftwareFormDataProtection";
+import { SoftwareEditionProtectedError, SoftwareNotFoundError } from "./softwareErrors";
 
 export type UpdateSoftware = (
     params: {
         formData: SoftwareFormData;
         softwareId: number;
+        isAdmin?: boolean;
     } & WithUserId
 ) => Promise<void>;
 
 export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
     (dbApi: DbApiV2) =>
-    async ({ formData, userId, softwareId }) => {
+    async ({ formData, userId, softwareId, isAdmin = false }) => {
+        const existing = await dbApi.software.getBySoftwareId(softwareId);
+        if (!existing) throw new SoftwareNotFoundError();
+
+        // Edition protection freezes the software's own form data; satellite data
+        // (instances, user/referent declarations) intentionally stays editable.
+        if (existing.protections?.edition?.isProtected === true && !isAdmin) {
+            throw new SoftwareEditionProtectedError();
+        }
+
+        const protections = resolveSoftwareFormDataProtections({
+            formDataProtections: formData.protections,
+            existingProtections: existing.protections,
+            currentUser: { id: userId, role: isAdmin ? "admin" : "user" },
+            now: new Date().toISOString()
+        });
+
         const { similarSoftwareExternalDataItems, ...formFields } = formData;
 
         await dbApi.software.update({
             software: {
-                name: formFields.name,
+                name: formFields.name.trim(),
                 nameOverride: formFields.nameOverride,
                 description: formFields.description === null ? null : { fr: formFields.description },
                 license: formFields.license,
@@ -27,6 +46,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 dereferencing: undefined,
                 isStillInObservation: false,
                 customAttributes: formFields.customAttributes,
+                protections,
                 operatingSystems: formFields.operatingSystems,
                 runtimePlatforms: formFields.runtimePlatforms,
                 applicationCategories: [],

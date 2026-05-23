@@ -71,6 +71,7 @@ export namespace State {
               }
             | undefined;
         customAttributes: ApiTypes.CustomAttributes | undefined;
+        protections: ApiTypes.SoftwareDetail["protections"];
         supportedPlatforms: {
             isInstallableOnUserComputer: boolean | undefined;
             isAvailableAsMobileApp: boolean | undefined;

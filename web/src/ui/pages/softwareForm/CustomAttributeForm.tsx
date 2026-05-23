@@ -4,13 +4,26 @@ import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
 import type { ApiTypes } from "api";
 import type { NonPostableEvt } from "evt";
 import { useEvt } from "evt/hooks";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import type { FieldErrors, UseFormRegister } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useCoreState } from "../../../core";
 import type { FormData } from "../../../core/usecases/softwareForm";
 import { useLang } from "../../i18n";
+
+type SoftwareProtectionFormFieldPrefix = "dereferencing" | "edition";
+
+// Underscores are illegal in custom attribute names (^[a-zA-Z][a-zA-Z0-9]*$),
+// so these field names can never collide with an admin-defined attribute.
+type SoftwareProtectionFormValues = Record<
+    `protection_${SoftwareProtectionFormFieldPrefix}_${"isProtected" | "reason"}`,
+    string | undefined
+>;
+
+type CustomAttributesFormValues = ApiTypes.CustomAttributes &
+    SoftwareProtectionFormValues;
 
 export const CustomAttributesForm = ({
     className,
@@ -33,8 +46,12 @@ export const CustomAttributesForm = ({
             ) ?? [],
         [attributeDefinitions, isAdmin]
     );
+    const { t } = useTranslation();
     const [submitButtonElement, setSubmitButtonElement] =
         useState<HTMLButtonElement | null>(null);
+    const initialCustomAttributes = initialFormData?.customAttributes;
+    const initialDereferencingProtection = initialFormData?.protections?.dereferencing;
+    const initialEditionProtection = initialFormData?.protections?.edition;
 
     useEvt(
         ctx => {
@@ -50,12 +67,35 @@ export const CustomAttributesForm = ({
     const {
         handleSubmit,
         register,
+        watch,
+        trigger,
         formState: { errors }
-    } = useForm<ApiTypes.CustomAttributes>({
-        defaultValues: initialFormData
+    } = useForm<CustomAttributesFormValues>({
+        defaultValues: {
+            ...(initialCustomAttributes ?? {}),
+            protection_dereferencing_isProtected:
+                initialDereferencingProtection?.isProtected === true ? "true" : "false",
+            protection_dereferencing_reason: initialDereferencingProtection?.reason ?? "",
+            protection_edition_isProtected:
+                initialEditionProtection?.isProtected === true ? "true" : "false",
+            protection_edition_reason: initialEditionProtection?.reason ?? ""
+        }
     });
 
-    if (!attributeDefinitions || attributeDefinitions.length === 0) return null;
+    // Live feedback on the required-reason rule: react-hook-form only revalidates
+    // after the first submit in its default mode, so revalidate the reason fields
+    // ourselves whenever a protection radio flips.
+    const dereferencingIsProtected = watch("protection_dereferencing_isProtected");
+    const editionIsProtected = watch("protection_edition_isProtected");
+    useEffect(() => {
+        trigger(["protection_dereferencing_reason", "protection_edition_reason"]);
+    }, [trigger, dereferencingIsProtected, editionIsProtected]);
+
+    // Wait for attributeDefinitions to load before rendering — otherwise an admin
+    // could submit while the (admin-only) attributes haven't loaded and
+    // `getHiddenInitialValues` would silently drop them.
+    if (attributeDefinitions === undefined) return null;
+    if (attributeDefinitions.length === 0 && !isAdmin) return null;
 
     return (
         <form
@@ -74,14 +114,35 @@ export const CustomAttributesForm = ({
                     });
 
                     const hiddenInitialValues = getHiddenInitialValues({
-                        attributeDefinitions,
+                        attributeDefinitions: attributeDefinitions ?? [],
                         renderedAttributeDefinitions,
-                        initialFormData
+                        initialFormData: initialCustomAttributes
                     });
 
                     onSubmit({
-                        ...valuesWithCorrectType,
-                        ...hiddenInitialValues
+                        customAttributes: {
+                            ...valuesWithCorrectType,
+                            ...hiddenInitialValues
+                        },
+                        protections: isAdmin
+                            ? {
+                                  dereferencing: {
+                                      isProtected:
+                                          values.protection_dereferencing_isProtected ===
+                                          "true",
+                                      reason:
+                                          values.protection_dereferencing_reason?.trim() ||
+                                          null
+                                  },
+                                  edition: {
+                                      isProtected:
+                                          values.protection_edition_isProtected ===
+                                          "true",
+                                      reason:
+                                          values.protection_edition_reason?.trim() || null
+                                  }
+                              }
+                            : initialFormData?.protections
                     });
                 },
                 err => {
@@ -89,11 +150,31 @@ export const CustomAttributesForm = ({
                 }
             )}
         >
+            {isAdmin && (
+                <>
+                    <SoftwareProtectionFormSection
+                        fieldPrefix="dereferencing"
+                        labelText={t("softwareForm.dereferencingProtectionLabel")}
+                        hintText={t("softwareForm.dereferencingProtectionHint")}
+                        reasonLabel={t("softwareForm.dereferencingProtectionReasonLabel")}
+                        register={register}
+                        errors={errors}
+                    />
+                    <SoftwareProtectionFormSection
+                        fieldPrefix="edition"
+                        labelText={t("softwareForm.editionProtectionLabel")}
+                        hintText={t("softwareForm.editionProtectionHint")}
+                        reasonLabel={t("softwareForm.editionProtectionReasonLabel")}
+                        register={register}
+                        errors={errors}
+                    />
+                </>
+            )}
             {renderedAttributeDefinitions.map(attributeDefinition => (
                 <CustomAttributeFormField
                     key={attributeDefinition.name}
                     attributeDefinition={attributeDefinition}
-                    initialValue={initialFormData?.[attributeDefinition.name]}
+                    initialValue={initialCustomAttributes?.[attributeDefinition.name]}
                     register={register}
                     errors={errors}
                 />
@@ -104,6 +185,86 @@ export const CustomAttributesForm = ({
                 type="submit"
             />
         </form>
+    );
+};
+
+const SoftwareProtectionFormSection = ({
+    fieldPrefix,
+    labelText,
+    hintText,
+    reasonLabel,
+    register,
+    errors
+}: {
+    fieldPrefix: SoftwareProtectionFormFieldPrefix;
+    labelText: ReactNode;
+    hintText: ReactNode;
+    reasonLabel: ReactNode;
+    register: UseFormRegister<CustomAttributesFormValues>;
+    errors: FieldErrors<CustomAttributesFormValues>;
+}) => {
+    const { t } = useTranslation();
+    const isProtectedFieldName = `protection_${fieldPrefix}_isProtected` as const;
+    const reasonFieldName = `protection_${fieldPrefix}_reason` as const;
+
+    const label = (
+        <>
+            {labelText}{" "}
+            <span
+                className={fr.cx(
+                    "fr-badge",
+                    "fr-badge--sm",
+                    "fr-badge--yellow-tournesol"
+                )}
+            >
+                <i
+                    className={fr.cx("fr-icon-lock-line", "fr-icon--sm", "fr-mr-1v")}
+                    aria-hidden="true"
+                />
+                {t("softwareForm.adminOnlyCustomAttributeBadge")}
+            </span>
+        </>
+    );
+
+    return (
+        <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
+            <div className={fr.cx("fr-col-12", "fr-col-md-6")}>
+                <RadioButtons
+                    legend={label}
+                    hintText={<strong>{hintText}</strong>}
+                    options={[
+                        {
+                            label: t("app.yes"),
+                            nativeInputProps: {
+                                ...register(isProtectedFieldName),
+                                value: "true"
+                            }
+                        },
+                        {
+                            label: t("app.no"),
+                            nativeInputProps: {
+                                ...register(isProtectedFieldName),
+                                value: "false"
+                            }
+                        }
+                    ]}
+                />
+            </div>
+            <div className={fr.cx("fr-col-12", "fr-col-md-6")}>
+                <Input
+                    label={reasonLabel}
+                    state={errors[reasonFieldName] !== undefined ? "error" : undefined}
+                    stateRelatedMessage={t("app.required")}
+                    nativeInputProps={{
+                        ...register(reasonFieldName, {
+                            validate: (value, formValues) =>
+                                formValues[isProtectedFieldName] !== "true" ||
+                                (typeof value === "string" && value.trim() !== "")
+                        })
+                    }}
+                />
+            </div>
+        </div>
     );
 };
 
@@ -165,7 +326,7 @@ const CustomAttributeFormField = ({
 }: {
     attributeDefinition: ApiTypes.AttributeDefinition;
     initialValue: ApiTypes.AttributeValue | undefined;
-    register: UseFormRegister<ApiTypes.CustomAttributes>;
+    register: UseFormRegister<CustomAttributesFormValues>;
     errors: FieldErrors<ApiTypes.CustomAttributes>;
 }) => {
     const { lang } = useLang();

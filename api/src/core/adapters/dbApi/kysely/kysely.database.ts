@@ -249,6 +249,18 @@ export type SoftwareExternalDatasTable = {
     runtimePlatforms: JSONColumnType<RuntimePlatform[]> | null;
 };
 
+export type SoftwareProtection = {
+    isProtected: boolean;
+    reason: string | null;
+    updatedAt: string;
+    updatedByUserId: number;
+};
+
+export type SoftwareProtections = {
+    dereferencing?: SoftwareProtection | undefined;
+    edition?: SoftwareProtection | undefined;
+};
+
 type SoftwaresTable = {
     id: Generated<number>;
     name: string; // kept: denormalized for ORDER BY and getByName lookups
@@ -262,6 +274,7 @@ type SoftwaresTable = {
     }> | null;
     isStillInObservation: boolean;
     customAttributes: JSONColumnType<Record<string, any>> | null;
+    protections: JSONColumnType<SoftwareProtections> | null;
     addedByUserId: number;
 };
 

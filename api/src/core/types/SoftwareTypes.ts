@@ -8,8 +8,12 @@ import type {
     SchemaOrganization,
     SchemaIdentifier,
     ScholarlyArticle,
-    RepoMetadata
+    RepoMetadata,
+    SoftwareProtection,
+    SoftwareProtections
 } from "../adapters/dbApi/kysely/kysely.database";
+
+export type { SoftwareProtection, SoftwareProtections };
 import type { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
 import type { Instance } from "../usecases/readWriteSillData/types";
 
@@ -26,6 +30,14 @@ export type Dereferencing = {
     time: string;
     lastRecommendedVersion: string | undefined;
     dereferencedByUserId: number;
+};
+
+/** What clients may see/submit about a protection — audit fields stay server-side. */
+export type SoftwareProtectionData = Pick<SoftwareProtection, "isProtected" | "reason">;
+
+export type SoftwareProtectionsData = {
+    dereferencing?: SoftwareProtectionData | undefined;
+    edition?: SoftwareProtectionData | undefined;
 };
 
 export type SimilarSoftware = {
@@ -77,6 +89,7 @@ export type Software = SoftwareData & {
     externalId: string | undefined;
     sourceSlug: string | undefined;
     dereferencing: Dereferencing | undefined;
+    protections?: SoftwareProtectionsData | undefined;
     customAttributes: CustomAttributes | undefined;
     userAndReferentCountByOrganization:
         | Record<
@@ -104,6 +117,7 @@ export type SoftwareExternal = Software & {
     sourceSlug: string;
     id: number | undefined;
     dereferencing: undefined;
+    protections?: undefined;
     customAttributes: undefined;
     userAndReferentCountByOrganization: undefined;
     hasExpertReferent: undefined;

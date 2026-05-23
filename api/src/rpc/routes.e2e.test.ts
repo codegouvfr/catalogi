@@ -26,6 +26,37 @@ describe("RPC e2e tests", () => {
     let apiCaller: ApiCaller;
     let kyselyDb: Kysely<Database>;
 
+    const adminUser: typeof defaultUser = {
+        ...defaultUser,
+        id: 1,
+        email: "admin.user@mail.com",
+        role: "admin"
+    };
+
+    const insertSoftwareRow = async (params: {
+        name: string;
+        userId: number;
+        customAttributes?: Record<string, unknown>;
+        protections?: Record<string, unknown>;
+    }) => {
+        const now = new Date().toISOString();
+        const row = await kyselyDb
+            .insertInto("softwares")
+            .values({
+                name: params.name,
+                addedTime: now,
+                updateTime: now,
+                dereferencing: null,
+                isStillInObservation: false,
+                customAttributes: JSON.stringify(params.customAttributes ?? {}),
+                ...(params.protections ? { protections: JSON.stringify(params.protections) } : {}),
+                addedByUserId: params.userId
+            })
+            .returning("id")
+            .executeTakeFirstOrThrow();
+        return row.id;
+    };
+
     describe("stripNullOrUndefined", () => {
         it("removes null and undefined values", () => {
             const stripped = stripNullOrUndefinedValues({
@@ -61,7 +92,9 @@ describe("RPC e2e tests", () => {
         });
 
         it("fails when software is not found", async () => {
-            ({ apiCaller, kyselyDb } = await createTestCaller());
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
             await expect(
                 apiCaller.createUserOrReferent({
                     formData: declarationFormData,
@@ -83,13 +116,6 @@ describe("RPC e2e tests", () => {
     });
 
     describe("admin-only custom attributes", () => {
-        const adminUser: typeof defaultUser = {
-            ...defaultUser,
-            id: 1,
-            email: "admin.user@mail.com",
-            role: "admin"
-        };
-
         const insertAttributeDefinition = async (params: {
             name: string;
             editableByAdminOnly: boolean;
@@ -114,28 +140,6 @@ describe("RPC e2e tests", () => {
                     updatedAt: new Date()
                 })
                 .execute();
-        };
-
-        const insertSoftwareRow = async (params: {
-            name: string;
-            customAttributes: Record<string, unknown>;
-            userId: number;
-        }) => {
-            const now = new Date().toISOString();
-            const row = await kyselyDb
-                .insertInto("softwares")
-                .values({
-                    name: params.name,
-                    addedTime: now,
-                    updateTime: now,
-                    dereferencing: null,
-                    isStillInObservation: false,
-                    customAttributes: JSON.stringify(params.customAttributes),
-                    addedByUserId: params.userId
-                })
-                .returning("id")
-                .executeTakeFirstOrThrow();
-            return row.id;
         };
 
         it("allows admins to create and update the admin-only editability flag", async () => {
@@ -341,6 +345,347 @@ describe("RPC e2e tests", () => {
                 .executeTakeFirstOrThrow();
 
             expect(software.customAttributes).toEqual({ adminOnlyAdminFlag: true });
+        });
+    });
+
+    describe("software protections", () => {
+        const insertSoftwareWithProtections = async (params: {
+            name: string;
+            protections: {
+                dereferencing?: { isProtected: boolean };
+                edition?: { isProtected: boolean };
+            };
+        }) => {
+            const now = new Date().toISOString();
+            const toProtection = (isProtected: boolean) => ({
+                isProtected,
+                reason: "Sensitive catalogue entry",
+                updatedAt: now,
+                updatedByUserId: adminUser.id
+            });
+            return insertSoftwareRow({
+                name: params.name,
+                userId: adminUser.id,
+                protections: {
+                    ...(params.protections.dereferencing
+                        ? { dereferencing: toProtection(params.protections.dereferencing.isProtected) }
+                        : {}),
+                    ...(params.protections.edition
+                        ? { edition: toProtection(params.protections.edition.isProtected) }
+                        : {})
+                }
+            });
+        };
+
+        it("ignores dereferencing protection on non-admin software creation", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+
+            await apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Non-admin protected create test",
+                    // no external id → no live wikidata fetch after creation
+                    externalIdForSource: undefined,
+                    similarSoftwareExternalDataItems: [],
+                    protections: {
+                        dereferencing: {
+                            isProtected: true,
+                            reason: "Should be ignored"
+                        }
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("name", "=", "Non-admin protected create test")
+                .executeTakeFirstOrThrow();
+
+            expect(software.protections?.dereferencing).toBeUndefined();
+        });
+
+        it("allows admins to create protected software with audit metadata", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+
+            await apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin protected create test",
+                    externalIdForSource: undefined,
+                    similarSoftwareExternalDataItems: [],
+                    protections: {
+                        dereferencing: {
+                            isProtected: true,
+                            reason: "Sensitive catalogue entry"
+                        }
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("name", "=", "Admin protected create test")
+                .executeTakeFirstOrThrow();
+
+            expect(software.protections?.dereferencing).toMatchObject({
+                isProtected: true,
+                reason: "Sensitive catalogue entry",
+                updatedByUserId: adminUser.id
+            });
+            expect(software.protections?.dereferencing?.updatedAt).toEqual(expect.any(String));
+        });
+
+        it("prevents non-admins from unreferencing protected software", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+            const softwareId = await insertSoftwareWithProtections({
+                name: "Unreference protection test",
+                protections: { dereferencing: { isProtected: true } }
+            });
+
+            await expect(apiCaller.unreferenceSoftware({ softwareId, reason: "Remove it" })).rejects.toThrow(
+                "Software is protected from unreferencing"
+            );
+        });
+
+        it("allows admins to unreference protected software", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+            const softwareId = await insertSoftwareWithProtections({
+                name: "Admin unreference test",
+                protections: { dereferencing: { isProtected: true } }
+            });
+
+            await apiCaller.unreferenceSoftware({ softwareId, reason: "Admin removal" });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.dereferencing).toMatchObject({
+                reason: "Admin removal",
+                dereferencedByUserId: adminUser.id
+            });
+        });
+
+        it("rejects admin-protected creation without a reason", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+
+            await expect(
+                apiCaller.createSoftware({
+                    formData: createSoftwareFormData({
+                        sourceSlug: testSource.slug,
+                        name: "Protection without reason test",
+                        externalIdForSource: undefined,
+                        similarSoftwareExternalDataItems: [],
+                        protections: {
+                            dereferencing: {
+                                isProtected: true,
+                                reason: "   "
+                            }
+                        }
+                    })
+                })
+            ).rejects.toThrow("Protected software requires a dereferencing protection reason");
+        });
+
+        it("prevents non-admins from lifting protections through software updates", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+            const softwareId = await insertSoftwareWithProtections({
+                name: "Protection strip test",
+                protections: { dereferencing: { isProtected: true } }
+            });
+
+            await apiCaller.updateSoftware({
+                softwareSillId: softwareId,
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Protection strip test",
+                    similarSoftwareExternalDataItems: [],
+                    protections: {
+                        dereferencing: {
+                            isProtected: false,
+                            reason: null
+                        }
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.protections?.dereferencing).toMatchObject({
+                isProtected: true,
+                reason: "Sensitive catalogue entry"
+            });
+        });
+
+        it("allows admins to lift a protection with fresh audit metadata", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+            const softwareId = await insertSoftwareWithProtections({
+                name: "Protection lift test",
+                protections: { edition: { isProtected: true } }
+            });
+
+            await apiCaller.updateSoftware({
+                softwareSillId: softwareId,
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Protection lift test",
+                    similarSoftwareExternalDataItems: [],
+                    protections: {
+                        edition: {
+                            isProtected: false,
+                            reason: null
+                        }
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.protections?.edition).toMatchObject({
+                isProtected: false,
+                updatedByUserId: adminUser.id
+            });
+        });
+
+        it("ignores edition protection on non-admin software creation", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+
+            await apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Non-admin edition protected create test",
+                    externalIdForSource: undefined,
+                    similarSoftwareExternalDataItems: [],
+                    protections: {
+                        edition: {
+                            isProtected: true,
+                            reason: "Should be ignored"
+                        }
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("name", "=", "Non-admin edition protected create test")
+                .executeTakeFirstOrThrow();
+
+            expect(software.protections?.edition).toBeUndefined();
+        });
+
+        it("allows admins to create edition-protected software with audit metadata", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+
+            await apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin edition protected create test",
+                    externalIdForSource: undefined,
+                    similarSoftwareExternalDataItems: [],
+                    protections: {
+                        edition: {
+                            isProtected: true,
+                            reason: "Sensitive edition entry"
+                        }
+                    }
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("name", "=", "Admin edition protected create test")
+                .executeTakeFirstOrThrow();
+
+            expect(software.protections?.edition).toMatchObject({
+                isProtected: true,
+                reason: "Sensitive edition entry",
+                updatedByUserId: adminUser.id
+            });
+            expect(software.protections?.edition?.updatedAt).toEqual(expect.any(String));
+        });
+
+        it("prevents non-admins from updating edition-protected software", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+            const softwareId = await insertSoftwareWithProtections({
+                name: "Blocked edition update",
+                protections: { edition: { isProtected: true } }
+            });
+
+            await expect(
+                apiCaller.updateSoftware({
+                    softwareSillId: softwareId,
+                    formData: createSoftwareFormData({
+                        sourceSlug: testSource.slug,
+                        name: "Blocked edition update",
+                        similarSoftwareExternalDataItems: []
+                    })
+                })
+            ).rejects.toThrow("Software is protected from editing");
+        });
+
+        it("allows admins to update edition-protected software", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+            const softwareId = await insertSoftwareWithProtections({
+                name: "Admin edition update",
+                protections: { edition: { isProtected: true } }
+            });
+
+            await apiCaller.updateSoftware({
+                softwareSillId: softwareId,
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin edition update",
+                    similarSoftwareExternalDataItems: []
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(software.name).toBe("Admin edition update");
+            expect(software.protections?.edition).toMatchObject({
+                isProtected: true,
+                reason: "Sensitive catalogue entry"
+            });
         });
     });
 

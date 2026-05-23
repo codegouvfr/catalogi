@@ -24,16 +24,29 @@ test("add a new software and verify it appears in the catalog", async ({ page })
     await page.getByLabel("Mot-clés").fill("e2e, test");
     await page.getByRole("button", { name: "Suivant" }).click();
 
-    // Step 3: custom attributes — select first radio ("Oui") in each group
+    // Step 3: custom attributes — select first radio ("Oui") in each group.
+    // Skip the admin-only protection groups: checking "Oui" there makes the
+    // reason field required and would block the step validation.
     const radioGroups = page.getByRole("group");
     const radioGroupCount = await radioGroups.count();
 
     for (let i = 0; i < radioGroupCount; i++) {
         const group = radioGroups.nth(i);
         const firstRadio = group.getByRole("radio").first();
-        if (await firstRadio.isVisible().catch(() => false)) {
-            await firstRadio.check({ force: true });
+        if (!(await firstRadio.isVisible().catch(() => false))) {
+            continue;
         }
+        const radioName = await firstRadio.getAttribute("name");
+        if (radioName?.startsWith("protection_")) {
+            continue;
+        }
+        // Center the radio in the viewport first: Playwright's minimal scroll
+        // leaves it at the bottom edge, behind the sticky actions footer, and
+        // the forced click would land on the footer instead of the radio.
+        await firstRadio.evaluate(el =>
+            el.scrollIntoView({ block: "center", behavior: "instant" })
+        );
+        await firstRadio.check({ force: true });
     }
 
     await page.getByRole("button", { name: "Suivant" }).click();

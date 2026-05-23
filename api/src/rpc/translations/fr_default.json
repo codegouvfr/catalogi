@@ -103,7 +103,13 @@
         "add software button": "Ajouter {{name}} au $t(common.appAccronym)",
         "update software button": "Mettre à jour {{name}}",
         "adminOnlyCustomAttributeBadge": "Champ administrateur",
-        "adminOnlyCustomAttributeHint": "Vous modifiez ce champ avec des droits administrateur. Les contributeurs non administrateurs ne peuvent pas le modifier."
+        "adminOnlyCustomAttributeHint": "Vous modifiez ce champ avec des droits administrateur. Les contributeurs non administrateurs ne peuvent pas le modifier.",
+        "dereferencingProtectionLabel": "Protéger ce logiciel contre le déréférencement",
+        "dereferencingProtectionHint": "Seuls les administrateurs peuvent modifier cette protection.",
+        "dereferencingProtectionReasonLabel": "Raison de la protection",
+        "editionProtectionLabel": "Protéger ce logiciel contre la modification",
+        "editionProtectionHint": "Seuls les administrateurs peuvent modifier un logiciel protégé.",
+        "editionProtectionReasonLabel": "Raison de la protection"
     },
     "softwareFormStep1": {
         "software desktop": "Logiciel installable sur poste de travail",
@@ -235,6 +241,10 @@
         "become referent": "Devenir référent",
         "please provide a reason for unreferencing this software": "Merci de préciser la raison pour laquelle vous estimez que ce logiciel ne devrait plus être référencé dans le $t(common.appAccronym)",
         "unreference software": "Dé-référencer le logiciel",
+        "protectedFromUnreferencingTitle": "Logiciel protégé",
+        "protectedFromUnreferencingDescription": "Ce logiciel est protégé et ne peut pas être déréférencé. Contactez un administrateur si vous pensez qu’il doit être retiré du catalogue.",
+        "protectedFromEditingTitle": "Logiciel protégé",
+        "protectedFromEditingDescription": "Ce logiciel est protégé et ne peut pas être modifié. Contactez un administrateur si des changements sont nécessaires.",
         "error": {
             "title": "Logiciel introuvable",
             "notFound": "Le logiciel demandé n'a pas pu être trouvé dans le catalogue. Il a peut-être été supprimé ou le nom pourrait être incorrect.",

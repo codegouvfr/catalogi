@@ -77,6 +77,14 @@ export default function SoftwareDetails(props: Props) {
         if (uiConfig?.softwareDetails.defaultLogo) return softwareLogoPlaceholder;
     };
 
+    const canCurrentUserBypassSoftwareProtections = currentUser?.role === "admin";
+    const showUnreferencingProtectionAlert =
+        software.protections?.dereferencing?.isProtected === true &&
+        !canCurrentUserBypassSoftwareProtections;
+    const showEditionProtectionAlert =
+        software.protections?.edition?.isProtected === true &&
+        !canCurrentUserBypassSoftwareProtections;
+
     return (
         <>
             <div className={className}>
@@ -298,49 +306,70 @@ export default function SoftwareDetails(props: Props) {
                             userCount={software.userCount ?? 0}
                         />
                         <div className={classes.buttons}>
-                            {software.dereferencing === undefined && (
+                            {software.dereferencing === undefined &&
+                                (showUnreferencingProtectionAlert ? (
+                                    <Alert
+                                        severity="info"
+                                        title={t(
+                                            "softwareDetails.protectedFromUnreferencingTitle"
+                                        )}
+                                        description={t(
+                                            "softwareDetails.protectedFromUnreferencingDescription"
+                                        )}
+                                    />
+                                ) : (
+                                    <Button
+                                        priority="secondary"
+                                        disabled={isUnreferencingOngoing}
+                                        onClick={() => {
+                                            if (!currentUser) {
+                                                userAuthentication.login();
+                                                return;
+                                            }
+
+                                            const userInput = window.prompt(
+                                                t(
+                                                    "softwareDetails.please provide a reason for unreferencing this software"
+                                                )
+                                            );
+
+                                            if (userInput === null || userInput === "") {
+                                                return;
+                                            }
+
+                                            softwareDetails.unreference({
+                                                reason: userInput
+                                            });
+                                        }}
+                                    >
+                                        {isUnreferencingOngoing ? (
+                                            <CircularProgress size={17} />
+                                        ) : (
+                                            t("softwareDetails.unreference software")
+                                        )}
+                                    </Button>
+                                ))}
+
+                            {showEditionProtectionAlert ? (
+                                <Alert
+                                    severity="info"
+                                    title={t("softwareDetails.protectedFromEditingTitle")}
+                                    description={t(
+                                        "softwareDetails.protectedFromEditingDescription"
+                                    )}
+                                />
+                            ) : (
                                 <Button
                                     priority="secondary"
-                                    disabled={isUnreferencingOngoing}
-                                    onClick={() => {
-                                        if (!currentUser) {
-                                            userAuthentication.login();
-                                            return;
-                                        }
-
-                                        const userInput = window.prompt(
-                                            t(
-                                                "softwareDetails.please provide a reason for unreferencing this software"
-                                            )
-                                        );
-
-                                        if (userInput === null || userInput === "") {
-                                            return;
-                                        }
-
-                                        softwareDetails.unreference({
-                                            reason: userInput
-                                        });
-                                    }}
+                                    linkProps={
+                                        routes.softwareUpdateForm({
+                                            id: software.id
+                                        }).link
+                                    }
                                 >
-                                    {isUnreferencingOngoing ? (
-                                        <CircularProgress size={17} />
-                                    ) : (
-                                        t("softwareDetails.unreference software")
-                                    )}
+                                    {t("softwareDetails.edit software")}
                                 </Button>
                             )}
-
-                            <Button
-                                priority="secondary"
-                                linkProps={
-                                    routes.softwareUpdateForm({
-                                        id: software.id
-                                    }).link
-                                }
-                            >
-                                {t("softwareDetails.edit software")}
-                            </Button>
                             {(() => {
                                 const declarationType = userDeclaration?.isReferent
                                     ? "referent"

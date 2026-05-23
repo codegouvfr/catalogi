@@ -132,7 +132,10 @@ export const thunks = {
                                             image: userInputSource?.image !== undefined
                                         }
                                     },
-                                    step3: software.customAttributes,
+                                    step3: {
+                                        customAttributes: software.customAttributes,
+                                        protections: software.protections
+                                    },
                                     step4: {
                                         similarSoftwares: software.similarSoftwares.map(
                                             similarSoftware => ({
@@ -230,7 +233,8 @@ export const thunks = {
                     ? step2.description
                     : null,
                 license: step2.userInputOverrides.license ? step2.license : null,
-                customAttributes: step3,
+                customAttributes: step3.customAttributes,
+                protections: step3.protections,
                 similarSoftwareExternalDataItems: formDataStep4.similarSoftwares.map(
                     ({ externalId, sourceSlug, name, description, isLibreSoftware }) => ({
                         externalId,

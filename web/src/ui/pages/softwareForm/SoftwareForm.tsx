@@ -10,6 +10,7 @@ import { SoftwareFormStep2 } from "ui/pages/softwareForm/Step2";
 import { SoftwareFormStep3 } from "ui/pages/softwareForm/Step3";
 import { SoftwareFormStep4 } from "ui/pages/softwareForm/Step4";
 import { tss } from "tss-react";
+import { Alert } from "@codegouvfr/react-dsfr/Alert";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { fr } from "@codegouvfr/react-dsfr";
 import { useConst } from "powerhooks/useConst";
@@ -41,6 +42,7 @@ export default function SoftwareForm(props: Props) {
 
     const { isReady, step, formData, isSubmitting, isLastStep, dataBySource } =
         useCoreState("softwareForm", "main");
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
 
     const { evtSoftwareForm } = useCore().evts;
     const { softwareForm } = useCore().functions;
@@ -94,6 +96,27 @@ export default function SoftwareForm(props: Props) {
 
     if (!isReady) {
         return <LoadingFallback className={className} showAfterMs={150} />;
+    }
+
+    // Server-side updateSoftware rejects this anyway (FORBIDDEN); blocking here
+    // spares non-admins from filling four steps before learning the software is protected.
+    if (
+        route.name === "softwareUpdateForm" &&
+        formData.step3?.protections?.edition?.isProtected === true &&
+        currentUser?.role !== "admin"
+    ) {
+        return (
+            <div className={className}>
+                <div className={fr.cx("fr-container")}>
+                    <Alert
+                        className={fr.cx("fr-my-6v")}
+                        severity="info"
+                        title={t("softwareDetails.protectedFromEditingTitle")}
+                        description={t("softwareDetails.protectedFromEditingDescription")}
+                    />
+                </div>
+            </div>
+        );
     }
 
     return (

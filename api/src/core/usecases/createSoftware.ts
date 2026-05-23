@@ -3,17 +3,24 @@
 // SPDX-License-Identifier: MIT
 
 import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
-import { SoftwareFormData } from "./readWriteSillData";
+import { SoftwareFormData, SoftwareProtections } from "./readWriteSillData";
+import { resolveSoftwareFormDataProtections } from "./resolveSoftwareFormDataProtection";
+import { SoftwareAlreadyExistsError } from "./softwareErrors";
 
 export type CreateSoftware = (
     params: {
         formData: SoftwareFormData;
+        isAdmin?: boolean;
     } & WithUserId
 ) => Promise<number>;
 
-export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => {
+export const formDataToSoftwareRow = (
+    softwareForm: SoftwareFormData,
+    userId: number,
+    protections: SoftwareProtections | undefined
+): SoftwareExtrinsicCreation => {
     return {
-        name: softwareForm.name,
+        name: softwareForm.name.trim(),
         nameOverride: softwareForm.nameOverride,
         description: softwareForm.description === null ? null : { fr: softwareForm.description },
         license: softwareForm.license,
@@ -27,6 +34,7 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
         addedByUserId: userId,
         keywords: softwareForm.keywords,
         customAttributes: softwareForm.customAttributes,
+        protections,
         isLibreSoftware: softwareForm.isLibreSoftware,
         url: softwareForm.url,
         codeRepositoryUrl: softwareForm.codeRepositoryUrl,
@@ -43,24 +51,26 @@ export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: nu
 
 const textUC = "CreateSoftware";
 
-const resolveExistingSoftwareId = async ({
+type ExistingSoftwareMatch = { softwareId: number; matchedBy: "name" | "externalId" };
+
+const resolveExistingSoftware = async ({
     dbApi,
     formData
 }: {
     dbApi: DbApiV2;
     formData: SoftwareFormData;
-}): Promise<number | undefined> => {
+}): Promise<ExistingSoftwareMatch | undefined> => {
     const { name: softwareName, externalIdForSource, sourceSlug } = formData;
     const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
     const source = await dbApi.source.getByName({ name: sourceSlug });
     if (!source) throw new Error("Source slug is unknown");
 
-    const named = await dbApi.software.getByName({ softwareName });
+    const named = await dbApi.software.getByName({ softwareName: softwareName.trim() });
 
     if (named) {
         console.log(logTitle, "Name already present, let's take this one");
-        return named.id;
+        return { softwareId: named.id, matchedBy: "name" };
     }
 
     if (externalIdForSource) {
@@ -70,73 +80,70 @@ const resolveExistingSoftwareId = async ({
         });
         if (savedSoftwareId) {
             console.log(logTitle, `External Id from ${sourceSlug} already present`);
-            return savedSoftwareId;
+            return { softwareId: savedSoftwareId, matchedBy: "externalId" };
         }
     }
 
-    // Check if identifiers is saved in external data
+    if (!externalIdForSource) return undefined;
+
+    // Scans every other-source external-data row — only worth it when we have an id to match.
     const savedIdentifers = await dbApi.softwareExternalData.getOtherIdentifierIdsBySourceURL({
         sourceURL: source.url
     });
-    if (savedIdentifers && externalIdForSource && Object.hasOwn(savedIdentifers, externalIdForSource)) {
-        // There is no externalId for this source, but it's already save and we know where !
+    if (savedIdentifers && Object.hasOwn(savedIdentifers, externalIdForSource)) {
         console.info(
             logTitle,
-            ` Importing  ${softwareName}(${externalIdForSource}) from ${source.slug}: Adding externalData to software #${savedIdentifers[externalIdForSource]}`
+            ` ${softwareName}(${externalIdForSource}) from ${source.slug}: known as an other identifier of software #${savedIdentifers[externalIdForSource]}`
         );
-        await dbApi.softwareExternalData.saveMany([
-            {
-                softwareId: savedIdentifers[externalIdForSource],
-                sourceSlug: source.slug,
-                externalId: externalIdForSource
-            }
-        ]);
-
-        return savedIdentifers[externalIdForSource];
+        return { softwareId: savedIdentifers[externalIdForSource], matchedBy: "externalId" };
     }
 
     return undefined;
 };
 
-const resolveOrCreateSoftwareId = async ({
-    dbApi,
-    formData,
-    userId,
-    withUserInput
-}: {
-    dbApi: DbApiV2;
-    formData: SoftwareFormData;
-    userId: number;
-    withUserInput?: boolean;
-}) => {
-    const { name: softwareName, sourceSlug } = formData;
-    const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
-
-    const resolvedId = await resolveExistingSoftwareId({ dbApi, formData });
-
-    if (resolvedId) return resolvedId;
-
-    console.log(logTitle, `The software package isn't save yet, let's create it`);
-    return dbApi.software.create({
-        software: formDataToSoftwareRow(formData, userId),
-        ...(!withUserInput
-            ? {
-                  sourceSlug: formData.sourceSlug,
-                  externalId: formData.externalIdForSource
-              }
-            : {})
-    });
-};
+const toAlreadyExistsError = (match: ExistingSoftwareMatch, formData: SoftwareFormData): SoftwareAlreadyExistsError =>
+    new SoftwareAlreadyExistsError(
+        match.matchedBy === "name"
+            ? `Software already exists with name : ${formData.name.trim()}`
+            : `Software already exists with external id ${formData.externalIdForSource} from source ${formData.sourceSlug}`
+    );
 
 export const makeCreateSofware: (params: { dbApi: DbApiV2; withUserInput: boolean }) => CreateSoftware = params => {
     const { dbApi, withUserInput } = params;
-    return async ({ formData, userId }) => {
+    return async ({ formData, userId, isAdmin = false }) => {
         const { name: softwareName, similarSoftwareExternalDataItems, externalIdForSource, sourceSlug } = formData;
         const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const softwareId = await resolveOrCreateSoftwareId({ formData, userId, dbApi, withUserInput });
+        const match = await resolveExistingSoftware({ dbApi, formData });
+
+        // Users must go through updateSoftware (which enforces edition protection);
+        // silently merging here would also discard any admin-requested protections.
+        if (match && withUserInput) throw toAlreadyExistsError(match, formData);
+
+        let softwareId: number;
+        if (match) {
+            softwareId = match.softwareId;
+        } else {
+            const resolvedProtections = resolveSoftwareFormDataProtections({
+                formDataProtections: formData.protections,
+                existingProtections: undefined,
+                currentUser: { id: userId, role: isAdmin ? "admin" : "user" },
+                now: new Date().toISOString()
+            });
+
+            console.log(logTitle, `The software package isn't save yet, let's create it`);
+            softwareId = await dbApi.software.create({
+                software: formDataToSoftwareRow(formData, userId, resolvedProtections),
+                ...(!withUserInput
+                    ? {
+                          sourceSlug: formData.sourceSlug,
+                          externalId: formData.externalIdForSource
+                      }
+                    : {})
+            });
+        }
 
         if (externalIdForSource) {
             const savedExternalData = await dbApi.softwareExternalData.get({
@@ -165,8 +172,6 @@ export const makeCreateSofware: (params: { dbApi: DbApiV2; withUserInput: boolea
                 ]);
                 console.log(`${logTitle} 💾 ${externalIdForSource} now saved and binded with this software`);
             }
-
-            // Do nothing when exist and already linked to software
         }
 
         if (similarSoftwareExternalDataItems && similarSoftwareExternalDataItems.length > 0) {

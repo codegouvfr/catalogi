@@ -51,7 +51,10 @@ export type FormData = {
             image?: boolean;
         };
     };
-    step3: ApiTypes.CustomAttributes | undefined;
+    step3: {
+        customAttributes: ApiTypes.CustomAttributes | undefined;
+        protections: ApiTypes.SoftwareFormData["protections"];
+    };
     step4: {
         similarSoftwares: {
             name: LocalizedString<Language>;

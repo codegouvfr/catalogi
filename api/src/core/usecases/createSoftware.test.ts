@@ -51,6 +51,7 @@ describe("Create software - Trying all the cases", () => {
     let craSoftwareId: number;
     let userId: number;
     let createSoftware: CreateSoftware;
+    let importSoftware: CreateSoftware;
 
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
@@ -68,6 +69,7 @@ describe("Create software - Trying all the cases", () => {
         });
 
         createSoftware = makeCreateSofware({ dbApi, withUserInput: true });
+        importSoftware = makeCreateSofware({ dbApi, withUserInput: false });
     });
 
     it("should insert into three tables", async () => {
@@ -133,13 +135,50 @@ describe("Create software - Trying all the cases", () => {
         console.log(craSoftwareId);
     });
 
-    it("Insert two software with the same name, should not duplicate the software", async () => {
+    it("Rejects a user-input creation when the software already exists (name match)", async () => {
         craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
 
+        await expect(
+            createSoftware({
+                formData: craSoftwareFormData,
+                userId
+            })
+        ).rejects.toThrow("Software already exists with name : Create react app");
+
+        const softwareList = await db.selectFrom("softwares").selectAll().execute();
+        expectToEqual(softwareList.length, 1);
+    });
+
+    it("Rejects a user-input creation when the external id is already linked to a software (different name)", async () => {
         craSoftwareId = await createSoftware({
+            formData: craSoftwareFormData,
+            userId
+        });
+
+        await expect(
+            createSoftware({
+                formData: {
+                    ...craSoftwareFormData,
+                    name: "Create react app 2"
+                },
+                userId
+            })
+        ).rejects.toThrow(`Software already exists with external id Q118629387 from source ${testSource.slug}`);
+
+        const softwareList = await db.selectFrom("softwares").selectAll().execute();
+        expectToEqual(softwareList.length, 1);
+    });
+
+    it("Import two software with the same name, should not duplicate the software", async () => {
+        craSoftwareId = await createSoftware({
+            formData: craSoftwareFormData,
+            userId
+        });
+
+        craSoftwareId = await importSoftware({
             formData: craSoftwareFormData,
             userId
         });
@@ -148,13 +187,13 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
     });
 
-    it("Insert two software with the same name but different external Id, should create a new externalData linked with the saved software package", async () => {
+    it("Import a software with the same name but different external Id, should create a new externalData linked with the saved software package", async () => {
         craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
         });
 
-        craSoftwareId = await createSoftware({
+        craSoftwareId = await importSoftware({
             formData: {
                 ...craSoftwareFormData,
                 externalIdForSource: "Q118629388"
@@ -199,7 +238,7 @@ describe("Create software - Trying all the cases", () => {
         expect(externalDataUpdated?.map(r => r.externalId)).toContain("Q118629387");
     });
 
-    it("Insert a software when externalData is already saved with related software, should not create another software neither new externalData", async () => {
+    it("Import a software when externalData is already saved with related software, should not create another software neither new externalData", async () => {
         craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
@@ -213,7 +252,7 @@ describe("Create software - Trying all the cases", () => {
             name: "Create react app 2"
         };
 
-        craSoftwareId = await createSoftware({
+        craSoftwareId = await importSoftware({
             formData: alteredNameForm,
             userId
         });
@@ -301,7 +340,7 @@ describe("Create software - Trying all the cases", () => {
         });
         expectToEqual(similarExternalData?.length, 2);
 
-        craSoftwareId = await createSoftware({
+        craSoftwareId = await importSoftware({
             formData: {
                 ...craSoftwareFormData,
                 similarSoftwareExternalDataItems: [

@@ -26,6 +26,13 @@ import type { OidcParams } from "../core/usecases/auth/oidcClient";
 import { resolveAdapterFromSource } from "../core/adapters/resolveAdapter";
 import { softwareExternalDataOptionSchema } from "../core/ports/GetSoftwareExternalDataOptions";
 import { sanitizeSoftwareFormDataCustomAttributes } from "../core/usecases/sanitizeSoftwareFormDataCustomAttributes";
+import {
+    ProtectionReasonRequiredError,
+    SoftwareAlreadyExistsError,
+    SoftwareDereferencingProtectedError,
+    SoftwareEditionProtectedError,
+    SoftwareNotFoundError
+} from "../core/usecases/softwareErrors";
 
 export type UseCasesUsedOnRouter = Pick<
     UseCases,
@@ -33,6 +40,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "getSoftwareFormAutoFillDataFromExternalAndOtherSources"
     | "createSoftware"
     | "updateSoftware"
+    | "unreferenceSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
     | "auth"
 >;
@@ -213,15 +221,6 @@ export function createRouter(params: {
             .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData } = input;
 
-                const existingSoftware = await dbApi.software.getByName({ softwareName: formData.name.trim() });
-
-                if (existingSoftware) {
-                    throw new TRPCError({
-                        "code": "CONFLICT",
-                        "message": `Software already exists with name : ${formData.name.trim()}`
-                    });
-                }
-
                 try {
                     const sanitizedFormData = await sanitizeSoftwareFormDataCustomAttributes({
                         dbApi,
@@ -231,11 +230,18 @@ export function createRouter(params: {
 
                     const createdSoftwareId = await useCases.createSoftware({
                         formData: sanitizedFormData,
-                        userId: currentUser.id
+                        userId: currentUser.id,
+                        isAdmin: currentUser.role === "admin"
                     });
 
                     await useCases.fetchAndSaveExternalDataForOneSoftwarePackage({ softwareId: createdSoftwareId });
                 } catch (e) {
+                    if (e instanceof SoftwareAlreadyExistsError) {
+                        throw new TRPCError({ "code": "CONFLICT", "message": e.message });
+                    }
+                    if (e instanceof ProtectionReasonRequiredError) {
+                        throw new TRPCError({ "code": "BAD_REQUEST", "message": e.message });
+                    }
                     throw new TRPCError({
                         "code": "INTERNAL_SERVER_ERROR",
                         "message": String(e)
@@ -259,11 +265,25 @@ export function createRouter(params: {
                     softwareId: softwareSillId
                 });
 
-                await useCases.updateSoftware({
-                    softwareId: softwareSillId,
-                    formData: sanitizedFormData,
-                    userId: currentUser.id
-                });
+                try {
+                    await useCases.updateSoftware({
+                        softwareId: softwareSillId,
+                        formData: sanitizedFormData,
+                        userId: currentUser.id,
+                        isAdmin: currentUser.role === "admin"
+                    });
+                } catch (e) {
+                    if (e instanceof SoftwareNotFoundError) {
+                        throw new TRPCError({ "code": "NOT_FOUND", "message": e.message });
+                    }
+                    if (e instanceof SoftwareEditionProtectedError) {
+                        throw new TRPCError({ "code": "FORBIDDEN", "message": e.message });
+                    }
+                    if (e instanceof ProtectionReasonRequiredError) {
+                        throw new TRPCError({ "code": "BAD_REQUEST", "message": e.message });
+                    }
+                    throw e;
+                }
             }),
         "createUserOrReferent": protectedProcedure
             .input(
@@ -448,12 +468,22 @@ export function createRouter(params: {
             .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { softwareId, reason } = input;
 
-                await dbApi.software.unreference({
-                    softwareId,
-                    reason,
-                    time: new Date().toISOString(),
-                    dereferencedByUserId: currentUser.id
-                });
+                try {
+                    await useCases.unreferenceSoftware({
+                        softwareId,
+                        reason,
+                        userId: currentUser.id,
+                        isAdmin: currentUser.role === "admin"
+                    });
+                } catch (e) {
+                    if (e instanceof SoftwareNotFoundError) {
+                        throw new TRPCError({ "code": "NOT_FOUND", "message": e.message });
+                    }
+                    if (e instanceof SoftwareDereferencingProtectedError) {
+                        throw new TRPCError({ "code": "FORBIDDEN", "message": e.message });
+                    }
+                    throw e;
+                }
             }),
 
         "getAttributeDefinitions": loggedProcedure.query(() => dbApi.attributeDefinition.getAll()),
@@ -555,6 +585,22 @@ const zSoftwareFormData = (() => {
         "image": z.string().nullable(),
         "keywords": z.array(z.string()),
         "customAttributes": z.record(z.string(), z.any()).optional(),
+        "protections": z
+            .object({
+                "dereferencing": z
+                    .object({
+                        "isProtected": z.boolean(),
+                        "reason": z.string().nullable()
+                    })
+                    .optional(),
+                "edition": z
+                    .object({
+                        "isProtected": z.boolean(),
+                        "reason": z.string().nullable()
+                    })
+                    .optional()
+            })
+            .optional(),
         "isLibreSoftware": z.boolean().nullable(),
         "url": z.string().nullable(),
         "codeRepositoryUrl": z.string().nullable(),

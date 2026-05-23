@@ -6,7 +6,7 @@ import { Kysely, sql } from "kysely";
 import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../../../ports/DbApiV2";
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
-import type { Os, RuntimePlatform, SimilarSoftware } from "../../../types";
+import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../../types";
 import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
@@ -28,6 +28,21 @@ const toSoftwareSourceData = (row: PopulatedExternalData): SoftwareSourceData =>
             : undefined,
         // Hide the empty-authors array that every source row carries by default.
         authors: authors && authors.length > 0 ? authors : undefined
+    };
+};
+
+// Audit fields (updatedAt/updatedByUserId) stay server-side: list/details payloads
+// are served to unauthenticated clients.
+const toProtectionsData = (
+    protections: DatabaseDataType.SoftwareRow["protections"] | null
+): SoftwareProtectionsData | undefined => {
+    if (!protections) return undefined;
+    const { dereferencing, edition } = protections;
+    return {
+        ...(dereferencing
+            ? { dereferencing: { isProtected: dereferencing.isProtected, reason: dereferencing.reason } }
+            : {}),
+        ...(edition ? { edition: { isProtected: edition.isProtected, reason: edition.reason } } : {})
     };
 };
 
@@ -284,6 +299,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,
                     runtimePlatforms: (extData?.runtimePlatforms ?? []) as RuntimePlatform[],
                     customAttributes: software.customAttributes ?? undefined,
+                    protections: toProtectionsData(software.protections),
                     programmingLanguages: extData?.programmingLanguages ?? [],
                     authors: extData?.authors ?? [],
                     userAndReferentCountByOrganization: countsMap[software.id] ?? {},
@@ -413,6 +429,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         : undefined,
                     applicationCategories: extData?.applicationCategories ?? [],
                     customAttributes: softwareRow.customAttributes ?? undefined,
+                    protections: toProtectionsData(softwareRow.protections),
                     userAndReferentCountByOrganization: countsMap[softwareRow.id] ?? {},
                     authors: extData?.authors ?? [],
                     url: extData?.url ?? undefined,
@@ -546,6 +563,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     : undefined,
                 applicationCategories: extData?.applicationCategories ?? [],
                 customAttributes: softwareRow.customAttributes ?? undefined,
+                protections: toProtectionsData(softwareRow.protections),
                 userAndReferentCountByOrganization,
                 authors: extData?.authors ?? [],
                 url: extData?.url ?? undefined,
@@ -581,7 +599,15 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             return row ? stripNullOrUndefinedValues(row) : row;
         },
         create: async ({ software, sourceSlug, externalId }) => {
-            const { name, addedTime, isStillInObservation, dereferencing, customAttributes, addedByUserId } = software;
+            const {
+                name,
+                addedTime,
+                isStillInObservation,
+                dereferencing,
+                customAttributes,
+                protections,
+                addedByUserId
+            } = software;
 
             const now = new Date().toISOString();
 
@@ -595,6 +621,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         dereferencing: JSON.stringify(dereferencing),
                         isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
+                        protections: JSON.stringify(protections),
                         addedByUserId
                     })
                     .returning("id as softwareId")
@@ -622,7 +649,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             });
         },
         update: async ({ software, softwareId }) => {
-            const { name, dereferencing, customAttributes, addedByUserId } = software;
+            const { name, dereferencing, customAttributes, protections, addedByUserId } = software;
 
             const now = new Date().toISOString();
             await db.transaction().execute(async trx => {
@@ -634,6 +661,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         updateTime: now,
                         isStillInObservation: false,
                         customAttributes: JSON.stringify(customAttributes),
+                        protections: JSON.stringify(protections),
                         addedByUserId
                     })
                     .where("id", "=", softwareId)

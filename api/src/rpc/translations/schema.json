@@ -421,6 +421,24 @@
                 },
                 "adminOnlyCustomAttributeHint": {
                     "type": "string"
+                },
+                "dereferencingProtectionLabel": {
+                    "type": "string"
+                },
+                "dereferencingProtectionHint": {
+                    "type": "string"
+                },
+                "dereferencingProtectionReasonLabel": {
+                    "type": "string"
+                },
+                "editionProtectionLabel": {
+                    "type": "string"
+                },
+                "editionProtectionHint": {
+                    "type": "string"
+                },
+                "editionProtectionReasonLabel": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -440,7 +458,13 @@
                 "add software button",
                 "update software button",
                 "adminOnlyCustomAttributeBadge",
-                "adminOnlyCustomAttributeHint"
+                "adminOnlyCustomAttributeHint",
+                "dereferencingProtectionLabel",
+                "dereferencingProtectionHint",
+                "dereferencingProtectionReasonLabel",
+                "editionProtectionLabel",
+                "editionProtectionHint",
+                "editionProtectionReasonLabel"
             ]
         },
         "softwareFormStep1": {
@@ -954,6 +978,18 @@
                 "unreference software": {
                     "type": "string"
                 },
+                "protectedFromUnreferencingTitle": {
+                    "type": "string"
+                },
+                "protectedFromUnreferencingDescription": {
+                    "type": "string"
+                },
+                "protectedFromEditingTitle": {
+                    "type": "string"
+                },
+                "protectedFromEditingDescription": {
+                    "type": "string"
+                },
                 "error": {
                     "type": "object",
                     "properties": {
@@ -1003,6 +1039,10 @@
                 "become referent",
                 "please provide a reason for unreferencing this software",
                 "unreference software",
+                "protectedFromUnreferencingTitle",
+                "protectedFromUnreferencingDescription",
+                "protectedFromEditingTitle",
+                "protectedFromEditingDescription",
                 "error"
             ]
         },

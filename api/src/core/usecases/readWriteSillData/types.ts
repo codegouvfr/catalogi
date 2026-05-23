@@ -15,7 +15,14 @@ import {
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
-import type { Os, RuntimePlatform, SimilarSoftware } from "../../types";
+import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../types";
+
+export type {
+    SoftwareProtection,
+    SoftwareProtections,
+    SoftwareProtectionData,
+    SoftwareProtectionsData
+} from "../../types";
 
 /** Content fields shared by `Software` (the merged result) and `SoftwareSourceData` (per-source slice). */
 export type SoftwareData = {
@@ -53,6 +60,7 @@ export type SoftwareInList = {
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];
     customAttributes: CustomAttributes | undefined;
+    protections?: SoftwareProtectionsData | undefined;
     programmingLanguages: string[];
     authors: Array<SchemaPerson | SchemaOrganization>;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
@@ -72,6 +80,7 @@ export type Software = SoftwareData & {
           }
         | undefined;
     customAttributes: CustomAttributes | undefined;
+    protections?: SoftwareProtectionsData | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
     similarSoftwares: SimilarSoftware[];
     externalId: string | undefined;
@@ -137,6 +146,7 @@ export type SoftwareFormData = {
     image: string | null;
     keywords: string[];
     customAttributes: CustomAttributes | undefined;
+    protections?: SoftwareProtectionsData | undefined;
     isLibreSoftware: boolean | null;
     url: string | null;
     codeRepositoryUrl: string | null;

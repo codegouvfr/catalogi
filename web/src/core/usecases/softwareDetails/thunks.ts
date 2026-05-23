@@ -189,6 +189,7 @@ function apiSoftwareToSoftware(params: {
         addedTime,
         dereferencing,
         customAttributes,
+        protections,
         similarSoftwares: similarSoftwares_api,
         license,
         operatingSystems,
@@ -272,6 +273,7 @@ function apiSoftwareToSoftware(params: {
         }),
         license,
         customAttributes,
+        protections,
         supportedPlatforms: {
             isInstallableOnUserComputer:
                 runtimePlatforms.length === 0
