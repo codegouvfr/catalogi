@@ -18,7 +18,7 @@ const useCaseConfigSchema = strictObject({
     buttonLink: z.string()
 });
 
-const migrationUiConfigSchema = strictObject({
+export const migrationUiConfigSchema = strictObject({
     header: strictObject({
         link: strictObject({
             enabled: z.boolean(),
