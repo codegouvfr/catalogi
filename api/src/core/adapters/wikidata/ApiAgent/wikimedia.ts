@@ -12,21 +12,25 @@ export type WikimediaImageInfo = {
     };
 };
 
+const MAX_429_RETRIES = 5;
+
 export const getWikimediaFileUrl = async (params: {
     fileName: string;
     requestInit?: RequestInit;
     rateLimitRetryDuration?: number;
+    attempt?: number;
 }): Promise<string> => {
-    const { fileName, requestInit = {}, rateLimitRetryDuration = 5000 } = params;
+    const { fileName, requestInit = {}, rateLimitRetryDuration = 5000, attempt = 0 } = params;
     const apiUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fileName)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
 
     try {
         const response = await fetch(apiUrl, requestInit);
 
         if (response.status === 429) {
+            if (attempt >= MAX_429_RETRIES) throw new Error(`MAX_429_RETRIES reached ${attempt}/${MAX_429_RETRIES}`);
             console.debug("Wikidata Busy, retrying in ", rateLimitRetryDuration);
             await new Promise(resolve => setTimeout(resolve, rateLimitRetryDuration));
-            return getWikimediaFileUrl(params);
+            return getWikimediaFileUrl({ attempt: attempt + 1, ...params });
         }
 
         if (!response.ok) {
