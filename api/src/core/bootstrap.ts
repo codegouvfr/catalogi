@@ -22,6 +22,10 @@ import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
+import {
+    makeGetAndFetchSoftwareIdsByAuthorOrganization,
+    saveAndgetSoftwareIdsByOrganisation
+} from "./usecases/getAuthorOrganization";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -78,6 +82,7 @@ export async function bootstrapCore(
         createSoftware: makeCreateSofware({ dbApi, withUserInput: true }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),
+        getAndFetchSoftwareIdsByAuthorOrganization: makeGetAndFetchSoftwareIdsByAuthorOrganization({ dbApi }),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
             handleAuthCallback: makeHandleAuthCallback({
@@ -89,6 +94,10 @@ export async function bootstrapCore(
             refreshSession: makeRefreshSession({ sessionRepository: dbApi.session, oidcClient })
         }
     };
+
+    if (uiConfig.header.menu.devOrganizations.enabled) {
+        saveAndgetSoftwareIdsByOrganisation({ dbApi });
+    }
 
     return { dbApi, context, useCases, uiConfig };
 }

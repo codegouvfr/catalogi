@@ -24,6 +24,9 @@ const headerSchema = z.object({
         catalog: z.object({
             enabled: z.boolean()
         }),
+        devOrganizations: z.object({
+            enabled: z.boolean()
+        }),
         addSoftware: z.object({
             enabled: z.boolean()
         }),

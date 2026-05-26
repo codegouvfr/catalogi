@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { DatabaseDataType, PopulatedExternalData } from "../../../ports/DbApiV2";
