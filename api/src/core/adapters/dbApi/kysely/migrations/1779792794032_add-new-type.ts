@@ -13,7 +13,18 @@ export async function up(db: Kysely<any>): Promise<void> {
     await db.schema.dropType("external_data_origin_type").execute();
     await db.schema
         .createType("external_data_origin_type")
-        .asEnum(["wikidata", "HAL", "ComptoirDuLibre", "CNLL", "Zenodo", "GitLab", "GitHub", "RNSR", "ROR"])
+        .asEnum([
+            "wikidata",
+            "HAL",
+            "ComptoirDuLibre",
+            "CNLL",
+            "Zenodo",
+            "GitLab",
+            "GitHub",
+            "UserInput",
+            "RNSR",
+            "ROR"
+        ])
         .execute();
 
     await db.schema
@@ -35,7 +46,7 @@ export async function down(db: Kysely<any>): Promise<void> {
     await db.schema.dropType("external_data_origin_type").execute();
     await db.schema
         .createType("external_data_origin_type")
-        .asEnum(["wikidata", "HAL", "ComptoirDuLibre", "CNLL", "Zenodo", "GitLab", "GitHub"])
+        .asEnum(["wikidata", "HAL", "ComptoirDuLibre", "CNLL", "Zenodo", "GitLab", "GitHub", "UserInput"])
         .execute();
 
     await db.schema
