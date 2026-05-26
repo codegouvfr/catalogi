@@ -4,7 +4,7 @@
 
 import { Kysely } from "kysely";
 import { SourceRepository } from "../../../ports/DbApiV2";
-import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import { Database, USER_INPUT_SOURCE_SLUG, ExternalDataOriginKind } from "./kysely.database";
 import { stripNullOrUndefinedValues } from "./kysely.utils";
 
 export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository => ({
@@ -44,5 +44,13 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .where("kind", "=", "wikidata")
             .orderBy("priority", "asc")
             .executeTakeFirstOrThrow()
-            .then(row => stripNullOrUndefinedValues(row))
+            .then(row => stripNullOrUndefinedValues(row)),
+    getByType: async (params: { type: ExternalDataOriginKind }) =>
+        db
+            .selectFrom("sources")
+            .selectAll()
+            .where("kind", "=", params.type)
+            .orderBy("priority", "asc")
+            .execute()
+            .then(arr => arr.map(stripNullOrUndefinedValues))
 });

@@ -8,9 +8,11 @@ import { assert } from "tsafe/assert";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalData } from "../core/usecases/refreshExternalData";
+import { updateSoftwareIdsByOrganisation } from "../core/usecases/getAuthorOrganization";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { DbApiV2 } from "../core/ports/DbApiV2";
 import { Source } from "../lib/ApiTypes";
+import { uiConfigSchema } from "../core/uiConfigSchema";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -83,6 +85,13 @@ export async function startUpdateService(params: {
     });
 
     await Promise.all(resolveUpdate);
+
+    const config = await dbApi.uiConfig.get();
+    const uiConfig = uiConfigSchema.parse(config);
+    if (uiConfig.header.menu.devOrganizations.enabled) {
+        await updateSoftwareIdsByOrganisation({ dbApi });
+    }
+
     console.timeEnd("[RPC:Update] Fetching of external data on remote sources: Done");
 }
 

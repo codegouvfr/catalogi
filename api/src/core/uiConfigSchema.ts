@@ -26,6 +26,9 @@ const headerSchema = strictObject({
         catalog: strictObject({
             enabled: z.boolean()
         }),
+        devOrganizations: z.object({
+            enabled: z.boolean()
+        }),
         addSoftware: strictObject({
             enabled: z.boolean()
         }),

@@ -124,6 +124,7 @@ export type Database = {
     user_sessions: SessionsTable;
     software_attribute_definitions: SoftwareAttributeDefinitionsTable;
     config_ui: ConfigUiTable;
+    author_organizations: AuthorOrganizationsTable;
 };
 
 // Singleton table: at most one row (id is always true). Holds the UI configuration
@@ -322,6 +323,11 @@ type SessionsTable = {
     createdAt: Date;
     updatedAt: Date;
     loggedOutAt: Date | null;
+};
+
+type AuthorOrganizationsTable = {
+    id: string;
+    organization: SchemaOrganization;
 };
 
 // ---------- compiled data ----------

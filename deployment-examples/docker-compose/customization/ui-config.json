@@ -15,6 +15,9 @@
             "catalog": {
                 "enabled": true
             },
+            "devOrganizations": {
+                "enabled": true
+            },
             "addSoftware": {
                 "enabled": true
             },
