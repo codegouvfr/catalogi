@@ -2,7 +2,13 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { Database, DatabaseRowOutput } from "../adapters/dbApi/kysely/kysely.database";
+import type {
+    Database,
+    DatabaseRowOutput,
+    ExternalDataOriginKind,
+    SchemaOrganization,
+    SchemaPerson
+} from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
 import type { LocalizedString } from "../ports/GetSoftwareExternalData";
 import type {
@@ -12,6 +18,7 @@ import type {
     Software,
     SoftwareDetail,
     SoftwareInList,
+    UIOrganization,
     UserWithId
 } from "../usecases/readWriteSillData";
 import type { OmitFromExisting } from "../utils";
@@ -61,6 +68,14 @@ export namespace DatabaseDataType {
 
 export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow & Pick<DatabaseDataType.SoftwareRow, "addedTime">;
 
+export type SearchOptions = {
+    name?: string;
+    identifier?: {
+        key?: string;
+        value: string;
+    };
+};
+
 export interface SoftwareRepository {
     getFullList: () => Promise<SoftwareInList[]>;
     getPublicList: () => Promise<Software[]>;
@@ -95,6 +110,9 @@ export interface SoftwareRepository {
         time: string;
         dereferencedByUserId: number;
     }) => Promise<void>;
+    // Alternative index
+    getSoftwareIdsByAuthors: (params: { search?: SearchOptions }) => Promise<Array<SchemaPerson | UIOrganization>>;
+    getSoftwareIdsByOrganisation: (params: { search?: SearchOptions }) => Promise<Array<UIOrganization>>;
 }
 
 export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow & {
@@ -192,6 +210,15 @@ export interface SourceRepository {
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
+    getByType: (params: { type: ExternalDataOriginKind }) => Promise<DatabaseDataType.SourceRow[]>;
+}
+
+export interface AuthorOrganizationsRepository {
+    getAll: (params?: { ids?: Array<string> }) => Promise<SchemaOrganization[]>;
+    get: (params: { id: string }) => Promise<SchemaOrganization | undefined>;
+    save: (params: { organization: SchemaOrganization }) => Promise<void>;
+    checkIfSaved: (params: { ids: Array<string> }) => Promise<Record<string, boolean>>;
+    flush: () => Promise<void>;
 }
 
 export type Session = {
@@ -234,5 +261,6 @@ export type DbApiV2 = {
     softwareUser: SoftwareUserRepository;
     session: SessionRepository;
     attributeDefinition: AttributeDefinitionRepository;
+    authorOrganization: AuthorOrganizationsRepository;
     getCompiledDataPrivate: () => Promise<CompiledData<"private">>;
 };

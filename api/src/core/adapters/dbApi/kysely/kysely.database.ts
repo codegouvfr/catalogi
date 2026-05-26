@@ -122,6 +122,7 @@ export type Database = {
     sources: SourcesTable;
     user_sessions: SessionsTable;
     software_attribute_definitions: SoftwareAttributeDefinitionsTable;
+    author_organizations: AuthorOrganizationsTable;
 };
 
 type UsersTable = {
@@ -311,6 +312,11 @@ type SessionsTable = {
     createdAt: Date;
     updatedAt: Date;
     loggedOutAt: Date | null;
+};
+
+type AuthorOrganizationsTable = {
+    id: string;
+    organization: SchemaOrganization;
 };
 
 // ---------- compiled data ----------

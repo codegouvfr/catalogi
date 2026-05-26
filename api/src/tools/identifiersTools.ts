@@ -414,16 +414,29 @@ export const identifersUtils = {
     }
 };
 
-export const compareIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): boolean => {
-    if (id1.value === id2.value && id1.subjectOf?.url.toString() === id2.subjectOf?.url.toString()) return true;
+// ============================================
+// Identifier Helpers
+// ============================================
+export const isSameIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): boolean => {
+    if (
+        id1.value === id2.value &&
+        id1.subjectOf?.url.toString() === id2.subjectOf?.url.toString() &&
+        id1.additionalType === id2.additionalType
+    )
+        return true;
     return false;
+};
+
+/** Check if an identifier exists in an array of identifiers */
+export const isIdentifierInArray = (identifier: SchemaIdentifier, identifiersArray: SchemaIdentifier[]): boolean => {
+    return identifiersArray.some(item => isSameIdentifier(item, identifier));
 };
 
 export const deduplicateIdentifierArray = (arr: SchemaIdentifier[]): SchemaIdentifier[] => {
     const deduplicated: SchemaIdentifier[] = [];
 
     for (const identier of arr) {
-        if (!deduplicated.some(identier1 => compareIdentifier(identier1, identier))) {
+        if (!deduplicated.some(identier1 => isSameIdentifier(identier1, identier))) {
             deduplicated.push(identier);
         }
     }
@@ -440,7 +453,7 @@ export const mergeDepuplicateIdentifierArray = (
         return arr2;
     }
     if (!arr2 || arr2.length === 0) return arr1;
-    const filtered = arr2.filter(identier => !arr1.some(identier1 => compareIdentifier(identier1, identier)));
+    const filtered = arr2.filter(identier => !arr1.some(identier1 => isSameIdentifier(identier1, identier)));
 
     return arr1.concat(filtered);
 };

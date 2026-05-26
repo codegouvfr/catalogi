@@ -16,6 +16,7 @@ import {
     createPgSoftwareReferentRepository,
     createPgSoftwareUserRepository
 } from "./createPgUserAndReferentRepository";
+import { createPgAuthorOrganisationsRepository } from "./createAuthorOrganizationsRepository";
 import { Database } from "./kysely.database";
 
 export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
@@ -28,6 +29,7 @@ export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
         softwareReferent: createPgSoftwareReferentRepository(db),
         softwareUser: createPgSoftwareUserRepository(db),
         session: createPgSessionRepository(db),
+        authorOrganization: createPgAuthorOrganisationsRepository(db),
         attributeDefinition: createPgAttributeDefinitionRepository(db),
         getCompiledDataPrivate: createGetCompiledData(db)
     };
