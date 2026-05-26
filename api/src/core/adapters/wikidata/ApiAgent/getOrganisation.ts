@@ -63,7 +63,7 @@ export const convertWikidataToSchemaOrganization = (params: {
         }
 
         if (streetEntity?.labels?.["fr"]) {
-            streetAddress += ", " + streetEntity?.labels?.["fr"];
+            streetAddress += ", " + streetEntity.labels["fr"];
         }
 
         address = {

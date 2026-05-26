@@ -66,12 +66,15 @@ export interface RestWikidataEntity {
     sitelinks: WikidataSitelinks;
 }
 
+const MAX_429_RETRIES = 5;
+
 export const fetchRestWikidataEntity = async (params: {
     entityId: string;
     requestInit?: RequestInit;
     rateLimitRetryDuration?: number;
+    attempt?: number;
 }): Promise<RestWikidataEntity | undefined> => {
-    const { entityId, requestInit = {}, rateLimitRetryDuration = 5000 } = params;
+    const { entityId, requestInit = {}, rateLimitRetryDuration = 5000, attempt = 0 } = params;
     const url = `https://www.wikidata.org/w/rest.php/wikibase/v1/entities/items/${entityId}`;
 
     try {
@@ -79,9 +82,10 @@ export const fetchRestWikidataEntity = async (params: {
         const response = await fetch(url, requestInit);
 
         if (response.status === 429) {
+            if (attempt >= MAX_429_RETRIES) throw new Error(`MAX_429_RETRIES reached ${attempt}/${MAX_429_RETRIES}`);
             console.debug("Wikidata Busy, retrying in ", rateLimitRetryDuration);
             await new Promise(resolve => setTimeout(resolve, rateLimitRetryDuration));
-            return fetchRestWikidataEntity(params);
+            return fetchRestWikidataEntity({ attempt: attempt + 1, ...params });
         }
 
         if (!response.ok) {

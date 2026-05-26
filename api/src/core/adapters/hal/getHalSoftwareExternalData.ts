@@ -30,6 +30,7 @@ const buildParentOrganizationTree = async (
             if (!structure) throw new Error(`Couldn't get data for structure docid : ${structureId}`);
 
             const rorstring = Array.isArray(structure.ror_s) ? structure.ror_s?.[0] : structure.ror_s;
+            const rnrsId = Array.isArray(structure.rnsr_s) ? structure.rnsr_s?.[0] : structure.rnsr_s;
 
             return {
                 "@type": "Organization",
@@ -38,9 +39,7 @@ const buildParentOrganizationTree = async (
                 "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i, halAPIGateway),
                 identifiers: [
                     ...(rorstring ? [identifersUtils.makeRorOrgaIdentifer({ rorId: rorstring })] : []),
-                    ...(structure.rnsr_s?.[0] || structure.rnsr_s
-                        ? [identifersUtils.makeRNSROrgaIdentifer({ rnrsId: structure.rnsr_s?.[0] ?? structure.rnsr_s })]
-                        : [])
+                    ...(rnrsId ? [identifersUtils.makeRNSROrgaIdentifer({ rnrsId })] : [])
                 ]
             };
         })
@@ -149,32 +148,25 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
                                     resolveStructId(labelXmlDoc, affilatiedStructure?.name)
                                 );
 
+                                const rorId = Array.isArray(structure?.ror_s) ? structure.ror_s?.[0] : structure?.ror_s;
+                                const rnrsId = Array.isArray(structure?.rnsr_s)
+                                    ? structure.ror_s?.[0]
+                                    : structure?.rnsr_s;
+
                                 if (!structure) {
                                     throw new Error(`Structure not found : name = ${affilatiedStructure?.name}`);
                                 }
                                 return {
                                     "@type": "Organization" as const,
                                     "name": structure.name_s,
-                                    "url": structure?.url_s ?? structure.ror_s?.[0] ?? structure.ror_s,
+                                    "url": structure?.url_s ?? rorId,
                                     "parentOrganizations": await buildParentOrganizationTree(
                                         structure.parentDocid_i,
                                         halAPIGateway
                                     ),
                                     identifiers: [
-                                        ...(structure.ror_s?.[0] || structure.ror_s
-                                            ? [
-                                                  identifersUtils.makeRorOrgaIdentifer({
-                                                      rorId: structure.ror_s?.[0] ?? structure.ror_s
-                                                  })
-                                              ]
-                                            : []),
-                                        ...(structure.rnsr_s?.[0] || structure.rnsr_s
-                                            ? [
-                                                  identifersUtils.makeRNSROrgaIdentifer({
-                                                      rnrsId: structure.rnsr_s?.[0] ?? structure.rnsr_s
-                                                  })
-                                              ]
-                                            : [])
+                                        ...(rorId ? [identifersUtils.makeRorOrgaIdentifer({ rorId })] : []),
+                                        ...(rnrsId ? [identifersUtils.makeRNSROrgaIdentifer({ rnrsId })] : [])
                                     ]
                                 };
                             })
