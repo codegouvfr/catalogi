@@ -10,6 +10,7 @@
     "dev:db:mig:down": "turbo dev:db:mig:down",
     "dev:db:up": "turbo dev:db:up",
     "dev:db:reset": "turbo dev:db:reset",
+    "db:up": "pnpm --filter api db:up",
     "build": "turbo build",
     "job:import": "turbo job:import",
     "job:update": "turbo job:update",
