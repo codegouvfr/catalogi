@@ -63,6 +63,13 @@ export const Header = memo(
                         : t("header.navigation add software")
             });
         }
+        if (uiConfig?.header.menu.devOrganizations.enabled) {
+            navigations.push({
+                isActive: routeName === routes.organizationList.name,
+                linkProps: routes.organizationList().link,
+                text: t("header.devOrganizations")
+            });
+        }
         if (uiConfig?.header.menu.about.enabled) {
             navigations.push({
                 isActive: routeName === routes.readme.name,
