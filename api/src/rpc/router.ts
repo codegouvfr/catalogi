@@ -541,12 +541,14 @@ const zRuntimePlatform = z.enum(["cloud", "mobile", "desktop"]);
 }
 
 const zSoftwareFormData = (() => {
+    const nonEmptyString = z.string().min(1);
     const zOut: z.ZodType<OptionalIfCanBeUndefined<SoftwareFormData>> = z.object({
         "operatingSystems": z.record(zOs, z.boolean()),
         "runtimePlatforms": z.array(zRuntimePlatform),
         "externalIdForSource": z.string().optional(),
         "sourceSlug": z.string(),
-        "name": z.string(),
+        "name": nonEmptyString,
+        "nameOverride": nonEmptyString.nullable(),
         "description": z.string().nullable(),
         "license": z.string().nullable(),
         "similarSoftwareExternalDataItems": z.array(softwareExternalDataOptionSchema),

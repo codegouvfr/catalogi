@@ -28,6 +28,7 @@ export const getZenodoSoftwareFormData: GetSoftwareFormData = memoize(
 const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, source: Source): SoftwareFormData => {
     return {
         name: recordSoftwareItem.title,
+        nameOverride: null,
         description: null,
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
         runtimePlatforms: ["desktop"], // Probably wrong

@@ -83,7 +83,7 @@ const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, S
 // Arrays always carry the form value (union-merged downstream).
 type UserInputWriteValues = {
     softwareId: number;
-    name: string | LocalizedString;
+    nameOverride: string | null;
     description: string | LocalizedString | null;
     license: string | null;
     image: string | null;
@@ -107,7 +107,7 @@ const toUserInputRowValues = (v: UserInputWriteValues) => ({
     sourceSlug: USER_INPUT_SOURCE_SLUG,
     softwareId: v.softwareId,
     authors: JSON.stringify([]),
-    name: JSON.stringify(typeof v.name === "string" ? { fr: v.name } : v.name),
+    name: v.nameOverride === null ? null : JSON.stringify(v.nameOverride),
     description: v.description === null ? null : JSON.stringify(v.description),
     isLibreSoftware: v.isLibreSoftware,
     image: v.image,
@@ -135,6 +135,7 @@ const buildUserInputWriteValues = (
     softwareId: number,
     software: {
         name: string;
+        nameOverride: string | null;
         description: LocalizedString | null;
         license: string | null;
         image: string | null;
@@ -152,7 +153,7 @@ const buildUserInputWriteValues = (
 ): UserInputWriteValues => {
     return {
         softwareId,
-        name: software.name,
+        nameOverride: software.nameOverride,
         description: software.description,
         license: software.license,
         image: software.image,

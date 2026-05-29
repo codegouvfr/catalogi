@@ -17,6 +17,7 @@ const formatCDLSoftwareToExternalData = async (
 
     return {
         name: comptoirSoftware.name,
+        nameOverride: null,
         description: null,
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
         runtimePlatforms: ["desktop"], // TODO Check Mandatory, Incorrect data

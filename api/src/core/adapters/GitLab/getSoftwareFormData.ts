@@ -22,6 +22,7 @@ export const getGitLabSoftwareForm: GetSoftwareFormData = memoize(
 
         const formData: SoftwareFormData = {
             name: project.name,
+            nameOverride: null,
             description: null,
             ...resolveOsAndPlatforms(project.topics ?? []), // Someting else to rely on ?
             externalIdForSource: project.web_url,

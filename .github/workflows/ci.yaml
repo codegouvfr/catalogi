@@ -70,10 +70,10 @@ jobs:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.playwright-version.outputs.version }}
       - name: Install Playwright system dependencies
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: cd e2e && pnpm exec playwright install-deps chromium
       - name: Install Playwright browsers
-        timeout-minutes: 5
+        timeout-minutes: 10
         run: cd e2e && pnpm exec playwright install chromium
       - name: Run e2e tests
         run: cd e2e && pnpm test:e2e

@@ -49,6 +49,7 @@ export const createSoftwareFormData = makeObjectFactory<SoftwareFormData>({
     externalIdForSource: "Q171985",
     sourceSlug: "some-source-slug",
     name: "Some software",
+    nameOverride: "Some software",
     description: "Some software description",
     license: "Some software license",
     similarSoftwareExternalDataItems: [

@@ -14,6 +14,7 @@ export type CreateSoftware = (
 export const formDataToSoftwareRow = (softwareForm: SoftwareFormData, userId: number): SoftwareExtrinsicCreation => {
     return {
         name: softwareForm.name,
+        nameOverride: softwareForm.nameOverride,
         description: softwareForm.description === null ? null : { fr: softwareForm.description },
         license: softwareForm.license,
         image: softwareForm.image,

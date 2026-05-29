@@ -34,6 +34,7 @@ export const getWikidataForm: GetSoftwareFormData = async ({
 
         return {
             name,
+            nameOverride: null,
             description: null,
             operatingSystems: { "linux": true, "windows": true, "android": false, "ios": false, "mac": false },
             runtimePlatforms: ["desktop"],

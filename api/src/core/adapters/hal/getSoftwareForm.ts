@@ -15,6 +15,7 @@ export const halRawSoftwareToSoftwareForm = async (
 ): Promise<SoftwareFormData> => {
     const formData: SoftwareFormData = {
         name: halSoftware.title_s[0],
+        nameOverride: null,
         description: null,
         ...resolveOsAndPlatforms(halSoftware.softPlatform_s ?? []),
         externalIdForSource: halSoftware.docid,

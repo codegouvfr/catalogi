@@ -51,7 +51,12 @@ type ScalarOverridableField = keyof FormData["step2"]["userInputOverrides"];
 
 const fieldRowStyle = { display: "flex", alignItems: "flex-end" } as const;
 
-const SCALAR_FIELDS: ScalarOverridableField[] = ["description", "license", "image"];
+const SCALAR_FIELDS: ScalarOverridableField[] = [
+    "name",
+    "description",
+    "license",
+    "image"
+];
 
 export function SoftwareFormStep2(props: Step2Props) {
     const {
@@ -441,6 +446,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                     };
 
                     const resolved = {
+                        name: resolveField("name", name),
                         description: resolveField("description", description),
                         license: resolveField("license", license),
                         image: resolveField("image", image)
@@ -448,7 +454,7 @@ export function SoftwareFormStep2(props: Step2Props) {
 
                     onSubmit({
                         externalId: wikidataEntry?.externalId,
-                        name,
+                        name: resolved.name.value ?? "",
                         description: resolved.description.value ?? "",
                         license: resolved.license.value ?? "",
                         image:
@@ -461,6 +467,7 @@ export function SoftwareFormStep2(props: Step2Props) {
                             .map(s => s.trim())
                             .filter(Boolean),
                         userInputOverrides: {
+                            name: resolved.name.isOverridden,
                             description: resolved.description.isOverridden,
                             license: resolved.license.isOverridden,
                             image: resolved.image.isOverridden
@@ -574,28 +581,10 @@ export function SoftwareFormStep2(props: Step2Props) {
                     />
                 )}
             </div>
-            <div className={css(fieldRowStyle)}>
-                <CircularProgressWrapper
-                    className={css({ flex: 1 })}
-                    isInProgress={isAutocompleteInProgress}
-                    renderChildren={({ style }) => (
-                        <Input
-                            disabled={isAutocompleteInProgress}
-                            style={{
-                                ...style,
-                                marginTop: fr.spacing("4v")
-                            }}
-                            label={t("softwareFormStep2.software name")}
-                            nativeInputProps={{
-                                ...register("name", { required: true })
-                            }}
-                            state={errors.name !== undefined ? "error" : undefined}
-                            stateRelatedMessage={t("app.required")}
-                        />
-                    )}
-                />
-                <FieldSourcePopover dataBySource={effectiveDataBySource} field="name" />
-            </div>
+            {renderField("name", t("softwareFormStep2.software name"), {
+                isRequired: true,
+                errorMessage: t("app.required")
+            })}
             {renderField("description", t("softwareFormStep2.software feature"), {
                 hintText: t("softwareFormStep2.software feature hint"),
                 isRequired: true,

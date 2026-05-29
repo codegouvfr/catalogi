@@ -126,6 +126,7 @@ export type Instance = {
 
 export type SoftwareFormData = {
     name: string;
+    nameOverride: string | null;
     description: string | null;
     operatingSystems: Partial<Record<Os, boolean>>;
     runtimePlatforms: RuntimePlatform[];

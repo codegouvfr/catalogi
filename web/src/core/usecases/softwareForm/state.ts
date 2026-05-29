@@ -45,6 +45,7 @@ export type FormData = {
         image: string | undefined;
         keywords: string[];
         userInputOverrides: {
+            name?: boolean;
             description?: boolean;
             license?: boolean;
             image?: boolean;
@@ -202,6 +203,11 @@ export const { reducer, actions } = createUsecaseActions({
             assert(state.stateDescription === "ready");
 
             state.isSubmitting = true;
+        },
+        submissionEnded: state => {
+            assert(state.stateDescription === "ready");
+
+            state.isSubmitting = false;
         },
         formSubmitted: (
             _state,

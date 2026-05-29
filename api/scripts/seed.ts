@@ -84,6 +84,7 @@ const seed = async () => {
     > = [
         {
             name: "React",
+            nameOverride: null,
             description: "A JavaScript library for building user interfaces.",
             operatingSystems: {},
             runtimePlatforms: [],
@@ -97,6 +98,7 @@ const seed = async () => {
         },
         {
             name: "Git",
+            nameOverride: "Git",
             description: "A free and open source distributed version control system.",
             operatingSystems: { mac: true, windows: true, linux: true, android: false, ios: false },
             runtimePlatforms: ["desktop"],
@@ -110,6 +112,7 @@ const seed = async () => {
         },
         {
             name: "OpenOffice",
+            nameOverride: null,
             description:
                 "An open-source office software suite for word processing, spreadsheets, presentations, graphics, databases and more.",
             operatingSystems: { mac: true, windows: true, linux: true, android: false, ios: false },
@@ -124,6 +127,7 @@ const seed = async () => {
         },
         {
             name: "VLC media player",
+            nameOverride: "VLC media player",
             description: "A free and open source cross-platform multimedia player and framework.",
             operatingSystems: { mac: true, windows: true, linux: true, android: true, ios: true },
             runtimePlatforms: ["desktop"],
@@ -137,6 +141,7 @@ const seed = async () => {
         },
         {
             name: "GIMP",
+            nameOverride: "GIMP",
             description: "GNU Image Manipulation Program: a free and open source image editor.",
             operatingSystems: { mac: true, windows: true, linux: true, android: false, ios: false },
             runtimePlatforms: ["desktop"],
@@ -150,6 +155,7 @@ const seed = async () => {
         },
         {
             name: "Onyxia",
+            nameOverride: null,
             description: "Application web pour simplifier la configuration d'environnement datascience sur Kubernetes.",
             operatingSystems: {},
             runtimePlatforms: ["cloud"],

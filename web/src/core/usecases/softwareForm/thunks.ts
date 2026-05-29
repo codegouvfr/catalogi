@@ -123,6 +123,7 @@ export const thunks = {
                                         // editor explicitly overrode that field, so
                                         // open the form in state 3 for it.
                                         userInputOverrides: {
+                                            name: userInputSource?.name !== undefined,
                                             description:
                                                 userInputSource?.description !==
                                                 undefined,
@@ -224,6 +225,7 @@ export const thunks = {
                 externalIdForSource: step2.externalId,
                 sourceSlug: mainSource.slug,
                 name: step2.name,
+                nameOverride: step2.userInputOverrides.name ? step2.name : null,
                 description: step2.userInputOverrides.description
                     ? step2.description
                     : null,
@@ -255,16 +257,20 @@ export const thunks = {
 
             dispatch(actions.submissionStarted());
 
-            await (state.softwareSillId !== undefined
-                ? sillApi.updateSoftware({
-                      softwareSillId: state.softwareSillId,
-                      formData
-                  })
-                : sillApi.createSoftware({
-                      formData
-                  }));
+            try {
+                await (state.softwareSillId !== undefined
+                    ? sillApi.updateSoftware({
+                          softwareSillId: state.softwareSillId,
+                          formData
+                      })
+                    : sillApi.createSoftware({
+                          formData
+                      }));
 
-            dispatch(actions.formSubmitted({ name: step2.name }));
+                dispatch(actions.formSubmitted({ name: step2.name }));
+            } finally {
+                dispatch(actions.submissionEnded());
+            }
         },
     returnToPreviousStep:
         () =>

@@ -34,7 +34,8 @@ const softwareFormData: SoftwareFormData = {
     keywords: ["bob", "l'éponge"],
     license: "MIT",
     image: "https://external-software-logo-url.com/logo.png",
-    name: "",
+    name: "Some software",
+    nameOverride: "Some software",
     operatingSystems: {
         ios: true,
         android: true,
@@ -311,6 +312,7 @@ describe("pgDbApi", () => {
                 formData: {
                     ...softwareFormData,
                     name: "Sparse Software",
+                    nameOverride: null,
                     description: "User-provided description",
                     license: null,
                     image: null
@@ -335,8 +337,8 @@ describe("pgDbApi", () => {
             expect(userInputRow.license).toBeNull();
             expect(userInputRow.image).toBeNull();
             expect(userInputRow.url).toBeNull();
-            // Name is always a catalogue identity field and always written to UserInput.
-            expect(userInputRow.name).toEqual({ fr: "Sparse Software" });
+            // nameOverride was not explicitly provided — UserInput stores NULL so external source can drive provenance.
+            expect(userInputRow.name).toBeNull();
 
             const details = await dbApi.software.getDetails(sparseSoftware!.id);
             expect(details).toBeDefined();

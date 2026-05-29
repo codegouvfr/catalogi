@@ -23,6 +23,7 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
 
         const formData: SoftwareFormData = {
             name: repoData.full_name,
+            nameOverride: null,
             description: null,
             ...resolveOsAndPlatforms(repoData.topics ?? []), // Someting else to rely on ?
             externalIdForSource: repoData.html_url

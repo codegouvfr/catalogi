@@ -20,6 +20,7 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
         await dbApi.software.update({
             software: {
                 name: formFields.name,
+                nameOverride: formFields.nameOverride,
                 description: formFields.description === null ? null : { fr: formFields.description },
                 license: formFields.license,
                 image: formFields.image,

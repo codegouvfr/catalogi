@@ -30,6 +30,7 @@ export type SoftwareExtrinsicRow = Pick<
     DatabaseDataType.SoftwareRow,
     "name" | "dereferencing" | "isStillInObservation" | "customAttributes" | "addedByUserId"
 > & {
+    nameOverride: string | null;
     description: LocalizedString | null;
     license: string | null;
     image: string | null;

@@ -37,6 +37,7 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
     // Content fields from overrides are routed to the UserInput external-data row.
     const {
         description = JSON.stringify({ fr: "Description" }),
+        nameOverride = JSON.stringify(typeof overrides.name === "string" ? overrides.name : "Test Software"),
         license = "MIT",
         image = null,
         keywords = JSON.stringify([]),
@@ -75,10 +76,7 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
             sourceSlug: USER_INPUT_SOURCE_SLUG,
             softwareId: id,
             authors: JSON.stringify([]),
-            name:
-                typeof overrides.name === "string"
-                    ? JSON.stringify({ fr: overrides.name })
-                    : JSON.stringify({ fr: "Test Software" }),
+            name: nameOverride,
             description,
             isLibreSoftware,
             image,
@@ -119,6 +117,7 @@ const makeSoftwareUpdate = (
     overrides: Partial<SoftwareExtrinsicRow> = {}
 ): SoftwareExtrinsicRow => ({
     name: "Updated Software",
+    nameOverride: "Updated Software",
     description: { fr: "Updated Description" },
     license: "MIT",
     image: "https://example.com/updated-logo.png",
@@ -452,7 +451,7 @@ describe("createPgSoftwareRepository", () => {
             }
         );
 
-        it("always writes the form name to the UserInput row", async () => {
+        it("writes the name override to the UserInput row when present", async () => {
             const softwareId = await insertSoftware(db, {
                 name: "Original Name",
                 description: JSON.stringify({ fr: "Manual Description" }),
@@ -461,12 +460,35 @@ describe("createPgSoftwareRepository", () => {
             });
 
             await updateSoftware(softwareId, {
-                name: "Renamed Software"
+                name: "Renamed Software",
+                nameOverride: "Renamed Software"
             });
 
             const userInputRow = await getUserInputRow(db, softwareId);
 
-            expect(userInputRow.name).toEqual({ fr: "Renamed Software" });
+            expect(userInputRow.name).toBe("Renamed Software");
+        });
+
+        it("clears the UserInput name override while keeping a non-empty software name", async () => {
+            const softwareId = await insertSoftware(db, {
+                name: "Manual Name",
+                nameOverride: JSON.stringify("Manual Name")
+            });
+
+            await updateSoftware(softwareId, {
+                name: "External Name",
+                nameOverride: null
+            });
+
+            const softwareRow = await db
+                .selectFrom("softwares")
+                .select("name")
+                .where("id", "=", softwareId)
+                .executeTakeFirstOrThrow();
+            const userInputRow = await getUserInputRow(db, softwareId);
+
+            expect(softwareRow.name).toBe("External Name");
+            expect(userInputRow.name).toBeNull();
         });
 
         it("preserves non-web UserInput fields when the form submits their current values", async () => {

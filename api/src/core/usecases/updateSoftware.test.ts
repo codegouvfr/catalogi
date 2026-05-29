@@ -19,6 +19,7 @@ const craSoftwareFormData = {
     externalIdForSource: "Q118629387",
     sourceSlug: testSource.slug,
     name: "Create react app",
+    nameOverride: "Create react app",
     description: "To create React apps.",
     license: "MIT",
     similarSoftwareExternalDataItems: [
