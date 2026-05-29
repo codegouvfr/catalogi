@@ -63,7 +63,11 @@ export interface SoftwareRepository {
     getFullList: () => Promise<SoftwareInList[]>;
     getPublicList: () => Promise<Software[]>;
     getDetails: (softwareId: number) => Promise<SoftwareDetail | undefined>;
-    create: (params: { software: SoftwareExtrinsicCreation }) => Promise<number>;
+    create: (params: {
+        software: SoftwareExtrinsicCreation;
+        sourceSlug?: string;
+        externalId?: string;
+    }) => Promise<number>;
     update: (params: { softwareId: number; software: SoftwareExtrinsicRow }) => Promise<void>;
     getSoftwareIdByExternalIdAndSlug: (params: {
         externalId: string;

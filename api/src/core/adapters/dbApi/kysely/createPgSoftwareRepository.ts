@@ -124,6 +124,13 @@ const toUserInputRowValues = (v: UserInputWriteValues) => ({
     lastDataFetchAt: new Date()
 });
 
+const toSlugRowValues = (v: UserInputWriteValues, sourceSlug: string, externalId: string) => ({
+    ...toUserInputRowValues(v),
+    externalId,
+    sourceSlug,
+    lastDataFetchAt: null
+});
+
 const buildUserInputWriteValues = (
     softwareId: number,
     software: {
@@ -572,7 +579,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .executeTakeFirst();
             return row ? stripNullOrUndefinedValues(row) : row;
         },
-        create: async ({ software }) => {
+        create: async ({ software, sourceSlug, externalId }) => {
             const { name, addedTime, isStillInObservation, dereferencing, customAttributes, addedByUserId } = software;
 
             const now = new Date().toISOString();
@@ -592,10 +599,19 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     .returning("id as softwareId")
                     .executeTakeFirstOrThrow();
 
-                await trx
-                    .insertInto("software_external_datas")
-                    .values(toUserInputRowValues(buildUserInputWriteValues(softwareId, software)))
-                    .execute();
+                if (sourceSlug && externalId) {
+                    await trx
+                        .insertInto("software_external_datas")
+                        .values(
+                            toSlugRowValues(buildUserInputWriteValues(softwareId, software), sourceSlug, externalId)
+                        )
+                        .execute();
+                } else {
+                    await trx
+                        .insertInto("software_external_datas")
+                        .values(toUserInputRowValues(buildUserInputWriteValues(softwareId, software)))
+                        .execute();
+                }
 
                 return softwareId;
             });

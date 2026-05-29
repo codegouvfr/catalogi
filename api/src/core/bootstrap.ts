@@ -74,7 +74,7 @@ export async function bootstrapCore(
             makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources(context, {}),
         getUser: makeGetUser({ userRepository: dbApi.user }),
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
-        createSoftware: makeCreateSofware(dbApi),
+        createSoftware: makeCreateSofware(dbApi, false),
         updateSoftware: makeUpdateSoftware(dbApi),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),

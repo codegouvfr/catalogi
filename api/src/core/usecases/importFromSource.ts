@@ -99,6 +99,6 @@ const checkSoftware = async (
     console.info(
         `[UC:Import] Importing ${softwareForm.name}(${externalId}) from ${source.slug} : Adding software and externalData `
     );
-    const createSoftware = makeCreateSofware(dbApi);
+    const createSoftware = makeCreateSofware(dbApi, true);
     return createSoftware({ formData: softwareForm, userId });
 };

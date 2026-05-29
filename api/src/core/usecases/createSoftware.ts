@@ -100,11 +100,13 @@ const resolveExistingSoftwareId = async ({
 const resolveOrCreateSoftwareId = async ({
     dbApi,
     formData,
-    userId
+    userId,
+    auto = false
 }: {
     dbApi: DbApiV2;
     formData: SoftwareFormData;
     userId: number;
+    auto?: boolean;
 }) => {
     const { name: softwareName, sourceSlug } = formData;
     const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
@@ -115,19 +117,25 @@ const resolveOrCreateSoftwareId = async ({
 
     console.log(logTitle, `The software package isn't save yet, let's create it`);
     return dbApi.software.create({
-        software: formDataToSoftwareRow(formData, userId)
+        software: formDataToSoftwareRow(formData, userId),
+        ...(auto
+            ? {
+                  sourceSlug: formData.sourceSlug,
+                  externalId: formData.externalIdForSource
+              }
+            : {})
     });
 };
 
-export const makeCreateSofware: (dbApi: DbApiV2) => CreateSoftware =
-    (dbApi: DbApiV2) =>
+export const makeCreateSofware: (dbApi: DbApiV2, auto?: boolean) => CreateSoftware =
+    (dbApi: DbApiV2, auto: boolean = false) =>
     async ({ formData, userId }) => {
         const { name: softwareName, similarSoftwareExternalDataItems, externalIdForSource, sourceSlug } = formData;
         const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const softwareId = await resolveOrCreateSoftwareId({ formData, userId, dbApi });
+        const softwareId = await resolveOrCreateSoftwareId({ formData, userId, dbApi, auto });
 
         if (externalIdForSource) {
             const savedExternalData = await dbApi.softwareExternalData.get({
