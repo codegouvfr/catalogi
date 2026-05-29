@@ -44,5 +44,12 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .where("kind", "=", "wikidata")
             .orderBy("priority", "asc")
             .executeTakeFirstOrThrow()
-            .then(row => stripNullOrUndefinedValues(row))
+            .then(row => stripNullOrUndefinedValues(row)),
+    updateLastImport: async (params: { name: string; date: Date }) =>
+        db
+            .updateTable("sources")
+            .where("slug", "=", params.name)
+            .set({ "lastImport": params.date })
+            .executeTakeFirst()
+            .then(res => !!res)
 });

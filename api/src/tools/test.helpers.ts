@@ -160,7 +160,8 @@ export const testSource = {
     url: "https://www.wikidata.org",
     description: undefined,
     kind: "wikidata",
-    configuration: undefined
+    configuration: undefined,
+    lastImport: undefined
 } satisfies Source;
 
 export const resetDB = async (db: Kysely<Database>) => {

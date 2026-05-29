@@ -221,6 +221,7 @@ type SourcesTable = {
     priority: number;
     description: JSONColumnType<LocalizedString> | null;
     configuration: JSONColumnType<SourceConfig> | null;
+    lastImport: Date | null;
 };
 
 type SoftwareAttributeDefinitionsTable = {

@@ -15,7 +15,8 @@ describe("HAL", () => {
         url: "https://hal.science",
         priority: 1,
         description: undefined,
-        configuration: undefined
+        configuration: undefined,
+        lastImport: undefined
     };
     describe("getHalSoftwareExternal", () => {
         it("gets data from Hal and converts it to ExternalSoftware", async () => {

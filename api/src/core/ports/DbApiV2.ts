@@ -195,6 +195,7 @@ export interface SourceRepository {
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
+    updateLastImport: (params: { name: string; date: Date }) => Promise<boolean>;
 }
 
 export type Session = {

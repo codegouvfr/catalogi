@@ -41,7 +41,8 @@ const seed = async () => {
             url: "https://www.wikidata.org/",
             kind: "wikidata",
             priority: 1,
-            configuration: undefined
+            configuration: undefined,
+            lastImport: undefined
         },
         {
             slug: "UserInput",
@@ -49,7 +50,8 @@ const seed = async () => {
             url: "",
             kind: "UserInput",
             priority: 0,
-            configuration: undefined
+            configuration: undefined,
+            lastImport: undefined
         }
     ] satisfies Source[];
     await db.insertInto("sources").values(sources).execute();
