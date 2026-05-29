@@ -67,7 +67,7 @@ describe("Create software, than updates it adding a similar software", () => {
             role: "user"
         });
 
-        createSoftware = makeCreateSofware(dbApi);
+        createSoftware = makeCreateSofware({ dbApi, withUserInput: true });
         updateSoftware = makeUpdateSoftware(dbApi);
     });
 

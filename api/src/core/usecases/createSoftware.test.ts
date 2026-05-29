@@ -66,7 +66,7 @@ describe("Create software - Trying all the cases", () => {
             role: "user"
         });
 
-        createSoftware = makeCreateSofware(dbApi);
+        createSoftware = makeCreateSofware({ dbApi, withUserInput: true });
     });
 
     it("should insert into three tables", async () => {

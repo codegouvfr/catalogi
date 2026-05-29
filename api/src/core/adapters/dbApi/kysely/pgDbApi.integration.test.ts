@@ -307,7 +307,7 @@ describe("pgDbApi", () => {
             const userId = await dbApi.user.add({ ...insertedUser, email: "sparse@example.com" });
 
             // Submit a form where the user explicitly overrides ONLY description.
-            await makeCreateSofware(dbApi)({
+            await makeCreateSofware({ dbApi, withUserInput: true })({
                 formData: {
                     ...softwareFormData,
                     name: "Sparse Software",
@@ -390,7 +390,7 @@ describe("pgDbApi", () => {
             console.log("inserting user");
             const userId = await dbApi.user.add(insertedUser);
 
-            const makeSoftware = makeCreateSofware(dbApi);
+            const makeSoftware = makeCreateSofware({ dbApi, withUserInput: true });
             const softwareId = await makeSoftware({
                 formData: softwareFormData,
                 userId
@@ -580,7 +580,7 @@ describe("pgDbApi", () => {
 
         const userId = await dbApi.user.add(insertedUser);
 
-        const createSoftware = makeCreateSofware(dbApi);
+        const createSoftware = makeCreateSofware({ dbApi, withUserInput: true });
         const softwareId = await createSoftware({
             formData: softwareFormData,
             userId

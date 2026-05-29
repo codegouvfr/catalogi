@@ -101,12 +101,12 @@ const resolveOrCreateSoftwareId = async ({
     dbApi,
     formData,
     userId,
-    auto = false
+    withUserInput
 }: {
     dbApi: DbApiV2;
     formData: SoftwareFormData;
     userId: number;
-    auto?: boolean;
+    withUserInput?: boolean;
 }) => {
     const { name: softwareName, sourceSlug } = formData;
     const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
@@ -118,7 +118,7 @@ const resolveOrCreateSoftwareId = async ({
     console.log(logTitle, `The software package isn't save yet, let's create it`);
     return dbApi.software.create({
         software: formDataToSoftwareRow(formData, userId),
-        ...(auto
+        ...(!withUserInput
             ? {
                   sourceSlug: formData.sourceSlug,
                   externalId: formData.externalIdForSource
@@ -127,15 +127,15 @@ const resolveOrCreateSoftwareId = async ({
     });
 };
 
-export const makeCreateSofware: (dbApi: DbApiV2, auto?: boolean) => CreateSoftware =
-    (dbApi: DbApiV2, auto: boolean = false) =>
-    async ({ formData, userId }) => {
+export const makeCreateSofware: (params: { dbApi: DbApiV2; withUserInput: boolean }) => CreateSoftware = params => {
+    const { dbApi, withUserInput } = params;
+    return async ({ formData, userId }) => {
         const { name: softwareName, similarSoftwareExternalDataItems, externalIdForSource, sourceSlug } = formData;
         const logTitle = `[UC:${textUC}] (${softwareName} from ${sourceSlug}) -`;
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const softwareId = await resolveOrCreateSoftwareId({ formData, userId, dbApi, auto });
+        const softwareId = await resolveOrCreateSoftwareId({ formData, userId, dbApi, withUserInput });
 
         if (externalIdForSource) {
             const savedExternalData = await dbApi.softwareExternalData.get({
@@ -187,3 +187,4 @@ export const makeCreateSofware: (dbApi: DbApiV2, auto?: boolean) => CreateSoftwa
         console.timeEnd(`${logTitle} 💾 Saved`);
         return softwareId;
     };
+};

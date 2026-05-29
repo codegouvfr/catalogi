@@ -124,10 +124,10 @@ const toUserInputRowValues = (v: UserInputWriteValues) => ({
     lastDataFetchAt: new Date()
 });
 
-const toSlugRowValues = (v: UserInputWriteValues, sourceSlug: string, externalId: string) => ({
-    ...toUserInputRowValues(v),
-    externalId,
-    sourceSlug,
+const toSlugRowValues = (params: { values: UserInputWriteValues; sourceSlug: string; externalId: string }) => ({
+    ...toUserInputRowValues(params.values),
+    externalId: params.externalId,
+    sourceSlug: params.sourceSlug,
     lastDataFetchAt: null
 });
 
@@ -603,7 +603,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     await trx
                         .insertInto("software_external_datas")
                         .values(
-                            toSlugRowValues(buildUserInputWriteValues(softwareId, software), sourceSlug, externalId)
+                            toSlugRowValues({
+                                values: buildUserInputWriteValues(softwareId, software),
+                                sourceSlug,
+                                externalId
+                            })
                         )
                         .execute();
                 } else {

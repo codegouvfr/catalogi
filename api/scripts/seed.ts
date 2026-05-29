@@ -72,7 +72,7 @@ const seed = async () => {
         role: "admin"
     };
 
-    const UCCreateSofware = makeCreateSofware(dbApi);
+    const UCCreateSofware = makeCreateSofware({ dbApi, withUserInput: true });
 
     console.info("Adding user");
     const userId = await dbApi.user.add(someUser);

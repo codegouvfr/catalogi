@@ -144,7 +144,7 @@ describe("fetches software extra data (from different providers)", () => {
             role: "user"
         });
 
-        const makeSoftware = makeCreateSofware(dbApi);
+        const makeSoftware = makeCreateSofware({ dbApi, withUserInput: true });
         craSoftwareId = await makeSoftware({
             formData: craSoftwareFormData,
             userId
