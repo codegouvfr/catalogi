@@ -25,7 +25,7 @@ export const getZenodoSoftwareFormData: GetSoftwareFormData = memoize(
     }
 );
 
-const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, source: Source): SoftwareFormData => {
+export const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, source: Source): SoftwareFormData => {
     return {
         name: recordSoftwareItem.title,
         nameOverride: null,

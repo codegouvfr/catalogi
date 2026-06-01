@@ -4,16 +4,18 @@
 
 import { convertSourceConfigToRequestInit } from "../../../../tools/sourceConfig";
 import { Source } from "../../../usecases/readWriteSillData";
+import { formatDateToYYYMMDD } from "../../../utils";
 import { Zenodo } from "./type";
 
 const ZENODO_API_API_TIMEOUT = 60 * 1000;
 
 export const makeZenodoApi = (source?: Source) => {
     const timeOutBreak = source?.configuration?.rateLimitRetryDuration ?? ZENODO_API_API_TIMEOUT;
+    const auth = source?.configuration?.auth;
+    const config = source?.configuration ? convertSourceConfigToRequestInit(source.configuration) : {};
 
     const getRecord = async (zenodoRecordId: number): Promise<Zenodo.Record | undefined> => {
         const url = `https://zenodo.org/api/records/${zenodoRecordId}`;
-        const config = source?.configuration ? convertSourceConfigToRequestInit(source.configuration) : {};
 
         const res = await fetch(url, config).catch(err => {
             console.error(err);
@@ -35,7 +37,7 @@ export const makeZenodoApi = (source?: Source) => {
     const getRecordByDOI = async (zenodoDOI: string): Promise<Zenodo.Record | undefined> => {
         const url = `https://zenodo.org/doi/${zenodoDOI}`;
 
-        const res = await fetch(url).catch(err => {
+        const res = await fetch(url, config).catch(err => {
             console.error(err);
             throw new Error(err);
         });
@@ -61,7 +63,7 @@ export const makeZenodoApi = (source?: Source) => {
     const getRecordByName = async (name: string, type: string): Promise<Zenodo.Response<Zenodo.Record>> => {
         const url = `https://zenodo.org/api/records?q=title:${name} AND type:${type}`;
 
-        const res = await fetch(url).catch(err => {
+        const res = await fetch(url, config).catch(err => {
             console.error(err);
             throw new Error(err);
         });
@@ -78,10 +80,14 @@ export const makeZenodoApi = (source?: Source) => {
         return res.json();
     };
 
-    const getAllSoftware = async (): Promise<Zenodo.Response<Zenodo.Record>> => {
-        const url = `https://zenodo.org/api/records?q=type:software&size=100`;
+    const getAllSoftware = async (params: { page?: number; date: Date }): Promise<Zenodo.Response<Zenodo.Record>> => {
+        const { page = 1 } = params;
+        const size = auth ? 100 : 25;
+        const formatedDate: string = formatDateToYYYMMDD(params.date);
 
-        const res = await fetch(url).catch(err => {
+        const url = `https://zenodo.org/api/records?q=type:software AND created:[${formatedDate} TO *]&size=${size}&page=${page}&sort=-mostrecent&all_versions=false`;
+
+        const res = await fetch(encodeURI(url), config).catch(err => {
             console.error(err);
             throw new Error(err);
         });
@@ -90,9 +96,13 @@ export const makeZenodoApi = (source?: Source) => {
             throw new Error(`Could find endpoint`);
         }
 
-        if (res.status === 429) {
+        if (res.status === 429 || res.status === 504) {
             await new Promise(resolve => setTimeout(resolve, timeOutBreak));
-            return getAllSoftware();
+            return getAllSoftware(params);
+        }
+
+        if (res.status !== 200) {
+            throw new Error(res.status.toString());
         }
 
         return res.json();
@@ -101,7 +111,7 @@ export const makeZenodoApi = (source?: Source) => {
     const getCommunities = async (zenodoRecordId: number): Promise<Zenodo.Response<Zenodo.Community> | undefined> => {
         const url = `https://zenodo.org/api/records/${zenodoRecordId}/communities`;
 
-        const res = await fetch(url).catch(err => {
+        const res = await fetch(url, config).catch(err => {
             console.error(err);
             throw new Error(err);
         });
