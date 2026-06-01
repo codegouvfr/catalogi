@@ -148,10 +148,13 @@ describe("Create software, than updates it adding a similar software", () => {
         const sortedUpdatedSimilarSofts = updatedSimilarSofts.toSorted((left, right) =>
             left.externalId.localeCompare(right.externalId)
         );
-        expectToMatchObject(sortedUpdatedSimilarSofts, [
-            { sourceSlug: testSource.slug, externalId: "Q111590996", softwareId: undefined },
-            { sourceSlug: testSource.slug, externalId: "Q56062435", softwareId: undefined }
-        ]);
+        expectToMatchObject(
+            sortedUpdatedSimilarSofts.sort((a, b) => Number(a.externalId.slice(1)) - Number(b.externalId.slice(1))),
+            [
+                { sourceSlug: testSource.slug, externalId: "Q56062435", softwareId: undefined },
+                { sourceSlug: testSource.slug, externalId: "Q111590996", softwareId: undefined }
+            ]
+        );
 
         // than update the software again, removing all similar software:
         const formDataWithNoSimilarSoftware: SoftwareFormData = {

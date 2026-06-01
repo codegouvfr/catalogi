@@ -6,7 +6,7 @@ import { describe, it, expect } from "vitest";
 import { getOrganisationFromApi } from "./getOrganisation";
 
 describe("getOrganizationFromApi (live test)", () => {
-    it("should fetch and convert a real Wikidata entity to a SchemaOrganization", async () => {
+    it("should fetch and convert a real Wikidata entity Q280413 to a SchemaOrganization", async () => {
         // Utilise un ID d'entité Wikidata valide
         const entityId = "Q280413";
 
@@ -32,7 +32,7 @@ describe("getOrganizationFromApi (live test)", () => {
 });
 
 describe("getOrganizationFromApi (live test)", () => {
-    it("should fetch and convert a real Wikidata entity to a SchemaOrganization", async () => {
+    it("should fetch and convert a real Wikidata entity Q70571774 to a SchemaOrganization", async () => {
         // Utilise un ID d'entité Wikidata valide
         const entityId = "Q70571774";
 
