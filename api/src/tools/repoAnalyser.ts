@@ -7,6 +7,7 @@ import { SchemaIdentifier } from "../core/adapters/dbApi/kysely/kysely.database"
 import { gitHubEndpointMaker } from "../core/adapters/GitHub/api/repo";
 import { identifersUtils } from "./identifiersTools";
 import { repoUrlToCleanUrl, resolveExternalReferenceToProject } from "../core/adapters/GitLab/api/utils";
+import { Source } from "../lib/ApiTypes";
 
 export type RepoType = "GitHub" | "GitLab";
 
@@ -39,16 +40,23 @@ export const repoAnalyser = async (url: string | URL | undefined): Promise<RepoT
 
 export const repoUrlToIdentifer = async (params: {
     repoUrl: string | URL | undefined;
+    sources: Array<Source>;
 }): Promise<SchemaIdentifier | undefined> => {
-    const { repoUrl } = params;
+    const { repoUrl, sources } = params;
     if (!repoUrl) return;
 
     const repoType = await repoAnalyser(repoUrl);
     if (!repoType) return undefined;
 
+    const repoString = repoUrl.toString();
+    const filtredSources = sources.filter(
+        source => source.url !== "" && repoString.includes(new URL(source.url).origin)
+    );
+    const config = filtredSources.length === 1 ? filtredSources[0] : undefined;
+
     switch (repoType) {
         case "GitHub":
-            const api = gitHubEndpointMaker();
+            const api = gitHubEndpointMaker(config?.configuration);
             const repo = await api.repo.get({ repoUrl });
 
             if (!repo) return;
@@ -60,6 +68,7 @@ export const repoUrlToIdentifer = async (params: {
         case "GitLab":
             const clean = repoUrlToCleanUrl(repoUrl);
             const parsedUrl = new URL(clean);
+            // TODO Auth On Gitlab
             const gitLabApi = new Gitlab({
                 host: parsedUrl.origin
             });

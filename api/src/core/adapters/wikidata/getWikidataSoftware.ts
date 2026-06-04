@@ -23,7 +23,6 @@ import {
 import { Source } from "../../usecases/readWriteSillData";
 import { SchemaOrganization, SchemaPerson } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
-import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 import { makeWikidataAPIAgent } from "./ApiAgent";
 import { WikidataFetchError } from "./ApiAgent/entity";
 import { toCommonsSpecialFilePathUrl } from "./commonsImage";
@@ -134,7 +133,6 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
         const framaLibreId = getClaimDataValue<"string">("P4107")[0];
 
         const sourceUrl = getClaimDataValue<"string">("P1324")[0];
-        const repoIdentifer = await repoUrlToIdentifer({ repoUrl: sourceUrl });
 
         const nowIso = new Date().toISOString();
         const publicationIso = publicationTimeDate?.toISOString();
@@ -264,8 +262,7 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
                 ...(framaLibreId
                     ? [identifersUtils.makeFramaIndentifier({ framaLibreId, additionalType: "Software" })]
                     : []),
-                identifersUtils.makeWikidataIdentifier({ wikidataId: externalId, additionalType: "Software" }),
-                ...(repoIdentifer ? [repoIdentifer] : [])
+                identifersUtils.makeWikidataIdentifier({ wikidataId: externalId, additionalType: "Software" })
             ],
             providers: [],
             similarSoftwares: [],

@@ -5,6 +5,8 @@
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
+import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
@@ -259,12 +261,22 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
                 source: source
             });
 
+            const repoIdentifier = externalData?.codeRepositoryUrl
+                ? await repoUrlToIdentifer({ repoUrl: externalData?.codeRepositoryUrl, sources })
+                : undefined;
+
             if (externalData) {
                 await dbApi.softwareExternalData.update({
                     sourceSlug: source.slug,
                     externalId: externalId,
                     lastDataFetchAt: new Date(),
-                    softwareExternalData: externalData,
+                    softwareExternalData: {
+                        ...externalData,
+                        identifiers: mergeDepuplicateIdentifierArray(
+                            externalData.identifiers,
+                            repoIdentifier ? [repoIdentifier] : []
+                        )
+                    },
                     ...(actualExternalDataRow?.softwareId ? { softwareId: actualExternalDataRow.softwareId } : {})
                 });
             }

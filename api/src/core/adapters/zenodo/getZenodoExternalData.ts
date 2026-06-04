@@ -7,12 +7,11 @@ import memoize from "memoizee";
 import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
 import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
-import { SchemaIdentifier, SchemaPerson } from "../dbApi/kysely/kysely.database";
+import { SchemaPerson } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { makeZenodoApi } from "./zenodoAPI";
 import { Zenodo } from "./zenodoAPI/type";
 import { populateFromDOIIdentifiers } from "../doiResolver";
-import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 export const getZenodoExternalData: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
@@ -38,12 +37,7 @@ export const getZenodoExternalData: GetSoftwareExternal = memoize(
             return undefined;
         }
 
-        const repositoryUrl =
-            record.metadata.related_identifiers?.filter(identifier => identifier.relation === "isSupplementTo")?.[0]
-                ?.identifier ?? undefined;
-        const repoIdentifer = await repoUrlToIdentifer({ repoUrl: repositoryUrl });
-
-        const formatedExternalData = formatRecordToExternalData(record, communitiesRows, source, repoIdentifer);
+        const formatedExternalData = formatRecordToExternalData(record, communitiesRows, source);
 
         formatedExternalData.identifiers = await populateFromDOIIdentifiers(formatedExternalData.identifiers ?? []);
 
@@ -70,8 +64,7 @@ const creatorToPerson = (creator: Zenodo.Creator): SchemaPerson => {
 const formatRecordToExternalData = (
     recordSoftwareItem: Zenodo.Record,
     communities: Zenodo.Community[],
-    source: Source,
-    repoIdentifier: SchemaIdentifier | undefined
+    source: Source
 ): SoftwareExternal => {
     const publicationIso = recordSoftwareItem.metadata.publication_date
         ? new Date(recordSoftwareItem.metadata.publication_date).toISOString()
@@ -119,8 +112,7 @@ const formatRecordToExternalData = (
                 : []),
             ...(recordSoftwareItem.swh.swhid
                 ? [identifersUtils.makeSWHIdentifier({ swhId: recordSoftwareItem.swh.swhid })]
-                : []),
-            ...(repoIdentifier ? [repoIdentifier] : [])
+                : [])
         ],
         providers: [],
         similarSoftwares: [],

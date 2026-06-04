@@ -9,9 +9,8 @@ import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { comptoirDuLibreApi } from "../comptoirDuLibreApi";
 import { ComptoirDuLibre } from "../../ports/ComptoirDuLibreApi";
-import { SchemaIdentifier, SchemaOrganization } from "../dbApi/kysely/kysely.database";
+import { SchemaOrganization } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
-import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 export const getCDLSoftwareExternalData: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
@@ -21,11 +20,7 @@ export const getCDLSoftwareExternalData: GetSoftwareExternal = memoize(
 
         if (!comptoirSoftware) return undefined;
 
-        const repoIdentifier = await repoUrlToIdentifer({
-            repoUrl: comptoirSoftware.external_resources.repository ?? undefined
-        });
-
-        return formatCDLSoftwareToExternalData(comptoirSoftware, source, repoIdentifier);
+        return formatCDLSoftwareToExternalData(comptoirSoftware, source);
     },
     {
         maxAge: 3 * 3600 * 1000
@@ -49,8 +44,7 @@ const cdlProviderToCMProdivers = (provider: ComptoirDuLibre.Provider): SchemaOrg
 
 const formatCDLSoftwareToExternalData = (
     cdlSoftwareItem: ComptoirDuLibre.Software,
-    source: Source,
-    repoIdentifier: SchemaIdentifier | undefined
+    source: Source
 ): SoftwareExternal => {
     const splittedCNLLUrl = !Array.isArray(cdlSoftwareItem.external_resources.cnll)
         ? cdlSoftwareItem.external_resources.cnll.url.split("/")
@@ -112,8 +106,7 @@ const formatCDLSoftwareToExternalData = (
                           additionalType: "Software"
                       })
                   ]
-                : []),
-            ...(repoIdentifier ? [repoIdentifier] : [])
+                : [])
         ],
         providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers),
         similarSoftwares: [],

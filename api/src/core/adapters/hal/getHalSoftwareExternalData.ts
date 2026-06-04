@@ -14,7 +14,6 @@ import { getScholarlyArticle } from "./getScholarlyArticle";
 import { SchemaIdentifier, SchemaOrganization, SchemaPerson, ScholarlyArticle } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { populateFromDOIIdentifiers } from "../doiResolver";
-import { repoUrlToIdentifer } from "../../../tools/repoAnalyser";
 
 const buildParentOrganizationTree = async (
     structureIdArray: number[] | string[] | undefined,
@@ -187,8 +186,6 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
             })
         );
 
-        const repoIdentifier = await repoUrlToIdentifer({ repoUrl: halRawSoftware?.softCodeRepository_s?.[0] });
-
         const identifiers: SchemaIdentifier[] = [
             ...(codemetaSoftware?.identifier?.map(identifierItem => {
                 const base = {
@@ -222,8 +219,7 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
                     default:
                         return base;
                 }
-            }) ?? []),
-            ...(repoIdentifier ? [repoIdentifier] : [])
+            }) ?? [])
         ];
 
         const releaseDateIso = halRawSoftware?.releasedDate_tdate
