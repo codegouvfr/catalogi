@@ -6,6 +6,7 @@ import { tss } from "tss-react";
 import Button from "@codegouvfr/react-dsfr/Button";
 import { ReactNode } from "react";
 import { FrIconClassName, RiIconClassName } from "@codegouvfr/react-dsfr";
+import halLogo from "../../../public/logo/hal-logo-header.png"; // Import the image
 import { ApiTypes } from "api";
 
 export type Props = {
@@ -89,9 +90,7 @@ const resolveLogoFromType = (
     switch (sourceType) {
         case "HAL":
             return {
-                URLlogo: new URL(
-                    "https://hal.science/assets/favicon/apple-touch-icon.png"
-                ),
+                URLlogo: new URL(halLogo, window.location.origin),
                 textFromURL: "HAL"
             };
         case "Orcid":
@@ -114,7 +113,7 @@ const resolveLogoFromType = (
         case "SWH":
             return {
                 URLlogo: new URL(
-                    "https://archive.softwareheritage.org/static/img/icons/swh-logo-32x32.png"
+                    "https://www.softwareheritage.org/wp-content/uploads/2024/07/software-heritage-logo.300px.png"
                 ),
                 textFromURL: "Software Heritage"
             };
