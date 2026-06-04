@@ -33,4 +33,5 @@ FROM nginx:stable-alpine as web
 COPY --from=build /app/web/nginx.conf /etc/nginx/conf.d/default.conf
 WORKDIR /usr/share/nginx
 COPY --from=build /app/web/build ./html
+RUN chmod -R g+rwX html
 ENTRYPOINT sh -c "./html/vite-envs.sh && nginx -g 'daemon off;'"
