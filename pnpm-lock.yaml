@@ -321,7 +321,7 @@ importers:
         version: 5.2.0(eslint@8.57.1)
       eslint-plugin-tss-unused-classes:
         specifier: ^1.0.3
-        version: 1.0.3(eslint@8.57.1)
+        version: 1.0.4(eslint@8.57.1)
       minimal-polyfills:
         specifier: ^2.2.3
         version: 2.2.3
@@ -2274,6 +2274,7 @@ packages:
 
   '@ungap/structured-clone@1.3.0':
     resolution: {integrity: sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==}
+    deprecated: Potential CWE-502 - Update to 1.3.1 or higher
 
   '@vitejs/plugin-react@4.7.0':
     resolution: {integrity: sha512-gUu9hwfWvvEDBBmgtAowQCojwZmJ5mcLn3aufeCsitijs3+f2NsrPtlAWIR6OPiqljl96GVCUbLe0HyqIpVaoA==}
@@ -3211,10 +3212,10 @@ packages:
     peerDependencies:
       eslint: ^3 || ^4 || ^5 || ^6 || ^7 || ^8 || ^9.7
 
-  eslint-plugin-tss-unused-classes@1.0.3:
-    resolution: {integrity: sha512-FtfNwEsUfEN7y+6+C9j4INh3LTL1lyujmtj8MiorPVbEDYwt9NcjuOpsjvEkSzsD0oyLZB1kBFrW59JTtepRnA==}
+  eslint-plugin-tss-unused-classes@1.0.4:
+    resolution: {integrity: sha512-1Ap12QLHvqenENXFO6tTA8T59be83zc7SJ/yWOHmYd0A5qKEQz4MorRWcgisCul9FT2EqIWZ1txhaCw2uQVCKg==}
     peerDependencies:
-      eslint: ^7.14.0 || ^8.0.0 || ^9.0.0
+      eslint: ^7.14.0 || ^8.0.0 || ^9.0.0 || ^10.0.0
 
   eslint-scope@5.1.1:
     resolution: {integrity: sha512-2NxwbF/hZ0KpepYN0cNbo+FN6XoK7GaHlQhgx/hIZl6Va0bF45RQOOwhLIy8lQDbuCiadSLCBnH2CFYquit5bw==}
@@ -5717,6 +5718,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uvu@0.5.6:
@@ -9086,7 +9088,7 @@ snapshots:
       string.prototype.matchall: 4.0.12
       string.prototype.repeat: 1.0.0
 
-  eslint-plugin-tss-unused-classes@1.0.3(eslint@8.57.1):
+  eslint-plugin-tss-unused-classes@1.0.4(eslint@8.57.1):
     dependencies:
       eslint: 8.57.1
 
