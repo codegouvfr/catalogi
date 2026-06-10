@@ -260,7 +260,7 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
             isLibreSoftware: halRawSoftware.openAccess_bool,
             image: undefined,
             url: halRawSoftware.uri_s,
-            codeRepositoryUrl: halRawSoftware?.softCodeRepository_s?.[0],
+            codeRepositoryUrl: halRawSoftware?.softCodeRepository_s?.[0].replace("git+", "").replace(".git", ""),
             softwareHelp: undefined,
             license: codemetaSoftware?.license?.[0] ?? "undefined",
             latestVersion: halRawSoftware?.softVersion_s?.[0]
