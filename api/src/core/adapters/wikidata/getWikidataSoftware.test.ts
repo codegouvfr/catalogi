@@ -111,11 +111,11 @@ describe("latestVersionClaim", () => {
 
     it("ignores deprecated version claims", () => {
         const selectedVersion = getSelectedVersion([
-            makeVersionClaim({ version: "2.4.67" }),
+            makeVersionClaim({ version: "2.4.68" }),
             makeVersionClaim({ version: "99.0.0-alpha", rank: "deprecated" })
         ]);
 
-        expect(selectedVersion).toBe("2.4.67");
+        expect(selectedVersion).toBe("2.4.68");
     });
 
     it("returns undefined when every version claim is deprecated", () => {
