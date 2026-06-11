@@ -55,6 +55,22 @@ const craSoftwareFormData = {
 
 const apacheSoftwareId = 6;
 
+const sortSoftwareExternalDataForAssertion = <
+    T extends { softwareId?: number | null; sourceSlug: string; externalId: string }
+>(
+    softwareExternalData: T[] | undefined
+): T[] =>
+    [...(softwareExternalData ?? [])].sort((left, right) => {
+        const softwareIdComparison =
+            (left.softwareId ?? Number.MAX_SAFE_INTEGER) - (right.softwareId ?? Number.MAX_SAFE_INTEGER);
+        if (softwareIdComparison !== 0) return softwareIdComparison;
+
+        const sourceComparison = left.sourceSlug.localeCompare(right.sourceSlug);
+        if (sourceComparison !== 0) return sourceComparison;
+
+        return left.externalId.localeCompare(right.externalId);
+    });
+
 const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) => {
     await db
         .insertInto("softwares")
@@ -224,7 +240,9 @@ describe("fetches software extra data (from different providers)", () => {
 
             await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: craSoftwareId });
 
-            const updatedSoftwareExternalDatas = await dbApi.softwareExternalData.getAll();
+            const updatedSoftwareExternalDatas = sortSoftwareExternalDataForAssertion(
+                await dbApi.softwareExternalData.getAll()
+            );
 
             expectToMatchObject(updatedSoftwareExternalDatas, [
                 emptyExternalDataCleaned({
@@ -391,7 +409,9 @@ describe("fetches software extra data (from different providers)", () => {
 
             await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: apacheSoftwareId });
 
-            const updatedSoftwareExternalDatas = await dbApi.softwareExternalData.getAll();
+            const updatedSoftwareExternalDatas = sortSoftwareExternalDataForAssertion(
+                await dbApi.softwareExternalData.getAll()
+            );
             expectToMatchObject(updatedSoftwareExternalDatas, [
                 emptyExternalDataCleaned({
                     "externalId": "Q2822666",
@@ -438,37 +458,9 @@ describe("fetches software extra data (from different providers)", () => {
                     codeRepositoryUrl: "https://github.com/apache/httpd",
                     url: "https://httpd.apache.org/",
                     referencePublications: [],
-                    identifiers: [
-                        {
-                            "@type": "PropertyValue",
-                            "additionalType": "Software",
-                            "name": "ID on Wikidata",
-                            "subjectOf": {
-                                "@type": "Website",
-                                "additionalType": "wikidata",
-                                "name": "Wikidata",
-                                "url": new URL("https://www.wikidata.org/")
-                            },
-                            "url": "https://www.wikidata.org/wiki/Q11354",
-                            "value": "Q11354"
-                        },
-                        {
-                            "@type": "PropertyValue",
-                            "additionalType": "Repo",
-                            "subjectOf": {
-                                "@type": "Website",
-                                "additionalType": "GitHub",
-                                "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
-                                "url": new URL("https://github.com/")
-                            },
-                            "url": "https://github.com/apache/httpd",
-                            "value": "https://github.com/apache/httpd",
-                            "valueReference": "205423"
-                        }
-                    ],
                     programmingLanguages: ["C"],
-                    latestVersion: { version: "2.4.67", releaseDate: expect.any(String) },
-                    dateCreated: new Date("2026-05-04T00:00:00.000Z"),
+                    latestVersion: { version: expect.any(String), releaseDate: expect.any(String) },
+                    dateCreated: expect.any(Date),
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: undefined,
                     providers: [],

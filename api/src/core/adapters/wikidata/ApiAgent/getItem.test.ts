@@ -2,59 +2,83 @@
 // SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes <contact-logiciels-catalogue-esr@groupes.renater.fr>
 // SPDX-License-Identifier: MIT
 
-import { describe, it, expect } from "vitest";
-import { getOrganisationFromApi } from "./getOrganisation";
+import { describe, expect, it } from "vitest";
+import { RestWikidataEntity } from "./restApi";
+import { convertWikidataToSchemaOrganization } from "./getOrganisation";
 
-describe("getOrganizationFromApi (live test)", () => {
-    it("should fetch and convert a real Wikidata entity Q280413 to a SchemaOrganization", async () => {
-        // Utilise un ID d'entité Wikidata valide
-        const entityId = "Q280413";
-
-        // Appelle la fonction qui fait l'appel API réel
-        const result = await getOrganisationFromApi({ entityId });
-
-        // Vérifie que le résultat est bien un objet SchemaOrganization
-        expect(result).toBeDefined();
-        if (result) {
-            expect(result["@type"]).toBe("Organization");
-            expect(result.name).toEqual("Centre national de la recherche scientifique");
-            expect(result.description).toEqual("organisme public français de recherche scientifique");
-            expect(result.url).toEqual("https://www.cnrs.fr/");
-            expect(result.foundingDate).toEqual("1939");
-            expect(result.address).toEqual({
-                "@type": "PostalAddress",
-                "addressCountry": "France",
-                "postalCode": "75794 cedex 16",
-                "streetAddress": "3 rue Michel-Ange"
-            });
-        }
-    }, 10000); // Augmente le timeout si nécessaire (en ms)
+const createWikidataEntity = (entity: Partial<RestWikidataEntity>): RestWikidataEntity => ({
+    type: "item",
+    id: "Q0",
+    labels: {},
+    descriptions: {},
+    aliases: {},
+    statements: {},
+    sitelinks: {},
+    ...entity
 });
 
-describe("getOrganizationFromApi (live test)", () => {
-    it("should fetch and convert a real Wikidata entity Q70571774 to a SchemaOrganization", async () => {
-        // Utilise un ID d'entité Wikidata valide
-        const entityId = "Q70571774";
+describe("convertWikidataToSchemaOrganization", () => {
+    it("converts organization identity and address fields from Wikidata REST entities", () => {
+        const organisationEntity = createWikidataEntity({
+            id: "Q280413",
+            labels: { fr: "Centre national de la recherche scientifique" },
+            descriptions: { fr: "organisme public français de recherche scientifique" },
+            aliases: { fr: ["CNRS", "CNRS"] },
+            statements: {
+                P856: [
+                    {
+                        id: "Q280413$website",
+                        rank: "normal",
+                        property: { id: "P856", data_type: "url" },
+                        value: { type: "value", content: "https://www.cnrs.fr/" }
+                    }
+                ],
+                P571: [
+                    {
+                        id: "Q280413$founding-date",
+                        rank: "normal",
+                        property: { id: "P571", data_type: "time" },
+                        value: { type: "value", content: { time: "+1939-10-19T00:00:00Z" } }
+                    }
+                ],
+                P159: [
+                    {
+                        id: "Q280413$headquarters",
+                        rank: "normal",
+                        property: { id: "P159", data_type: "wikibase-item" },
+                        value: { type: "value", content: "Q0" },
+                        qualifiers: [
+                            {
+                                property: { id: "P6375", data_type: "monolingualtext" },
+                                value: { type: "value", content: { text: "3 rue Michel-Ange" } }
+                            },
+                            {
+                                property: { id: "P281", data_type: "string" },
+                                value: { type: "value", content: "75794 cedex 16" }
+                            }
+                        ]
+                    }
+                ]
+            }
+        });
 
-        // Appelle la fonction qui fait l'appel API réel
-        const result = await getOrganisationFromApi({ entityId });
+        const countryEntity = createWikidataEntity({ labels: { fr: "France" } });
 
-        // Vérifie que le résultat est bien un objet SchemaOrganization
-        expect(result).toBeDefined();
-        if (result) {
-            expect(result["@type"]).toBe("Organization");
-            expect(result.name).toEqual(
-                "Institut national de recherche pour l'agriculture, l'alimentation et l'environnement"
-            );
-            expect(result.description).toEqual("institut français de recherche public");
-            expect(result.url).toEqual("https://www.inrae.fr/");
-            expect(result.foundingDate).toEqual("2020");
-            expect(result.address).toEqual({
+        const result = convertWikidataToSchemaOrganization({ organisationEntity, countryEntity });
+
+        expect(result).toEqual({
+            "@type": "Organization",
+            name: "Centre national de la recherche scientifique",
+            alternateName: ["CNRS"],
+            description: "organisme public français de recherche scientifique",
+            url: "https://www.cnrs.fr/",
+            foundingDate: "1939",
+            address: {
                 "@type": "PostalAddress",
-                "addressCountry": "France",
-                "postalCode": "75007",
-                "streetAddress": "147, rue de l'Université"
-            });
-        }
-    }, 10000); // Augmente le timeout si nécessaire (en ms)
+                addressCountry: "France",
+                postalCode: "75794 cedex 16",
+                streetAddress: "3 rue Michel-Ange"
+            }
+        });
+    });
 });
