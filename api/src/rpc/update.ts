@@ -7,9 +7,10 @@ import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
-import { makeRefreshExternalDataAll } from "../core/usecases/refreshExternalData";
+import { makeRefreshExternalData } from "../core/usecases/refreshExternalData";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { DbApiV2 } from "../core/ports/DbApiV2";
+import { Source } from "../lib/ApiTypes";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -27,14 +28,30 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 };
 
 export async function startUpdateService(params: {
-    isDevEnvironnement: boolean;
-    databaseUrl: string;
-    updateSkipTimingInMinutes?: number;
-    updateSoftwareIds?: number[];
+    env: {
+        isDevEnvironnement: boolean;
+        databaseUrl: string;
+        updateSkipTimingInMinutes?: number;
+        updateSoftwareIds?: number[];
+        sources?: string[];
+    };
+    args: { sourceSlugs?: string[]; updateSkipTimingInMinutes?: number; updateSoftwareIds?: number[] };
 }) {
     console.log("[RPC:Update] Starting fetching of external data on remote sources");
     console.time("[RPC:Update] Fetching of external data on remote sources: Done");
-    const { isDevEnvironnement, databaseUrl, updateSkipTimingInMinutes, updateSoftwareIds, ...rest } = params;
+    const {
+        isDevEnvironnement,
+        databaseUrl,
+        updateSkipTimingInMinutes: timeUpEnv,
+        updateSoftwareIds,
+        sources: sourceEnv,
+        ...rest
+    } = params.env;
+    const {
+        sourceSlugs: argSourceSlugs,
+        updateSkipTimingInMinutes: argTimeUp,
+        updateSoftwareIds: argUpdateSoftwareIds
+    } = params.args;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -47,13 +64,45 @@ export async function startUpdateService(params: {
         "kyselyDb": kyselyDb
     });
 
-    const refreshExternalData = await makeRefreshExternalDataAll({
-        dbApi,
-        minuteSkipSince: updateSkipTimingInMinutes ?? 180,
-        softwareIdsToRefresh: updateSoftwareIds
+    const updateSkipTimingInMinutes = argTimeUp ?? timeUpEnv ?? 180;
+    const sources = argSourceSlugs ? argSourceSlugs : sourceEnv;
+    const softwareIdsToRefresh = argUpdateSoftwareIds ?? updateSoftwareIds;
+
+    const sourcesToUpdate = await sourceValidators({ dbApi, sourcesSlugs: sources });
+
+    const resolveUpdate = sourcesToUpdate.map(source => {
+        const refreshExternalData = makeRefreshExternalData({
+            dbApi
+        });
+
+        return refreshExternalData({
+            minuteSkipSince: updateSkipTimingInMinutes,
+            source,
+            softwareIdsToRefresh
+        });
     });
 
-    await refreshExternalData();
-
+    await Promise.all(resolveUpdate);
     console.timeEnd("[RPC:Update] Fetching of external data on remote sources: Done");
 }
+
+const sourceValidators = async (params: { dbApi: DbApiV2; sourcesSlugs: string[] | undefined }): Promise<Source[]> => {
+    const { dbApi, sourcesSlugs } = params;
+    if (Array.isArray(sourcesSlugs)) {
+        if (sourcesSlugs.length === 0) throw RangeError("Source can't be empty");
+        const sources = await Promise.all(
+            sourcesSlugs.map(async (slug: string) => {
+                const res = await dbApi.source.getByName({ name: slug });
+                if (res) return res;
+                else {
+                    console.error(`${slug} is not found - skipping this setting`);
+                    return undefined;
+                }
+            })
+        );
+
+        return sources.filter(source => !!source) as Source[];
+    }
+
+    return dbApi.source.getAll();
+};

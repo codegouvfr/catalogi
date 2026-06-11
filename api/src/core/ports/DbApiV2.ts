@@ -125,7 +125,7 @@ export interface SoftwareExternalDataRepository {
         sourceSlug: string;
         externalId: string;
     }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
-    getIds: (params: { minuteSkipSince?: number }) => Promise<
+    getIds: (params: { minuteSkipSince?: number; sourceSlug?: string }) => Promise<
         {
             sourceSlug: string;
             externalId: string;
@@ -188,7 +188,7 @@ export interface SoftwareUserRepository {
 }
 
 export interface SourceRepository {
-    getAll: () => Promise<DatabaseDataType.SourceRow[]>;
+    getAll: (params?: { all: boolean }) => Promise<DatabaseDataType.SourceRow[]>;
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;

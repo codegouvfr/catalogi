@@ -2,10 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type {
-    FetchAndSaveExternalDataForAllSoftware,
-    FetchAndSaveExternalDataForSoftware
-} from "./refreshExternalData";
+import type { FetchAndSaveExternalData, FetchAndSaveExternalDataForSoftware } from "./refreshExternalData";
 import type { GetUser } from "./getUser";
 import type { GetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import type { CreateSoftware } from "./createSoftware";
@@ -19,7 +16,7 @@ import { RefreshSession } from "./auth/refreshSession";
 
 export type UseCases = {
     getSoftwareFormAutoFillDataFromExternalAndOtherSources: GetSoftwareFormAutoFillDataFromExternalAndOtherSources;
-    fetchAndSaveExternalDataForAllSoftware: FetchAndSaveExternalDataForAllSoftware;
+    fetchAndSaveExternalDataForAllSoftware: FetchAndSaveExternalData;
     fetchAndSaveExternalDataForOneSoftwarePackage: FetchAndSaveExternalDataForSoftware;
     getUser: GetUser;
     auth: {

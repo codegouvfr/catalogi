@@ -93,7 +93,7 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .executeTakeFirst()
             .then(row => (row ? cleanDataForExternalData(row) : undefined));
     },
-    getIds: async ({ minuteSkipSince }) => {
+    getIds: async ({ minuteSkipSince, sourceSlug }) => {
         // Skip the `UserInput` pseudo-source: it has no gateway to refresh.
         let request = db
             .selectFrom("software_external_datas")
@@ -105,6 +105,10 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             request = request.where(eb =>
                 eb.or([eb("lastDataFetchAt", "is", null), eb("lastDataFetchAt", "<", thresholdDate)])
             );
+        }
+
+        if (sourceSlug) {
+            request = request.where("sourceSlug", "=", sourceSlug);
         }
 
         return request.execute().then(rows => rows.map(row => stripNullOrUndefinedValues(row)));

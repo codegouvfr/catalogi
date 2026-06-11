@@ -7,17 +7,21 @@ import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/res
 import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
+import { Source } from "../../lib/ApiTypes";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
-    minuteSkipSince?: number;
-    softwareIdsToRefresh?: number[];
 };
 
 const useCaseLogTitle = "[UC.refreshExternalData]";
-const useCaseLogTimer = `${useCaseLogTitle} Finsihed fetching external data`;
+const useCaseLogTimer = (source: string, ids: number[]) =>
+    `${useCaseLogTitle} ${source} ${ids.toString()} Finished fetching external data`;
 
-export type FetchAndSaveExternalDataForAllSoftware = () => Promise<boolean>;
+export type FetchAndSaveExternalData = (args: {
+    minuteSkipSince?: number;
+    source?: Source;
+    softwareIdsToRefresh?: number[];
+}) => Promise<boolean>;
 export type FetchAndSaveExternalDataForSoftware = (args: { softwareId: number }) => Promise<boolean>;
 
 const deduplicateExternalDataIds = (
@@ -175,20 +179,20 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
     }
 };
 
-export const makeRefreshExternalDataAll = (
-    deps: ParamsOfrefreshExternalDataUseCase
-): FetchAndSaveExternalDataForAllSoftware => {
-    const { dbApi, minuteSkipSince = 0, softwareIdsToRefresh } = deps;
+export const makeRefreshExternalData = (deps: ParamsOfrefreshExternalDataUseCase): FetchAndSaveExternalData => {
+    const { dbApi } = deps;
 
-    return async () => {
-        console.time(useCaseLogTimer);
+    return async (params: { minuteSkipSince?: number; source?: Source; softwareIdsToRefresh?: number[] }) => {
+        const { source, minuteSkipSince, softwareIdsToRefresh } = params;
+        const logTimeStamp = useCaseLogTimer(source?.slug ?? "", softwareIdsToRefresh ?? []);
+        console.time(logTimeStamp);
 
         await discoverNewSoftwareLinks(dbApi);
 
         const externalDataToUpdate =
             softwareIdsToRefresh && softwareIdsToRefresh.length > 0
                 ? await getExternalDataIdsForSoftwareIds(dbApi, softwareIdsToRefresh)
-                : await dbApi.softwareExternalData.getIds({ minuteSkipSince });
+                : await dbApi.softwareExternalData.getIds({ minuteSkipSince, sourceSlug: source?.slug });
 
         if (softwareIdsToRefresh && softwareIdsToRefresh.length > 0) {
             console.log(
@@ -198,7 +202,9 @@ export const makeRefreshExternalDataAll = (
             );
         }
 
-        return refreshExternalDataByExternalIdAndSlug({ dbApi, ids: externalDataToUpdate });
+        const res = await refreshExternalDataByExternalIdAndSlug({ dbApi, ids: externalDataToUpdate });
+        console.timeEnd(logTimeStamp);
+        return res;
     };
 };
 
@@ -208,7 +214,7 @@ export const makeRefreshExternalDataForSoftware = (
     const { dbApi } = deps;
 
     return async ({ softwareId }: { softwareId: number }) => {
-        console.time(useCaseLogTimer);
+        console.time(useCaseLogTimer("", [softwareId]));
 
         const externalDataBinded = await dbApi.softwareExternalData.getBySoftwareId({ softwareId });
 
@@ -226,7 +232,12 @@ export const makeRefreshExternalDataForSoftware = (
                 externalId: externdalDataItem.externalId,
                 sourceSlug: externdalDataItem.sourceSlug
             }));
-        return refreshExternalDataByExternalIdAndSlug({ dbApi, ids: idsArray.concat(simularExternalDataIDs) });
+        const res = await refreshExternalDataByExternalIdAndSlug({
+            dbApi,
+            ids: idsArray.concat(simularExternalDataIDs)
+        });
+        console.timeEnd(useCaseLogTimer("", [softwareId]));
+        return res;
     };
 };
 
@@ -288,6 +299,5 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
             console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
         }
     }
-    console.timeEnd(useCaseLogTimer);
     return true;
 };

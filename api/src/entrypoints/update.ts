@@ -4,5 +4,21 @@
 
 import { env } from "../env";
 import { startUpdateService } from "../rpc/update";
+import commandLineArgs from "command-line-args";
 
-startUpdateService(env).then(() => process.exit(0));
+const optionDefinitions = [
+    { name: "source", alias: "s", type: String, multiple: true, defaultOption: true },
+    { name: "updateSkipTimingInMinutes", alias: "t", type: Number },
+    { name: "softwareIdsToRefresh", alias: "w", type: Number, multiple: true }
+];
+
+const options = commandLineArgs(optionDefinitions);
+
+startUpdateService({
+    env,
+    args: {
+        sourceSlugs: options.source,
+        updateSkipTimingInMinutes: options.updateSkipTimingInMinutes,
+        updateSoftwareIds: options.softwareIdsToRefresh
+    }
+}).then(() => process.exit(0));
