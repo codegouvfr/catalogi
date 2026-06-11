@@ -115,6 +115,63 @@ describe("RPC e2e tests", () => {
         });
     });
 
+    describe("createSoftware - when adding software is disabled in ui-config", () => {
+        const disableAddSoftware: NonNullable<
+            Parameters<typeof createTestCaller>[0]
+        >["overrideUiConfig"] = uiConfig => ({
+            ...uiConfig,
+            home: {
+                ...uiConfig.home,
+                usecases: {
+                    ...uiConfig.home.usecases,
+                    addSoftwareOrService: {
+                        ...uiConfig.home.usecases.addSoftwareOrService,
+                        enabled: false
+                    }
+                }
+            }
+        });
+
+        it("fails with FORBIDDEN for a regular user", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({
+                db: kyselyDb,
+                currentUser: defaultUser,
+                overrideUiConfig: disableAddSoftware
+            }));
+            await expect(
+                apiCaller.createSoftware({
+                    formData: softwareFormData
+                })
+            ).rejects.toThrow("Adding software is disabled");
+        });
+
+        it("still allows an admin to create a software", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({
+                db: kyselyDb,
+                currentUser: adminUser,
+                overrideUiConfig: disableAddSoftware
+            }));
+            await apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name: "Admin create while disabled test",
+                    similarSoftwareExternalDataItems: []
+                })
+            });
+
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .select("name")
+                .where("name", "=", "Admin create while disabled test")
+                .executeTakeFirstOrThrow();
+            expect(software.name).toBe("Admin create while disabled test");
+        });
+    });
+
     describe("admin-only custom attributes", () => {
         const insertAttributeDefinition = async (params: {
             name: string;

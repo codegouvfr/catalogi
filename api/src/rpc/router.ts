@@ -221,6 +221,13 @@ export function createRouter(params: {
             .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData } = input;
 
+                if (!uiConfig.home.usecases.addSoftwareOrService.enabled && currentUser.role !== "admin") {
+                    throw new TRPCError({
+                        "code": "FORBIDDEN",
+                        "message": "Adding software is disabled"
+                    });
+                }
+
                 try {
                     const sanitizedFormData = await sanitizeSoftwareFormDataCustomAttributes({
                         dbApi,

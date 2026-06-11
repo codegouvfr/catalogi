@@ -10,10 +10,12 @@ import { Session } from "../core/ports/DbApiV2";
 import { testPgUrl } from "../tools/test.helpers";
 import { createRouter } from "./router";
 import { UserWithId } from "../lib/ApiTypes";
+import { UiConfig } from "../core/uiConfigSchema";
 
 type TestCallerConfig = {
     currentUser: UserWithId | undefined;
     db?: Kysely<Database>;
+    overrideUiConfig?: (uiConfig: UiConfig) => UiConfig;
 };
 
 export const defaultUser: UserWithId = {
@@ -29,7 +31,9 @@ export const defaultUser: UserWithId = {
 
 export type ApiCaller = Awaited<ReturnType<typeof createTestCaller>>["apiCaller"];
 
-export const createTestCaller = async ({ currentUser, db }: TestCallerConfig = { currentUser: defaultUser }) => {
+export const createTestCaller = async (
+    { currentUser, db, overrideUiConfig }: TestCallerConfig = { currentUser: defaultUser }
+) => {
     const kyselyDb = db ?? new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
 
     const { dbApi, useCases, uiConfig } = await bootstrapCore({
@@ -54,7 +58,7 @@ export const createTestCaller = async ({ currentUser, db }: TestCallerConfig = {
             appUrl: "http://localhost:3000"
         },
         redirectUrl: undefined,
-        uiConfig
+        uiConfig: overrideUiConfig ? overrideUiConfig(uiConfig) : uiConfig
     });
 
     if (currentUser) {
