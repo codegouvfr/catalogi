@@ -345,8 +345,8 @@ export const PreviewTab = (props: Props) => {
                                     </span>
                                     <span>
                                         {useFormattedDate({
-                                            time: repoMetadata.healthCheck
-                                                .lastClosedIssue,
+                                            time: repoMetadata.healthCheck.lastClosedIssue
+                                                .dateModified,
                                             showTime: false,
                                             doAlwaysShowYear: true
                                         })}
@@ -367,7 +367,7 @@ export const PreviewTab = (props: Props) => {
                                     <span>
                                         {useFormattedDate({
                                             time: repoMetadata.healthCheck
-                                                .lastClosedIssuePullRequest,
+                                                .lastClosedIssuePullRequest.dateModified,
                                             showTime: false,
                                             doAlwaysShowYear: true
                                         })}
@@ -386,7 +386,8 @@ export const PreviewTab = (props: Props) => {
                                     </span>
                                     <span>
                                         {useFormattedDate({
-                                            time: repoMetadata.healthCheck.lastCommit,
+                                            time: repoMetadata.healthCheck.lastCommit
+                                                .dateCreated,
                                             showTime: false,
                                             doAlwaysShowYear: true
                                         })}
