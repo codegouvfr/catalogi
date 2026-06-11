@@ -10,15 +10,13 @@ import { stripNullOrUndefinedValues } from "./kysely.utils";
 export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository => ({
     getAll: async (params = { all: false }) => {
         const { all = false } = params;
-        return db
-            .selectFrom("sources")
-            .selectAll()
-            .execute()
-            .then(rows =>
-                rows
-                    .map(row => stripNullOrUndefinedValues(row))
-                    .filter(source => all || source.slug !== USER_INPUT_SOURCE_SLUG)
-            );
+        let req = db.selectFrom("sources").selectAll();
+
+        if (!all) {
+            req = req.where("slug", "!=", USER_INPUT_SOURCE_SLUG);
+        }
+
+        return req.execute().then(rows => rows.map(row => stripNullOrUndefinedValues(row)));
     },
     getByName: async (params: { name: string }) =>
         db
