@@ -210,6 +210,7 @@ describe("fetches software extra data (from different providers)", () => {
             .selectFrom("software_external_datas")
             .selectAll()
             .orderBy("softwareId", "asc")
+            .orderBy("sourceSlug", "asc")
             .execute();
 
         expectToMatchObject(softwareExternalDatas, initialExternalSoftwarePackagesBeforeFetching);
@@ -220,6 +221,7 @@ describe("fetches software extra data (from different providers)", () => {
             .selectFrom("software_external_datas")
             .selectAll()
             .orderBy("softwareId", "asc")
+            .orderBy("sourceSlug", "asc")
             .execute();
 
         expectToEqual(updatedSoftwareExternalDatas, initialExternalSoftwarePackagesBeforeFetching);
