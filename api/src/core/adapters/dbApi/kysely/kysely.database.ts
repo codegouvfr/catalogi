@@ -99,9 +99,15 @@ export type SchemaIdentifier = {
 // Created from nowhere
 export type RepoMetadata = {
     healthCheck?: {
-        lastCommit?: number;
-        lastClosedIssue?: number;
-        lastClosedIssuePullRequest?: number;
+        lastCommit?: {
+            dateCreated: string;
+        };
+        lastClosedIssue?: {
+            dateModified: string;
+        };
+        lastClosedIssuePullRequest?: {
+            dateModified: string;
+        };
     };
 };
 

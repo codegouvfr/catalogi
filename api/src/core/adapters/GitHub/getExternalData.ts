@@ -26,6 +26,10 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         const repoDevs = await gitHubApi.repo.getContributors({ repoUrl });
         const repoTags = await gitHubApi.repo.getTags({ repoUrl });
         const repoLanguages = await gitHubApi.repo.getLanguages({ repoUrl });
+        const lastCommit = await gitHubApi.repo.commits.getLastCommit({ repoUrl });
+        const lastCloseIssue = await gitHubApi.repo.issues.getLastClosedIssue({ repoUrl });
+        const lastClosedPull = await gitHubApi.repo.mergeRequests.getLast({ repoUrl });
+
         const devIds =
             repoDevs
                 ?.filter(dev => dev && dev.type === "User") // FILTER BOT
@@ -117,7 +121,20 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
             customAttributes: undefined,
             userAndReferentCountByOrganization: undefined,
             hasExpertReferent: undefined,
-            instances: undefined
+            instances: undefined,
+            repoMetadata: {
+                healthCheck: {
+                    lastCommit: lastCommit?.commit?.author?.date
+                        ? { dateCreated: new Date(lastCommit.commit.author.date).toISOString() }
+                        : undefined,
+                    lastClosedIssue: lastCloseIssue?.closed_at
+                        ? { dateModified: new Date(lastCloseIssue.closed_at).toDateString() }
+                        : undefined,
+                    lastClosedIssuePullRequest: lastClosedPull?.closed_at
+                        ? { dateModified: new Date(lastClosedPull.closed_at)?.toISOString() }
+                        : undefined
+                }
+            }
         };
     }
 );
