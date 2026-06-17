@@ -565,7 +565,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 protections: toProtectionsData(softwareRow.protections),
                 userAndReferentCountByOrganization,
-                authors: extData?.authors ?? [],
+                authors: populatedExternalRows[0].authors ?? extData?.authors ?? [],
                 url: extData?.url ?? undefined,
                 codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
                 softwareHelp: extData?.softwareHelp ?? undefined,
