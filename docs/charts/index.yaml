@@ -2,6 +2,21 @@ apiVersion: v1
 entries:
   catalogi:
   - apiVersion: v2
+    appVersion: 1.55.10
+    created: "2026-06-18T11:41:09.73038139Z"
+    dependencies:
+    - condition: postgresql.enabled
+      name: postgresql
+      repository: https://charts.bitnami.com/bitnami
+      version: "16"
+    description: A Helm chart for deploying the Catalogi open source software catalog.
+    digest: 6da2126bbd78917c522a0e501f31ed42d68aa12e49d788ae135d379f3595ee47
+    name: catalogi
+    type: application
+    urls:
+    - https://github.com/codegouvfr/catalogi/releases/download/v1.55.10/catalogi-2.0.55.tgz
+    version: 2.0.55
+  - apiVersion: v2
     appVersion: 1.53.9
     created: "2025-12-12T12:38:55.498637425Z"
     dependencies:
@@ -181,4 +196,4 @@ entries:
     urls:
     - https://github.com/codegouvfr/catalogi/releases/download/v1.52.3/catalogi-2.0.14.tgz
     version: 2.0.14
-generated: "2025-12-12T12:38:55.491803929Z"
+generated: "2026-06-18T11:41:09.723812821Z"
