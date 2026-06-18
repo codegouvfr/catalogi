@@ -8,7 +8,6 @@ import { createKyselyPgDbApi } from "./adapters/dbApi/kysely/createPgDbApi";
 import { Database } from "./adapters/dbApi/kysely/kysely.database";
 import type { ComptoirDuLibreApi } from "./ports/ComptoirDuLibreApi";
 import { DbApiV2 } from "./ports/DbApiV2";
-import { UiConfig, uiConfigSchema } from "./uiConfigSchema";
 import { UseCasesUsedOnRouter } from "../rpc/router";
 import { makeHandleAuthCallback } from "./usecases/auth/handleAuthCallback";
 import { makeInitiateAuth } from "./usecases/auth/initiateAuth";
@@ -17,7 +16,6 @@ import { makeRefreshSession } from "./usecases/auth/refreshSession";
 import { HttpOidcClient, TestOidcClient, type OidcParams } from "./usecases/auth/oidcClient";
 import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
-import rawUiConfig from "../customization/ui-config.json";
 import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
@@ -52,9 +50,8 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 
 export async function bootstrapCore(
     params: ParamsOfBootstrapCore
-): Promise<{ dbApi: DbApiV2; context: Context; useCases: UseCasesUsedOnRouter; uiConfig: UiConfig }> {
+): Promise<{ dbApi: DbApiV2; context: Context; useCases: UseCasesUsedOnRouter }> {
     const { dbConfig, oidcParams } = params;
-    const uiConfig = uiConfigSchema.parse(rawUiConfig);
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
 
@@ -90,5 +87,5 @@ export async function bootstrapCore(
         }
     };
 
-    return { dbApi, context, useCases, uiConfig };
+    return { dbApi, context, useCases };
 }

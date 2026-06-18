@@ -10,7 +10,8 @@ import { assert } from "tsafe/assert";
 import { z } from "zod";
 import type { DbApiV2 } from "../core/ports/DbApiV2";
 import { Language } from "../core/ports/GetSoftwareExternalData";
-import { UiConfig } from "../core/uiConfigSchema";
+import { UiConfig, uiConfigSchema } from "../core/uiConfigSchema";
+import { defaultUiConfig } from "../core/defaultUiConfig";
 import type { UseCases } from "../core/usecases";
 import {
     DeclarationFormData,
@@ -50,9 +51,14 @@ export function createRouter(params: {
     useCases: UseCasesUsedOnRouter;
     oidcParams: OidcParams & { manageProfileUrl: string };
     redirectUrl: string | undefined;
-    uiConfig: UiConfig;
 }) {
-    const { useCases, dbApi, oidcParams, redirectUrl, uiConfig } = params;
+    const { useCases, dbApi, oidcParams, redirectUrl } = params;
+
+    // UI config lives in the DB (singleton row) and is editable at runtime by admins, so it
+    // is read per-request rather than captured once. The row only exists once an admin saves;
+    // until then we fall back to the bundled default (the ui-config.json overridable via a
+    // mounted volume / ConfigMap), which keeps that file live throughout the migration.
+    const resolveUiConfig = async (): Promise<UiConfig> => (await dbApi.uiConfig.get()) ?? defaultUiConfig;
 
     const t = initTRPC.context<Context>().create({
         "transformer": superjson,
@@ -139,7 +145,7 @@ export function createRouter(params: {
         "getApiVersion": loggedProcedure.query(() => projectVersion),
         "getOidcManageProfileUrl": loggedProcedure.query(() => oidcParams.manageProfileUrl),
         "getUiConfig": loggedProcedure.query(async () => ({
-            uiConfig,
+            uiConfig: await resolveUiConfig(),
             attributeDefinitions: await dbApi.attributeDefinition.getAll()
         })),
         "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
@@ -221,6 +227,7 @@ export function createRouter(params: {
             .mutation(async ({ ctx: { currentUser }, input }) => {
                 const { formData } = input;
 
+                const uiConfig = await resolveUiConfig();
                 if (!uiConfig.home.usecases.addSoftwareOrService.enabled && currentUser.role !== "admin") {
                     throw new TRPCError({
                         "code": "FORBIDDEN",
@@ -551,6 +558,10 @@ export function createRouter(params: {
                 }
             }
             await dbApi.attributeDefinition.update(name, patch);
+        }),
+
+        "updateUiConfig": adminProcedure.input(uiConfigSchema).mutation(async ({ input }) => {
+            await dbApi.uiConfig.save(input);
         })
     });
 

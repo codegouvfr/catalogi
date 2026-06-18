@@ -20,6 +20,7 @@ import type { CompiledData } from "./CompileData";
 import type { SoftwareExternal } from "../types/SoftwareTypes";
 import type { UserRole } from "../adapters/dbApi/kysely/kysely.database";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
+import type { UiConfig } from "../uiConfigSchema";
 import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
 import type { Os, RuntimePlatform } from "../types";
 
@@ -224,6 +225,13 @@ export interface AttributeDefinitionRepository {
     update: (name: string, patch: Partial<Omit<AttributeDefinition, "name" | "kind" | "createdAt">>) => Promise<void>;
 }
 
+export interface UiConfigRepository {
+    // Reads the singleton config row, or undefined when the table is empty.
+    get: () => Promise<UiConfig | undefined>;
+    // Upserts the singleton config row.
+    save: (config: UiConfig) => Promise<void>;
+}
+
 export type DbApiV2 = {
     source: SourceRepository;
     software: SoftwareRepository;
@@ -234,5 +242,6 @@ export type DbApiV2 = {
     softwareUser: SoftwareUserRepository;
     session: SessionRepository;
     attributeDefinition: AttributeDefinitionRepository;
+    uiConfig: UiConfigRepository;
     getCompiledDataPrivate: () => Promise<CompiledData<"private">>;
 };

@@ -11,6 +11,7 @@ import { testPgUrl } from "../tools/test.helpers";
 import { createRouter } from "./router";
 import { UserWithId } from "../lib/ApiTypes";
 import { UiConfig } from "../core/uiConfigSchema";
+import { defaultUiConfig } from "../core/defaultUiConfig";
 
 type TestCallerConfig = {
     currentUser: UserWithId | undefined;
@@ -36,7 +37,7 @@ export const createTestCaller = async (
 ) => {
     const kyselyDb = db ?? new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
 
-    const { dbApi, useCases, uiConfig } = await bootstrapCore({
+    const { dbApi, useCases } = await bootstrapCore({
         "dbConfig": { dbKind: "kysely", kyselyDb },
         "oidcKind": "test",
         "oidcParams": {
@@ -46,6 +47,13 @@ export const createTestCaller = async (
             appUrl: "http://localhost:3000"
         }
     });
+
+    // The UI config now lives in the DB; apply the test override by persisting it
+    // (bootstrap has already seeded the default singleton row).
+    if (overrideUiConfig) {
+        const current = (await dbApi.uiConfig.get()) ?? defaultUiConfig;
+        await dbApi.uiConfig.save(overrideUiConfig(current));
+    }
 
     const { router } = createRouter({
         useCases,
@@ -57,8 +65,7 @@ export const createTestCaller = async (
             manageProfileUrl: "http://fake.url/manage-profile",
             appUrl: "http://localhost:3000"
         },
-        redirectUrl: undefined,
-        uiConfig: overrideUiConfig ? overrideUiConfig(uiConfig) : uiConfig
+        redirectUrl: undefined
     });
 
     if (currentUser) {

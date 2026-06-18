@@ -76,7 +76,7 @@ export async function startRpcService(params: {
 
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
 
-    const { dbApi, useCases, uiConfig } = await bootstrapCore({
+    const { dbApi, useCases } = await bootstrapCore({
         dbConfig: {
             dbKind: "kysely",
             kyselyDb: kyselyDb
@@ -95,8 +95,7 @@ export async function startRpcService(params: {
         useCases,
         dbApi,
         oidcParams,
-        redirectUrl,
-        uiConfig
+        redirectUrl
     });
 
     const catalogiJsonHandler = makeGetCatalogiJson(redirectUrl, dbApi);

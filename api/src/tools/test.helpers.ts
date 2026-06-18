@@ -169,6 +169,9 @@ export const resetDB = async (db: Kysely<Database>) => {
     await db.deleteFrom("softwares").execute();
     await db.deleteFrom("users").execute();
     await db.deleteFrom("sources").execute();
+    // Reset the singleton UI config so the next bootstrap re-seeds the default
+    // (tests that override the config must not leak into subsequent tests).
+    await db.deleteFrom("config_ui").execute();
 
     return db
         .insertInto("sources")

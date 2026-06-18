@@ -4,6 +4,7 @@
 
 import { Generated, JSONColumnType } from "kysely";
 import { TransformRepoToRowOutput } from "./kysely.utils";
+import type { UiConfig } from "../../../uiConfigSchema";
 
 // from https://schema.org/ScholarlyArticle
 export type ScholarlyArticle = {
@@ -122,6 +123,16 @@ export type Database = {
     sources: SourcesTable;
     user_sessions: SessionsTable;
     software_attribute_definitions: SoftwareAttributeDefinitionsTable;
+    config_ui: ConfigUiTable;
+};
+
+// Singleton table: at most one row (id is always true). Holds the UI configuration
+// as a single jsonb document validated against uiConfigSchema at the application boundary.
+type ConfigUiTable = {
+    id: Generated<boolean>;
+    config: JSONColumnType<UiConfig>;
+    createdAt: Generated<Date>;
+    updatedAt: Generated<Date>;
 };
 
 type UsersTable = {

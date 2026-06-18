@@ -208,6 +208,15 @@ export function createSillApi(params: { url: string }): SillApi {
             sillApi.getUiConfig.clear();
 
             return out;
+        },
+        updateUiConfig: async params => {
+            const out = await trpcClient.updateUiConfig
+                .mutate(params)
+                .catch(errorHandler);
+
+            sillApi.getUiConfig.clear();
+
+            return out;
         }
     };
 
