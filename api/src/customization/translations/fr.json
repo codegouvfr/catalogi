@@ -30,7 +30,8 @@
         "home title": "Accueil - Catalogue des logiciels libres de la recherche académique",
         "title": "Catalogue des logiciels libres de la recherche académique",
         "navigation welcome": "Bienvenue sur le catalogue",
-        "navigation support request": "Contact !"
+        "navigation support request": "Contact !",
+        "devOrganizations": "Par établissements et laboratoires"
     },
     "headerDetailCard": {
         "website": "Notice HAL"

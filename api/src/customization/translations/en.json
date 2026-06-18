@@ -30,7 +30,8 @@
         "home title": "Home - Catalog of academic research free software",
         "title": "Catalog of academic research free software",
         "navigation welcome": "Welcome on the catalog",
-        "navigation support request": "Contact us !"
+        "navigation support request": "Contact us !",
+        "devOrganizations": "By organization et laboratory"
     },
     "headerDetailCard": {
         "website": "HAL Notice"
