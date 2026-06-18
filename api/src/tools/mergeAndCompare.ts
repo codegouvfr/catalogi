@@ -68,6 +68,7 @@ export const mergeOrganizations = (orgA: SchemaOrganization, orgB: SchemaOrganiz
     return {
         ...orgA,
         ...orgB,
+        producer: [...(orgA.producer ?? []), ...(orgB.producer ?? [])],
         identifiers: mergeDepuplicateIdentifierArray(orgA.identifiers, orgB.identifiers),
         parentOrganizations: mergeOrganizationArrays(orgA.parentOrganizations, orgB.parentOrganizations)
     };
