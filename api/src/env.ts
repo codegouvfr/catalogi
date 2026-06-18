@@ -49,7 +49,6 @@ const envConfiguration = zEnvConfiguration.parse({
     "updateSoftwareIds": process.env?.UPDATE_SOFTWARE_IDS
         ? process.env.UPDATE_SOFTWARE_IDS.split(",").map(value => parseInt(value.trim(), 10))
         : undefined,
-    "githubPersonalAccessTokenForApiRateLimit": process.env?.GITHUB_TOKEN,
     "sentryDsnApi": process.env.SENTRY_DSN_API
 });
 
