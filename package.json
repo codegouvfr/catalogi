@@ -34,7 +34,7 @@
     "lefthook": "^1.10.10",
     "turbo": "^1.12.5"
   },
-  "packageManager": "pnpm@10.32.1",
+  "packageManager": "pnpm@10.34.4",
   "engines": {
     "node": ">=24"
   },
