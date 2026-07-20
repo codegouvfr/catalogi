@@ -407,6 +407,7 @@
         "home title": "Home - Interministerial Free Software Catalog",
         "title": "Interministerial Free Software Catalog",
         "devOrganizations": "Devloper Organizations",
+        "documentation ref": "Documentation",
         "navigation welcome": "Welcome to the $t(common.appAccronym)",
         "navigation catalog": "Software catalog",
         "navigation add software": "Add software or instance",

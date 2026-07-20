@@ -238,7 +238,10 @@ function RowVirtualizerDynamicWindow(props: {
                                             <OrganizationCard
                                                 key={organization.name}
                                                 organization={organization}
-                                                renderingOptions={{ showLinks: false }}
+                                                renderingOptions={{
+                                                    showLinks: false,
+                                                    minimalist: true
+                                                }}
                                             />
                                         );
                                     }

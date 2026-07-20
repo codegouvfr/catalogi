@@ -33,6 +33,10 @@ const headerSchema = z.object({
         about: z.object({
             enabled: z.boolean()
         }),
+        documentation: z.object({
+            enabled: z.boolean(),
+            href: z.string()
+        }),
         contribute: z.object({
             enabled: z.boolean(),
             href: z.string()
