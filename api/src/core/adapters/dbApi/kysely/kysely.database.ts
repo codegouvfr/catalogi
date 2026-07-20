@@ -192,6 +192,7 @@ export type ExternalDataOriginKind =
     | "GitLab"
     | "RNSR"
     | "ROR"
+    | "ScanR"
     | "UserInput";
 
 /**
@@ -213,6 +214,8 @@ export type SourceConfig = {
     queryTimeout?: number;
     auth?: string;
     rateLimitRetryDuration?: number;
+    username?: string;
+    password?: string;
 };
 
 type SourcesTable = {
