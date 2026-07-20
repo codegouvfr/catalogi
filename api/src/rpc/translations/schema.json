@@ -1701,6 +1701,9 @@
                 "devOrganizations": {
                     "type": "string"
                 },
+                "documentation ref": {
+                    "type": "string"
+                },
                 "navigation welcome": {
                     "type": "string"
                 },
