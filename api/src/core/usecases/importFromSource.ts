@@ -75,6 +75,7 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
         // Secondary Sources
         case "CNLL":
         case "RNSR":
+        case "ScanR":
         case "ROR":
             throw new Error("[UC:Import] Import if not possible from a secondary or non software source");
         case USER_INPUT_SOURCE_SLUG:
