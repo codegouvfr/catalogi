@@ -28,10 +28,14 @@ export const fetchOrganizationById = async (params: {
 
         const data: ScanrSearchResponse | undefined = await response.json();
         if (data) {
+            if (data.hits.total.value === 0) return undefined;
             if (data.hits.total.value === 1) return data.hits.hits[0]._source;
             else {
-                console.error("Range Error : More than one result");
-                return undefined;
+                const active = data.hits.hits.filter(hit => {
+                    return hit._source.status === "active";
+                });
+                if (active.length !== 1) console.error("Range Error : More than one result");
+                return active[0]._source;
             }
         }
         return undefined;

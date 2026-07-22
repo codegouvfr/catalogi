@@ -18,12 +18,12 @@ const convertScanRtoSchema = (org: AgretatedScanROrganization): SchemaOrganizati
 
     return {
         "@type": "Organization",
-        name: org.label["fr"],
+        name: org.label["fr"] ?? org.label["default"] ?? org.label["en"],
         url: org.links?.filter((link: Link) => {
             return link.type === "website";
         })?.[0]?.url,
         identifiers: org.externalIds
-            ?.filter(row => ["ror", "wikidata", "siren", "grid", "rnsr", "hal"].includes(row.type))
+            ?.filter(row => ["ror", "wikidata", "siren", "grid", "rnsr"].includes(row.type))
             .map(row => {
                 switch (row.type) {
                     case "ror":
@@ -39,9 +39,8 @@ const convertScanRtoSchema = (org: AgretatedScanROrganization): SchemaOrganizati
                         return identifersUtils.makeGridIdentifier({ gridId: row.id });
                     case "rnsr":
                         return identifersUtils.makeRNSROrgaIdentifer({ rnrsId: row.id });
-                    case "hal":
                     default:
-                        // TODO support "siret" and "idref" ?
+                        // TODO support "hal" "siret" and "idref" ?
                         throw new Error();
                 }
             }),
@@ -62,14 +61,14 @@ const convertScanRtoSchema = (org: AgretatedScanROrganization): SchemaOrganizati
 const convertScanRDenomtoSchema = (inst: DenormalizedInstitution): SchemaOrganization => {
     return {
         "@type": "Organization",
-        name: inst.label["fr"],
+        name: inst.label["fr"] ?? inst.label["default"] ?? inst.label["en"],
         url: undefined,
         identifiers: undefined,
         parentOrganizations: undefined,
         foundingDate: undefined,
         alternateName: inst.acronym?.["default"] ? [inst.acronym["default"]] : [],
         description: undefined,
-        address: convertAdress(inst.mainAddress),
+        address: inst.mainAddress ? convertAdress(inst.mainAddress) : undefined,
         memberOf: undefined,
 
         additionalType: inst?.kind, // education, government, facility, funder
@@ -82,7 +81,7 @@ const convertScanRDenomtoSchema = (inst: DenormalizedInstitution): SchemaOrganiz
 const convertAdress = (scanRAddress: FullAddress): SchemaPostalAddress => {
     return {
         "@type": "PostalAddress",
-        addressCountry: scanRAddress.country,
+        addressCountry: scanRAddress?.country,
         addressCountryCode: scanRAddress.iso3,
         addressRegion: scanRAddress.region,
         addressLocality: scanRAddress.city,
