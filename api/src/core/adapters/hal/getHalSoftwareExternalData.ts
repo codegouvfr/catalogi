@@ -35,7 +35,7 @@ const buildParentOrganizationTree = async (
             return {
                 "@type": "Organization",
                 "name": structure.name_s,
-                "url": structure.ror_s?.[0] ?? structure.ror_s ?? structure?.url_s,
+                "url": structure?.url_s,
                 "parentOrganizations": await buildParentOrganizationTree(structure?.parentDocid_i, halAPIGateway),
                 identifiers: [
                     ...(rorstring ? [identifersUtils.makeRorOrgaIdentifer({ rorId: rorstring })] : []),
