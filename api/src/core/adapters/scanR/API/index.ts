@@ -31,7 +31,7 @@ export const makeScanRApi = (source?: Source): ScanRSource => {
             search: (organizationId: string) =>
                 fetchOrganizationById({
                     organizationId,
-                    ...{ headers },
+                    requestInit: { headers },
                     rateLimitRetryDuration: source?.configuration?.rateLimitRetryDuration
                 })
         }
