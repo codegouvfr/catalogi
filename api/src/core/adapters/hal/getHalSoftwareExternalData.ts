@@ -150,7 +150,7 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
 
                                 const rorId = Array.isArray(structure?.ror_s) ? structure.ror_s?.[0] : structure?.ror_s;
                                 const rnrsId = Array.isArray(structure?.rnsr_s)
-                                    ? structure.ror_s?.[0]
+                                    ? structure.rnsr_s?.[0]
                                     : structure?.rnsr_s;
 
                                 if (!structure) {

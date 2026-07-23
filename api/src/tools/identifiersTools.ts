@@ -366,6 +366,7 @@ export const identifersUtils = {
     },
     makeRNSROrgaIdentifer: (params: { rnrsId: string }): SchemaIdentifier => {
         const { rnrsId } = params;
+        if (rnrsId.includes("https://")) throw Error("This isn't an identifier");
         return {
             "@type": "PropertyValue" as const,
             value: rnrsId,
