@@ -17,6 +17,7 @@
         "job:import": "dotenv -e ../.env -- node dist/src/entrypoints/import.js",
         "job:import-from-inner-identifiers": "dotenv -e ../.env -- node dist/src/entrypoints/import-from-inner-identifiers.js",
         "job:update": "dotenv -e ../.env -- node dist/src/entrypoints/update.js",
+        "job:authororganization": "dotenv -e ../.env -- node dist/src/entrypoints/authororganization.js",
         "update-then-wait": "./update-then-wait.sh",
         "_format": "prettier \"**/*.{ts,tsx,json,md}\"",
         "format": "pnpm run _format --write",
@@ -46,6 +47,7 @@
     "devDependencies": {
         "@octokit/types": "^16.0.0",
         "@types/command-line-args": "^5.2.3",
+        "@types/command-line-usage": "^5.0.4",
         "@types/compression": "^1.7.2",
         "@types/cookie-parser": "^1.4.9",
         "@types/cors": "^2.8.12",
@@ -82,6 +84,7 @@
         "@trpc/server": "^10.18.0",
         "@types/pg": "^8.11.6",
         "command-line-args": "^6.0.2",
+        "command-line-usage": "^7.0.4",
         "cookie-parser": "^1.4.7",
         "deepmerge": "^4.3.1",
         "generate-schema": "^2.6.0",
