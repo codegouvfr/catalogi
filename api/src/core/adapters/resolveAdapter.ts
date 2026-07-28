@@ -16,6 +16,7 @@ import { ExternalDataOriginKind } from "./dbApi/kysely/kysely.database";
 import { rorSourceGateway } from "./ror.org";
 import { rnsrSourceGateway } from "./RNSR";
 import { scanRSourceGateway } from "./scanR";
+import { Source } from "../usecases/readWriteSillData";
 
 const userInputNoGateway = {
     "sourceType": USER_INPUT_SOURCE_SLUG
@@ -83,5 +84,20 @@ export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind,
         default:
             const unreachableCase: never = sourceType;
             throw new Error(`Unreachable case: ${unreachableCase}`);
+    }
+};
+
+export const getSupportedIdentifierType = (source: Source): string[] => {
+    switch (source.kind) {
+        case "wikidata":
+            return ["wikidata"];
+        case "ROR":
+            return ["ROR"];
+        case "RNSR":
+            return ["RNSR"];
+        case "ScanR":
+            return ["RNSR", "ROR"];
+        default:
+            return [];
     }
 };

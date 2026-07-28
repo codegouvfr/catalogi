@@ -1,16 +1,17 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { isSameIdentifier, deduplicateIdentifierArray } from "../../tools/identifiersTools";
+import { deduplicateIdentifierArray, diffIdentifierArray } from "../../tools/identifiersTools";
 import { SchemaIdentifier, SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 import { mergeOrganizations } from "../../tools/mergeAndCompare";
-import { rnsrSourceGateway } from "../adapters/RNSR";
-import { rorSourceGateway } from "../adapters/ror.org";
-import { wikidataSourceGateway } from "../adapters/wikidata";
 import type { DbApiV2, SearchOptions } from "../ports/DbApiV2";
-import { UIOrganization } from "./readWriteSillData";
-
+import { Source, UIOrganization } from "./readWriteSillData";
+import {
+    filterSourceByFeature,
+    getSupportedIdentifierType,
+    resolveAdapterFromSourceType
+} from "../adapters/resolveAdapter";
 export type GetAndFetchSoftwareIdsByAuthorOrganization = (params: {
     search?: SearchOptions | undefined;
 }) => Promise<Array<UIOrganization>>;
@@ -22,94 +23,98 @@ export const makeGetAndFetchSoftwareIdsByAuthorOrganization = (deps: { dbApi: Db
 
 const logUsecase = "[UC:GetAuthorOrganization]";
 
+const discoverOrgFromIdentifier = async (params: { identifiers: SchemaIdentifier[] | undefined; source: Source }) => {
+    const { identifiers, source } = params;
+
+    if (!identifiers || identifiers.length === 0) return;
+
+    const sourceGateway = resolveAdapterFromSourceType(source.kind, "organization");
+    const supportedIdentifierType = getSupportedIdentifierType(source);
+
+    const filteredIdentifiers = identifiers.filter(
+        identifier =>
+            identifier.subjectOf?.additionalType &&
+            supportedIdentifierType.includes(identifier.subjectOf.additionalType)
+    );
+
+    if (filteredIdentifiers.length === 0 || !sourceGateway?.organization) return;
+
+    for (const identifier of filteredIdentifiers) {
+        const res = await sourceGateway.organization?.getOrganization({
+            organizationId: identifier.value,
+            source
+        });
+        if (res) return res;
+    }
+
+    return;
+};
+
+const recursiveDiscovery = async (params: { identifiers: SchemaIdentifier[]; sources: Source[] }) => {
+    const { identifiers, sources } = params;
+
+    // Get data for each source
+    const data = await Promise.all(sources.map(source => discoverOrgFromIdentifier({ source, identifiers })));
+
+    const record: Record<string, SchemaOrganization | undefined> = Object.fromEntries(
+        sources.map((source, i) => [source.slug, data[i]])
+    );
+
+    // Is there a source that don't have data ?
+    const unresolvedSource = sources.filter((_source, index) => {
+        return data[index] === undefined;
+    });
+
+    // Is there new identifiers ?
+    const filtredData = data.filter(a => a !== undefined);
+    const newIdentifers = filtredData
+        .map(org => org.identifiers)
+        .filter(a => a !== undefined)
+        .flat();
+    const newDeduplicatedIdentifers = deduplicateIdentifierArray(newIdentifers);
+    const addedIentifers = diffIdentifierArray(newDeduplicatedIdentifers, identifiers);
+
+    // Yes, New request with less data and less identifiers
+    if (addedIentifers.length > 0 && unresolvedSource.length > 0) {
+        const subRes = await recursiveDiscovery({ identifiers: addedIentifers, sources: unresolvedSource });
+        if (subRes) {
+            Object.keys(subRes).forEach(key => {
+                record[key] = subRes[key];
+            });
+        }
+    }
+
+    return record;
+};
+
 const fetchAndSaveOrganization = async (dbApi: DbApiV2, organization: SchemaOrganization): Promise<void> => {
+    if (!organization?.identifiers || !organization.identifiers?.length || organization.identifiers.length === 0)
+        return;
+
     const sources = await dbApi.source.getAll();
-    const allowedSourceType = ["ROR", "wikidata", "RNSR"];
-    const sourcesIndex = sources.filter(source => allowedSourceType.includes(source.kind));
+    const sourcesIndex = filterSourceByFeature(sources, "organization").sort((a, b) => a.priority - b.priority);
 
-    const fetchWithIdentifer = async (identifier: SchemaIdentifier): Promise<SchemaOrganization | undefined> => {
-        if (!identifier?.subjectOf?.additionalType) return;
+    const res = await recursiveDiscovery({ identifiers: organization.identifiers, sources: sourcesIndex });
+    const [main, ...rest] = sourcesIndex.map(source => res[source.slug]).filter(a => a !== undefined);
 
-        const type = identifier.subjectOf.additionalType;
-        const source = sourcesIndex.find(source => source.kind === type);
+    const merged = rest.reduce((save, org) => {
+        return mergeOrganizations(org, save);
+    }, main);
 
-        if (!source) {
-            console.debug(`${logUsecase} You don't have a source set for ${type} type`);
-            return;
-        }
-
-        switch (identifier.subjectOf.additionalType) {
-            case "ROR":
-                return rorSourceGateway.organization.getOrganization({
-                    organizationId: identifier.value,
-                    source
-                });
-            case "wikidata":
-                return wikidataSourceGateway.organization.getOrganization({
-                    organizationId: identifier.value,
-                    source
-                });
-            case "RNSR":
-                return rnsrSourceGateway.organization.getOrganization({
-                    organizationId: identifier.value,
-                    source
-                });
-            default:
-                return;
-        }
-    };
-
-    const batchCatcher = async (identifiers: SchemaIdentifier[]): Promise<SchemaOrganization | undefined> => {
-        const deduplicatedIdentifiers = deduplicateIdentifierArray(identifiers);
-        const organizationFetched = await Promise.all(deduplicatedIdentifiers.map(fetchWithIdentifer));
-
-        if (organizationFetched.length > 0) {
-            const childrenIdentifiers = organizationFetched
-                .map(org => org?.identifiers)
-                .filter(id => id !== undefined)
-                .flat();
-
-            // remove actual ids from children ids
-            const filteredChildenIds = childrenIdentifiers.filter(
-                identier =>
-                    !deduplicatedIdentifiers.some(identierToRemove => isSameIdentifier(identierToRemove, identier))
-            );
-            const moreInfo = filteredChildenIds.length > 0 ? await batchCatcher(filteredChildenIds) : undefined;
-            organizationFetched.push(moreInfo);
-
-            return organizationFetched.reduce((acc, org) => {
-                if (!org) return acc;
-                if (!acc) return org;
-                return mergeOrganizations(org, acc);
-            }, undefined);
-        }
-
-        return undefined;
-    };
-
-    const fetchRecursivelyOrganisation = async (organisation: SchemaOrganization): Promise<SchemaOrganization> => {
-        if (organisation.identifiers && organisation.identifiers.length > 0) {
-            const mergedFromSources = await batchCatcher(organisation.identifiers);
-            if (mergedFromSources) {
-                return mergeOrganizations(mergedFromSources, organisation);
-            }
-        }
-
-        return {
-            ...organisation,
-            identifiers: organisation.identifiers ? deduplicateIdentifierArray(organisation.identifiers) : []
-        };
+    const withProd = {
+        ...merged,
+        producer: organization.producer,
+        name: organization.name
     };
 
     return dbApi.authorOrganization.save({
-        organization: await fetchRecursivelyOrganisation(organization)
+        organization: withProd
     });
 };
 
-// Option 1 : SaveThenGet
 export const saveAndgetSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2; search?: SearchOptions }) => {
     const { dbApi, search = {} } = params;
-    const logIdentifer = `${logUsecase} Save&Get -`;
+    const logIdentifer = `${logUsecase} Build -`;
 
     // 1. Request to make link between software and organization
     const softwareIdsByOrg = await dbApi.software.getSoftwareIdsByOrganisation({ search });
@@ -141,7 +146,6 @@ export const saveAndgetSoftwareIdsByOrganisation = async (params: { dbApi: DbApi
     return allOrgs.filter(org => org.identifiers && org.identifiers.length > 0);
 };
 
-// Option 2 : Get = // getSoftwareIdsByOrganisation
 export const getSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2; search?: SearchOptions }) => {
     const { dbApi, search = {} } = params;
 
@@ -153,10 +157,9 @@ export const getSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2; sea
     );
 };
 
-// Option 3 : Update = Delete -> Save
-export const updateSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2 }) => {
+export const rebuildSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2 }) => {
     const { dbApi } = params;
-    const logIdentifer = `${logUsecase} Update -`;
+    const logIdentifer = `${logUsecase} Rebuild -`;
 
     await dbApi.authorOrganization.flush();
     console.debug(`${logIdentifer} Flush table - Done`);
@@ -164,7 +167,6 @@ export const updateSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2 }
     const softwareIdsByOrg = await dbApi.software.getSoftwareIdsByOrganisation({});
     console.debug(`${logIdentifer} Regenerate the org tree with last updated data - Done`);
 
-    // 3. Improve organization getting on API Endpoints
     let index = 0;
     console.time(`${logIdentifer} 💾 Saved organisations 🏛️`);
     for (const org of softwareIdsByOrg) {
@@ -174,4 +176,12 @@ export const updateSoftwareIdsByOrganisation = async (params: { dbApi: DbApiV2 }
     }
 
     console.timeEnd(`${logIdentifer} 💾 Saved organisations 🏛️`);
+};
+
+export const pruneAuthorOrganization = async (params: { dbApi: DbApiV2 }) => {
+    const { dbApi } = params;
+    const logIdentifer = `${logUsecase} Flush table`;
+    console.debug(`${logIdentifer} - Ongoing`);
+    await dbApi.authorOrganization.flush();
+    console.debug(`${logIdentifer} - Done`);
 };

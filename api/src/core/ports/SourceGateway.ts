@@ -9,7 +9,7 @@ import { GetSoftwareExternalDataOptions } from "./GetSoftwareExternalDataOptions
 import { GetSoftwareFormData } from "./GetSoftwareFormData";
 import { SearchOrganization } from "./SearchOrganization";
 
-export type Feature = "software" | "softwareExtra";
+export type Feature = "software" | "softwareExtra" | "organization";
 export type Features = Feature[];
 
 export type SoftwareLink = { externalId: string; softwareId: number; softwareName?: string };
