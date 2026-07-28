@@ -422,7 +422,7 @@ export const isSameIdentifier = (id1: SchemaIdentifier, id2: SchemaIdentifier): 
     if (
         id1.value === id2.value &&
         id1.subjectOf?.url.toString() === id2.subjectOf?.url.toString() &&
-        id1.additionalType === id2.additionalType
+        id1.subjectOf?.additionalType === id2.subjectOf?.additionalType
     )
         return true;
     return false;
