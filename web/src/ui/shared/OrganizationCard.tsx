@@ -116,7 +116,9 @@ export const OrganizationCard = memo(
                             <div className={cx(classes.titleContainer)}>
                                 <h3 className={cx(classes.title)}>{softwareName}</h3>
                                 {!minimalist && foundingDate && <h6>({foundingDate})</h6>}
-                                {alternateName && <h6>[{alternateName}]</h6>}
+                                {alternateName && alternateName.length > 0 && (
+                                    <h6>[{alternateName[0]}]</h6>
+                                )}
 
                                 {address && address.addressCountry && (
                                     <div className={cx(classes.titleActionsContainer)}>
