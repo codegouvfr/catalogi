@@ -21,7 +21,7 @@ export const convertWikidataToSchemaOrganization = (params: {
 
     // Récupérer les noms alternatifs (acronymes) // short name
     const shortNameContent = organisationEntity.statements?.P1813?.[0].value.content as { text: string } | undefined;
-    const alternateName = [...new Set(shortNameContent?.text ?? [])];
+    const alternateName = shortNameContent?.text ? [shortNameContent.text] : [];
 
     // Récupérer la description
     const description =
