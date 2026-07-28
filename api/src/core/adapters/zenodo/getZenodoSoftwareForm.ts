@@ -35,8 +35,8 @@ export const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record
         nameOverride: null,
         description: recordSoftwareItem.metadata.description ?? null,
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
-        runtimePlatforms: ["desktop"], // Probably wrong
-        externalIdForSource: recordSoftwareItem.id.toString(), // or conceptrecid ?
+        runtimePlatforms: [],
+        externalIdForSource: recordSoftwareItem.conceptrecid,
         sourceSlug: source.slug,
         license: recordSoftwareItem.metadata.license?.id ?? null,
         similarSoftwareExternalDataItems: [],

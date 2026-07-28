@@ -80,7 +80,7 @@ export const formatRecordToExternalData = (
     return {
         variant: "external",
         id: undefined,
-        externalId: recordSoftwareItem.id.toString(),
+        externalId: recordSoftwareItem.conceptrecid,
         sourceSlug: source.slug,
         authors: recordSoftwareItem.metadata.creators.map(creatorToPerson),
         name: { "en": recordSoftwareItem.metadata.title },
