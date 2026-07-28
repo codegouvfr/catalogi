@@ -64,13 +64,34 @@ export const isSameOrganization = (orgA: SchemaOrganization, orgB: SchemaOrganiz
     return orgA.identifiers.some(identifierA => isIdentifierInArray(identifierA, orgB.identifiers!));
 };
 
+const mergeString = (a: string | undefined, b: string | undefined): string | undefined => (!b ? a : b);
+const selectStringArrays = (a: string[] | undefined, b: string[] | undefined): string[] | undefined => {
+    if (!b || b.length === 0) return a;
+    return b;
+};
+
 export const mergeOrganizations = (orgA: SchemaOrganization, orgB: SchemaOrganization): SchemaOrganization => {
     return {
-        ...orgA,
-        ...orgB,
-        producer: [...(orgA.producer ?? []), ...(orgB.producer ?? [])],
+        "@type": "Organization",
+        name: orgB.name,
+
+        url: mergeString(orgA.url, orgB.url),
+        description: mergeString(orgA.description, orgB.description),
+        foundingDate: mergeString(orgA.foundingDate, orgB.foundingDate),
+        image: mergeString(orgA.image?.toString(), orgB.image?.toString()),
+
         identifiers: mergeDepuplicateIdentifierArray(orgA.identifiers, orgB.identifiers),
-        parentOrganizations: mergeOrganizationArrays(orgA.parentOrganizations, orgB.parentOrganizations)
+
+        parentOrganizations: mergeOrganizationArrays(orgA.parentOrganizations, orgB.parentOrganizations),
+        memberOf: mergeOrganizationArrays(orgA.memberOf, orgB.memberOf),
+
+        alternateName: selectStringArrays(orgA.alternateName, orgB.alternateName),
+        sameAs: selectStringArrays(orgA.sameAs, orgB.sameAs),
+        additionalType: selectStringArrays(orgA.additionalType, orgB.additionalType),
+
+        address: orgB.address ? orgB.address : orgA.address,
+
+        producer: [...new Set([...(orgA.producer ?? []), ...(orgB.producer ?? [])])]
     };
 };
 
