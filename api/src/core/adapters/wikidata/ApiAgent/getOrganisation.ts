@@ -19,11 +19,16 @@ export const convertWikidataToSchemaOrganization = (params: {
     // Récupérer le nom principal
     const name = organisationEntity.labels?.fr || organisationEntity.labels?.en;
 
-    // Récupérer les noms alternatifs (acronymes)
-    const alternateName = [...new Set(organisationEntity.aliases?.fr || [])];
+    // Récupérer les noms alternatifs (acronymes) // short name
+    const shortNameContent = organisationEntity.statements?.P1813?.[0].value.content as { text: string } | undefined;
+    const alternateName = [...new Set(shortNameContent?.text ?? [])];
 
     // Récupérer la description
-    const description = organisationEntity.descriptions?.fr || "";
+    const description =
+        organisationEntity.descriptions?.fr ??
+        organisationEntity.descriptions?.en ??
+        organisationEntity.descriptions?.default ??
+        "";
 
     // Récupérer l'URL principale
     const url = organisationEntity.statements?.P856?.[0]?.value?.content as string | undefined;
@@ -34,7 +39,11 @@ export const convertWikidataToSchemaOrganization = (params: {
     const content = foundingDateStatement?.value?.content;
     if (foundingDateStatement && typeof content === "object" && content !== null && "time" in content) {
         if (content.time[0] === "+") {
-            foundingDate = new Date(content.time.slice(1, content.time.length - 1)).getFullYear().toString();
+            if (content.time.slice(6, 8) === "00") {
+                foundingDate = new Date(content.time.slice(1, 5)).getFullYear().toString();
+            } else {
+                foundingDate = new Date(content.time.slice(1, content.time.length - 1)).getFullYear().toString();
+            }
         } else {
             foundingDate = new Date(content.time).getFullYear().toString();
         }
