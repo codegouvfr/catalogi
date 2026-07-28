@@ -23,6 +23,10 @@
             "about": {
                 "enabled": true
             },
+            "documentation": {
+                "enabled": false,
+                "href": "random.com"
+            },
             "contribute": {
                 "enabled": true,
                 "href": "mailto:contact-logiciels-catalogue-esr@groupes.renater.fr?subject=Contact"
@@ -131,6 +135,6 @@
         }
     },
     "footer": {
-        "domains": ["hal.science", "recherche.data.gouv.fr", "code.gouv.fr/sill", "softwareheritage.org"]
+        "domains": ["www.ouvrirlascience.fr", "recherche.data.gouv.fr", "code.gouv.fr"]
     }
 }
