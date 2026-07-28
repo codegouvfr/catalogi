@@ -457,3 +457,13 @@ export const mergeDepuplicateIdentifierArray = (
 
     return arr1.concat(filtered);
 };
+
+export const diffIdentifierArray = (arrA: SchemaIdentifier[], arrB: SchemaIdentifier[]) => {
+    const array = [];
+    for (const identifier of arrA) {
+        if (!isIdentifierInArray(identifier, arrB)) {
+            array.push(identifier);
+        }
+    }
+    return array;
+};
