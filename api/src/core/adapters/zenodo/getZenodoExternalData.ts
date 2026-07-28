@@ -61,7 +61,7 @@ const creatorToPerson = (creator: Zenodo.Creator): SchemaPerson => {
     };
 };
 
-const formatRecordToExternalData = (
+export const formatRecordToExternalData = (
     recordSoftwareItem: Zenodo.Record,
     communities: Zenodo.Community[],
     source: Source
@@ -71,6 +71,12 @@ const formatRecordToExternalData = (
         : undefined;
     const nowIso = new Date().toISOString();
 
+    const repoUrl =
+        recordSoftwareItem.metadata?.custom?.["code:codeRepository"] ??
+        recordSoftwareItem.metadata.related_identifiers?.filter(
+            identifier => identifier.relation === "isSupplementTo"
+        )?.[0]?.identifier ??
+        undefined;
     return {
         variant: "external",
         id: undefined,
@@ -82,10 +88,7 @@ const formatRecordToExternalData = (
         isLibreSoftware: recordSoftwareItem.metadata.access_right === "open",
         image: undefined,
         url: undefined,
-        codeRepositoryUrl:
-            recordSoftwareItem.metadata.related_identifiers?.filter(
-                identifier => identifier.relation === "isSupplementTo"
-            )?.[0]?.identifier ?? undefined,
+        codeRepositoryUrl: repoUrl,
         softwareHelp: undefined,
         license: recordSoftwareItem.metadata.license?.id ?? "Copyright",
         latestVersion: recordSoftwareItem.metadata.version
@@ -104,13 +107,13 @@ const formatRecordToExternalData = (
         identifiers: [
             identifersUtils.makeZenodoIdentifer({
                 zenodoId: recordSoftwareItem.id.toString(),
-                url: `htpps://zenodo.org/records/${recordSoftwareItem.id.toString()}`,
+                url: `https://zenodo.org/records/${recordSoftwareItem.id.toString()}`,
                 additionalType: "Software"
             }),
-            ...(recordSoftwareItem.metadata.doi
+            ...(recordSoftwareItem?.metadata?.doi
                 ? [identifersUtils.makeDOIIdentifier({ doi: recordSoftwareItem.metadata.doi })]
                 : []),
-            ...(recordSoftwareItem.swh.swhid
+            ...(recordSoftwareItem?.swh?.swhid
                 ? [identifersUtils.makeSWHIdentifier({ swhId: recordSoftwareItem.swh.swhid })]
                 : [])
         ],

@@ -26,23 +26,33 @@ export const getZenodoSoftwareFormData: GetSoftwareFormData = memoize(
 );
 
 export const formatRecordToSoftwareFormData = (recordSoftwareItem: Zenodo.Record, source: Source): SoftwareFormData => {
+    const publicationIso = recordSoftwareItem.metadata.publication_date
+        ? new Date(recordSoftwareItem.metadata.publication_date).toISOString()
+        : undefined;
+
     return {
         name: recordSoftwareItem.title,
         nameOverride: null,
-        description: null,
+        description: recordSoftwareItem.metadata.description ?? null,
         operatingSystems: { "linux": false, "windows": false, "android": false, "ios": false, "mac": false },
         runtimePlatforms: ["desktop"], // Probably wrong
-        externalIdForSource: recordSoftwareItem.id.toString(),
+        externalIdForSource: recordSoftwareItem.id.toString(), // or conceptrecid ?
         sourceSlug: source.slug,
-        license: null,
+        license: recordSoftwareItem.metadata.license?.id ?? null,
         similarSoftwareExternalDataItems: [],
         image: null,
         keywords: recordSoftwareItem.metadata.keywords ?? [],
         customAttributes: undefined,
         isLibreSoftware: null,
         url: null,
-        codeRepositoryUrl: null,
+        codeRepositoryUrl: recordSoftwareItem.metadata?.custom?.["code:codeRepository"] ?? null,
         softwareHelp: null,
-        latestVersion: null
+        latestVersion:
+            recordSoftwareItem.metadata.version && publicationIso
+                ? {
+                      version: recordSoftwareItem.metadata.version,
+                      releaseDate: publicationIso
+                  }
+                : null
     };
 };

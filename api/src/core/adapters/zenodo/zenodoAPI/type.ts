@@ -54,8 +54,14 @@ export namespace Zenodo {
         related_identifiers?: RelatedIdentifier[];
         version: string;
         custom: {
-            "code:codeRepository"?: Custom[];
+            "code:codeRepository"?: string;
             "code:programmingLanguage"?: Custom[];
+            "code:developmentStatus": {
+                id: string;
+                title: {
+                    en: string;
+                };
+            };
         };
         resource_type: {
             title: string;

@@ -11,6 +11,8 @@ import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { makeZenodoApi } from "../adapters/zenodo/zenodoAPI";
 import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { formatRecordToSoftwareFormData } from "../adapters/zenodo/getZenodoSoftwareForm";
+import { saveExternalData } from "./refreshExternalData";
+import { formatRecordToExternalData } from "../adapters/zenodo/getZenodoExternalData";
 
 export type ImportFromSource = (params: {
     userEmail: string;
@@ -123,6 +125,8 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
             let page = 1;
             const saved: number[] = [];
 
+            const sources = await dbApi.source.getAll();
+
             // 401 limit page Zenodo API
             while (end && page < 401) {
                 const softwareRecords = await zenodoAPI.records.getAllSoftware({
@@ -130,12 +134,26 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
                     date: source.lastImport ?? new Date("1968")
                 });
 
+                if (softwareRecords.hits.hits.length === 0) {
+                    end = false;
+                    continue;
+                }
+
                 // Save soft
                 for (const softwareRecord of softwareRecords.hits.hits) {
                     const result = await createSoftware({
                         formData: formatRecordToSoftwareFormData(softwareRecord, source),
                         userId
                     });
+
+                    await saveExternalData({
+                        dbApi,
+                        sourceSlug: source.slug,
+                        sources,
+                        externalData: formatRecordToExternalData(softwareRecord, [], source),
+                        externalId: softwareRecord.id.toString()
+                    });
+
                     saved.push(result);
                 }
 
@@ -145,8 +163,6 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
                 });
 
                 page++;
-
-                if (softwareRecords.hits.hits.length === 0) end = false;
             }
 
             return saved;

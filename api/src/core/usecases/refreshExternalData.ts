@@ -8,6 +8,7 @@ import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 import { Source } from "../../lib/ApiTypes";
+import { SoftwareExternal } from "../types/SoftwareTypes";
 
 type ParamsOfrefreshExternalDataUseCase = {
     dbApi: DbApiV2;
@@ -263,8 +264,6 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
         try {
             const source = sourceBySlug[sourceSlug];
 
-            const actualExternalDataRow = await dbApi.softwareExternalData.get({ sourceSlug, externalId });
-
             const sourceGateway = resolveAdapterFromSource(source);
             if (!sourceGateway?.softwareExtra?.getSoftwareExternal)
                 throw new Error(`Not implemetend on type ${sourceGateway.sourceType}`);
@@ -274,25 +273,14 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
                 source: source
             });
 
-            const repoIdentifier = externalData?.codeRepositoryUrl
-                ? await repoUrlToIdentifer({ repoUrl: externalData?.codeRepositoryUrl, sources })
-                : undefined;
+            await saveExternalData({
+                sources,
+                externalData,
+                externalId,
+                sourceSlug,
+                dbApi
+            });
 
-            if (externalData) {
-                await dbApi.softwareExternalData.update({
-                    sourceSlug: source.slug,
-                    externalId: externalId,
-                    lastDataFetchAt: new Date(),
-                    softwareExternalData: {
-                        ...externalData,
-                        identifiers: mergeDepuplicateIdentifierArray(
-                            externalData.identifiers,
-                            repoIdentifier ? [repoIdentifier] : []
-                        )
-                    },
-                    ...(actualExternalDataRow?.softwareId ? { softwareId: actualExternalDataRow.softwareId } : {})
-                });
-            }
             console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
         } catch {
             console.error(`[UC.refreshExternalData] 💥 Update for ${externalId} on ${sourceSlug} : Failed 💥`);
@@ -300,4 +288,40 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
         }
     }
     return true;
+};
+
+export const saveExternalData = async (params: {
+    externalData: SoftwareExternal | undefined;
+    dbApi: DbApiV2;
+    externalId: string;
+    sourceSlug: string;
+    sources: Source[];
+}) => {
+    try {
+        const { externalData, dbApi, externalId, sourceSlug, sources } = params;
+
+        const actualExternalDataRow = await dbApi.softwareExternalData.get({ sourceSlug, externalId });
+
+        const repoIdentifier = externalData?.codeRepositoryUrl
+            ? await repoUrlToIdentifer({ repoUrl: externalData?.codeRepositoryUrl, sources })
+            : undefined;
+
+        if (externalData) {
+            await dbApi.softwareExternalData.update({
+                sourceSlug,
+                externalId: externalId,
+                lastDataFetchAt: new Date(),
+                softwareExternalData: {
+                    ...externalData,
+                    identifiers: mergeDepuplicateIdentifierArray(
+                        externalData.identifiers,
+                        repoIdentifier ? [repoIdentifier] : []
+                    )
+                },
+                ...(actualExternalDataRow?.softwareId ? { softwareId: actualExternalDataRow.softwareId } : {})
+            });
+        }
+    } catch (err) {
+        console.error(err);
+    }
 };

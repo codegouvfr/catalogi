@@ -15,7 +15,8 @@ const mockGitHubSource: Source = {
     description: { "en": "" },
     configuration: {
         auth: ""
-    }
+    },
+    lastImport: undefined
 };
 
 describe("GitHub Adapter - Get external data", () => {
