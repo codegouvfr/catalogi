@@ -14,6 +14,7 @@ import { getScholarlyArticle } from "./getScholarlyArticle";
 import { SchemaIdentifier, SchemaOrganization, SchemaPerson, ScholarlyArticle } from "../dbApi/kysely/kysely.database";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { populateFromDOIIdentifiers } from "../doiResolver";
+import { repoURlclean } from "../../../tools/repoAnalyser";
 
 const buildParentOrganizationTree = async (
     structureIdArray: number[] | string[] | undefined,
@@ -260,7 +261,7 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
             isLibreSoftware: halRawSoftware.openAccess_bool,
             image: undefined,
             url: halRawSoftware.uri_s,
-            codeRepositoryUrl: halRawSoftware?.softCodeRepository_s?.[0],
+            codeRepositoryUrl: repoURlclean(halRawSoftware?.softCodeRepository_s?.[0]),
             softwareHelp: undefined,
             license: codemetaSoftware?.license?.[0] ?? "undefined",
             latestVersion: halRawSoftware?.softVersion_s?.[0]

@@ -11,10 +11,21 @@ import { Source } from "../lib/ApiTypes";
 
 export type RepoType = "GitHub" | "GitLab";
 
+export const repoURlclean = (url: string | URL | undefined) => {
+    try {
+        const urlObj =
+            typeof url === "string" ? URL.parse(url.substring(0, 4) === "git+" ? url.substring(4) : url) : url;
+        return urlObj?.toString()?.replace(".git", "");
+    } catch (err) {
+        console.error(`[repoURlclean] fail to properly parse and clean ${url}`);
+    }
+};
+
 export const repoAnalyser = async (url: string | URL | undefined): Promise<RepoType | undefined> => {
     if (!url) return undefined;
 
-    const urlObj = typeof url === "string" ? URL.parse(url.substring(0, 4) === "git+" ? url.substring(4) : url) : url;
+    const urlStr = repoURlclean(url);
+    const urlObj = urlStr ? URL.parse(urlStr) : undefined;
 
     if (!urlObj) {
         return undefined;
