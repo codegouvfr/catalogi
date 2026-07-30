@@ -81,7 +81,7 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
                     // TODO Orcid when available
                 ],
                 ...(dev.email ? { email: dev.email } : {}),
-                url: dev.blog ?? dev.html_url,
+                url: dev.blog ? dev.blog : dev.html_url,
                 affiliations: dev.company
                     ? [
                           {
