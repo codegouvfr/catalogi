@@ -28,7 +28,9 @@ const toDbValues = (data: SoftwareExternal | DatabaseDataType.SoftwareExternalDa
     dateCreated: data.dateCreated ? new Date(data.dateCreated) : null,
     identifiers: JSON.stringify(data.identifiers),
     providers: JSON.stringify(data.providers),
-    repoMetadata: JSON.stringify(data.repoMetadata)
+    repoMetadata: JSON.stringify(data.repoMetadata),
+    operatingSystems: data.operatingSystems ? JSON.stringify(data.operatingSystems) : null,
+    runtimePlatforms: data.runtimePlatforms ? JSON.stringify(data.runtimePlatforms) : null
 });
 
 export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): SoftwareExternalDataRepository => ({

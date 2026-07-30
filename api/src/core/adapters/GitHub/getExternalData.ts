@@ -92,7 +92,7 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
                     : []
             })),
             name: { "en": repoData.full_name },
-            description: repoData?.description ? { "en": repoData.description } : {},
+            description: repoData?.description ? { "en": repoData.description } : "",
             isLibreSoftware: true,
             image: undefined,
             url: repoData.homepage ?? undefined,
