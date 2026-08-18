@@ -9,6 +9,7 @@ import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
 import { gitHubEndpointMaker } from "./api/repo";
+import { repoURlclean } from "../../../tools/repoAnalyser";
 
 export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
     async ({ externalId, source }: { externalId: string; source: Source }): Promise<SoftwareExternal | undefined> => {
@@ -58,10 +59,13 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
             : undefined;
         const nowIso = new Date().toISOString();
 
+        const cleanRepoUrl = repoURlclean(repoData.html_url);
+        if (!cleanRepoUrl) throw new Error("Issue in the URL of the repo, can't dertermine an id.");
+
         return {
             variant: "external",
             id: undefined,
-            externalId: repoData.html_url.replace("https://github.com/", "").replace("git+", "").replace(".git", ""),
+            externalId: cleanRepoUrl.replace("https://github.com/", ""),
             sourceSlug: source.slug,
             authors: filteredUserDevs.map(dev => ({
                 "@type": "Person",

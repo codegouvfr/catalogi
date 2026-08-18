@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { ArticleIdentifier, SchemaIdentifier, WebSite } from "../core/adapters/dbApi/kysely/kysely.database";
+import { repoURlclean } from "./repoAnalyser";
 
 const cnllSource: WebSite = {
     "@type": "Website" as const,
@@ -276,10 +277,12 @@ export const identifersUtils = {
     },
     makeRepoGitHubIdentifer: (params: { repoUrl: string; repoId: number }): SchemaIdentifier => {
         const { repoUrl, repoId } = params;
+        const cleanRepoUrl = repoURlclean(repoUrl);
+        if (!cleanRepoUrl) throw new Error("Issue in the URL of the repo, can't dertermine an id.");
         return {
             "@type": "PropertyValue" as const,
-            value: repoUrl,
-            url: repoUrl,
+            value: cleanRepoUrl.replace("https://github.com/", ""),
+            url: cleanRepoUrl,
             valueReference: repoId.toString(),
             subjectOf: gitHubSource,
             additionalType: "Repo"

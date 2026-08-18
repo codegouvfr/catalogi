@@ -24,7 +24,7 @@ describe("GitHub Adapter - Get external data", () => {
     it("Get Catalogi", async () => {
         const catalogiData = await getGitHubSoftwareExternalData({
             source: mockGitHubSource,
-            externalId: "https://github.com/codegouvfr/catalogi"
+            externalId: "codegouvfr/catalogi"
         });
 
         expect(catalogiData?.externalId).toBe("codegouvfr/catalogi");
@@ -32,7 +32,7 @@ describe("GitHub Adapter - Get external data", () => {
         const identifiers = [
             {
                 "@type": "PropertyValue",
-                value: "https://github.com/codegouvfr/catalogi",
+                value: "codegouvfr/catalogi",
                 url: "https://github.com/codegouvfr/catalogi",
                 valueReference: "612979682",
                 subjectOf: {

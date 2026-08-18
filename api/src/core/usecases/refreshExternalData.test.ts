@@ -303,7 +303,7 @@ describe("fetches software extra data (from different providers)", () => {
                                 "url": new URL("https://github.com/")
                             },
                             "url": "https://github.com/facebook/create-react-app",
-                            "value": "https://github.com/facebook/create-react-app",
+                            "value": "facebook/create-react-app",
                             "valueReference": "63537249"
                         }
                     ],
@@ -312,8 +312,14 @@ describe("fetches software extra data (from different providers)", () => {
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: undefined,
                     providers: [],
-                    operatingSystems: undefined,
-                    runtimePlatforms: undefined
+                    operatingSystems: {
+                        "android": false,
+                        "ios": false,
+                        "linux": false,
+                        "mac": false,
+                        "windows": false
+                    },
+                    runtimePlatforms: []
                 },
                 {
                     applicationCategories: [],
@@ -371,7 +377,7 @@ describe("fetches software extra data (from different providers)", () => {
                                 "url": new URL("https://github.com/")
                             },
                             "url": "https://github.com/vitejs/vite",
-                            "value": "https://github.com/vitejs/vite",
+                            "value": "vitejs/vite",
                             "valueReference": "257485422"
                         }
                     ],
@@ -380,8 +386,14 @@ describe("fetches software extra data (from different providers)", () => {
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: undefined,
                     providers: [],
-                    operatingSystems: undefined,
-                    runtimePlatforms: undefined
+                    operatingSystems: {
+                        "android": false,
+                        "ios": false,
+                        "linux": false,
+                        "mac": false,
+                        "windows": false
+                    },
+                    runtimePlatforms: []
                 }
             ]);
 
@@ -466,8 +478,14 @@ describe("fetches software extra data (from different providers)", () => {
                     lastDataFetchAt: expect.any(Date),
                     repoMetadata: undefined,
                     providers: [],
-                    operatingSystems: undefined,
-                    runtimePlatforms: undefined
+                    operatingSystems: {
+                        "android": false,
+                        "ios": false,
+                        "linux": false,
+                        "mac": false,
+                        "windows": false
+                    },
+                    runtimePlatforms: []
                 },
                 expect.objectContaining({
                     externalId: "11",

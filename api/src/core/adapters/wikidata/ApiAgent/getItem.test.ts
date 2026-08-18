@@ -23,7 +23,6 @@ describe("convertWikidataToSchemaOrganization", () => {
             id: "Q280413",
             labels: { fr: "Centre national de la recherche scientifique" },
             descriptions: { fr: "organisme public français de recherche scientifique" },
-            aliases: { fr: ["CNRS", "CNRS"] },
             statements: {
                 P856: [
                     {
@@ -69,7 +68,7 @@ describe("convertWikidataToSchemaOrganization", () => {
         expect(result).toEqual({
             "@type": "Organization",
             name: "Centre national de la recherche scientifique",
-            alternateName: ["CNRS"],
+            alternateName: [],
             description: "organisme public français de recherche scientifique",
             url: "https://www.cnrs.fr/",
             foundingDate: "1939",
