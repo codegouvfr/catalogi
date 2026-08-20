@@ -27,6 +27,7 @@ type RenderingCardOptions = {
     showLinks?: boolean;
     showSoftwareDetailsButton?: boolean;
     minimalist?: boolean;
+    shortenDescription?: boolean;
 };
 
 export type Props = {
@@ -54,7 +55,8 @@ export const OrganizationCard = memo(
         const {
             showSoftwareDetailsButton = true,
             showLinks = true,
-            minimalist = false
+            minimalist = false,
+            shortenDescription = false
         } = renderingOptions;
 
         const softwareName = name;
@@ -176,7 +178,7 @@ export const OrganizationCard = memo(
                         <>
                             <div>
                                 {t("organizationCard.organizationDescription")} :{" "}
-                                {description}
+                                {!shortenDescription || description.length < 154 ? description : description.slice(0, 150) + " ..."}
                             </div>
                         </>
                     )}
@@ -310,7 +312,7 @@ const useStyles = tss
             overflow: "hidden"
         },
         logo: {
-            height: "100%"
+            width: "100%"
         },
         titleContainer: {
             display: "flex",

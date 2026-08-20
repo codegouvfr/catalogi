@@ -240,7 +240,8 @@ function RowVirtualizerDynamicWindow(props: {
                                                 organization={organization}
                                                 renderingOptions={{
                                                     showLinks: false,
-                                                    minimalist: true
+                                                    minimalist: true,
+                                                    shortenDescription: true
                                                 }}
                                             />
                                         );

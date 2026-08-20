@@ -33,8 +33,8 @@ export default function organizationDetails(props: Props) {
 
     const filteredSoftware = Array.isArray(org?.producer)
         ? allSoftwares.filter(softwareItem =>
-              org.producer?.includes(softwareItem.id.toString())
-          )
+            org.producer?.includes(softwareItem.id.toString())
+        )
         : [];
 
     const linksBySoftwareName = useMemo(
@@ -53,13 +53,13 @@ export default function organizationDetails(props: Props) {
         [filteredSoftware]
     );
 
-    const renderingOptions = { showSoftwareDetailsButton: false };
+    const renderingOptions = { showSoftwareDetailsButton: false, showLinks: false };
 
     return (
         <>
             <div className={cx(fr.cx("fr-container"), classes.root, className)}>
                 <div className={classes.header}>
-                    <h6 className={classes.softwareCount}>{key ?? "test"}</h6>
+                    <h6>{key}</h6>
                 </div>
                 <div>
                     {org && (
@@ -70,8 +70,10 @@ export default function organizationDetails(props: Props) {
                     )}
                 </div>
 
+                <div className={classes.header}>
+                    <h6>List of software ({filteredSoftware.length})</h6>
+                </div>
                 <div>
-                    <h6>List of software</h6>
                     <SoftwareRowVirtualizerDynamicWindow
                         softwares={filteredSoftware}
                         linksBySoftwareName={linksBySoftwareName}

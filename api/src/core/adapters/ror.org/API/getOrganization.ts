@@ -108,7 +108,6 @@ const rorToSchemaOrganization = (rorOrganization: RorOrganization): SchemaOrgani
         "@type": "Organization",
         name: rorOrganization.names.filter(org => org.types.includes("ror_display"))[0].value,
         foundingDate: rorOrganization.established ? rorOrganization.established.toString() : undefined,
-        additionalType: rorOrganization.types,
         identifiers: [identifersUtils.makeRorOrgaIdentifer({ rorId: rorOrganization.id })]
     };
 
