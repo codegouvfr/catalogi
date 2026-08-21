@@ -424,6 +424,21 @@
     },
     "admin": {
         "title": "Administration",
+        "catalogTab": "Catalog management",
+        "uiConfig": {
+            "tab": "Interface configuration",
+            "title": "Interface configuration",
+            "description": "Edit the JSON configuration used by the interface. Saving is rejected when the JSON is invalid or does not match the expected schema.",
+            "editorLabel": "JSON configuration",
+            "editorHint": "Unknown properties and invalid values are rejected. The document is automatically formatted after validation.",
+            "root": "root",
+            "invalidJson": "Invalid JSON: {{message}}",
+            "saveError": "The configuration could not be saved.",
+            "saved": "The interface configuration has been saved.",
+            "reset": "Discard changes",
+            "save": "Validate and save",
+            "saving": "Saving…"
+        },
         "softwareEntries": {
             "title": "Software entry management",
             "publicAdditionEnabledDescription": "Add a new software entry to the catalog.",

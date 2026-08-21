@@ -5,7 +5,6 @@
 import rawUiConfig from "../customization/ui-config.json";
 import { uiConfigSchema, type UiConfig } from "./uiConfigSchema";
 
-// Default UI configuration, loaded from the bundled ui-config.json (whose path is
-// overridable by a mounted volume / ConfigMap in deployments). Used to seed the
-// config_ui table when it is empty, and as a defensive fallback when reading.
-export const defaultUiConfig: UiConfig = uiConfigSchema.parse(rawUiConfig);
+// Existing deployments can still mount ui-config.json. Its validated value initializes
+// PostgreSQL once; subsequent application starts preserve admin changes made at runtime.
+export const getDefaultUiConfig = (): UiConfig => uiConfigSchema.parse(rawUiConfig);

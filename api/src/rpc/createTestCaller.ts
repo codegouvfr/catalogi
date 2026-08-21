@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
+import { assert } from "tsafe/assert";
 import { bootstrapCore } from "../core";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
@@ -11,7 +12,6 @@ import { testPgUrl } from "../tools/test.helpers";
 import { createRouter } from "./router";
 import { UserWithId } from "../lib/ApiTypes";
 import { UiConfig } from "../core/uiConfigSchema";
-import { defaultUiConfig } from "../core/defaultUiConfig";
 
 type TestCallerConfig = {
     currentUser: UserWithId | undefined;
@@ -48,10 +48,10 @@ export const createTestCaller = async (
         }
     });
 
-    // The UI config now lives in the DB; apply the test override by persisting it
-    // (bootstrap has already seeded the default singleton row).
+    // Apply test-specific changes after bootstrap initialized the singleton row.
     if (overrideUiConfig) {
-        const current = (await dbApi.uiConfig.get()) ?? defaultUiConfig;
+        const current = await dbApi.uiConfig.get();
+        assert(current !== undefined);
         await dbApi.uiConfig.save(overrideUiConfig(current));
     }
 
@@ -90,5 +90,5 @@ export const createTestCaller = async (
         await dbApi.session.update(session);
     }
 
-    return { apiCaller: router.createCaller({ currentUser }), kyselyDb };
+    return { apiCaller: router.createCaller({ currentUser }), dbApi, kyselyDb };
 };

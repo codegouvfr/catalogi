@@ -129,6 +129,8 @@ postgresql:
 # -- Customization for the API (replaces the volume mount)
 customization:
   enabled: false
+  # -- Initial UI configuration used only when the database has no saved configuration.
+  # After the first startup, edit it from the administration page.
   uiConfig: |-
     {
       "header": {

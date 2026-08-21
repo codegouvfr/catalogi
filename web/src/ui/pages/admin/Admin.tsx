@@ -5,6 +5,7 @@
 import { useEffect, useMemo } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { Tabs } from "@codegouvfr/react-dsfr/Tabs";
 import { tss } from "tss-react";
 import { assert } from "tsafe/assert";
 import { Equals } from "tsafe";
@@ -20,6 +21,7 @@ import {
     AttributeDefinitionFormModal,
     openAttributeDefinitionFormModal
 } from "./AttributeDefinitionFormModal";
+import { UiConfigEditor } from "./UiConfigEditor";
 
 type Props = {
     className?: string;
@@ -63,61 +65,92 @@ export default function Admin(props: Props) {
                 <h1 className={fr.cx("fr-h2")}>{t("admin.title")}</h1>
             </div>
 
-            <section className={classes.section}>
-                <div className={classes.sectionHeader}>
-                    <div>
-                        <h2 className={fr.cx("fr-h4")}>
-                            {t("admin.softwareEntries.title")}
-                        </h2>
-                        <p className={fr.cx("fr-text--sm", "fr-mb-0")}>
-                            {t(
-                                uiConfig?.home.usecases.addSoftwareOrService.enabled
-                                    ? "admin.softwareEntries.publicAdditionEnabledDescription"
-                                    : "admin.softwareEntries.publicAdditionDisabledDescription"
-                            )}
-                        </p>
-                    </div>
-                    <Button
-                        priority="primary"
-                        iconId="fr-icon-add-line"
-                        linkProps={routes.softwareCreationForm().link}
-                    >
-                        {t("admin.softwareEntries.addSoftware")}
-                    </Button>
-                </div>
-            </section>
+            <Tabs
+                label={t("admin.title")}
+                tabs={[
+                    {
+                        label: t("admin.catalogTab"),
+                        content: (
+                            <>
+                                <section className={classes.section}>
+                                    <div className={classes.sectionHeader}>
+                                        <div>
+                                            <h2 className={fr.cx("fr-h4")}>
+                                                {t("admin.softwareEntries.title")}
+                                            </h2>
+                                            <p
+                                                className={fr.cx(
+                                                    "fr-text--sm",
+                                                    "fr-mb-0"
+                                                )}
+                                            >
+                                                {t(
+                                                    uiConfig?.home.usecases
+                                                        .addSoftwareOrService.enabled
+                                                        ? "admin.softwareEntries.publicAdditionEnabledDescription"
+                                                        : "admin.softwareEntries.publicAdditionDisabledDescription"
+                                                )}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            priority="primary"
+                                            iconId="fr-icon-add-line"
+                                            linkProps={routes.softwareCreationForm().link}
+                                        >
+                                            {t("admin.softwareEntries.addSoftware")}
+                                        </Button>
+                                    </div>
+                                </section>
 
-            <section className={classes.section}>
-                <div className={classes.sectionHeader}>
-                    <div>
-                        <h2 className={fr.cx("fr-h4")}>
-                            {t("admin.customAttributes.title")}
-                        </h2>
-                        <p className={fr.cx("fr-text--sm", "fr-mb-0")}>
-                            {t("admin.customAttributes.subtitle")}
-                        </p>
-                    </div>
-                    <Button
-                        priority="primary"
-                        iconId="fr-icon-add-line"
-                        onClick={() =>
-                            openAttributeDefinitionFormModal({ mode: "create" })
-                        }
-                    >
-                        {t("admin.customAttributes.addAttribute")}
-                    </Button>
-                </div>
+                                <section className={classes.section}>
+                                    <div className={classes.sectionHeader}>
+                                        <div>
+                                            <h2 className={fr.cx("fr-h4")}>
+                                                {t("admin.customAttributes.title")}
+                                            </h2>
+                                            <p
+                                                className={fr.cx(
+                                                    "fr-text--sm",
+                                                    "fr-mb-0"
+                                                )}
+                                            >
+                                                {t("admin.customAttributes.subtitle")}
+                                            </p>
+                                        </div>
+                                        <Button
+                                            priority="primary"
+                                            iconId="fr-icon-add-line"
+                                            onClick={() =>
+                                                openAttributeDefinitionFormModal({
+                                                    mode: "create"
+                                                })
+                                            }
+                                        >
+                                            {t("admin.customAttributes.addAttribute")}
+                                        </Button>
+                                    </div>
 
-                {isLoading ? (
-                    <LoadingFallback />
-                ) : sortedDefinitions.length === 0 ? (
-                    <p className={fr.cx("fr-text--sm")}>
-                        {t("admin.customAttributes.empty")}
-                    </p>
-                ) : (
-                    <AttributeDefinitionsTable definitions={sortedDefinitions} />
-                )}
-            </section>
+                                    {isLoading ? (
+                                        <LoadingFallback />
+                                    ) : sortedDefinitions.length === 0 ? (
+                                        <p className={fr.cx("fr-text--sm")}>
+                                            {t("admin.customAttributes.empty")}
+                                        </p>
+                                    ) : (
+                                        <AttributeDefinitionsTable
+                                            definitions={sortedDefinitions}
+                                        />
+                                    )}
+                                </section>
+                            </>
+                        )
+                    },
+                    {
+                        label: t("admin.uiConfig.tab"),
+                        content: <UiConfigEditor />
+                    }
+                ]}
+            />
 
             <AttributeDefinitionFormModal />
         </div>

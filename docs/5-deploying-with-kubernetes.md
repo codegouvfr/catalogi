@@ -238,7 +238,7 @@ Catalogi is configured using Helm values. You can find examples in `deployment-e
 | `api.env.OIDC_MANAGE_PROFILE_URL` | User profile management URL. | must be set |
 | `database.password` | Database password. | `change-this-in-production` |
 | `postgresql.enabled` | Use the built-in PostgreSQL chart. | `true` |
-| `customization.enabled` | Mount a custom UI config and translations into the API. Keep disabled unless your config matches the current schema. | `false` |
+| `customization.enabled` | Mount translations and an initial UI config into the API. The UI config only seeds an empty database and must match the current schema. | `false` |
 
 **Note:** the API validates required environment variables at startup. Missing OIDC variables or `APP_URL` make the API pod crash before serving traffic.
 
@@ -387,7 +387,7 @@ Migrate your Docker Compose environment variables to Helm values:
 
 - `DATABASE_URL` → `database.*` values
 - `OIDC_*` → `api.env.OIDC_*`
-- `VITE_*` → `customization.uiConfig`
+- `VITE_*` → the initial `customization.uiConfig`; after the first startup, edit the UI configuration from the administration page
 
 ## Security Considerations
 

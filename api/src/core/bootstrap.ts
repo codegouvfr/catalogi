@@ -20,6 +20,7 @@ import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
+import { getDefaultUiConfig } from "./defaultUiConfig";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -54,6 +55,10 @@ export async function bootstrapCore(
     const { dbConfig, oidcParams } = params;
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
+
+    if ((await dbApi.uiConfig.get()) === undefined) {
+        await dbApi.uiConfig.initialize(getDefaultUiConfig());
+    }
 
     // clean up old sessions, where no user ended connecting (we do this on app start to avoid handling a cron job)
     await dbApi.session.deleteSessionsNotCompletedByUser();

@@ -5,49 +5,51 @@
 import { z } from "zod";
 import { languages } from "./ports/GetSoftwareExternalData";
 
+const strictObject = <Shape extends z.ZodRawShape>(shape: Shape) => z.object(shape).strict();
+
 const localizedStringSchema = z.union([z.string(), z.record(z.enum(languages), z.string())]);
 const headerLinkIconSchema = z.enum(["bank", "compass"]).default("bank");
 
-const headerSchema = z.object({
-    link: z.object({
+const headerSchema = strictObject({
+    link: strictObject({
         enabled: z.boolean(),
         icon: headerLinkIconSchema,
-        linkProps: z.object({
+        linkProps: strictObject({
             href: z.string().url()
         }),
         text: z.string()
     }),
-    menu: z.object({
-        welcome: z.object({
+    menu: strictObject({
+        welcome: strictObject({
             enabled: z.boolean()
         }),
-        catalog: z.object({
+        catalog: strictObject({
             enabled: z.boolean()
         }),
-        addSoftware: z.object({
+        addSoftware: strictObject({
             enabled: z.boolean()
         }),
-        about: z.object({
+        about: strictObject({
             enabled: z.boolean()
         }),
-        contribute: z.object({
+        contribute: strictObject({
             enabled: z.boolean(),
             href: z.string()
         }),
-        login: z.object({
+        login: strictObject({
             enabled: z.boolean()
         })
     })
 });
 
-const useCaseConfigSchema = z.object({
+const useCaseConfigSchema = strictObject({
     enabled: z.boolean(),
     labelLinks: z.array(z.string()),
     buttonEnabled: z.boolean(),
     buttonLink: z.string()
 });
 
-const usecases = z.object({
+const usecases = strictObject({
     declareReferent: useCaseConfigSchema,
     editSoftware: useCaseConfigSchema,
     addSoftwareOrService: useCaseConfigSchema
@@ -57,7 +59,7 @@ export type ConfigurableUseCaseName = keyof z.infer<typeof usecases>;
 
 const statsSchema = z.enum(["softwareCount", "registeredUserCount", "agentReferentCount", "organizationCount"]);
 
-const softwareSelectionCardSchema = z.object({
+const softwareSelectionCardSchema = strictObject({
     title: localizedStringSchema,
     sort: z
         .enum([
@@ -75,30 +77,30 @@ const softwareSelectionCardSchema = z.object({
 
 export type SoftwareSelectionCard = z.infer<typeof softwareSelectionCardSchema>;
 
-const homeSchema = z.object({
-    softwareSelection: z.object({
+const homeSchema = strictObject({
+    softwareSelection: strictObject({
         enabled: z.boolean(),
         cards: z.array(softwareSelectionCardSchema).optional()
     }),
     theSillInAFewWordsParagraphLinks: z.array(z.string().url()),
-    searchBar: z.object({
+    searchBar: strictObject({
         enabled: z.boolean()
     }),
-    statistics: z.object({
+    statistics: strictObject({
         categories: z.array(statsSchema)
     }),
     usecases,
-    quickAccess: z.object({
+    quickAccess: strictObject({
         enabled: z.boolean()
     })
 });
 
-const softwareDetailsSchema = z.object({
+const softwareDetailsSchema = strictObject({
     authorCard: z.boolean(),
     defaultLogo: z.boolean(),
-    details: z.object({
+    details: strictObject({
         enabled: z.boolean(),
-        fields: z.object({
+        fields: strictObject({
             registerDate: z.boolean(),
             minimalVersionRequired: z.boolean(),
             softwareCurrentVersion: z.boolean(),
@@ -106,33 +108,33 @@ const softwareDetailsSchema = z.object({
             license: z.boolean()
         })
     }),
-    customAttributes: z.object({
+    customAttributes: strictObject({
         enabled: z.boolean()
     }),
-    metadata: z.object({
+    metadata: strictObject({
         enabled: z.boolean(),
-        fields: z.object({
+        fields: strictObject({
             keywords: z.boolean(),
             programmingLanguages: z.boolean(),
             applicationCategories: z.boolean(),
             runtimePlatforms: z.boolean()
         })
     }),
-    repoMetadata: z.object({
+    repoMetadata: strictObject({
         enabled: z.boolean()
     }),
-    links: z.object({
+    links: strictObject({
         enabled: z.boolean()
     }),
-    userActions: z.object({
+    userActions: strictObject({
         enabled: z.boolean()
     })
 });
 
-const catalogSchema = z.object({
+const catalogSchema = strictObject({
     defaultLogo: z.boolean(),
-    search: z.object({
-        options: z.object({
+    search: strictObject({
+        options: strictObject({
             organisation: z.boolean(),
             applicationCategories: z.boolean(),
             runtimePlatforms: z.boolean(),
@@ -140,7 +142,7 @@ const catalogSchema = z.object({
             programmingLanguages: z.boolean()
         })
     }),
-    sortOptions: z.object({
+    sortOptions: strictObject({
         referent_count: z.boolean(),
         user_count: z.boolean(),
         added_time: z.boolean(),
@@ -149,18 +151,18 @@ const catalogSchema = z.object({
         user_count_ASC: z.boolean(),
         referent_count_ASC: z.boolean()
     }),
-    cardOptions: z.object({
+    cardOptions: strictObject({
         referentCount: z.boolean(),
         userCase: z.boolean()
     })
 });
 
-const footerSchema = z.object({
+const footerSchema = strictObject({
     domains: z.array(z.string())
 });
 
 export type UiConfig = z.infer<typeof uiConfigSchema>;
-export const uiConfigSchema = z.object({
+export const uiConfigSchema = strictObject({
     header: headerSchema,
     home: homeSchema,
     softwareDetails: softwareDetailsSchema,

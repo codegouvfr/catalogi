@@ -4,13 +4,11 @@
 
 import { Kysely, sql } from "kysely";
 
-// Singleton table holding the UI configuration as a single jsonb document.
-// The row is seeded at application bootstrap (seed-if-empty) from the currently
-// loaded ui-config.json so existing deployments keep their customization; this
-// migration only creates the empty table.
+// Singleton table holding the UI configuration as a single jsonb document. Bootstrap
+// initializes the row once from ui-config.json so existing deployments keep their setup.
 export async function up(db: Kysely<any>): Promise<void> {
     await sql`
-        create table if not exists "config_ui" (
+        create table "config_ui" (
             "id" boolean primary key default true,
             "config" jsonb not null,
             "createdAt" timestamptz not null default now(),
@@ -21,5 +19,5 @@ export async function up(db: Kysely<any>): Promise<void> {
 }
 
 export async function down(db: Kysely<any>): Promise<void> {
-    await sql`drop table if exists "config_ui"`.execute(db);
+    await sql`drop table "config_ui"`.execute(db);
 }

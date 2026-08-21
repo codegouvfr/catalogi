@@ -226,6 +226,8 @@ export interface AttributeDefinitionRepository {
 }
 
 export interface UiConfigRepository {
+    // Inserts the initial config without overwriting an existing admin value.
+    initialize: (config: UiConfig) => Promise<void>;
     // Reads the singleton config row, or undefined when the table is empty.
     get: () => Promise<UiConfig | undefined>;
     // Upserts the singleton config row.

@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { ApiTypes } from "api";
+import type { ApiTypes } from "api";
 import { createSelector, createUsecaseActions } from "redux-clean-architecture";
 import type { State as RootState, Thunks } from "../bootstrap";
 import { id } from "tsafe";
@@ -20,6 +20,7 @@ export namespace State {
         stateDescription: "initialized";
         uiConfig: ApiTypes.UiConfig;
         attributeDefinitions: ApiTypes.AttributeDefinition[];
+        isSaving: boolean;
     };
 }
 
@@ -39,8 +40,21 @@ export const { reducer, actions } = createUsecaseActions({
         ) => ({
             stateDescription: "initialized",
             uiConfig: action.payload.uiConfig,
-            attributeDefinitions: action.payload.attributeDefinitions
-        })
+            attributeDefinitions: action.payload.attributeDefinitions,
+            isSaving: false
+        }),
+        saveStarted: state =>
+            state.stateDescription === "initialized"
+                ? { ...state, isSaving: true }
+                : state,
+        saveSucceeded: (state, action: { payload: { uiConfig: ApiTypes.UiConfig } }) =>
+            state.stateDescription === "initialized"
+                ? { ...state, uiConfig: action.payload.uiConfig }
+                : state,
+        saveSettled: state =>
+            state.stateDescription === "initialized"
+                ? { ...state, isSaving: false }
+                : state
     }
 });
 
@@ -54,13 +68,26 @@ export const selectors = {
         state?.stateDescription === "initialized"
             ? {
                   uiConfig: state.uiConfig,
-                  attributeDefinitions: state.attributeDefinitions
+                  attributeDefinitions: state.attributeDefinitions,
+                  isSaving: state.isSaving
               }
             : undefined
     )
 };
 
-export const thunks = {};
+export const thunks = {
+    update:
+        (uiConfig: ApiTypes.UiConfig) =>
+        async (dispatch, _, { sillApi }) => {
+            dispatch(actions.saveStarted());
+            try {
+                const savedUiConfig = await sillApi.updateUiConfig(uiConfig);
+                dispatch(actions.saveSucceeded({ uiConfig: savedUiConfig }));
+            } finally {
+                dispatch(actions.saveSettled());
+            }
+        }
+} satisfies Thunks;
 
 export const protectedThunks = {
     initialize:

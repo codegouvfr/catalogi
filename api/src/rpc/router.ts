@@ -11,7 +11,6 @@ import { z } from "zod";
 import type { DbApiV2 } from "../core/ports/DbApiV2";
 import { Language } from "../core/ports/GetSoftwareExternalData";
 import { UiConfig, uiConfigSchema } from "../core/uiConfigSchema";
-import { defaultUiConfig } from "../core/defaultUiConfig";
 import type { UseCases } from "../core/usecases";
 import {
     DeclarationFormData,
@@ -54,11 +53,11 @@ export function createRouter(params: {
 }) {
     const { useCases, dbApi, oidcParams, redirectUrl } = params;
 
-    // UI config lives in the DB (singleton row) and is editable at runtime by admins, so it
-    // is read per-request rather than captured once. The row only exists once an admin saves;
-    // until then we fall back to the bundled default (the ui-config.json overridable via a
-    // mounted volume / ConfigMap), which keeps that file live throughout the migration.
-    const resolveUiConfig = async (): Promise<UiConfig> => (await dbApi.uiConfig.get()) ?? defaultUiConfig;
+    const resolveUiConfig = async (): Promise<UiConfig> => {
+        const uiConfig = await dbApi.uiConfig.get();
+        assert(uiConfig !== undefined, "UI configuration must be initialized at bootstrap");
+        return uiConfig;
+    };
 
     const t = initTRPC.context<Context>().create({
         "transformer": superjson,
@@ -562,6 +561,7 @@ export function createRouter(params: {
 
         "updateUiConfig": adminProcedure.input(uiConfigSchema).mutation(async ({ input }) => {
             await dbApi.uiConfig.save(input);
+            return input;
         })
     });
 

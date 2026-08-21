@@ -431,6 +431,21 @@
     },
     "admin": {
         "title": "Administration",
+        "catalogTab": "Gestion du catalogue",
+        "uiConfig": {
+            "tab": "Configuration de l’interface",
+            "title": "Configuration de l’interface",
+            "description": "Modifiez la configuration JSON utilisée par l’interface. L’enregistrement est refusé si le JSON est invalide ou ne respecte pas le schéma attendu.",
+            "editorLabel": "Configuration JSON",
+            "editorHint": "Les clés inconnues et les valeurs incorrectes sont refusées. Le document est automatiquement reformaté après validation.",
+            "root": "racine",
+            "invalidJson": "JSON invalide : {{message}}",
+            "saveError": "La configuration n’a pas pu être enregistrée.",
+            "saved": "La configuration de l’interface a été enregistrée.",
+            "reset": "Annuler les modifications",
+            "save": "Valider et enregistrer",
+            "saving": "Enregistrement…"
+        },
         "softwareEntries": {
             "title": "Gestion des fiches",
             "publicAdditionEnabledDescription": "Ajoutez une nouvelle fiche logiciel au catalogue.",

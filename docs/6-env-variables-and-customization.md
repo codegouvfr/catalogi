@@ -135,7 +135,11 @@ POSTGRES_PASSWORD=pg_password
 
 ## UI Configuration
 
-The UI can be customized, some tabs might not be relevant for your use case. We have a json file that can be used to configure the UI. It is located in `api/src/customization/ui-config.json`. It has to follow the schema defined in `api/src/core/uiConfigSchema.ts`.
+Administrators can edit the UI configuration from the **Administration → Interface configuration** tab. The editor validates both the JSON syntax and the schema before saving the configuration in PostgreSQL.
+
+On the first application start, the configuration is initialized from `api/src/customization/ui-config.json`. Existing deployments can still mount a customized version of that file, but it is only used while the database has no UI configuration yet. Once initialized, subsequent changes to the file do not overwrite values saved by an administrator.
+
+The configuration has to follow the schema defined in `api/src/core/uiConfigSchema.ts`.
 
 
 ## Translations
