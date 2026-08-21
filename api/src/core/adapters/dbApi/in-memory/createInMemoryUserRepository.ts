@@ -43,6 +43,12 @@ export const createInMemoryUserRepository = (): {
             getAll: () => {
                 throw new Error("Not implemented");
             },
+            hasAdmin: () => {
+                throw new Error("Not implemented");
+            },
+            runExclusiveForInitialAdmin: _ => {
+                throw new Error("Not implemented");
+            },
             getAllOrganizations: () => {
                 throw new Error("Not implemented");
             },

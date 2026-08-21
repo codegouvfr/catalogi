@@ -22,6 +22,7 @@ services:
     restart: unless-stopped
     command: pnpm start
     volumes:
+      # Compatibility import: ui-config.json is read once by the config_ui migration.
       - ./customization:/app/api/dist/src/customization
 
   # this is the background task that will update the database every 4 hours

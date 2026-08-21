@@ -8,22 +8,30 @@ import { uiConfigSchema } from "../../../uiConfigSchema";
 import { Database } from "./kysely.database";
 
 export const createPgUiConfigRepository = (db: Kysely<Database>): UiConfigRepository => ({
-    initialize: async config => {
-        await db
-            .insertInto("config_ui")
-            .values({ id: true, config: JSON.stringify(config) })
-            .onConflict(oc => oc.column("id").doNothing())
-            .execute();
-    },
     get: async () => {
         const row = await db.selectFrom("config_ui").select("config").where("id", "=", true).executeTakeFirst();
-        return row === undefined ? undefined : uiConfigSchema.parse(row.config);
+        if (row === undefined) {
+            throw new Error(
+                "UI configuration is missing from PostgreSQL. The config_ui migration must create its singleton row."
+            );
+        }
+
+        const result = uiConfigSchema.safeParse(row.config);
+        if (!result.success) {
+            throw new Error(`UI configuration stored in PostgreSQL is invalid: ${result.error.message}`);
+        }
+
+        return result.data;
     },
     save: async config => {
-        await db
-            .insertInto("config_ui")
-            .values({ id: true, config: JSON.stringify(config) })
-            .onConflict(oc => oc.column("id").doUpdateSet({ config: JSON.stringify(config), updatedAt: sql`now()` }))
-            .execute();
+        const result = await db
+            .updateTable("config_ui")
+            .set({ config: JSON.stringify(config), updatedAt: sql`now()` })
+            .where("id", "=", true)
+            .executeTakeFirst();
+
+        if (result.numUpdatedRows !== BigInt(1)) {
+            throw new Error("Cannot save UI configuration because its PostgreSQL singleton row is missing.");
+        }
     }
 });

@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
-import { assert } from "tsafe/assert";
 import { bootstrapCore } from "../core";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
@@ -51,7 +50,6 @@ export const createTestCaller = async (
     // Apply test-specific changes after bootstrap initialized the singleton row.
     if (overrideUiConfig) {
         const current = await dbApi.uiConfig.get();
-        assert(current !== undefined);
         await dbApi.uiConfig.save(overrideUiConfig(current));
     }
 

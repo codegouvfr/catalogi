@@ -20,7 +20,6 @@ import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
-import { getDefaultUiConfig } from "./defaultUiConfig";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -30,6 +29,7 @@ type ParamsOfBootstrapCore = {
     dbConfig: DbConfig;
     oidcKind: "http" | "test";
     oidcParams: OidcParams;
+    initialAdminEmail?: string;
 };
 
 export type Context = {
@@ -56,9 +56,8 @@ export async function bootstrapCore(
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
 
-    if ((await dbApi.uiConfig.get()) === undefined) {
-        await dbApi.uiConfig.initialize(getDefaultUiConfig());
-    }
+    // Migrations own initialization. Startup only verifies database integrity.
+    await dbApi.uiConfig.get();
 
     // clean up old sessions, where no user ended connecting (we do this on app start to avoid handling a cron job)
     await dbApi.session.deleteSessionsNotCompletedByUser();
@@ -85,7 +84,8 @@ export async function bootstrapCore(
             handleAuthCallback: makeHandleAuthCallback({
                 sessionRepository: dbApi.session,
                 userRepository: dbApi.user,
-                oidcClient
+                oidcClient,
+                initialAdminEmail: params.initialAdminEmail
             }),
             initiateLogout: makeInitiateLogout({ sessionRepository: dbApi.session, oidcClient }),
             refreshSession: makeRefreshSession({ sessionRepository: dbApi.session, oidcClient })

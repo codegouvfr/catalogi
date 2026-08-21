@@ -35,22 +35,16 @@ spec:
                 {{- toYaml .Values.update.resources | nindent 16 }}
               env:
                 {{- include "catalogi.apiEnvs" . | nindent 16 }}
-              {{- if .Values.customization.enabled }}
+              {{- if and .Values.customization.enabled .Values.customization.translations }}
               volumeMounts:
-                - name: customization
-                  mountPath: /app/api/dist/src/customization/ui-config.json
-                  subPath: ui-config.json
-                  readOnly: true
-                {{- if .Values.customization.translations }}
                 {{- range $lang, $content := .Values.customization.translations }}
                 - name: customization
                   mountPath: /app/api/dist/src/customization/translations/{{ $lang }}.json
                   subPath: translations_{{ $lang }}.json
                   readOnly: true
                 {{- end }}
-                {{- end }}
               {{- end }}
-          {{- if .Values.customization.enabled }}
+          {{- if and .Values.customization.enabled .Values.customization.translations }}
           volumes:
             - name: customization
               configMap:

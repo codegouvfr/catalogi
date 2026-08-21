@@ -12,6 +12,7 @@ type HandleAuthCallbackDependencies = {
     userRepository: UserRepository;
     sessionRepository: SessionRepository;
     oidcClient: OidcClient;
+    initialAdminEmail?: string;
 };
 
 type HandleAuthCallbackParams = {
@@ -23,7 +24,8 @@ export type HandleAuthCallback = Awaited<ReturnType<typeof makeHandleAuthCallbac
 export const makeHandleAuthCallback = ({
     sessionRepository,
     userRepository,
-    oidcClient
+    oidcClient,
+    initialAdminEmail
 }: HandleAuthCallbackDependencies) => {
     return async ({ code, state }: HandleAuthCallbackParams): Promise<Session> => {
         // Find session by state
@@ -37,33 +39,45 @@ export const makeHandleAuthCallback = ({
 
         const userInfoFromProvider = await oidcClient.getUserInfo(tokens.access_token);
 
-        let userId: number;
-        const user =
-            (await userRepository.getBySub(userInfoFromProvider.sub)) ??
-            (await userRepository.getByEmail(userInfoFromProvider.email));
+        const matchesInitialAdmin =
+            initialAdminEmail !== undefined &&
+            initialAdminEmail.trim().toLowerCase() === userInfoFromProvider.email.trim().toLowerCase();
 
-        if (!user) {
-            userId = await userRepository.add({
+        const saveUser = async (repository: UserRepository): Promise<number> => {
+            const user =
+                (await repository.getBySub(userInfoFromProvider.sub)) ??
+                (await repository.getByEmail(userInfoFromProvider.email));
+            const shouldBootstrapAdmin = matchesInitialAdmin && !(await repository.hasAdmin());
+            const role = shouldBootstrapAdmin ? "admin" : (user?.role ?? "user");
+
+            if (!user) {
+                return repository.add({
+                    sub: userInfoFromProvider.sub,
+                    email: userInfoFromProvider.email,
+                    firstName: userInfoFromProvider.given_name,
+                    lastName: userInfoFromProvider.family_name ?? userInfoFromProvider.usual_name,
+                    organization: null,
+                    isPublic: false,
+                    about: undefined,
+                    role
+                });
+            }
+
+            await repository.update({
+                ...user,
                 sub: userInfoFromProvider.sub,
                 email: userInfoFromProvider.email,
                 firstName: userInfoFromProvider.given_name,
                 lastName: userInfoFromProvider.family_name ?? userInfoFromProvider.usual_name,
-                organization: null,
-                isPublic: false,
-                about: undefined,
-                role: "user"
+                role
             });
-        } else {
-            userId = user.id;
-            await userRepository.update({
-                ...user,
-                id: userId,
-                sub: userInfoFromProvider.sub,
-                email: userInfoFromProvider.email,
-                firstName: userInfoFromProvider.given_name,
-                lastName: userInfoFromProvider.family_name ?? userInfoFromProvider.usual_name
-            });
-        }
+
+            return user.id;
+        };
+
+        const userId = matchesInitialAdmin
+            ? await userRepository.runExclusiveForInitialAdmin(saveUser)
+            : await saveUser(userRepository);
 
         // Use OIDC provider's expires_in, defaulting if not provided
         const sessionDurationMs = tokens.expires_in ? tokens.expires_in * 1000 : DEFAULT_SESSION_DURATION_MS;

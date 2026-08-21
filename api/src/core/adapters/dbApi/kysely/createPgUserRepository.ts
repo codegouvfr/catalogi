@@ -50,7 +50,9 @@ export const createPgUserRepository = (db: Kysely<Database>): UserRepository => 
         await db.deleteFrom("users").where("id", "=", userId).execute();
     },
     getByEmail: async email => {
-        const dbUser = await makeGetUserBuilder(db).where("email", "=", email).executeTakeFirst();
+        const dbUser = await makeGetUserBuilder(db)
+            .where(sql<string>`lower("email")`, "=", email.trim().toLowerCase())
+            .executeTakeFirst();
         return convertDbUserToUserWithId(dbUser);
     },
     getBySub: async sub => {
@@ -127,6 +129,22 @@ export const createPgUserRepository = (db: Kysely<Database>): UserRepository => 
         makeGetUserBuilder(db)
             .execute()
             .then(results => results.map(convertDbUserToUserWithId)),
+    hasAdmin: () =>
+        db
+            .selectFrom("users")
+            .select("id")
+            .where("role", "=", "admin")
+            .executeTakeFirst()
+            .then(user => user !== undefined),
+    runExclusiveForInitialAdmin: operation =>
+        db.transaction().execute(async transaction => {
+            await sql`select pg_advisory_xact_lock(
+                hashtext('catalogi'),
+                hashtext('initial-admin-bootstrap')
+            )`.execute(transaction);
+
+            return operation(createPgUserRepository(transaction));
+        }),
     countAll: () =>
         db
             .selectFrom("users")

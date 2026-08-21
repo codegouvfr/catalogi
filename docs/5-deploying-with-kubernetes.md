@@ -64,10 +64,10 @@ helm install ingress-nginx ingress-nginx/ingress-nginx --create-namespace --name
 
 Catalogi is deployed as two HTTP services:
 
-| Public path | Kubernetes service | Service port | Notes |
-| ----------- | ------------------ | ------------ | ----- |
-| `/` | `catalogi-web` | `80` | Static React application served by nginx. |
-| `/api(/|$)(.*)` | `catalogi-api` | `3000` | Express/tRPC API. Strip `/api` before the request reaches the API. |
+| Public path      | Kubernetes service | Service port | Notes                                                              |
+| ---------------- | ------------------ | ------------ | ------------------------------------------------------------------ |
+| `/`              | `catalogi-web`     | `80`         | Static React application served by nginx.                          |
+| `/api(/\|$)(.*)` | `catalogi-api`     | `3000`       | Express/tRPC API. Strip `/api` before the request reaches the API. |
 
 The web container's nginx only serves static files and the SPA fallback. It does **not** proxy `/api` to the backend. If `/api` reaches the web container, the browser receives `index.html` or an nginx HTML 404 page instead of JSON, and the frontend fails with a `JSON.parse`/tRPC error.
 
@@ -151,7 +151,7 @@ helm dependency build ./helm-charts/catalogi
 
 We provide an example values file that is pre-configured for local development. It uses the `latest` image tags and disables the chart-managed ingress so the local NGINX ingress examples can define the required API rewrite explicitly.
 
-Before deploying, copy this file for your environment and update `api.env`. `APP_URL` must be the public browser URL of the instance, for example `http://catalogi.127.0.0.1.nip.io` locally or `https://catalogi.example.org` in production. The same URL must be allowed as an OIDC redirect/callback base by your identity provider if you want login to work.
+Before deploying, copy this file for your environment and update `api.env`. `APP_URL` must be the public browser URL of the instance, for example `http://catalogi.127.0.0.1.nip.io` locally or `https://catalogi.example.org` in production. The same URL must be allowed as an OIDC redirect/callback base by your identity provider if you want login to work. For a new instance, also set `api.env.CATALOGI_INITIAL_ADMIN_EMAIL` to the OIDC email of the first Catalogi administrator; after that user signs in, the value can be removed.
 
 Deploy the chart using this file:
 
@@ -228,17 +228,18 @@ Catalogi is configured using Helm values. You can find examples in `deployment-e
 
 ### Important Parameters
 
-| Parameter | Description | Default |
-| --------- | ----------- | ------- |
-| `ingress.hosts[0].host` | Application domain name for chart-managed ingress. | `catalogi.local` |
-| `api.env.APP_URL` | Public browser URL. Used for CORS and auth redirects. | must be set |
-| `api.env.OIDC_ISSUER_URI` | OIDC provider URL. | must be set |
-| `api.env.OIDC_CLIENT_ID` | OIDC client ID. | must be set |
-| `api.env.OIDC_CLIENT_SECRET` | OIDC client secret. Store with care in production. | must be set |
-| `api.env.OIDC_MANAGE_PROFILE_URL` | User profile management URL. | must be set |
-| `database.password` | Database password. | `change-this-in-production` |
-| `postgresql.enabled` | Use the built-in PostgreSQL chart. | `true` |
-| `customization.enabled` | Mount translations and an initial UI config into the API. The UI config only seeds an empty database and must match the current schema. | `false` |
+| Parameter                                   | Description                                                                                                                             | Default                     |
+| ------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- |
+| `ingress.hosts[0].host`                     | Application domain name for chart-managed ingress.                                                                                      | `catalogi.local`            |
+| `api.env.APP_URL`                           | Public browser URL. Used for CORS and auth redirects.                                                                                   | must be set                 |
+| `api.env.OIDC_ISSUER_URI`                   | OIDC provider URL.                                                                                                                      | must be set                 |
+| `api.env.OIDC_CLIENT_ID`                    | OIDC client ID.                                                                                                                         | must be set                 |
+| `api.env.OIDC_CLIENT_SECRET`                | OIDC client secret. Store with care in production.                                                                                      | must be set                 |
+| `api.env.OIDC_MANAGE_PROFILE_URL`           | User profile management URL.                                                                                                            | must be set                 |
+| `database.password`                         | Database password.                                                                                                                      | `change-this-in-production` |
+| `postgresql.enabled`                        | Use the built-in PostgreSQL chart.                                                                                                      | `true`                      |
+| `customization.enabled`                     | Enable the ConfigMap used for custom translations and the optional legacy UI configuration import.                                      | `false`                     |
+| `customization.legacyUiConfigImportEnabled` | Mount `customization.uiConfig` for the one-time database migration. Disable it after verifying the import; translations remain mounted. | `true`                      |
 
 **Note:** the API validates required environment variables at startup. Missing OIDC variables or `APP_URL` make the API pod crash before serving traffic.
 

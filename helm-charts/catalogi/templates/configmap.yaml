@@ -1,4 +1,5 @@
-{{- if .Values.customization.enabled }}
+{{- $legacyUiConfigImportEnabled := eq (include "catalogi.legacyUiConfigImportEnabled" .) "true" -}}
+{{- if and .Values.customization.enabled (or $legacyUiConfigImportEnabled .Values.customization.translations) }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -6,8 +7,10 @@ metadata:
   labels:
     {{- include "catalogi.labels" . | nindent 4 }}
 data:
+  {{- if $legacyUiConfigImportEnabled }}
   ui-config.json: |
     {{- .Values.customization.uiConfig | nindent 4 }}
+  {{- end }}
   {{- if .Values.customization.translations }}
   {{- range $lang, $content := .Values.customization.translations }}
   translations_{{ $lang }}.json: |

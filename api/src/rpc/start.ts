@@ -67,8 +67,10 @@ export async function startRpcService(params: {
     redirectUrl?: string;
     databaseUrl: string;
     appUrl: string;
+    initialAdminEmail?: string;
 }) {
-    const { redirectUrl, oidcParams, port, isDevEnvironnement, databaseUrl, appUrl, ...rest } = params;
+    const { redirectUrl, oidcParams, port, isDevEnvironnement, databaseUrl, appUrl, initialAdminEmail, ...rest } =
+        params;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -82,8 +84,15 @@ export async function startRpcService(params: {
             kyselyDb: kyselyDb
         },
         oidcKind: "http",
-        oidcParams
+        oidcParams,
+        initialAdminEmail
     });
+
+    if (initialAdminEmail === undefined && !(await dbApi.user.hasAdmin())) {
+        console.warn(
+            "No Catalogi administrator exists. Set CATALOGI_INITIAL_ADMIN_EMAIL to an OIDC email address, restart Catalogi, then sign in with that address to initialize administration."
+        );
+    }
 
     const { createContext } = await createContextFactory({
         userRepository: dbApi.user,

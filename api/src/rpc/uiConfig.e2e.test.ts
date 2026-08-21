@@ -7,7 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { DbApiV2 } from "../core/ports/DbApiV2";
-import { getDefaultUiConfig } from "../core/defaultUiConfig";
+import { STANDARD_UI_CONFIG } from "../core/adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
 import { resetDB, testPgUrl } from "../tools/test.helpers";
 import { ApiCaller, createTestCaller, defaultUser } from "./createTestCaller";
 
@@ -38,8 +38,8 @@ describe("UI configuration RPC", () => {
         }));
     });
 
-    it("initializes the database from the existing default configuration", async () => {
-        await expect(dbApi.uiConfig.get()).resolves.toEqual(getDefaultUiConfig());
+    it("serves the standard configuration inserted by the migration", async () => {
+        await expect(dbApi.uiConfig.get()).resolves.toEqual(STANDARD_UI_CONFIG);
     });
 
     it("lets an admin persist a valid configuration", async () => {
@@ -95,19 +95,37 @@ describe("UI configuration RPC", () => {
         await expect(anonymousCaller.updateUiConfig(uiConfig)).rejects.toThrow("UNAUTHORIZED");
     });
 
-    it("rejects an invalid configuration read from the database", async () => {
+    it("fails application bootstrap when the stored configuration is invalid", async () => {
         await kyselyDb
             .updateTable("config_ui")
             .set({
                 config: JSON.stringify({
-                    ...getDefaultUiConfig(),
+                    ...STANDARD_UI_CONFIG,
                     unexpectedProperty: true
                 })
             })
             .where("id", "=", true)
             .execute();
 
-        await expect(apiCaller.getUiConfig()).rejects.toThrow("Unrecognized key(s)");
+        await expect(createTestCaller({ db: kyselyDb, currentUser: undefined })).rejects.toThrow(
+            "UI configuration stored in PostgreSQL is invalid"
+        );
+    });
+
+    it("fails application bootstrap when the configuration row is missing", async () => {
+        await kyselyDb.deleteFrom("config_ui").where("id", "=", true).execute();
+
+        await expect(createTestCaller({ db: kyselyDb, currentUser: undefined })).rejects.toThrow(
+            "UI configuration is missing from PostgreSQL"
+        );
+    });
+
+    it("does not recreate a missing row when saving", async () => {
+        const existingConfig = await dbApi.uiConfig.get();
+        await kyselyDb.deleteFrom("config_ui").where("id", "=", true).execute();
+
+        await expect(dbApi.uiConfig.save(existingConfig)).rejects.toThrow("singleton row is missing");
+        await expect(kyselyDb.selectFrom("config_ui").selectAll().execute()).resolves.toEqual([]);
     });
 
     it("rejects unknown top-level properties instead of silently discarding them", async () => {

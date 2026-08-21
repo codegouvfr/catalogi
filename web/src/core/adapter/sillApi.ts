@@ -39,7 +39,7 @@ export function createSillApi(params: { url: string }): SillApi {
         ]
     });
 
-    const errorHandler = (err: any) => {
+    const captureError = (err: any) => {
         if (err instanceof TRPCClientError) {
             Sentry.captureException(err, {
                 contexts: {
@@ -52,6 +52,10 @@ export function createSillApi(params: { url: string }): SillApi {
         } else {
             Sentry.captureException(err);
         }
+    };
+
+    const errorHandler = (err: any) => {
+        captureError(err);
 
         if (err.shape?.message) {
             alert(err.shape.message);
@@ -210,9 +214,10 @@ export function createSillApi(params: { url: string }): SillApi {
             return out;
         },
         updateUiConfig: async params => {
-            const out = await trpcClient.updateUiConfig
-                .mutate(params)
-                .catch(errorHandler);
+            const out = await trpcClient.updateUiConfig.mutate(params).catch(error => {
+                captureError(error);
+                throw error;
+            });
 
             sillApi.getUiConfig.clear();
 

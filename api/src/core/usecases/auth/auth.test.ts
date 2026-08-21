@@ -5,7 +5,7 @@ import { InitiateAuth, makeInitiateAuth } from "./initiateAuth";
 import { Kysely } from "kysely";
 import { Database } from "../../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../../adapters/dbApi/kysely/kysely.dialect";
-import { expectToEqual, expectToMatchObject, testPgUrl } from "../../../tools/test.helpers";
+import { expectToEqual, expectToMatchObject, resetDB, testPgUrl } from "../../../tools/test.helpers";
 import { HandleAuthCallback, makeHandleAuthCallback } from "./handleAuthCallback";
 import { makeInitiateLogout, InitiateLogout } from "./logout";
 import { createPgUserRepository } from "../../adapters/dbApi/kysely/createPgUserRepository";
@@ -19,6 +19,33 @@ describe("Authentication workflow", () => {
     let refreshSession: RefreshSession;
     let db: Kysely<Database>;
 
+    const authenticate = async (initialAdminEmail?: string) => {
+        const { sessionId } = await initiateAuth({ redirectUrl: undefined });
+        const session = await db
+            .selectFrom("user_sessions")
+            .select("state")
+            .where("id", "=", sessionId)
+            .executeTakeFirstOrThrow();
+        const callback = makeHandleAuthCallback({
+            sessionRepository: createPgSessionRepository(db),
+            userRepository: createPgUserRepository(db),
+            oidcClient,
+            initialAdminEmail
+        });
+
+        return callback({ code: "auth-code", state: session.state });
+    };
+
+    const getAuthenticatedUserRole = async (initialAdminEmail?: string) => {
+        const session = await authenticate(initialAdminEmail);
+        const user = await db
+            .selectFrom("users")
+            .select("role")
+            .where("id", "=", session.userId)
+            .executeTakeFirstOrThrow();
+        return user.role;
+    };
+
     beforeEach(async () => {
         oidcClient = new TestOidcClient({
             issuerUri: "https://auth.example.com",
@@ -28,6 +55,7 @@ describe("Authentication workflow", () => {
         });
 
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
+        await resetDB(db);
 
         initiateAuth = makeInitiateAuth({
             sessionRepository: createPgSessionRepository(db),
@@ -45,6 +73,84 @@ describe("Authentication workflow", () => {
         refreshSession = makeRefreshSession({
             sessionRepository: createPgSessionRepository(db),
             oidcClient
+        });
+    });
+
+    it("creates the configured initial administrator when no administrator exists", async () => {
+        await expect(getAuthenticatedUserRole("test@example.com")).resolves.toBe("admin");
+    });
+
+    it("does not promote the first arbitrary user when no initial administrator is configured", async () => {
+        await expect(getAuthenticatedUserRole()).resolves.toBe("user");
+    });
+
+    it("does not promote an address other than the configured initial administrator", async () => {
+        await expect(getAuthenticatedUserRole("someone-else@example.com")).resolves.toBe("user");
+    });
+
+    it("promotes an existing matching user", async () => {
+        const userRepository = createPgUserRepository(db);
+        await userRepository.add({
+            sub: "test-user-123",
+            email: "test@example.com",
+            firstName: "Existing",
+            lastName: "User",
+            organization: null,
+            isPublic: false,
+            about: undefined,
+            role: "user"
+        });
+
+        await expect(getAuthenticatedUserRole("test@example.com")).resolves.toBe("admin");
+    });
+
+    it("keeps an existing administrator and blocks a new automatic promotion", async () => {
+        const userRepository = createPgUserRepository(db);
+        const existingAdminId = await userRepository.add({
+            sub: "existing-admin",
+            email: "existing-admin@example.com",
+            firstName: "Existing",
+            lastName: "Admin",
+            organization: null,
+            isPublic: false,
+            about: undefined,
+            role: "admin"
+        });
+
+        await expect(getAuthenticatedUserRole("test@example.com")).resolves.toBe("user");
+        await expect(
+            db.selectFrom("users").select("role").where("id", "=", existingAdminId).executeTakeFirstOrThrow()
+        ).resolves.toMatchObject({ role: "admin" });
+    });
+
+    it("compares the configured initial administrator address case-insensitively", async () => {
+        await expect(getAuthenticatedUserRole("TEST@EXAMPLE.COM")).resolves.toBe("admin");
+    });
+
+    it("promotes a matching existing user whose stored email uses different casing", async () => {
+        await createPgUserRepository(db).add({
+            sub: null,
+            email: "Test@Example.com",
+            firstName: "Existing",
+            lastName: "User",
+            organization: null,
+            isPublic: false,
+            about: undefined,
+            role: "user"
+        });
+
+        await expect(getAuthenticatedUserRole("TEST@EXAMPLE.COM")).resolves.toBe("admin");
+        await expect(createPgUserRepository(db).getAll()).resolves.toHaveLength(1);
+    });
+
+    it("creates a single administrator when initial administrator callbacks run concurrently", async () => {
+        await Promise.all(Array.from({ length: 8 }, () => authenticate("test@example.com")));
+
+        const users = await createPgUserRepository(db).getAll();
+        expect(users).toHaveLength(1);
+        expect(users[0]).toMatchObject({
+            email: "test@example.com",
+            role: "admin"
         });
     });
 
@@ -91,7 +197,8 @@ describe("Authentication workflow", () => {
 
         expectToMatchObject(user, {
             email: "test@example.com",
-            sub: "test-user-123"
+            sub: "test-user-123",
+            role: "user"
         });
 
         expectToEqual(oidcClient.calls, [

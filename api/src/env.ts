@@ -18,6 +18,12 @@ const zEnvConfiguration = z.object({
     "port": z.coerce.number().optional().default(8080),
     "importDataSourceOrigin": z.string().optional().default("wikidata"),
     "botUserEmail": z.string().optional(),
+    "initialAdminEmail": z
+        .string()
+        .trim()
+        .email()
+        .transform(email => email.toLowerCase())
+        .optional(),
     "listToImport": z.array(z.string()).optional(),
     "updateSkipTimingInMinutes": z.number().optional(),
     "updateSoftwareIds": z.array(z.number().int().positive()).optional(),
@@ -44,6 +50,7 @@ const envConfiguration = zEnvConfiguration.parse({
     "redirectUrl": process.env.REDIRECT_URL,
     "databaseUrl": process.env.DATABASE_URL,
     "botUserEmail": process.env?.BOT_USER_EMAIL,
+    "initialAdminEmail": process.env.CATALOGI_INITIAL_ADMIN_EMAIL,
     "listToImport": process.env?.IMPORT_DATA_IDS?.split(","),
     "updateSkipTimingInMinutes": process.env?.UPDATE_SKIP_TIMING ? parseInt(process.env.UPDATE_SKIP_TIMING) : undefined,
     "updateSoftwareIds": process.env?.UPDATE_SOFTWARE_IDS

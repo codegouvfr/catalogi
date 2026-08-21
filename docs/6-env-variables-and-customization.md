@@ -10,23 +10,25 @@
 The following environment variables are used to configure the Catalogi web application.
 You can set them in a `.env` file or directly in your environment.
 
-| Variable Name | Required | Default Value | Example Value |
-|----------------|----------|----------------|----------------|
-| OIDC_ISSUER_URI | ✅ | - | `http://localhost:8080/realms/catalogi` |
-| OIDC_CLIENT_ID | ✅ | - | `catalogi` |
-| DATABASE_URL | ✅ | - | `postgresql://catalogi:pg_password@localhost:5432/catalogi` |
-| API_PORT | ❌ | `8080` | `1234` |
-| IS_DEV_ENVIRONNEMENT | ❌ | `false` | `true` |
-| VITE_ENVIRONMENT | ❌ | `local` | `local`, `dev`, `staging`, `pre-production`, or `production` |
-| EXTERNAL_SOFTWARE_DATA_ORIGIN | ❌ | `wikidata` | `wikidata` or `HAL` |
-| INIT_SOFT_FROM_SOURCE | ❌ | `false` | `true` |
-| BOT_AGENT_EMAIL | ❌ | - | `bot@example.com` |
-| IMPORT_WIKIDATA | ❌ | - | `Q123,Q456,Q789` |
-| REDIRECT_URL | ❌ | - | `https://catalogi.example.com` |
+| Variable Name                 | Required | Default Value | Example Value                                                |
+| ----------------------------- | -------- | ------------- | ------------------------------------------------------------ |
+| OIDC_ISSUER_URI               | ✅       | -             | `http://localhost:8080/realms/catalogi`                      |
+| OIDC_CLIENT_ID                | ✅       | -             | `catalogi`                                                   |
+| CATALOGI_INITIAL_ADMIN_EMAIL  | ❌       | -             | `admin@example.com`                                          |
+| DATABASE_URL                  | ✅       | -             | `postgresql://catalogi:pg_password@localhost:5432/catalogi`  |
+| API_PORT                      | ❌       | `8080`        | `1234`                                                       |
+| IS_DEV_ENVIRONNEMENT          | ❌       | `false`       | `true`                                                       |
+| VITE_ENVIRONMENT              | ❌       | `local`       | `local`, `dev`, `staging`, `pre-production`, or `production` |
+| EXTERNAL_SOFTWARE_DATA_ORIGIN | ❌       | `wikidata`    | `wikidata` or `HAL`                                          |
+| INIT_SOFT_FROM_SOURCE         | ❌       | `false`       | `true`                                                       |
+| BOT_AGENT_EMAIL               | ❌       | -             | `bot@example.com`                                            |
+| IMPORT_WIKIDATA               | ❌       | -             | `Q123,Q456,Q789`                                             |
+| REDIRECT_URL                  | ❌       | -             | `https://catalogi.example.com`                               |
 
 ### VITE_ENVIRONMENT
 
 The `VITE_ENVIRONMENT` variable identifies the deployment environment and is available in both the API (backend) and web (frontend). Valid values are:
+
 - `local` - Local development environment (default)
 - `dev` - Development environment
 - `staging` - Staging environment
@@ -34,6 +36,7 @@ The `VITE_ENVIRONMENT` variable identifies the deployment environment and is ava
 - `production` - Production environment
 
 This variable can be used to enable environment-specific features and configurations, such as:
+
 - Error monitoring and logging services (e.g., Sentry)
 - Analytics and tracking tools
 - Feature flags and conditional behavior
@@ -72,16 +75,16 @@ Example wiring for Matomo (to be placed inside `VITE_HEAD`, alongside the usual 
 
 ```html
 <script defer>
-  window.addEventListener('routechange', function (e) {
+  window.addEventListener("routechange", function (e) {
     var d = e.detail;
     var _paq = window._paq;
     if (!_paq) return;
-    _paq.push(['setReferrerUrl', d.referrer]);
-    _paq.push(['setCustomUrl', d.url]);
-    _paq.push(['setDocumentTitle', document.title]);
-    _paq.push(['deleteCustomVariables', 'page']);
-    _paq.push(['trackPageView']);
-    _paq.push(['enableLinkTracking']);
+    _paq.push(["setReferrerUrl", d.referrer]);
+    _paq.push(["setCustomUrl", d.url]);
+    _paq.push(["setDocumentTitle", document.title]);
+    _paq.push(["deleteCustomVariables", "page"]);
+    _paq.push(["trackPageView"]);
+    _paq.push(["enableLinkTracking"]);
   });
 </script>
 ```
@@ -137,10 +140,22 @@ POSTGRES_PASSWORD=pg_password
 
 Administrators can edit the UI configuration from the **Administration → Interface configuration** tab. The editor validates both the JSON syntax and the schema before saving the configuration in PostgreSQL.
 
-On the first application start, the configuration is initialized from `api/src/customization/ui-config.json`. Existing deployments can still mount a customized version of that file, but it is only used while the database has no UI configuration yet. Once initialized, subsequent changes to the file do not overwrite values saved by an administrator.
+The `config_ui` database migration initializes this configuration exactly once. On a new installation it inserts a standard configuration embedded in the migration, so the application works before the first administrator signs in. PostgreSQL is the only source of truth after the migration.
+
+When upgrading an existing installation, keep its customized `ui-config.json` mounted at `/app/api/dist/src/customization/ui-config.json` for the first startup of the new version. The migration reads, validates, and imports that file. Verify the imported configuration in **Administration → Interface configuration**, then remove the JSON file or mount. With Helm, set `customization.legacyUiConfigImportEnabled` to `false`; custom translations remain mounted. With the Docker Compose example, delete `customization/ui-config.json` while keeping the directory mount if you use custom translations. Later file changes are intentionally ignored; make all further changes in the administration page. A mounted file that is unreadable, malformed, or incompatible stops the migration with an explicit error instead of silently using defaults.
 
 The configuration has to follow the schema defined in `api/src/core/uiConfigSchema.ts`.
 
+## First administrator
+
+Catalogi has no local passwords and never creates an `admin/admin` account. To initialize a new instance:
+
+1. Configure the OIDC provider and callback URLs.
+2. Set `CATALOGI_INITIAL_ADMIN_EMAIL` to the intended administrator's OIDC email address.
+3. Start Catalogi and sign in with that address.
+4. After confirming access to the administration page, optionally remove the variable.
+
+The address is normalized to lowercase and is used only while no administrator exists. Without the variable, the public application starts but new users remain regular users and the API logs an initialization warning. All credentials and password policies are managed by the OIDC provider.
 
 ## Translations
 

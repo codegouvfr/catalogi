@@ -12,7 +12,7 @@
         "test": "vitest --watch=false --no-file-parallelism",
         "dev": "dotenv -e ../.env -- tsx watch src/entrypoints/start-api.ts",
         "generate-translation-schema": "node scripts/generate-translation-schema.js",
-        "build": "tsc && cp -r src/customization dist/src/",
+        "build": "tsc && rm -f dist/src/customization/ui-config.json && cp -r src/customization dist/src/",
         "start": "pnpm db:up --no-outdated-check && dotenv -e ../.env -- node dist/src/entrypoints/start-api.js",
         "job:import": "dotenv -e ../.env -- node dist/src/entrypoints/import.js",
         "job:import-from-inner-identifiers": "dotenv -e ../.env -- node dist/src/entrypoints/import-from-inner-identifiers.js",

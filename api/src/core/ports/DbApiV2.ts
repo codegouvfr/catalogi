@@ -170,6 +170,8 @@ export interface UserRepository {
     getByEmail: (email: string) => Promise<UserWithId | undefined>;
     getBySub: (sub: string) => Promise<UserWithId | undefined>;
     getAll: () => Promise<UserWithId[]>;
+    hasAdmin: () => Promise<boolean>;
+    runExclusiveForInitialAdmin: <T>(operation: (repository: UserRepository) => Promise<T>) => Promise<T>;
     countAll: () => Promise<number>;
     getAllOrganizations: () => Promise<string[]>;
     getBySessionId: (sessionId: string) => Promise<UserWithId | undefined>;
@@ -226,11 +228,9 @@ export interface AttributeDefinitionRepository {
 }
 
 export interface UiConfigRepository {
-    // Inserts the initial config without overwriting an existing admin value.
-    initialize: (config: UiConfig) => Promise<void>;
-    // Reads the singleton config row, or undefined when the table is empty.
-    get: () => Promise<UiConfig | undefined>;
-    // Upserts the singleton config row.
+    // Reads and validates the singleton row created by the database migration.
+    get: () => Promise<UiConfig>;
+    // Updates the existing singleton row. A missing row is a database integrity error.
     save: (config: UiConfig) => Promise<void>;
 }
 

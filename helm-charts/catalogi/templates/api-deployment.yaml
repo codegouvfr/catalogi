@@ -1,3 +1,4 @@
+{{- $legacyUiConfigImportEnabled := eq (include "catalogi.legacyUiConfigImportEnabled" .) "true" -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -54,12 +55,15 @@ spec:
             {{- toYaml .Values.api.resources | nindent 12 }}
           env:
 {{- include "catalogi.apiEnvs" . | nindent 12 }}
-          {{- if .Values.customization.enabled }}
+          {{- if and .Values.customization.enabled (or $legacyUiConfigImportEnabled .Values.customization.translations) }}
           volumeMounts:
+            {{- if $legacyUiConfigImportEnabled }}
+            # Compatibility import read once by the config_ui migration.
             - name: customization
               mountPath: /app/api/dist/src/customization/ui-config.json
               subPath: ui-config.json
               readOnly: true
+            {{- end }}
             {{- if .Values.customization.translations }}
             {{- range $lang, $content := .Values.customization.translations }}
             - name: customization
@@ -69,7 +73,7 @@ spec:
             {{- end }}
             {{- end }}
           {{- end }}
-      {{- if .Values.customization.enabled }}
+      {{- if and .Values.customization.enabled (or $legacyUiConfigImportEnabled .Values.customization.translations) }}
       volumes:
         - name: customization
           configMap:

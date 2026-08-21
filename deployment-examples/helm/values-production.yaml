@@ -5,9 +5,9 @@
 web:
   replicaCount: 3
   image:
-    tag: "1.50.3"  # Pin to specific version
+    tag: "1.50.3" # Pin to specific version
     pullPolicy: IfNotPresent
-  
+
   # Security hardening
   podSecurityContext:
     runAsNonRoot: true
@@ -15,14 +15,14 @@ web:
     fsGroup: 1001
     seccompProfile:
       type: RuntimeDefault
-  
+
   securityContext:
     allowPrivilegeEscalation: false
     readOnlyRootFilesystem: true
     capabilities:
       drop:
         - ALL
-  
+
   # Resource limits
   resources:
     limits:
@@ -31,7 +31,7 @@ web:
     requests:
       cpu: 200m
       memory: 512Mi
-  
+
   # Pod disruption budget
   podDisruptionBudget:
     enabled: true
@@ -40,9 +40,11 @@ web:
 api:
   replicaCount: 2
   image:
-    tag: "1.50.3"  # Pin to specific version
+    tag: "1.50.3" # Pin to specific version
     pullPolicy: IfNotPresent
-  
+  env:
+    CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com" # CHANGE THIS to the first administrator's OIDC email
+
   # Security hardening
   podSecurityContext:
     runAsNonRoot: true
@@ -50,14 +52,14 @@ api:
     fsGroup: 1001
     seccompProfile:
       type: RuntimeDefault
-  
+
   securityContext:
     allowPrivilegeEscalation: false
-    readOnlyRootFilesystem: false  # API needs to write logs
+    readOnlyRootFilesystem: false # API needs to write logs
     capabilities:
       drop:
         - ALL
-  
+
   # Resource limits
   resources:
     limits:
@@ -71,9 +73,9 @@ api:
 database:
   user: "catalogi_user"
   db: "catalogi_db"
-  password: "your-secure-password-here"  # Use a secret in production
-  existingSecret: "catalogi-db-secret"  # Reference to existing secret
-  externalHost: "postgres.yourdomain.com"  # External PostgreSQL host
+  password: "your-secure-password-here" # Use a secret in production
+  existingSecret: "catalogi-db-secret" # Reference to existing secret
+  externalHost: "postgres.yourdomain.com" # External PostgreSQL host
 
 # Disable built-in PostgreSQL when using external database
 postgresql:
@@ -110,7 +112,7 @@ ingress:
 
 # Update job runs less frequently in production
 update:
-  schedule: "0 2 * * *"  # Run at 2 AM daily
+  schedule: "0 2 * * *" # Run at 2 AM daily
   image:
     tag: "1.50.3"
   resources:
@@ -121,18 +123,10 @@ update:
       cpu: 200m
       memory: 512Mi
 
-# Production customization
+# New installations use the embedded standard UI configuration. Customize it
+# from the administration page after the initial administrator signs in.
 customization:
-  enabled: true
-  uiConfig: |-
-    {
-      "organizationFullName": "Your Organization",
-      "organizationShortName": "YourOrg",
-      "websiteUrl": "https://yourorg.com",
-      "logoUrl": "https://yourorg.com/logo.png",
-      "termsOfServiceUrl": "https://yourorg.com/terms",
-      "privacyPolicyUrl": "https://yourorg.com/privacy"
-    }
+  enabled: false
   translations:
     en: |-
       {

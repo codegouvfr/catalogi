@@ -7,7 +7,7 @@ web:
   image:
     tag: "latest"
     pullPolicy: Always
-  
+
   # Lower resource requirements
   resources:
     limits:
@@ -22,7 +22,9 @@ api:
   image:
     tag: "latest"
     pullPolicy: Always
-  
+  env:
+    CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com"
+
   # Lower resource requirements
   resources:
     limits:
@@ -71,7 +73,7 @@ ingress:
 
 # More frequent updates for development
 update:
-  schedule: "*/30 * * * *"  # Every 30 minutes
+  schedule: "*/30 * * * *" # Every 30 minutes
   image:
     tag: "latest"
   resources:
@@ -93,13 +95,6 @@ adminer:
 # Disabled by default. Enable only with a uiConfig matching the current schema.
 customization:
   enabled: false
-  uiConfig: |-
-    {
-      "organizationFullName": "Development Instance",
-      "organizationShortName": "DEV",
-      "websiteUrl": "http://catalogi.local",
-      "logoUrl": "/logo.png"
-    }
   translations:
     en: |-
       {

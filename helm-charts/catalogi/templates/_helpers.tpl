@@ -24,6 +24,22 @@ If release name contains chart name it will be used as a full name.
 {{- end }}
 
 {{/*
+Whether the one-time legacy UI configuration import is enabled.
+Old releases do not have this key, notably with helm upgrade --reuse-values;
+absence must therefore retain the compatibility mount.
+*/}}
+{{- define "catalogi.legacyUiConfigImportEnabled" -}}
+{{- $customization := .Values.customization | default dict -}}
+{{- if not (hasKey $customization "legacyUiConfigImportEnabled") -}}
+true
+{{- else if $customization.legacyUiConfigImportEnabled -}}
+true
+{{- else -}}
+false
+{{- end -}}
+{{- end }}
+
+{{/*
 Create chart name and version as used by the chart label.
 */}}
 {{- define "catalogi.chart" -}}

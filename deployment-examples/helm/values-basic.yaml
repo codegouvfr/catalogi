@@ -4,11 +4,11 @@
 # Configure your domain
 ingress:
   enabled: true
-  className: "nginx"  # Change to your ingress class
+  className: "nginx" # Change to your ingress class
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # If using cert-manager
+    cert-manager.io/cluster-issuer: "letsencrypt-prod" # If using cert-manager
   hosts:
-    - host: catalogi.yourdomain.com  # CHANGE THIS
+    - host: catalogi.yourdomain.com # CHANGE THIS
       paths:
         - path: /
           pathType: ImplementationSpecific
@@ -23,20 +23,20 @@ ingress:
   tls:
     - secretName: catalogi-tls
       hosts:
-        - catalogi.yourdomain.com  # CHANGE THIS
+        - catalogi.yourdomain.com # CHANGE THIS
 
 # Database configuration - CHANGE THESE PASSWORDS
 database:
   user: "catalogi_user"
   db: "catalogi_db"
-  password: "your-secure-password-here"  # CHANGE THIS
+  password: "your-secure-password-here" # CHANGE THIS
 
 postgresql:
   enabled: true
   auth:
     username: "catalogi_user"
     database: "catalogi_db"
-    password: "your-secure-password-here"  # CHANGE THIS
+    password: "your-secure-password-here" # CHANGE THIS
   primary:
     persistence:
       enabled: true
@@ -53,6 +53,8 @@ web:
       memory: 256Mi
 
 api:
+  env:
+    CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com" # CHANGE THIS to the first administrator's OIDC email
   resources:
     limits:
       cpu: 1000m
@@ -61,13 +63,7 @@ api:
       cpu: 200m
       memory: 512Mi
 
-# Basic customization
+# New installations use the embedded standard UI configuration. Customize it
+# from the administration page after the initial administrator signs in.
 customization:
-  enabled: true
-  uiConfig: |-
-    {
-      "organizationFullName": "Your Organization",
-      "organizationShortName": "YourOrg",
-      "websiteUrl": "https://yourorg.com",
-      "logoUrl": "https://yourorg.com/logo.png"
-    }
+  enabled: false

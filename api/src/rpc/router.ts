@@ -54,9 +54,7 @@ export function createRouter(params: {
     const { useCases, dbApi, oidcParams, redirectUrl } = params;
 
     const resolveUiConfig = async (): Promise<UiConfig> => {
-        const uiConfig = await dbApi.uiConfig.get();
-        assert(uiConfig !== undefined, "UI configuration must be initialized at bootstrap");
-        return uiConfig;
+        return dbApi.uiConfig.get();
     };
 
     const t = initTRPC.context<Context>().create({

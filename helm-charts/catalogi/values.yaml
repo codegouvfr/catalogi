@@ -66,6 +66,8 @@ api:
   env:
     OIDC_ISSUER_URI: https://auth.code.gouv.fr/auth/realms/codegouv
     OIDC_CLIENT_ID: sill
+    # Optional one-time bootstrap. Must match the email returned by OIDC.
+    # CATALOGI_INITIAL_ADMIN_EMAIL: admin@example.com
 
 # -- Configuration for the 'update' background job
 update:
@@ -129,12 +131,17 @@ postgresql:
 # -- Customization for the API (replaces the volume mount)
 customization:
   enabled: false
-  # -- Initial UI configuration used only when the database has no saved configuration.
-  # After the first startup, edit it from the administration page.
+  # -- Mount uiConfig once for compatibility with installations upgrading from file-based configuration.
+  # Set this to false after the config_ui migration has imported the file. Translations remain mounted.
+  legacyUiConfigImportEnabled: true
+  # -- Compatibility import read once while the config_ui migration runs.
+  # Keep this mounted for the first upgraded startup, then edit UI configuration in PostgreSQL
+  # from the administration page. New installations use the migration's embedded standard.
   uiConfig: |-
     {
       "header": {
           "link": {
+              "enabled": true,
               "icon": "bank",
               "linkProps": {
                   "href": "https://code.gouv.fr"
@@ -157,6 +164,9 @@ customization:
               "contribute": {
                   "enabled": true,
                   "href": "mailto:floss@numerique.gouv.fr?subject=Demande d'accompagnement"
+              },
+              "login": {
+                  "enabled": true
               }
           }
       },
@@ -213,7 +223,7 @@ customization:
                   "license": true
               }
           },
-          "prerogatives": {
+          "customAttributes": {
               "enabled": true
           },
           "metadata": {
@@ -222,8 +232,11 @@ customization:
                   "keywords": true,
                   "programmingLanguages": true,
                   "applicationCategories": true,
-                  "softwareType": true
+                  "runtimePlatforms": true
               }
+          },
+          "repoMetadata": {
+              "enabled": false
           },
           "links": {
               "enabled": true
@@ -238,8 +251,8 @@ customization:
               "options": {
                   "organisation": true,
                   "applicationCategories": true,
-                  "softwareType": true,
-                  "prerogatives": true,
+                  "runtimePlatforms": true,
+                  "customAttributes": true,
                   "programmingLanguages": false
               }
           },

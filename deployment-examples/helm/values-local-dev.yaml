@@ -13,6 +13,8 @@ api:
     OIDC_MANAGE_PROFILE_URL: "https://app-preprod.moncomptepro.beta.gouv.fr/personal-information"
     # Must match the public browser URL used to access this instance.
     APP_URL: "http://catalogi.127.0.0.1.nip.io"
+    # Change this to the email returned by your OIDC provider for the first administrator.
+    CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com"
 
 update:
   image:

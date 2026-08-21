@@ -1,6 +1,7 @@
 {
     "header": {
         "link": {
+            "enabled": true,
             "icon": "bank",
             "linkProps": {
                 "href": "https://code.gouv.fr"
@@ -23,6 +24,9 @@
             "contribute": {
                 "enabled": true,
                 "href": "mailto:floss@numerique.gouv.fr?subject=Demande d'accompagnement"
+            },
+            "login": {
+                "enabled": true
             }
         }
     },
@@ -88,8 +92,11 @@
                 "keywords": true,
                 "programmingLanguages": true,
                 "applicationCategories": true,
-                "softwareType": true
+                "runtimePlatforms": true
             }
+        },
+        "repoMetadata": {
+            "enabled": false
         },
         "links": {
             "enabled": true
@@ -104,7 +111,7 @@
             "options": {
                 "organisation": true,
                 "applicationCategories": true,
-                "softwareType": true,
+                "runtimePlatforms": true,
                 "customAttributes": true,
                 "programmingLanguages": false
             }

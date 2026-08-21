@@ -7,6 +7,7 @@ import { DeclarationFormData, InstanceFormData, SoftwareFormData, Source } from 
 import { Kysely } from "kysely";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { ExternalDataOriginKind, SoftwareExternalDataOption } from "../lib/ApiTypes";
+import { STANDARD_UI_CONFIG } from "../core/adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
 
 export const testPgUrl = "postgresql://catalogi:pg_password@localhost:5432/db";
 
@@ -163,15 +164,22 @@ export const testSource = {
 } satisfies Source;
 
 export const resetDB = async (db: Kysely<Database>) => {
+    await db.deleteFrom("user_sessions").execute();
     await db.deleteFrom("software_external_datas").execute();
     await db.deleteFrom("software_users").execute();
     await db.deleteFrom("software_referents").execute();
     await db.deleteFrom("softwares").execute();
     await db.deleteFrom("users").execute();
     await db.deleteFrom("sources").execute();
-    // Reset the singleton UI config so the next bootstrap re-seeds the default
-    // (tests that override the config must not leak into subsequent tests).
-    await db.deleteFrom("config_ui").execute();
+    // Test infrastructure restores a valid singleton explicitly. Application bootstrap
+    // intentionally never recreates a missing row.
+    await db
+        .insertInto("config_ui")
+        .values({ id: true, config: JSON.stringify(STANDARD_UI_CONFIG) })
+        .onConflict(oc =>
+            oc.column("id").doUpdateSet({ config: JSON.stringify(STANDARD_UI_CONFIG), updatedAt: new Date() })
+        )
+        .execute();
 
     return db
         .insertInto("sources")
