@@ -416,6 +416,12 @@
                     "type": "string",
                     "description": "Text for a button"
                 },
+                "creationRestrictedTitle": {
+                    "type": "string"
+                },
+                "creationRestrictedDescription": {
+                    "type": "string"
+                },
                 "adminOnlyCustomAttributeBadge": {
                     "type": "string"
                 },
@@ -457,6 +463,8 @@
                 "update software",
                 "add software button",
                 "update software button",
+                "creationRestrictedTitle",
+                "creationRestrictedDescription",
                 "adminOnlyCustomAttributeBadge",
                 "adminOnlyCustomAttributeHint",
                 "dereferencingProtectionLabel",
@@ -990,6 +998,12 @@
                 "protectedFromEditingDescription": {
                     "type": "string"
                 },
+                "protectionAdminMessage": {
+                    "type": "string"
+                },
+                "protectionModalClose": {
+                    "type": "string"
+                },
                 "error": {
                     "type": "object",
                     "properties": {
@@ -1043,6 +1057,8 @@
                 "protectedFromUnreferencingDescription",
                 "protectedFromEditingTitle",
                 "protectedFromEditingDescription",
+                "protectionAdminMessage",
+                "protectionModalClose",
                 "error"
             ]
         },
@@ -1714,6 +1730,31 @@
                     "type": "string",
                     "description": "Title text"
                 },
+                "softwareEntries": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string",
+                            "description": "Title text"
+                        },
+                        "publicAdditionEnabledDescription": {
+                            "type": "string"
+                        },
+                        "publicAdditionDisabledDescription": {
+                            "type": "string"
+                        },
+                        "addSoftware": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "title",
+                        "publicAdditionEnabledDescription",
+                        "publicAdditionDisabledDescription",
+                        "addSoftware"
+                    ]
+                },
                 "customAttributes": {
                     "type": "object",
                     "properties": {
@@ -1919,7 +1960,7 @@
                 }
             },
             "additionalProperties": false,
-            "required": ["title", "customAttributes", "form"]
+            "required": ["title", "softwareEntries", "customAttributes", "form"]
         },
         "authorCard": {
             "type": "object",

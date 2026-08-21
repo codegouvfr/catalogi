@@ -100,6 +100,8 @@
         "update software": "Update {{name}}",
         "add software button": "Add {{name}} to the $t(common.appAccronym)",
         "update software button": "Update {{name}}",
+        "creationRestrictedTitle": "Software submission unavailable",
+        "creationRestrictedDescription": "Sorry, only administrators can add software.",
         "adminOnlyCustomAttributeBadge": "Admin-only field",
         "adminOnlyCustomAttributeHint": "You are editing this field with administrator privileges. Non-admin contributors cannot change it.",
         "dereferencingProtectionLabel": "Protect this software from dereferencing",
@@ -422,6 +424,12 @@
     },
     "admin": {
         "title": "Administration",
+        "softwareEntries": {
+            "title": "Software entry management",
+            "publicAdditionEnabledDescription": "Add a new software entry to the catalog.",
+            "publicAdditionDisabledDescription": "Public submission of software entries is disabled. Administrators can nevertheless add an entry.",
+            "addSoftware": "Add an entry"
+        },
         "customAttributes": {
             "title": "Custom attributes",
             "subtitle": "Manage the custom fields available on software entries.",

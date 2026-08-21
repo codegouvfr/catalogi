@@ -26,6 +26,7 @@ import { ActionsFooter } from "ui/shared/ActionsFooter";
 import type { PageRoute } from "./route";
 import { useLang } from "ui/i18n";
 import { LoadingFallback } from "ui/shared/LoadingFallback";
+import { SoftwareCreationRestrictedAlert } from "ui/shared/SoftwareCreationRestrictedAlert";
 
 type Props = {
     className?: string;
@@ -43,11 +44,21 @@ export default function SoftwareForm(props: Props) {
     const { isReady, step, formData, isSubmitting, isLastStep, dataBySource } =
         useCoreState("softwareForm", "main");
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
+    const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
+
+    const isCreationForbidden =
+        route.name === "softwareCreationForm" &&
+        uiConfig?.home.usecases.addSoftwareOrService.enabled === false &&
+        currentUser?.role !== "admin";
 
     const { evtSoftwareForm } = useCore().evts;
     const { softwareForm } = useCore().functions;
 
     useEffect(() => {
+        if (isCreationForbidden) {
+            return;
+        }
+
         softwareForm.initialize(
             (() => {
                 switch (route.name) {
@@ -66,7 +77,7 @@ export default function SoftwareForm(props: Props) {
         );
 
         return () => softwareForm.clear();
-    }, [route.name, route.params]);
+    }, [route.name, route.params, isCreationForbidden]);
 
     const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
@@ -93,6 +104,10 @@ export default function SoftwareForm(props: Props) {
     const evtActionSubmitStep = useConst(() => Evt.create());
 
     const { lang } = useLang();
+
+    if (isCreationForbidden) {
+        return <SoftwareCreationRestrictedAlert className={className} />;
+    }
 
     if (!isReady) {
         return <LoadingFallback className={className} showAfterMs={150} />;

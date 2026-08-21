@@ -37,6 +37,7 @@ export default function Admin(props: Props) {
 
     const { adminAttributes } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
+    const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
     const { isLoading, definitions } = useCoreState("adminAttributes", "main");
 
     useEffect(() => {
@@ -61,6 +62,30 @@ export default function Admin(props: Props) {
             <div className={classes.header}>
                 <h1 className={fr.cx("fr-h2")}>{t("admin.title")}</h1>
             </div>
+
+            <section className={classes.section}>
+                <div className={classes.sectionHeader}>
+                    <div>
+                        <h2 className={fr.cx("fr-h4")}>
+                            {t("admin.softwareEntries.title")}
+                        </h2>
+                        <p className={fr.cx("fr-text--sm", "fr-mb-0")}>
+                            {t(
+                                uiConfig?.home.usecases.addSoftwareOrService.enabled
+                                    ? "admin.softwareEntries.publicAdditionEnabledDescription"
+                                    : "admin.softwareEntries.publicAdditionDisabledDescription"
+                            )}
+                        </p>
+                    </div>
+                    <Button
+                        priority="primary"
+                        iconId="fr-icon-add-line"
+                        linkProps={routes.softwareCreationForm().link}
+                    >
+                        {t("admin.softwareEntries.addSoftware")}
+                    </Button>
+                </div>
+            </section>
 
             <section className={classes.section}>
                 <div className={classes.sectionHeader}>

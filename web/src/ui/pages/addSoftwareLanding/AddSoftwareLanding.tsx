@@ -11,6 +11,8 @@ import { routes } from "ui/routes";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Accordion } from "@codegouvfr/react-dsfr/Accordion";
 import illustration_sill from "ui/assets/illustration_sill.svg";
+import { useCoreState } from "core";
+import { SoftwareCreationRestrictedAlert } from "ui/shared/SoftwareCreationRestrictedAlert";
 
 type Props = {
     className?: string;
@@ -24,6 +26,16 @@ export default function AddSoftwareLanding(props: Props) {
 
     const { cx, classes } = useStyles();
     const { t } = useTranslation();
+    const { currentUser } = useCoreState("userAuthentication", "currentUser");
+    const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
+
+    const isCreationForbidden =
+        uiConfig?.home.usecases.addSoftwareOrService.enabled === false &&
+        currentUser?.role !== "admin";
+
+    if (isCreationForbidden) {
+        return <SoftwareCreationRestrictedAlert className={className} />;
+    }
 
     const whoCanAddAccordionList = [
         {

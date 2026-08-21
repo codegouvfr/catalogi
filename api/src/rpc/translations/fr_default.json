@@ -102,6 +102,8 @@
         "update software": "Mettre à jour {{name}}",
         "add software button": "Ajouter {{name}} au $t(common.appAccronym)",
         "update software button": "Mettre à jour {{name}}",
+        "creationRestrictedTitle": "Ajout de logiciel indisponible",
+        "creationRestrictedDescription": "Désolé, l’ajout de logiciels n’est possible que par les administrateurs.",
         "adminOnlyCustomAttributeBadge": "Champ administrateur",
         "adminOnlyCustomAttributeHint": "Vous modifiez ce champ avec des droits administrateur. Les contributeurs non administrateurs ne peuvent pas le modifier.",
         "dereferencingProtectionLabel": "Protéger ce logiciel contre le déréférencement",
@@ -429,6 +431,12 @@
     },
     "admin": {
         "title": "Administration",
+        "softwareEntries": {
+            "title": "Gestion des fiches",
+            "publicAdditionEnabledDescription": "Ajoutez une nouvelle fiche logiciel au catalogue.",
+            "publicAdditionDisabledDescription": "L’ajout public de fiches est désactivé. Les administrateurs peuvent néanmoins ajouter une fiche.",
+            "addSoftware": "Ajouter une fiche"
+        },
         "customAttributes": {
             "title": "Attributs personnalisés",
             "subtitle": "Gérez les champs personnalisés disponibles sur les fiches logiciel.",
