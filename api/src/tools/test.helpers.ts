@@ -7,7 +7,7 @@ import { DeclarationFormData, InstanceFormData, SoftwareFormData, Source } from 
 import { Kysely } from "kysely";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { ExternalDataOriginKind, SoftwareExternalDataOption } from "../lib/ApiTypes";
-import { STANDARD_UI_CONFIG } from "../core/adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
+import { STANDARD_UI_CONFIG } from "./default";
 
 export const testPgUrl = "postgresql://catalogi:pg_password@localhost:5432/db";
 

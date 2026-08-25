@@ -18,7 +18,7 @@ const useCaseConfigSchema = strictObject({
     buttonLink: z.string()
 });
 
-const migrationUiConfigSchema = strictObject({
+export const migrationUiConfigSchema = strictObject({
     header: strictObject({
         link: strictObject({
             enabled: z.boolean(),
@@ -124,7 +124,7 @@ const migrationUiConfigSchema = strictObject({
     footer: strictObject({ domains: z.array(z.string()) })
 });
 
-export const STANDARD_UI_CONFIG = migrationUiConfigSchema.parse({
+export const migrationStandardUiConfig = migrationUiConfigSchema.parse({
     header: {
         link: {
             enabled: true,
@@ -256,7 +256,7 @@ export const readInitialUiConfig = async (migrationDirectory = __dirname) => {
         return result.data;
     }
 
-    return STANDARD_UI_CONFIG;
+    return migrationStandardUiConfig;
 };
 
 export async function up(db: Kysely<any>): Promise<void> {
