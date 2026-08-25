@@ -4,7 +4,18 @@
 
 import { Kysely } from "kysely";
 import { migrationUiConfigSchema } from "./1781768391060_add-config-ui-table";
-import { uiConfigSchema } from "../../../../uiConfigSchema";
+import { z } from "zod";
+
+const strictObject = <Shape extends z.ZodRawShape>(shape: Shape) => z.object(shape).strict();
+export const additionObject = strictObject({
+    header: strictObject({
+        menu: strictObject({
+            devOrganizations: strictObject({ enabled: z.boolean() })
+        })
+    })
+});
+
+export const migrationUiConfigSchema2 = z.union([migrationUiConfigSchema, additionObject]);
 
 export async function up(db: Kysely<any>): Promise<void> {
     await db.schema
@@ -13,10 +24,8 @@ export async function up(db: Kysely<any>): Promise<void> {
         .addColumn("organization", "jsonb", col => col.notNull())
         .execute();
 
-    // select the config
     const rawConfig = await db.selectFrom("config_ui").select("config").where("id", "=", "true").executeTakeFirst();
 
-    // Create new and update
     const oldConfig = migrationUiConfigSchema.parse(rawConfig?.config);
     if (oldConfig) {
         let newConfig: any = oldConfig;
@@ -26,7 +35,7 @@ export async function up(db: Kysely<any>): Promise<void> {
                 "enabled": false
             }
         };
-        const validNew = uiConfigSchema.parse(newConfig);
+        const validNew = migrationUiConfigSchema2.parse(newConfig);
 
         await db
             .updateTable("config_ui")
@@ -39,11 +48,9 @@ export async function up(db: Kysely<any>): Promise<void> {
 export async function down(db: Kysely<any>): Promise<void> {
     await db.schema.dropTable("author_organizations").execute();
 
-    // select the config
     const rawConfig = await db.selectFrom("config_ui").select("config").where("id", "=", "true").executeTakeFirst();
 
-    // Create new and update
-    const oldConfig = uiConfigSchema.parse(rawConfig?.config);
+    const oldConfig = migrationUiConfigSchema2.parse(rawConfig?.config);
     if (oldConfig) {
         let newConfig: any = oldConfig;
         delete newConfig.header.menu.devOrganizations;
