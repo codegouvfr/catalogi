@@ -3,8 +3,8 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
-    readInitialUiConfig,
-    STANDARD_UI_CONFIG
+    migrationStandardUiConfig,
+    readInitialUiConfig
 } from "./adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
 import { uiConfigSchema } from "./uiConfigSchema";
 
@@ -44,7 +44,7 @@ describe("legacy UI configuration migration", () => {
     it("finds the dist mount when Kysely executes the migration from source", async () => {
         const { sourceMigrationDirectory, distConfigPath } = await createSimulatedImage();
         const legacyConfig = {
-            ...STANDARD_UI_CONFIG,
+            ...migrationStandardUiConfig,
             footer: { domains: ["legacy.example.gouv.fr"] }
         };
         await writeConfig(distConfigPath, legacyConfig);
@@ -55,7 +55,7 @@ describe("legacy UI configuration migration", () => {
     it("finds the source mount when the compiled migration is executed", async () => {
         const { distMigrationDirectory, sourceConfigPath } = await createSimulatedImage();
         const legacyConfig = {
-            ...STANDARD_UI_CONFIG,
+            ...migrationStandardUiConfig,
             footer: { domains: ["source.example.gouv.fr"] }
         };
         await writeConfig(sourceConfigPath, legacyConfig);
@@ -66,7 +66,7 @@ describe("legacy UI configuration migration", () => {
     it("uses the embedded standard only when neither legacy path exists", async () => {
         const { sourceMigrationDirectory } = await createSimulatedImage();
 
-        await expect(readInitialUiConfig(sourceMigrationDirectory)).resolves.toEqual(STANDARD_UI_CONFIG);
+        await expect(readInitialUiConfig(sourceMigrationDirectory)).resolves.toEqual(migrationStandardUiConfig);
     });
 
     it.each([
