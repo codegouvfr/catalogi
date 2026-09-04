@@ -331,156 +331,150 @@ export function createGetClaimDataValue(params: { entity: WikidataEntity }) {
 
 // Array of Free Software Licenses and their corresponding Wikidata IDs
 export const freeSoftwareLicensesWikidataIds = [
-    // Apache License 2.0
-    "Q309877",
+    // Apache-2.0 — Apache License 2.0
+    "Q13785927",
 
-    // BSD 2-Clause "Simplified" License
-    "Q1507844",
+    // BSD-2-Clause — BSD 2-Clause "Simplified" License
+    "Q18517294",
 
-    // BSD 3-Clause "New" or "Revised" License
-    "Q1507824",
+    // BSD-3-Clause — BSD 3-Clause "New" or "Revised" License
+    "Q18491847",
 
-    // Eclipse Public License 2.0
-    "Q5184255",
+    // EPL-2.0 — Eclipse Public License 2.0
+    "Q55633295",
 
-    // European Union Public License 1.2
-    "Q65267454",
+    // EUPL-1.2 — European Union Public License 1.2
+    "Q123162019",
 
-    // GNU Affero General Public License v3.0 only
-    "Q1277061",
+    // AGPL-3.0-only — GNU Affero General Public License v3.0 only
+    "Q136759706",
 
-    // GNU Affero General Public License v3.0 or later
-    "Q38926",
+    // AGPL-3.0-or-later — GNU Affero General Public License v3.0 or later
+    "Q27020062",
 
-    // GNU General Public License v3.0 or later
-    "Q2464622",
+    // GPL-3.0-or-later — GNU General Public License v3.0 or later
+    "Q27016754",
 
-    // GNU Lesser General Public License v3.0 or later
-    "Q39015",
+    // LGPL-3.0-or-later — GNU Lesser General Public License v3.0 or later
+    "Q27016762",
 
-    // MIT License
+    // MIT — MIT License
     "Q334661",
 
-    // Mozilla Public License 2.0
-    "Q334062",
+    // MPL-2.0 — Mozilla Public License 2.0
+    "Q25428413",
 
-    // CeCILL-B Free Software License Agreement
-    "Q5099871",
+    // CECILL-C — CeCILL-C Free Software License Agreement
+    "Q125359628",
 
-    // CeCILL-C Free Software License Agreement
-    "Q5099874",
+    // CECILL-2.1 — CeCILL Free Software License Agreement v2.1
+    "Q1052189",
 
-    // CeCILL Free Software License Agreement v2.1
-    "Q369616",
+    // AFL-3.0 — Academic Free License v3.0
+    "Q108111552",
 
-    // Academic Free License v3.0
-    "Q467700",
+    // Apache-1.1 — Apache License 1.1
+    "Q17817999",
 
-    // Apache License 1.1
-    "Q309884",
+    // APSL-2.0 — Apple Public Source License 2.0
+    "Q621330",
 
-    // Apple Public Source License 2.0
-    "Q466388",
+    // Artistic-2.0 — Artistic License 2.0
+    "Q14624826",
 
-    // Artistic License 2.0
-    "Q6938433",
+    // BSL-1.0 — Boost Software License 1.0
+    "Q2353141",
 
-    // Boost Software License 1.0
-    "Q333029",
+    // CDDL-1.0 — Common Development and Distribution License 1.0
+    "Q26996811",
 
-    // Common Development and Distribution License 1.0
-    "Q334209",
+    // CPAL-1.0 — Common Public Attribution License 1.0
+    "Q1116195",
 
-    // Common Public Attribution License 1.0
-    "Q332884",
+    // CPL-1.0 — Common Public License 1.0
+    "Q2477807",
 
-    // Common Public License 1.0
-    "Q334393",
+    // EUDatagrid — EU DataGrid Software License
+    "Q38365944",
 
-    // EU DataGrid Software License
-    "Q5334061",
+    // EPL-1.0 — Eclipse Public License 1.0
+    "Q55633170",
 
-    // Eclipse Public License 1.0
-    "Q334083",
+    // ECL-2.0 — Educational Community License v2.0
+    "Q5341236",
 
-    // Educational Community License v2.0
-    "Q5358492",
+    // EFL-2.0 — Eiffel Forum License v2.0
+    "Q17011832",
 
-    // Eiffel Forum License v2.0
-    "Q465952",
+    // EUPL-1.1 — European Union Public License 1.1
+    "Q1376919",
 
-    // European Union Public License 1.1
-    "Q65267453",
+    // GPL-2.0-only — GNU General Public License v2.0 only
+    "Q10513450",
 
-    // GNU General Public License v2.0 only
-    "Q7590",
+    // GPL-2.0-or-later — GNU General Public License v2.0 or later
+    "Q27016752",
 
-    // GNU General Public License v2.0 or later
-    "Q7553",
-
-    // GNU General Public License v3.0 only
-    "Q7571",
-
-    // GNU Lesser General Public License v2.1 only
-    "Q7547",
-
-    // GNU Lesser General Public License v2.1 or later
-    "Q30245",
-
-    // GNU Lesser General Public License v3.0 only
-    "Q7539",
-
-    // GNU General Public License, version 3.0
+    // GPL-3.0-only — GNU General Public License v3.0 only
     "Q10513445",
 
-    // IBM Public License v1.0
-    "Q467144",
+    // LGPL-2.1-only — GNU Lesser General Public License v2.1 only
+    "Q18534390",
 
-    // ISC License
-    "Q330779",
+    // LGPL-2.1-or-later — GNU Lesser General Public License v2.1 or later
+    "Q27016757",
 
-    // Intel Open Source License
-    "Q607106",
+    // LGPL-3.0-only — GNU Lesser General Public License v3.0 only
+    "Q18534393",
 
-    // Microsoft Public License
-    "Q33057",
+    // IPL-1.0 — IBM Public License v1.0
+    "Q288745",
 
-    // Microsoft Reciprocal License
-    "Q33058",
+    // ISC — ISC License
+    "Q386474",
 
-    // Mozilla Public License 1.1
-    "Q334395",
+    // Intel — Intel Open Source License
+    "Q6043507",
 
-    // Open Software License 3.0
-    "Q335473",
+    // MS-PL — Microsoft Public License
+    "Q15477153",
 
-    // Python License 2.0
-    "Q72189",
+    // MS-RL — Microsoft Reciprocal License
+    "Q1772828",
 
-    // Q Public License 1.0
-    "Q321678",
+    // MPL-1.1 — Mozilla Public License 1.1
+    "Q26737735",
 
-    // SIL Open Font License 1.1
-    "Q55980",
+    // OSL-3.0 — Open Software License 3.0
+    "Q777520",
 
-    // Sun Public License v1.0
-    "Q332889",
+    // Python-2.0 — Python License 2.0
+    "Q5975028",
 
-    // The Unlicense
-    "Q6938435",
+    // QPL-1.0 — Q Public License 1.0
+    "Q1396282",
 
-    // Universal Permissive License v1.0
-    "Q107081891",
+    // OFL-1.1 — SIL Open Font License 1.1
+    "Q113507844",
 
-    // University of Illinois/NCSA Open Source License
-    "Q667009",
+    // SPL-1.0 — Sun Public License v1.0
+    "Q648252",
 
-    // Zlib License
-    "Q207149",
+    // Unlicense — The Unlicense
+    "Q21659044",
 
-    // Zope Public License 2.0
-    "Q336266",
+    // UPL-1.0 — Universal Permissive License v1.0
+    "Q38685700",
 
-    // BSD licenses
-    "Q191307"
+    // NCSA — University of Illinois/NCSA Open Source License
+    "Q2495855",
+
+    // Zlib — zlib License
+    "Q207243",
+
+    // ZPL-2.0 — Zope Public License 2.0
+    "Q3780982",
+
+    // BSD licenses (family; no SPDX id)
+    "Q191307",
 ];
