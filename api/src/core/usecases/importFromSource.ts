@@ -151,7 +151,7 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
                         sourceSlug: source.slug,
                         sources,
                         externalData: formatRecordToExternalData(softwareRecord, [], source),
-                        externalId: softwareRecord.id.toString()
+                        externalId: softwareRecord.conceptrecid.toString()
                     });
 
                     saved.push(result);
