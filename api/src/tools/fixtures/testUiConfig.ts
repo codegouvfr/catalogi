@@ -5,7 +5,7 @@
 import { type UiConfig, uiConfigSchema } from "../../core/uiConfigSchema";
 
 // Current application test data: evolve with uiConfigSchema, independently of historical migrations.
-export const standardUiConfig = uiConfigSchema.parse({
+export const testUiConfig = uiConfigSchema.parse({
     header: {
         link: {
             enabled: true,

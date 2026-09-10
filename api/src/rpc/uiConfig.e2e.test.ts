@@ -7,7 +7,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { DbApiV2 } from "../core/ports/DbApiV2";
-import { standardUiConfig } from "../tools/fixtures/standardUiConfig";
+import { testUiConfig } from "../tools/fixtures/testUiConfig";
 import { resetDB, testPgUrl } from "../tools/test.helpers";
 import { ApiCaller, createTestCaller, defaultUser } from "./createTestCaller";
 
@@ -38,8 +38,8 @@ describe("UI configuration RPC", () => {
         }));
     });
 
-    it("serves the current standard configuration inserted by the test setup", async () => {
-        await expect(dbApi.uiConfig.get()).resolves.toEqual(standardUiConfig);
+    it("serves the configuration inserted by the test setup", async () => {
+        await expect(dbApi.uiConfig.get()).resolves.toEqual(testUiConfig);
     });
 
     it("lets an admin persist a valid configuration", async () => {
@@ -100,7 +100,7 @@ describe("UI configuration RPC", () => {
             .updateTable("config_ui")
             .set({
                 config: JSON.stringify({
-                    ...standardUiConfig,
+                    ...testUiConfig,
                     unexpectedProperty: true
                 })
             })
