@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -10,7 +10,6 @@ import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalData } from "../core/usecases/refreshExternalData";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { DbApiV2 } from "../core/ports/DbApiV2";
-import { Source } from "../lib/ApiTypes";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -35,7 +34,12 @@ export async function startUpdateService(params: {
         updateSoftwareIds?: number[];
         sources?: string[];
     };
-    args: { sourceSlugs?: string[]; updateSkipTimingInMinutes?: number; updateSoftwareIds?: number[] };
+    args: {
+        sourceSlugs?: string[];
+        updateSkipTimingInMinutes?: number;
+        updateSoftwareIds?: number[];
+        externalIdsToRefresh?: string[];
+    };
 }) {
     console.log("[RPC:Update] Starting fetching of external data on remote sources");
     console.time("[RPC:Update] Fetching of external data on remote sources: Done");
@@ -50,7 +54,8 @@ export async function startUpdateService(params: {
     const {
         sourceSlugs: argSourceSlugs,
         updateSkipTimingInMinutes: argTimeUp,
-        updateSoftwareIds: argUpdateSoftwareIds
+        updateSoftwareIds: argUpdateSoftwareIds,
+        externalIdsToRefresh: argExternalIdsToRefresh
     } = params.args;
 
     assert<Equals<typeof rest, {}>>();
@@ -64,45 +69,21 @@ export async function startUpdateService(params: {
         "kyselyDb": kyselyDb
     });
 
+    const refreshExternalData = makeRefreshExternalData({
+        dbApi
+    });
+
     const updateSkipTimingInMinutes = argTimeUp ?? timeUpEnv ?? 180;
     const sources = argSourceSlugs ? argSourceSlugs : sourceEnv;
     const softwareIdsToRefresh = argUpdateSoftwareIds ?? updateSoftwareIds;
+    const externalIdsToRefresh = argExternalIdsToRefresh;
 
-    const sourcesToUpdate = await sourceValidators({ dbApi, sourcesSlugs: sources });
-
-    const resolveUpdate = sourcesToUpdate.map(source => {
-        const refreshExternalData = makeRefreshExternalData({
-            dbApi
-        });
-
-        return refreshExternalData({
-            minuteSkipSince: updateSkipTimingInMinutes,
-            source,
-            softwareIdsToRefresh
-        });
+    await refreshExternalData({
+        minuteSkipSince: updateSkipTimingInMinutes,
+        sourceSlugs: sources,
+        softwareIdsToRefresh,
+        externalIdsToRefresh
     });
 
-    await Promise.all(resolveUpdate);
     console.timeEnd("[RPC:Update] Fetching of external data on remote sources: Done");
 }
-
-const sourceValidators = async (params: { dbApi: DbApiV2; sourcesSlugs: string[] | undefined }): Promise<Source[]> => {
-    const { dbApi, sourcesSlugs } = params;
-    if (Array.isArray(sourcesSlugs)) {
-        if (sourcesSlugs.length === 0) throw RangeError("Source can't be empty");
-        const sources = await Promise.all(
-            sourcesSlugs.map(async (slug: string) => {
-                const res = await dbApi.source.getByName({ name: slug });
-                if (res) return res;
-                else {
-                    console.error(`${slug} is not found - skipping this setting`);
-                    return undefined;
-                }
-            })
-        );
-
-        return sources.filter(source => !!source) as Source[];
-    }
-
-    return dbApi.source.getAll();
-};
