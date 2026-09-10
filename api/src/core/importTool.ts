@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -38,7 +38,7 @@ export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
     if (!botUserEmail) throw new Error("[Loader:Import] No bot agent email provided");
 
     const source = await dbApi.source.getByName({ name: sourceSlug });
-    if (!source) throw new Error("[Loader:Import] Couldn't find the source to connect to");
+    if (!source) throw new Error(`[Loader:Import] Couldn't find the source (${sourceSlug}) to connect to`);
 
     const loggerTime = `[Loader:Import] Feeded database with software packages from ${source.slug}`;
 
