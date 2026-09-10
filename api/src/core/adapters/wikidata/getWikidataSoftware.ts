@@ -476,5 +476,5 @@ export const freeSoftwareLicensesWikidataIds = [
     "Q3780982",
 
     // BSD licenses (family; no SPDX id)
-    "Q191307",
+    "Q191307"
 ];
