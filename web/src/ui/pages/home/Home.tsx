@@ -27,6 +27,7 @@ import { routes } from "ui/routes";
 import { useMetricCountUpAnimation } from "ui/tools/useMetricCountUpAnimation";
 import type { PageRoute } from "./route";
 import type { ApiTypes } from "api";
+import { useTheme } from "@mui/material/styles";
 
 type Props = {
     className?: string;
@@ -110,6 +111,8 @@ export default function Home(props: Props) {
                   }
               ];
 
+    const theme = useTheme();
+
     return (
         <div className={className}>
             <HeroSection className={fr.cx("fr-container")} />
@@ -127,7 +130,7 @@ export default function Home(props: Props) {
                         width: "100%",
                         height: 90,
                         "& path": {
-                            fill: fr.colors.decisions.background.alt.blueFrance.default
+                            fill: theme.palette.primary.main
                         }
                     })}
                 />
@@ -462,13 +465,15 @@ const { HeroSection } = (() => {
 
         const { t } = useTranslation();
 
+        const theme = useTheme();
+
         return (
             <section className={cx(classes.root, className)}>
                 <div className={classes.titleWrapper}>
                     <h2 className={classes.title}>
                         <span
                             style={{
-                                color: fr.colors.decisions.text.title.blueFrance.default
+                                color: theme.palette.secondary.main
                             }}
                         >
                             {t("home.title")}

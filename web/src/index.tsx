@@ -5,11 +5,16 @@
 import * as Sentry from "@sentry/react";
 import { lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
-import { MuiDsfrThemeProvider } from "@codegouvfr/react-dsfr/mui";
+import {
+    createDsfrCustomBrandingProvider,
+    MuiDsfrThemeProvider
+} from "@codegouvfr/react-dsfr/mui";
 import { startReactDsfr } from "@codegouvfr/react-dsfr/spa";
 import { assert } from "tsafe/assert";
 import { projectVersion } from "./tools/projectVersion";
 import "./ui/i18n/i18next";
+import { createTheme } from "@mui/material";
+import catalogiLogoUrl from "../public/white-label/cropped-Lumen_LOGO1-180x180.png";
 
 if (import.meta.env.SENTRY_DSN_WEB) {
     Sentry.init({
@@ -31,6 +36,28 @@ if (import.meta.env.SENTRY_DSN_WEB) {
     );
 }
 
+const { DsfrCustomBrandingProvider } = createDsfrCustomBrandingProvider({
+    createMuiTheme: ({ isDark, theme_gov }) => {
+        if (import.meta.env.VITE_FR_OFFICIAL === "true") {
+            console.log("Use Gov");
+            return { theme: theme_gov };
+        }
+
+        const customTheme = createTheme({
+            palette: {
+                mode: isDark ? "dark" : "light",
+                primary: {
+                    main: "#326d63"
+                },
+                secondary: {
+                    main: "#f29100"
+                }
+            }
+        });
+        return { theme: customTheme, faviconUrl: catalogiLogoUrl };
+    }
+});
+
 startReactDsfr({ defaultColorScheme: "system" });
 
 const App = lazy(() => import("ui/App"));
@@ -45,8 +72,8 @@ createRoot(
     })()
 ).render(
     <Suspense>
-        <MuiDsfrThemeProvider>
+        <DsfrCustomBrandingProvider>
             <App />
-        </MuiDsfrThemeProvider>
+        </DsfrCustomBrandingProvider>
     </Suspense>
 );

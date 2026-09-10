@@ -7,7 +7,7 @@
         "referent_other": "referents",
         "provider_one": "provider",
         "providers_other": "providers",
-        "appAccronym": "SILL",
+        "appAccronym": "Catalogi",
         "officialWebsite": "Official website"
     },
     "app": {
@@ -36,7 +36,7 @@
     },
     "home": {
         "title": "Recommended free software",
-        "subTitle": "for French public agencies.",
+        "subTitle": "by your community.",
         "softwareSelection": "Software selections",
         "lastAdded": "Recently added",
         "mostUsed": "Most popular",
