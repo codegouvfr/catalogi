@@ -7,7 +7,7 @@ import { DeclarationFormData, InstanceFormData, SoftwareFormData, Source } from 
 import { Kysely } from "kysely";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { ExternalDataOriginKind, SoftwareExternalDataOption } from "../lib/ApiTypes";
-import { STANDARD_UI_CONFIG } from "../core/adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
+import { testUiConfig } from "./fixtures/testUiConfig";
 
 export const testPgUrl = "postgresql://catalogi:pg_password@localhost:5432/db";
 
@@ -176,10 +176,8 @@ export const resetDB = async (db: Kysely<Database>) => {
     // intentionally never recreates a missing row.
     await db
         .insertInto("config_ui")
-        .values({ id: true, config: JSON.stringify(STANDARD_UI_CONFIG) })
-        .onConflict(oc =>
-            oc.column("id").doUpdateSet({ config: JSON.stringify(STANDARD_UI_CONFIG), updatedAt: new Date() })
-        )
+        .values({ id: true, config: JSON.stringify(testUiConfig) })
+        .onConflict(oc => oc.column("id").doUpdateSet({ config: JSON.stringify(testUiConfig), updatedAt: new Date() }))
         .execute();
 
     return db

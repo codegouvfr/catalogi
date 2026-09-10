@@ -124,7 +124,7 @@ const migrationUiConfigSchema = strictObject({
     footer: strictObject({ domains: z.array(z.string()) })
 });
 
-export const STANDARD_UI_CONFIG = migrationUiConfigSchema.parse({
+const STANDARD_UI_CONFIG = migrationUiConfigSchema.parse({
     header: {
         link: {
             enabled: true,
