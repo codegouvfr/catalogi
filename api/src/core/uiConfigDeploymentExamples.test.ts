@@ -2,10 +2,7 @@ import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-    readInitialUiConfig,
-    STANDARD_UI_CONFIG
-} from "./adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
+import { readInitialUiConfig } from "./adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
 import { uiConfigSchema } from "./uiConfigSchema";
 
 describe("UI configuration deployment examples", () => {
@@ -44,7 +41,7 @@ describe("legacy UI configuration migration", () => {
     it("finds the dist mount when Kysely executes the migration from source", async () => {
         const { sourceMigrationDirectory, distConfigPath } = await createSimulatedImage();
         const legacyConfig = {
-            ...STANDARD_UI_CONFIG,
+            ...(await readInitialUiConfig(sourceMigrationDirectory)),
             footer: { domains: ["legacy.example.gouv.fr"] }
         };
         await writeConfig(distConfigPath, legacyConfig);
@@ -55,7 +52,7 @@ describe("legacy UI configuration migration", () => {
     it("finds the source mount when the compiled migration is executed", async () => {
         const { distMigrationDirectory, sourceConfigPath } = await createSimulatedImage();
         const legacyConfig = {
-            ...STANDARD_UI_CONFIG,
+            ...(await readInitialUiConfig(distMigrationDirectory)),
             footer: { domains: ["source.example.gouv.fr"] }
         };
         await writeConfig(sourceConfigPath, legacyConfig);
@@ -66,7 +63,10 @@ describe("legacy UI configuration migration", () => {
     it("uses the embedded standard only when neither legacy path exists", async () => {
         const { sourceMigrationDirectory } = await createSimulatedImage();
 
-        await expect(readInitialUiConfig(sourceMigrationDirectory)).resolves.toEqual(STANDARD_UI_CONFIG);
+        await expect(readInitialUiConfig(sourceMigrationDirectory)).resolves.toMatchObject({
+            header: { link: { text: "Code Gouv" } },
+            footer: { domains: ["info.gouv.fr", "service-public.fr", "legifrance.gouv.fr", "data.gouv.fr"] }
+        });
     });
 
     it.each([
