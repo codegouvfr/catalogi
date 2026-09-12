@@ -49,6 +49,9 @@ export const makeImportFromInnerIdentifiers = (
         const sources = await dbApi.source.getAll();
         const sourceUrls = sources.reduce(
             (acc, source) => {
+                // CNLL is keyed by SILL id, other sources cite its annuaire id (#520).
+                if (source.kind === "CNLL") return acc;
+
                 const newAcc = acc;
                 newAcc[source.url] = source.slug;
                 return newAcc;
