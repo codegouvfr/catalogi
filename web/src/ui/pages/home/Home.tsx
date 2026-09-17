@@ -268,116 +268,133 @@ export default function Home(props: Props) {
                     </Grid>
                 </div>
             </section>
-            <div className={cx(classes.helpUsBackground, classes.section)}>
-                <div className={cx(fr.cx("fr-container"))}>
-                    <h2 className={classes.titleSection}>{t("home.helpUs")}</h2>
-                    <Grid
-                        container
-                        direction="row"
-                        spacing={2}
-                        sx={{
-                            justifyContent: "center",
-                            alignItems: "stretch",
-                            alignContent: "stretch"
-                        }}
-                    >
-                        {useCaseNames.map(useCaseName => {
-                            const link = (() => {
-                                const configLink = configUseCases[useCaseName].buttonLink;
-                                const renderedConfigLink = {
-                                    href: configLink
-                                };
-                                switch (useCaseName) {
-                                    case "addSoftwareOrService":
-                                        return configLink && configLink !== ""
-                                            ? renderedConfigLink
-                                            : routes.addSoftwareLanding().link;
-                                    case "declareReferent":
-                                    case "editSoftware":
-                                        return configLink && configLink !== ""
-                                            ? renderedConfigLink
-                                            : routes.softwareCatalog().link;
-                                }
-                            })();
+            {configUseCases.addSoftwareOrService.enabled ||
+                configUseCases.declareReferent.enabled ||
+                (configUseCases.editSoftware.enabled && (
+                    <div className={cx(classes.helpUsBackground, classes.section)}>
+                        <div className={cx(fr.cx("fr-container"))}>
+                            <h2 className={classes.titleSection}>{t("home.helpUs")}</h2>
+                            <Grid
+                                container
+                                direction="row"
+                                spacing={2}
+                                sx={{
+                                    justifyContent: "center",
+                                    alignItems: "stretch",
+                                    alignContent: "stretch"
+                                }}
+                            >
+                                {useCaseNames.map(useCaseName => {
+                                    const link = (() => {
+                                        const configLink =
+                                            configUseCases[useCaseName].buttonLink;
+                                        const renderedConfigLink = {
+                                            href: configLink
+                                        };
+                                        switch (useCaseName) {
+                                            case "addSoftwareOrService":
+                                                return configLink && configLink !== ""
+                                                    ? renderedConfigLink
+                                                    : routes.addSoftwareLanding().link;
+                                            case "declareReferent":
+                                            case "editSoftware":
+                                                return configLink && configLink !== ""
+                                                    ? renderedConfigLink
+                                                    : routes.softwareCatalog().link;
+                                        }
+                                    })();
 
-                            return (
-                                <Grid item xs={4}>
-                                    <Card
-                                        classes={{
-                                            img: css({
-                                                "& > img": {
-                                                    objectFit: "unset",
-                                                    background: "white"
+                                    return (
+                                        <Grid item xs={4}>
+                                            <Card
+                                                classes={{
+                                                    img: css({
+                                                        "& > img": {
+                                                            objectFit: "unset",
+                                                            background: "white"
+                                                        }
+                                                    })
+                                                }}
+                                                key={useCaseName}
+                                                title={t(`home.${useCaseName}Title`)}
+                                                desc={
+                                                    <Trans
+                                                        i18nKey={`home.${useCaseName}Desc`}
+                                                        components={configUseCases[
+                                                            useCaseName
+                                                        ].labelLinks.reduce(
+                                                            (
+                                                                map: Record<
+                                                                    string,
+                                                                    JSX.Element
+                                                                >,
+                                                                link: string,
+                                                                index: number
+                                                            ) => {
+                                                                const key = `a${index + 1}`;
+                                                                const obj: Record<
+                                                                    string,
+                                                                    JSX.Element
+                                                                > = {};
+
+                                                                obj[key] = (
+                                                                    /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                                                    <a
+                                                                        href={link}
+                                                                        style={{
+                                                                            color: fr
+                                                                                .colors
+                                                                                .decisions
+                                                                                .text
+                                                                                .title
+                                                                                .blueFrance
+                                                                                .default
+                                                                        }}
+                                                                    />
+                                                                );
+                                                                return Object.assign(
+                                                                    map,
+                                                                    obj
+                                                                );
+                                                            },
+                                                            {}
+                                                        )}
+                                                    />
                                                 }
-                                            })
-                                        }}
-                                        key={useCaseName}
-                                        title={t(`home.${useCaseName}Title`)}
-                                        desc={
-                                            <Trans
-                                                i18nKey={`home.${useCaseName}Desc`}
-                                                components={configUseCases[
-                                                    useCaseName
-                                                ].labelLinks.reduce(
-                                                    (
-                                                        map: Record<string, JSX.Element>,
-                                                        link: string,
-                                                        index: number
-                                                    ) => {
-                                                        const key = `a${index + 1}`;
-                                                        const obj: Record<
-                                                            string,
-                                                            JSX.Element
-                                                        > = {};
-
-                                                        obj[key] = (
-                                                            /* eslint-disable-next-line jsx-a11y/anchor-has-content */
-                                                            <a
-                                                                href={link}
-                                                                style={{
-                                                                    color: fr.colors
-                                                                        .decisions.text
-                                                                        .title.blueFrance
-                                                                        .default
-                                                                }}
-                                                            />
-                                                        );
-                                                        return Object.assign(map, obj);
-                                                    },
-                                                    {}
-                                                )}
+                                                imageAlt={t("home.illustrationImage")}
+                                                linkProps={link}
+                                                imageUrl={(() => {
+                                                    switch (useCaseName) {
+                                                        case "declareReferent":
+                                                            return humanCooperationSvgUrl;
+                                                        case "editSoftware":
+                                                            return documentSvgUrl;
+                                                        case "addSoftwareOrService":
+                                                            return codingSvgUrl;
+                                                    }
+                                                })()}
+                                                footer={
+                                                    configUseCases[useCaseName]
+                                                        .buttonEnabled && (
+                                                        <Button
+                                                            priority="primary"
+                                                            linkProps={link}
+                                                        >
+                                                            {t(
+                                                                `home.${useCaseName}ButtonLabel`
+                                                            )}
+                                                        </Button>
+                                                    )
+                                                }
+                                                enlargeLink={false}
                                             />
-                                        }
-                                        imageAlt={t("home.illustrationImage")}
-                                        linkProps={link}
-                                        imageUrl={(() => {
-                                            switch (useCaseName) {
-                                                case "declareReferent":
-                                                    return humanCooperationSvgUrl;
-                                                case "editSoftware":
-                                                    return documentSvgUrl;
-                                                case "addSoftwareOrService":
-                                                    return codingSvgUrl;
-                                            }
-                                        })()}
-                                        footer={
-                                            configUseCases[useCaseName].buttonEnabled && (
-                                                <Button
-                                                    priority="primary"
-                                                    linkProps={link}
-                                                >
-                                                    {t(`home.${useCaseName}ButtonLabel`)}
-                                                </Button>
-                                            )
-                                        }
-                                        enlargeLink={false}
-                                    />
-                                </Grid>
-                            );
-                        })}
-                    </Grid>
-                </div>
-            </div>
+                                        </Grid>
+                                    );
+                                })}
+                            </Grid>
+                        </div>
+                    </div>
+                ))}
         </div>
     );
 }
