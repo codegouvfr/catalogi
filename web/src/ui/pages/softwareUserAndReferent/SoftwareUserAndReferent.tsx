@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { useEffect, useState } from "react";
+import { isHttpUrl } from "api";
 import { useCore, useCoreState } from "core";
 import { Breadcrumb } from "@codegouvfr/react-dsfr/Breadcrumb";
 import { tss } from "tss-react";
@@ -116,7 +117,7 @@ export default function SoftwareUserAndReferent(props: Props) {
                             : {usecaseDescription}
                         </p>
                     )}
-                    {serviceUrl && (
+                    {isHttpUrl(serviceUrl) && (
                         <p>
                             {t("softwareUserAndReferent.is referent of")}{" "}
                             <a href={serviceUrl}>{serviceUrl}</a>
@@ -154,7 +155,7 @@ export default function SoftwareUserAndReferent(props: Props) {
                             : {usecaseDescription}
                         </p>
                     )}
-                    {serviceUrl !== undefined && (
+                    {isHttpUrl(serviceUrl) && (
                         <p>
                             <span className={classes.infoLegend}>
                                 {t("softwareUserAndReferent.is user of")}{" "}
