@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
 import { z } from "zod";
+import type { SchemaOrganization } from "../../core/adapters/dbApi/kysely/kysely.database";
+import type { Json } from "./types";
 
 extendZodWithOpenApi(z);
 
@@ -60,12 +62,8 @@ const organizationBaseSchema = z.object({
     producer: z.array(z.string()).optional()
 });
 
-// Zod 3 needs an explicit type at the recursive boundary. The other fields are inferred.
-type Organization = z.infer<typeof organizationBaseSchema> & {
-    parentOrganizations?: Organization[];
-    memberOf?: Organization[];
-};
-const organizationRef: z.ZodType<Organization> = z
+// Reuse the original recursive organization type, adapted to its JSON representation.
+const organizationRef: z.ZodType<Json<SchemaOrganization>> = z
     .lazy(() => organizationSchema)
     .openapi({
         type: "object",
