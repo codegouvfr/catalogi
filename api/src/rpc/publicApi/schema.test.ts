@@ -13,6 +13,31 @@ describe("V2 JSON contract", () => {
         expect(catalogV2Schema.safeParse(data).success).toBe(false);
     });
 
+    it("generates an OpenAPI document exposing only the V2 JSON catalogue", () => {
+        const doc = createOpenApiDocument();
+        expect(Object.keys(doc.paths)).toEqual(["/v2/catalogi.json"]);
+        expect(Object.keys(doc.paths["/v2/catalogi.json"]!)).toEqual(["get"]);
+        expect(doc).toMatchObject({
+            openapi: "3.0.3",
+            servers: [{ url: "./" }],
+            paths: {
+                "/v2/catalogi.json": {
+                    get: {
+                        responses: {
+                            "200": {
+                                content: {
+                                    "application/json": {
+                                        schema: { type: "array", items: { $ref: "#/components/schemas/SoftwareV2" } }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+
     it("documents recursive organizations with resolvable references", () => {
         const doc = createOpenApiDocument();
         const refs = [...JSON.stringify(doc).matchAll(/"\$ref":"#\/components\/schemas\/([^"/]+)"/g)];
