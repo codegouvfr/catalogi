@@ -1,5 +1,8 @@
 // SPDX-License-Identifier: MIT
 import { z } from "zod";
+import { assert, type Equals } from "tsafe/assert";
+import type { SoftwareV2, CatalogV2 } from "./types";
+export type { SoftwareV2, CatalogV2 } from "./types";
 import { articleSchema, identifierSchema, organizationSchema, personSchema } from "./schemaOrg";
 
 const localizedString = z
@@ -7,7 +10,7 @@ const localizedString = z
     .describe("Texte simple ou traductions indexées par langue (fr, en). Une traduction peut être absente.")
     .openapi("LocalizedString", { example: { fr: "Suite bureautique", en: "Office suite" } });
 const timestamp = z.string().datetime({ offset: true });
-const protection = z.object({ isProtected: z.boolean(), reason: z.string().optional() });
+const protection = z.object({ isProtected: z.boolean(), reason: z.string().nullable() });
 
 export const softwareV2Schema = z
     .object({
@@ -125,6 +128,6 @@ export const softwareV2Schema = z
     .openapi("SoftwareV2");
 
 export const catalogV2Schema = z.array(softwareV2Schema);
-/** JSON wire contract, independent of database types (Date and URL serialize as strings). */
-export type SoftwareV2 = z.infer<typeof softwareV2Schema>;
-export type CatalogV2 = z.infer<typeof catalogV2Schema>;
+// Exact equality also catches omitted optional fields and drift in nested schemas.
+assert<Equals<z.infer<typeof softwareV2Schema>, SoftwareV2>>();
+assert<Equals<z.infer<typeof catalogV2Schema>, CatalogV2>>();

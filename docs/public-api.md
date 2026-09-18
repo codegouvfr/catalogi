@@ -10,10 +10,16 @@ Le validateur distant de Swagger UI est désactivé.
 
 ## Contrat et génération
 
-Le contrat JSON v2 se trouve dans `api/src/rpc/publicApi/schema.ts`. Les types
-`SoftwareV2` et `CatalogV2` sont déduits de Zod 3. Les objets Schema.org sont définis
-dans `schemaOrg.ts`. Les types internes de la base restent distincts : les objets
-Date et URL sont des chaînes dans la réponse JSON.
+Le contrat JSON v2 est dérivé du type `Software` existant dans
+`core/usecases/readWriteSillData/types.ts`. `publicApi/types.ts` adapte uniquement
+sa représentation JSON (Date et URL deviennent des chaînes, les propriétés
+potentiellement undefined deviennent optionnelles) et trois exceptions historiques :
+mots-clés Wikidata, auteurs sans @type et auteur du déréférencement parfois absent.
+
+Le schéma Zod de `publicApi/schema.ts` est contraint à être exactement égal à ce
+type dérivé : une dérive de type ou de champ, même optionnel ou imbriqué, fait échouer
+la compilation. Les organisations récursives réutilisent aussi le type d’origine.
+OpenAPI continue d’être généré depuis ce schéma Zod 3 contrôlé.
 
 `pnpm --filter api build` génère `api/dist/src/rpc/publicApi/openapi.json` depuis ces
 schémas avec `@asteasolutions/zod-to-openapi` 7.3.4, compatible avec Zod 3.

@@ -46,10 +46,11 @@ describe("V2 JSON contract", () => {
         expect(doc.components?.schemas?.Organization).toBeDefined();
     });
 
-    it("accepts nested providers and multilingual descriptions", () => {
+    it("accepts nested providers, multilingual descriptions and nullable protection reasons", () => {
         const software = {
             ...catalog[0],
             description: { fr: "Description", en: "Description" },
+            protections: { edition: { isProtected: false, reason: null } },
             providers: [
                 {
                     "@type": "Organization",
