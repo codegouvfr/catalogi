@@ -55,7 +55,7 @@ export const Footer = memo(
                         {
                             text: t("footer.apiDocumentation"),
                             linkProps: {
-                                href: `${apiUrl}/docs`
+                                href: `${apiUrl}/docs/`
                             }
                         },
                         {

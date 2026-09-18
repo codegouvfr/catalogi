@@ -44,7 +44,8 @@ export function createPublicApiRouter(params: {
     const docs = Router();
     docs.get("/", (req, res) => {
         const pathname = req.originalUrl.split("?")[0];
-        if (!pathname.endsWith("/")) return res.redirect(`${pathname}/`);
+        // Resolve against the browser URL: reverse proxies may strip the public prefix.
+        if (!pathname.endsWith("/")) return res.redirect("docs/");
         res.type("html").send(html);
     });
     docs.get("/init.js", (_req, res) => res.type("application/javascript").send(init));
