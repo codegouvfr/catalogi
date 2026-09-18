@@ -8,6 +8,7 @@ import superjson from "superjson";
 import type { Equals, ReturnType } from "tsafe";
 import { assert } from "tsafe/assert";
 import { z } from "zod";
+import { isHttpUrl } from "../tools/isHttpUrl";
 import type { DbApiV2 } from "../core/ports/DbApiV2";
 import { Language } from "../core/ports/GetSoftwareExternalData";
 import { UiConfig, uiConfigSchema } from "../core/uiConfigSchema";
@@ -633,13 +634,19 @@ const zSoftwareFormData = (() => {
     return zOut as z.ZodType<SoftwareFormData>;
 })();
 
+const zOptionalHttpUrl = z
+    .string()
+    .refine(value => value === "" || isHttpUrl(value), "Expected an absolute HTTP or HTTPS URL")
+    // Preserve empty strings: instance updates must not turn a clear into an omitted field.
+    .optional();
+
 const zDeclarationFormData = (() => {
     const zUser = z.object({
         "declarationType": z.literal("user"),
         "usecaseDescription": z.string(),
         "os": zOs.optional(),
         "version": z.string(),
-        "serviceUrl": z.string().optional()
+        "serviceUrl": zOptionalHttpUrl
     });
 
     {
@@ -653,7 +660,7 @@ const zDeclarationFormData = (() => {
         "declarationType": z.literal("referent"),
         "isTechnicalExpert": z.boolean(),
         "usecaseDescription": z.string(),
-        "serviceUrl": z.string().optional()
+        "serviceUrl": zOptionalHttpUrl
     });
 
     {
@@ -671,7 +678,7 @@ const zInstanceFormData = (() => {
         "mainSoftwareSillId": z.number(),
         "organization": z.string(),
         "targetAudience": z.string(),
-        "instanceUrl": z.string().optional(),
+        "instanceUrl": zOptionalHttpUrl,
         "isPublic": z.boolean()
     });
 

@@ -20,3 +20,4 @@ export type { ApiTypes };
 export type { Os, RuntimePlatform } from "../core/types";
 export { osValues } from "../core/types";
 export { uiConfigSchema } from "../core/uiConfigSchema";
+export { isHttpUrl } from "../tools/isHttpUrl";

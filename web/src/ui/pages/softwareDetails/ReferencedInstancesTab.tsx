@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { useTranslation } from "react-i18next";
+import { isHttpUrl } from "api";
 import { fr, type FrCxArg } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { Equals } from "tsafe";
@@ -155,7 +156,7 @@ const ReferenceInstancesSection = ({
                                                 </Button>
                                             )}
 
-                                            {instanceUrl && (
+                                            {isHttpUrl(instanceUrl) && (
                                                 <a
                                                     className={cx(
                                                         fr.cx(
