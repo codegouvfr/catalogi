@@ -1977,10 +1977,13 @@
             "properties": {
                 "contribute": {
                     "type": "string"
+                },
+                "apiDocumentation": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
-            "required": ["contribute"]
+            "required": ["contribute", "apiDocumentation"]
         },
         "declarationRemovalModal": {
             "type": "object",

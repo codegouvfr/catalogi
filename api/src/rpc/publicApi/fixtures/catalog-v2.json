@@ -1,0 +1,656 @@
+[
+    {
+        "id": 1,
+        "name": "7zip",
+        "description": {
+            "fr": "Compression: Création de .zip, .rar, .tar.gz etc."
+        },
+        "image": "https://logodix.com/logo/1966390.png",
+        "latestVersion": {
+            "version": "26.03",
+            "releaseDate": "2026-09-04T00:00:00.000Z"
+        },
+        "addedTime": "2018-01-01T00:00:00.000Z",
+        "updateTime": "2025-09-05T12:31:21.708Z",
+        "applicationCategories": [],
+        "customAttributes": {
+            "versionMin": "19",
+            "doRespectRgaa": false,
+            "isFromFrenchPublicService": false,
+            "isPresentInSupportContract": false
+        },
+        "userAndReferentCountByOrganization": {
+            "DINUM": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CEA": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DIRN": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CNAM": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "IUT GMP Amiens": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "ARCOM": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Lycée les Lombards": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DSDEN 56": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Académie de Normandie": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "FPH GHT8": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DGE": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "MA": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CNPF: Centre National de la Propriété Forestière": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DRIEAT IF/SSTV/DRTR/DC": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Rectorat de Strasbourg": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DREAL Pays Loire/SCTE/CSD": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "INRAE": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CDC des pays de L'Aigle": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "MI": {
+                "userCount": 4,
+                "referentCount": 0
+            },
+            "IGN": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "academie d'Aix marseille": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Université Le Havre Normandie": {
+                "userCount": 2,
+                "referentCount": 0
+            },
+            "MESR": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "academie de Lyon": {
+                "userCount": 2,
+                "referentCount": 0
+            },
+            "DREAL Hauts-de-France": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Université de Lorraine": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Académie de Lille": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "irsn": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "administration centrale": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DDTM 44/SEE/EMA": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DG75-D280": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DDFIP 19": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "éducation": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "MJ": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "MEN": {
+                "userCount": 3,
+                "referentCount": 1
+            },
+            "CREPS de Nancy": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Mairie d'Arcueil": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DGDDI": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "ENS de Lyon": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "ASP": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Conseil Départemental du Val d'Oise": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CGSS Réunion : Caisse Générale de Sécurité Sociale": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CCAS Saint-Paul de la Réunion": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "other": {
+                "userCount": 3,
+                "referentCount": 0
+            },
+            "Lycée des métiers entre Meurthe et Sanon": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Académie de Nancy-Metz": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "DREETS Normandie": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Université de Lille": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Ministère des armées": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "MIOM": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "CNRS": {
+                "userCount": 4,
+                "referentCount": 1
+            },
+            "MEFR": {
+                "userCount": 0,
+                "referentCount": 1
+            }
+        },
+        "authors": [
+            {
+                "url": "https://www.wikidata.org/wiki/Q531341",
+                "name": "Igor Pavlov",
+                "@type": "Person",
+                "identifiers": [
+                    {
+                        "url": "https://www.wikidata.org/wiki/Q531341",
+                        "name": "ID on Wikidata",
+                        "@type": "PropertyValue",
+                        "value": "Q531341",
+                        "subjectOf": {
+                            "url": "https://www.wikidata.org/",
+                            "name": "Wikidata",
+                            "@type": "Website",
+                            "additionalType": "wikidata"
+                        },
+                        "additionalType": "Person"
+                    }
+                ]
+            }
+        ],
+        "url": "https://7-zip.org/",
+        "codeRepositoryUrl": "https://github.com/ip7z/7zip",
+        "license": "LGPL-2.0-only",
+        "externalId": "Q215051",
+        "sourceSlug": "wikidata",
+        "operatingSystems": {
+            "ios": false,
+            "mac": false,
+            "linux": false,
+            "android": false,
+            "windows": true
+        },
+        "runtimePlatforms": ["desktop"],
+        "similarSoftwares": [
+            {
+                "externalId": "Q688317",
+                "sourceSlug": "wikidata",
+                "name": "WinZip",
+                "description": {
+                    "en": "file compression software",
+                    "fr": "logiciel informatique"
+                },
+                "isLibreSoftware": false,
+                "isInCatalogi": false
+            },
+            {
+                "externalId": "Q242747",
+                "sourceSlug": "wikidata",
+                "name": "WinRAR",
+                "description": {
+                    "en": "file archiving software",
+                    "fr": "logiciel informatique"
+                },
+                "isLibreSoftware": false,
+                "isInCatalogi": false
+            },
+            {
+                "externalId": "Q291486",
+                "sourceSlug": "wikidata",
+                "name": "compress",
+                "description": {
+                    "en": "Unix shell compression program",
+                    "fr": "utilitaire de compression de données sans perte, disponible sur les systèmes UNIX et GNU/Linux"
+                },
+                "isLibreSoftware": false,
+                "isInCatalogi": false
+            },
+            {
+                "externalId": "Q29318",
+                "sourceSlug": "wikidata",
+                "name": "PowerArchiver",
+                "description": "proprietary file archiver for Microsoft Windows",
+                "isLibreSoftware": false,
+                "isInCatalogi": false
+            }
+        ],
+        "keywords": [
+            "compression",
+            "décompression",
+            "fichier",
+            "file",
+            "archive",
+            "archivage",
+            "zip",
+            "rar",
+            "jar",
+            "tar",
+            "gz",
+            "EPLE"
+        ],
+        "programmingLanguages": ["C++"],
+        "providers": [
+            {
+                "url": "",
+                "name": "compte à supprimer 493",
+                "@type": "Organization",
+                "identifiers": [
+                    {
+                        "url": "https://comptoir-du-libre.org/fr/users/4594",
+                        "@type": "PropertyValue",
+                        "value": "4594",
+                        "subjectOf": {
+                            "url": "https://comptoir-du-libre.org/",
+                            "name": "Comptoir du libre",
+                            "@type": "Website",
+                            "additionalType": "ComptoirDuLibre"
+                        },
+                        "additionalType": "Organization"
+                    }
+                ]
+            },
+            {
+                "url": "https://www.libre-en-ariege.fr/",
+                "name": "Libre en Ariège",
+                "@type": "Organization",
+                "identifiers": [
+                    {
+                        "url": "https://comptoir-du-libre.org/fr/users/3999",
+                        "@type": "PropertyValue",
+                        "value": "3999",
+                        "subjectOf": {
+                            "url": "https://comptoir-du-libre.org/",
+                            "name": "Comptoir du libre",
+                            "@type": "Website",
+                            "additionalType": "ComptoirDuLibre"
+                        },
+                        "additionalType": "Organization"
+                    }
+                ]
+            },
+            {
+                "url": "https://www.motot.com",
+                "name": "Motot Thierry",
+                "@type": "Organization",
+                "identifiers": [
+                    {
+                        "url": "https://comptoir-du-libre.org/fr/users/3711",
+                        "@type": "PropertyValue",
+                        "value": "3711",
+                        "subjectOf": {
+                            "url": "https://comptoir-du-libre.org/",
+                            "name": "Comptoir du libre",
+                            "@type": "Website",
+                            "additionalType": "ComptoirDuLibre"
+                        },
+                        "additionalType": "Organization"
+                    }
+                ]
+            }
+        ],
+        "referencePublications": [],
+        "identifiers": [
+            {
+                "url": "https://framalibre.org/notices/7-zip",
+                "name": "ID on FramaLibre",
+                "@type": "PropertyValue",
+                "value": "7-zip",
+                "subjectOf": {
+                    "url": "https://framalibre.org/",
+                    "name": "FramaLibre Official instance",
+                    "@type": "Website",
+                    "additionalType": "FramaLibre"
+                },
+                "additionalType": "Software"
+            },
+            {
+                "url": "https://www.wikidata.org/wiki/Q215051",
+                "name": "ID on Wikidata",
+                "@type": "PropertyValue",
+                "value": "Q215051",
+                "subjectOf": {
+                    "url": "https://www.wikidata.org/",
+                    "name": "Wikidata",
+                    "@type": "Website",
+                    "additionalType": "wikidata"
+                },
+                "additionalType": "Software"
+            },
+            {
+                "url": "https://comptoir-du-libre.org/fr/softwares/72",
+                "@type": "PropertyValue",
+                "value": "72",
+                "subjectOf": {
+                    "url": "https://comptoir-du-libre.org/",
+                    "name": "Comptoir du libre",
+                    "@type": "Website",
+                    "additionalType": "ComptoirDuLibre"
+                },
+                "additionalType": "Software"
+            }
+        ],
+        "repoMetadata": {},
+        "isLibreSoftware": false
+    },
+    {
+        "id": 606,
+        "name": "Anaconda",
+        "description": {
+            "fr": "distribution et gestionnaire de paquets de Python"
+        },
+        "image": "https://www.anaconda.com/wp-content/uploads/2024/11/2020_Anaconda_Logo_RGB_Corporate.png",
+        "latestVersion": {
+            "version": "2025.12-2",
+            "releaseDate": "2026-01-13T00:00:00.000Z"
+        },
+        "addedTime": "2025-08-19T13:34:28.432Z",
+        "updateTime": "2025-08-19T13:39:05.379Z",
+        "dereferencing": {
+            "reason": "Plateforme gratuite mais code source indisponible",
+            "time": "2025-09-04T09:50:48.708Z",
+            "lastRecommendedVersion": "43.35"
+        },
+        "applicationCategories": [],
+        "customAttributes": {
+            "versionMin": "43.35",
+            "doRespectRgaa": null,
+            "isFromFrenchPublicService": false,
+            "isPresentInSupportContract": false
+        },
+        "userAndReferentCountByOrganization": {
+            "MI": {
+                "userCount": 1,
+                "referentCount": 0
+            }
+        },
+        "authors": [],
+        "url": "https://anaconda.com/",
+        "license": "GNU",
+        "externalId": "Q18209310",
+        "sourceSlug": "wikidata",
+        "operatingSystems": {
+            "ios": false,
+            "mac": true,
+            "linux": true,
+            "android": false,
+            "windows": true
+        },
+        "runtimePlatforms": ["desktop"],
+        "similarSoftwares": [],
+        "keywords": [
+            "python",
+            "distribution",
+            "data science",
+            "machine learning",
+            "scientific computing",
+            "conda",
+            "numpy",
+            "pandas",
+            "jupyter",
+            "tensorflow",
+            "pytorch"
+        ],
+        "programmingLanguages": ["Python"],
+        "providers": [],
+        "referencePublications": [],
+        "identifiers": [
+            {
+                "url": "https://www.wikidata.org/wiki/Q18209310",
+                "name": "ID on Wikidata",
+                "@type": "PropertyValue",
+                "value": "Q18209310",
+                "subjectOf": {
+                    "url": "https://www.wikidata.org/",
+                    "name": "Wikidata",
+                    "@type": "Website",
+                    "additionalType": "wikidata"
+                },
+                "additionalType": "Software"
+            }
+        ],
+        "repoMetadata": {},
+        "isLibreSoftware": false
+    },
+    {
+        "id": 540,
+        "name": "Hardensysvol",
+        "description": {
+            "fr": "Outil open source français permettant d’auditer la sécurité du contenu des GPO d’Active Directory dans le dossier partagé SysVol. Il permet de détecter les mots-clés sensibles, les mots de passe en clair, les fichiers suspects, la présence de certificats non protégés, les informations sensibles, les macros, ainsi que des exécutables dissimulés dans des fichiers images, tout en générant un rapport lisible."
+        },
+        "image": "https://www.wikidata.org/wiki/Q131897282",
+        "latestVersion": {
+            "version": "2.0.2",
+            "releaseDate": "2025-06-30T00:00:00.000Z"
+        },
+        "addedTime": "2025-01-05T19:47:18.495Z",
+        "updateTime": "2026-06-03T11:21:19.202Z",
+        "applicationCategories": [],
+        "customAttributes": {
+            "versionMin": "v1.7.4",
+            "doRespectRgaa": null,
+            "isFromFrenchPublicService": false,
+            "isPresentInSupportContract": false
+        },
+        "userAndReferentCountByOrganization": {
+            "Université Grenoble Alpes": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "Université de Pau et des Pays de l'Adour": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "academie d'Aix marseille": {
+                "userCount": 1,
+                "referentCount": 0
+            },
+            "MASAF : Ministère de l'Agriculture et de la Souveraineté Alimentaire et de la Forêt": {
+                "userCount": 1,
+                "referentCount": 0
+            }
+        },
+        "authors": [
+            {
+                "url": "https://www.wikidata.org/wiki/Q135191053",
+                "name": "Mehdi Dakhama",
+                "@type": "Person",
+                "identifiers": [
+                    {
+                        "url": "https://www.wikidata.org/wiki/Q135191053",
+                        "name": "ID on Wikidata",
+                        "@type": "PropertyValue",
+                        "value": "Q135191053",
+                        "subjectOf": {
+                            "url": "https://www.wikidata.org/",
+                            "name": "Wikidata",
+                            "@type": "Website",
+                            "additionalType": "wikidata"
+                        },
+                        "additionalType": "Person"
+                    }
+                ]
+            },
+            {
+                "url": "https://www.wikidata.org/wiki/Q135409811",
+                "name": "Harden community",
+                "@type": "Organization",
+                "identifiers": [
+                    {
+                        "url": "https://www.wikidata.org/wiki/Q135409811",
+                        "name": "ID on Wikidata",
+                        "@type": "PropertyValue",
+                        "value": "Q135409811",
+                        "subjectOf": {
+                            "url": "https://www.wikidata.org/",
+                            "name": "Wikidata",
+                            "@type": "Website",
+                            "additionalType": "wikidata"
+                        },
+                        "additionalType": "Organization"
+                    }
+                ]
+            },
+            {
+                "id": "Q131623365",
+                "url": "https://www.wikidata.org/wiki/Q131623365",
+                "name": "Dakhama Mehdi"
+            },
+            {
+                "id": "Q131622364",
+                "url": "https://www.wikidata.org/wiki/Q131622364",
+                "name": "HardenAD.net"
+            }
+        ],
+        "url": "https://hardenad.net/",
+        "codeRepositoryUrl": "https://github.com/dakhama-mehdi/Harden-Sysvol",
+        "softwareHelp": "https://www.experts-exchange.com/articles/39474/Audit-and-identify-vulnerabilities-in-GPOs-SYSVOL.html",
+        "license": "AGPLv3",
+        "externalId": "Q131897282",
+        "sourceSlug": "wikidata",
+        "operatingSystems": {},
+        "runtimePlatforms": [],
+        "similarSoftwares": [
+            {
+                "externalId": "Q98805769",
+                "sourceSlug": "wikidata",
+                "name": "Purple Knights",
+                "description": {
+                    "en": "Wikimedia disambiguation page",
+                    "fr": "page d'homonymie de Wikimedia"
+                },
+                "isLibreSoftware": false,
+                "isInCatalogi": false
+            }
+        ],
+        "keywords": [
+            "GPO",
+            "AD",
+            "Active Directory",
+            "Audit",
+            "Securité",
+            "Powershell",
+            "filtrage",
+            "rapport",
+            "anomalie",
+            "SYSVOL",
+            {
+                "id": "Q3008145",
+                "numeric-id": 3008145,
+                "entity-type": "item"
+            }
+        ],
+        "programmingLanguages": ["PowerShell script"],
+        "providers": [],
+        "referencePublications": [],
+        "identifiers": [
+            {
+                "url": "https://www.wikidata.org/wiki/Q131897282",
+                "name": "ID on Wikidata",
+                "@type": "PropertyValue",
+                "value": "Q131897282",
+                "subjectOf": {
+                    "url": "https://www.wikidata.org/",
+                    "name": "Wikidata",
+                    "@type": "Website",
+                    "additionalType": "wikidata"
+                },
+                "additionalType": "Software"
+            }
+        ],
+        "repoMetadata": {},
+        "isLibreSoftware": false
+    }
+]

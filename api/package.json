@@ -12,7 +12,7 @@
         "test": "vitest --watch=false --no-file-parallelism",
         "dev": "dotenv -e ../.env -- tsx watch src/entrypoints/start-api.ts",
         "generate-translation-schema": "node scripts/generate-translation-schema.js",
-        "build": "tsc && rm -f dist/src/customization/ui-config.json && cp -r src/customization dist/src/",
+        "build": "tsc && node dist/scripts/generate-openapi.js && rm -f dist/src/customization/ui-config.json && cp -r src/customization dist/src/",
         "start": "pnpm db:up --no-outdated-check && dotenv -e ../.env -- node dist/src/entrypoints/start-api.js",
         "job:import": "dotenv -e ../.env -- node dist/src/entrypoints/import.js",
         "job:import-from-inner-identifiers": "dotenv -e ../.env -- node dist/src/entrypoints/import-from-inner-identifiers.js",
@@ -32,7 +32,8 @@
         "dev:db:reset": "pnpm dev:db:down && pnpm dev:db:flush && pnpm dev:db:up",
         "dev:dbs:mig:up": "dotenv -e ../.env -- kysely migrate up",
         "dev:dbs:mig:down": "dotenv -e ../.env -- kysely migrate down",
-        "knip": "knip"
+        "knip": "knip",
+        "generate:openapi": "tsx scripts/generate-openapi.ts"
     },
     "author": "DINUM",
     "license": "MIT",
@@ -74,6 +75,7 @@
         "vitest": "^1.2.2"
     },
     "dependencies": {
+        "@asteasolutions/zod-to-openapi": "7.3.4",
         "@gitbeaker/core": "^43.4.0",
         "@gitbeaker/requester-utils": "^43.8.0",
         "@gitbeaker/rest": "^43.4.0",
@@ -89,6 +91,7 @@
         "kysely": "^0.28.2",
         "kysely-ctl": "^0.12.0",
         "pg": "^8.21.0",
+        "swagger-ui-dist": "^5.33.0",
         "tsafe": "^1.6.6",
         "zod": "^3.21.4"
     },

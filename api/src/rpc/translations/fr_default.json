@@ -507,6 +507,7 @@
         "affiliatedStructure": "Structures associées"
     },
     "footer": {
+        "apiDocumentation": "Documentation API",
         "contribute": "Contribuez"
     },
     "declarationRemovalModal": {
