@@ -245,15 +245,12 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
             console.debug(
                 `${useCaseLogTitle} ${idsRow.externalIds.length} software externalData to update from ${idsRow.sourceSlug}`
             );
-            console.time(
-                `${useCaseLogTitle} ${idsRow.externalIds.length} software externalData to update from ${idsRow.sourceSlug}`
-            );
+            const timeLog = `${useCaseLogTitle} ${idsRow.externalIds.length} software externalData to update from ${idsRow.sourceSlug}`;
+            console.time(timeLog);
             for (const externalId of idsRow.externalIds) {
                 await updateExternalData({ sourceSlug: idsRow.sourceSlug, externalId });
             }
-            console.timeEnd(
-                `${useCaseLogTitle} ${idsRow.externalIds.length} software externalData to update from ${idsRow.sourceSlug}`
-            );
+            console.timeEnd(timeLog);
         })
     );
 
