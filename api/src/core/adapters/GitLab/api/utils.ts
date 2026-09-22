@@ -65,39 +65,33 @@ export const resolveExternalReferenceToProject = async (params: {
         });
     }
 
-    const searchCriteria = externalId.includes("https://")
-        ? externalId.replace(baseUrl, "")
-        : externalId.includes("/")
-          ? externalId.split("/")[1]
-          : undefined;
-
-    if (searchCriteria) {
-        try {
-            const projects = await withTimeout({
-                timeoutMs: 15_000,
-                promiseFactory: () =>
-                    gitLabApi.Projects.all({
-                        search: searchCriteria,
-                        maxPages: 1,
-                        perPage: 20
-                    })
-            });
-
-            // Id not found
-            if (projects.length === 0) return undefined;
-
-            // TODO Multiples
-            if (projects.length > 1) {
-                console.warn(`TODO : ${externalId} research have mutiple results, it should be more precise.`);
-            }
-
-            // One
-            return projects[0];
-        } catch (error) {
-            console.error(error);
-            return undefined;
-        }
+    const externalIdUrl = URL.parse(externalId);
+    let pathname = externalId;
+    if (externalIdUrl && baseUrl === externalIdUrl.origin) {
+        pathname = externalIdUrl.pathname;
+    }
+    if (pathname.endsWith("/")) {
+        pathname = pathname.slice(0, -1);
+    }
+    const splited = pathname.split("/");
+    if (splited.length > 2) {
+        pathname = splited[0] + "/" + splited[1];
     }
 
-    return undefined;
+    try {
+        const project = await withTimeout({
+            timeoutMs: 15_000,
+            promiseFactory: () => gitLabApi.Projects.show(pathname)
+        });
+        if (project) {
+            if (typeof project === "string") {
+                throw new Error(`API Issue on ${baseUrl}`);
+            }
+            return project;
+        }
+        return undefined;
+    } catch (error) {
+        console.error(`Error fetching project ${externalId}:`, error);
+        throw error;
+    }
 };
