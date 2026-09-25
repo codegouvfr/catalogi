@@ -176,6 +176,8 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
         case "CNLL":
         case "RNSR":
         case "ROR":
+        case "ScanR":
+        case "UserInput":
             throw new Error("[UC:Import] Import if not possible from a secondary or non software source");
         case USER_INPUT_SOURCE_SLUG:
             throw new Error("[UC:Import] UserInput is not importable: it has no gateway");
