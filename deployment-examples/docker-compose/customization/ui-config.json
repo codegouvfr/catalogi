@@ -18,6 +18,10 @@
             "devOrganizations": {
                 "enabled": true
             },
+            "documentation": {
+                "enabled": false,
+                "href": "https://doc.code.gouv.fr"
+            },
             "addSoftware": {
                 "enabled": true
             },

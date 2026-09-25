@@ -19,6 +19,7 @@ export const testUiConfig = uiConfigSchema.parse({
             addSoftware: { enabled: true },
             about: { enabled: true },
             devOrganizations: { enabled: false },
+            documentation: { enabled: true, href: "doc.gouv.fr" },
             contribute: {
                 enabled: true,
                 href: "mailto:floss@numerique.gouv.fr?subject=Demande d'accompagnement"
