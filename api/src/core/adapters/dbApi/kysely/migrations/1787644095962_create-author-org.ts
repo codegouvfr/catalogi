@@ -5,6 +5,7 @@
 import { Kysely } from "kysely";
 import { migrationUiConfigSchema } from "./1781768391060_add-config-ui-table";
 import { z } from "zod";
+import { deepMergeZodObjects } from "../../../../../tools/validation";
 
 const strictObject = <Shape extends z.ZodRawShape>(shape: Shape) => z.object(shape).strict();
 export const additionObject = strictObject({
@@ -15,7 +16,7 @@ export const additionObject = strictObject({
     })
 });
 
-export const migrationUiConfigSchema2 = z.union([migrationUiConfigSchema, additionObject]);
+export const migrationUiConfigSchema2 = deepMergeZodObjects(migrationUiConfigSchema, additionObject);
 
 export async function up(db: Kysely<any>): Promise<void> {
     await db.schema
@@ -32,7 +33,7 @@ export async function up(db: Kysely<any>): Promise<void> {
         newConfig.header.menu = {
             ...oldConfig.header.menu,
             devOrganizations: {
-                "enabled": false
+                enabled: false
             }
         };
         const validNew = migrationUiConfigSchema2.parse(newConfig);
