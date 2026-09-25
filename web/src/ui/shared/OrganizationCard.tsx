@@ -26,6 +26,7 @@ import Button from "@codegouvfr/react-dsfr/Button";
 type RenderingCardOptions = {
     showLinks?: boolean;
     showSoftwareDetailsButton?: boolean;
+    minimalist?: boolean;
 };
 
 export type Props = {
@@ -50,7 +51,11 @@ export const OrganizationCard = memo(
             image,
             ...rest
         } = organization;
-        const { showSoftwareDetailsButton = true, showLinks = true } = renderingOptions;
+        const {
+            showSoftwareDetailsButton = true,
+            showLinks = true,
+            minimalist = false
+        } = renderingOptions;
 
         const softwareName = name;
         const latestVersion = {
@@ -89,6 +94,10 @@ export const OrganizationCard = memo(
             }
         };
 
+        const filteredIdentfiers = identifiers?.filter(
+            identifier => identifier.subjectOf?.additionalType !== "GRID" // old identifer database use to deduplicate only
+        );
+
         return (
             <div className={cx(fr.cx("fr-card"), classes.root, className)}>
                 <div className={classes.cardBody}>
@@ -106,7 +115,8 @@ export const OrganizationCard = memo(
                         <div className={cx(classes.header)}>
                             <div className={cx(classes.titleContainer)}>
                                 <h3 className={cx(classes.title)}>{softwareName}</h3>
-                                {foundingDate && <h6>({foundingDate})</h6>}
+                                {!minimalist && foundingDate && <h6>({foundingDate})</h6>}
+                                {alternateName && <h6>[{alternateName}]</h6>}
 
                                 {address && address.addressCountry && (
                                     <div className={cx(classes.titleActionsContainer)}>
@@ -149,14 +159,16 @@ export const OrganizationCard = memo(
                         </div>
                     </a>
 
-                    {additionalType?.length && additionalType.length > 0 && (
-                        <div>
-                            {t("organizationCard.organizationType")} :{" "}
-                            {additionalType.map((type: string) => (
-                                <Chip label={type} />
-                            ))}
-                        </div>
-                    )}
+                    {!minimalist &&
+                        additionalType?.length &&
+                        additionalType.length > 0 && (
+                            <div>
+                                {t("organizationCard.organizationType")} :{" "}
+                                {additionalType.map((type: string) => (
+                                    <Chip label={type} />
+                                ))}
+                            </div>
+                        )}
 
                     {description && (
                         <>
@@ -174,35 +186,43 @@ export const OrganizationCard = memo(
                         </div>
                     )}
 
-                    {parentOrganizations && parentOrganizations.length > 0 && (
-                        <div>
-                            <div>{t("organizationCard.parentOrganizations")}</div>
-                            {parentOrganizations.map((org: SchemaOrganization) => (
-                                <Chip label={org.name} />
-                            ))}
-                        </div>
-                    )}
+                    {!minimalist &&
+                        parentOrganizations &&
+                        parentOrganizations.length > 0 && (
+                            <div>
+                                <div>{t("organizationCard.parentOrganizations")}</div>
+                                {parentOrganizations.map((org: SchemaOrganization) => (
+                                    <Chip label={org.name} />
+                                ))}
+                            </div>
+                        )}
 
-                    {showLinks && identifiers && identifiers.length > 0 && (
-                        <div>
-                            {identifiers.map((identifier: SchemaIdentifier) => (
-                                <>
-                                    {identifier?.subjectOf?.additionalType && (
+                    {!minimalist &&
+                        showLinks &&
+                        filteredIdentfiers &&
+                        filteredIdentfiers.length > 0 && (
+                            <div>
+                                {filteredIdentfiers.map(
+                                    (identifier: SchemaIdentifier) => (
                                         <>
-                                            <LogoURLButton
-                                                size="small"
-                                                label={identifier.value}
-                                                type={formationType(
-                                                    identifier.subjectOf.additionalType
-                                                )}
-                                                url={identifier.url}
-                                            ></LogoURLButton>
+                                            {identifier?.subjectOf?.additionalType && (
+                                                <>
+                                                    <LogoURLButton
+                                                        size="small"
+                                                        label={identifier.value}
+                                                        type={formationType(
+                                                            identifier.subjectOf
+                                                                .additionalType
+                                                        )}
+                                                        url={identifier.url}
+                                                    ></LogoURLButton>
+                                                </>
+                                            )}
                                         </>
-                                    )}
-                                </>
-                            ))}
-                        </div>
-                    )}
+                                    )
+                                )}
+                            </div>
+                        )}
                 </div>
                 <div className={classes.footer}>
                     {showSoftwareDetailsButton && (
