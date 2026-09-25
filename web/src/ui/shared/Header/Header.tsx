@@ -82,6 +82,15 @@ export const Header = memo(
                 text: t("header.navigation about")
             });
         }
+        if (uiConfig?.header.menu.documentation.enabled) {
+            navigations.push({
+                linkProps: {
+                    target: "_blank",
+                    href: uiConfig.header.menu.documentation.href
+                },
+                text: t("header.documentation ref")
+            });
+        }
         if (uiConfig?.header.menu.contribute.enabled) {
             navigations.push({
                 linkProps: {
