@@ -135,6 +135,9 @@ export type SillApi = {
     updateUiConfig: (
         params: TrpcRouterInput["updateUiConfig"]
     ) => Promise<TrpcRouterOutput["updateUiConfig"]>;
+    getSoftwareIdsByOrganisation: (
+        params: TrpcRouterInput["getSoftwareIdsByOrganisation"]
+    ) => Promise<TrpcRouterOutput["getSoftwareIdsByOrganisation"]>;
 };
 
 //NOTE: We make sure we don't forget queries
