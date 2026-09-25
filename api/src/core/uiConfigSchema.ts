@@ -35,6 +35,10 @@ const headerSchema = strictObject({
         about: strictObject({
             enabled: z.boolean()
         }),
+        documentation: z.object({
+            enabled: z.boolean(),
+            href: z.string()
+        }),
         contribute: strictObject({
             enabled: z.boolean(),
             href: z.string()
