@@ -49,6 +49,15 @@ export const makeImportFromInnerIdentifiers = (
         const sources = await dbApi.source.getAll();
         const sourceUrls = sources.reduce(
             (acc, source) => {
+                // CNLL's only machine-readable endpoint (the prestataires-sill.json
+                // feed) is keyed by SILL id, not by the annuaire id that other
+                // sources (e.g. Comptoir du Libre) cite in their own identifiers.
+                // Registering it here as a candidate target creates a
+                // software_external_datas row with an externalId CNLL's own
+                // adapter can never resolve, which then shows up as a stuck,
+                // never-populated "ghost" row (see #520).
+                if (source.kind === "CNLL") return acc;
+
                 const newAcc = acc;
                 newAcc[source.url] = source.slug;
                 return newAcc;
