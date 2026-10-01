@@ -1,3 +1,7 @@
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
+// SPDX-License-Identifier: MIT
+
 import { fr } from "@codegouvfr/react-dsfr";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
@@ -50,7 +54,7 @@ export const CustomAttributesForm = ({
     const [submitButtonElement, setSubmitButtonElement] =
         useState<HTMLButtonElement | null>(null);
     const initialCustomAttributes = initialFormData?.customAttributes;
-    const initialDereferencingProtection = initialFormData?.protections?.dereferencing;
+    const initialDereferencingProtection = initialFormData?.protections?.statusChanging;
     const initialEditionProtection = initialFormData?.protections?.edition;
 
     useEvt(
@@ -126,7 +130,7 @@ export const CustomAttributesForm = ({
                         },
                         protections: isAdmin
                             ? {
-                                  dereferencing: {
+                                  statusChanging: {
                                       isProtected:
                                           values.protection_dereferencing_isProtected ===
                                           "true",
