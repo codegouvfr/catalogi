@@ -119,7 +119,6 @@ export const formatRecordToExternalData = (
         ],
         providers: [],
         similarSoftwares: [],
-        dereferencing: undefined,
         customAttributes: undefined,
         userAndReferentCountByOrganization: undefined,
         hasExpertReferent: undefined,

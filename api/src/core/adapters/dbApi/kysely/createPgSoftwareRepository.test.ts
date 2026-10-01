@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -61,7 +61,8 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
             updateTime: new Date().toISOString(),
             isStillInObservation: false,
             customAttributes: JSON.stringify({}),
-            dereferencing: null,
+            status: { name: "published", changed: null },
+            statusHistory: [],
             ...softwareOverrides,
             addedByUserId
         })
@@ -126,7 +127,8 @@ const makeSoftwareUpdate = (
     codeRepositoryUrl: null,
     softwareHelp: null,
     latestVersion: null,
-    dereferencing: undefined,
+    status: { name: "published", changed: { time: new Date().toISOString(), changedByUserId: addedByUserId } },
+    statusHistory: [],
     isStillInObservation: false,
     customAttributes: {},
     addedByUserId,
@@ -224,7 +226,7 @@ describe("createPgSoftwareRepository", () => {
                 dereferencing: JSON.stringify({
                     reason: "deprecated",
                     time: new Date().toISOString(),
-                    dereferencedByUserId: null
+                    changedByUserId: null
                 })
             });
 

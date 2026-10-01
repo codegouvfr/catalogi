@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { beforeEach, describe, expect, it } from "vitest";
@@ -83,7 +83,7 @@ describe("Create software, than updates it adding a similar software", () => {
         expectToEqual(softwareList.length, 1);
         expectToMatchObject(softwareList[0], {
             "addedByUserId": userId,
-            "dereferencing": null,
+            "status": { name: "published", changed: { time: new Date().toISOString(), changedByUserId: userId } },
             "isStillInObservation": false,
             "name": "Create react app",
             "addedTime": expect.any(String),
