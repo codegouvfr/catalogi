@@ -10,7 +10,7 @@
 The following environment variables are used to configure the Catalogi web application.
 You can set them in a `.env` file or directly in your environment.
 
-The API validates its variables at startup and refuses to start if a required one is missing.
+The API validates its variables at startup and refuses to start if a required one is missing. The import and update jobs validate the same variables: required variables must also be set for them, even those they do not use.
 
 | Variable Name                | Used by       | Required | Default Value | Example Value                                                |
 | ---------------------------- | ------------- | -------- | ------------- | ------------------------------------------------------------ |
@@ -27,7 +27,6 @@ The API validates its variables at startup and refuses to start if a required on
 | SENTRY_DSN_API               | API           | ❌       | -             | `https://key@sentry.example.com/1`                           |
 | SENTRY_DSN_WEB               | web           | ❌       | -             | `https://key@sentry.example.com/2`                           |
 | REDIRECT_URL                 | API           | ❌       | -             | `https://catalogi.example.com`                               |
-| GITHUB_TOKEN                 | API           | ❌       | -             | `ghp_xxx`                                                    |
 | IMPORT_DATA_SOURCE_ORIGIN    | import job    | ❌       | `wikidata`    | `wikidata`                                                   |
 | IMPORT_DATA_IDS              | import job    | ❌       | -             | `Q123,Q456,Q789`                                             |
 | BOT_USER_EMAIL               | import job    | ❌       | -             | `bot@example.com`                                            |
@@ -38,7 +37,6 @@ The API validates its variables at startup and refuses to start if a required on
 
 - `OIDC_*`, `APP_URL` and `CATALOGI_INITIAL_ADMIN_EMAIL` are described in [Authentication](3.1-authentication.md).
 - `REDIRECT_URL` completely disables the instance and redirects it to another URL.
-- `GITHUB_TOKEN` is only used to increase the GitHub API rate limit, used to pre-fill versions when adding a software.
 - `IMPORT_DATA_SOURCE_ORIGIN` is the slug of the source used by the import job, `IMPORT_DATA_IDS` the comma-separated identifiers to import from it, and `BOT_USER_EMAIL` the user the imported software is attributed to.
 - `UPDATE_SKIP_TIMING` (in minutes) makes the update job skip external data refreshed more recently than that, and `UPDATE_SOFTWARE_IDS` restricts the update job to these software ids.
 

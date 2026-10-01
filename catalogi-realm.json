@@ -319,8 +319,9 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
+      "secret": "change-this",
       "redirectUris": [
-        "http://localhost:3000/"
+        "http://localhost:3000/*"
       ],
       "webOrigins": [
         "http://localhost:3000"
@@ -332,11 +333,12 @@
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
-      "publicClient": true,
+      "publicClient": false,
       "frontchannelLogout": true,
       "protocol": "openid-connect",
       "attributes": {
         "realm_client": "false",
+        "post.logout.redirect.uris": "+",
         "oidc.ciba.grant.enabled": "false",
         "backchannel.logout.session.required": "true",
         "standard.token.exchange.enabled": "false",

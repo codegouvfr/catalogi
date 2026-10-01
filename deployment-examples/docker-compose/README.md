@@ -26,7 +26,7 @@ You should pin the `catalogi-api` and `catalogi-web` images to a specific versio
 
 ## Auth Configuration
 
-The deployment uses https://auth.code.gouv.fr as the OIDC provider. It is the original first project using Catalogi, this is why it is used as the default. However, you should use your own OIDC provider (or use Keycloak to create your own, see [`../keycloak-docker-compose`](../keycloak-docker-compose)).
+The `OIDC_*` values of `.env.sample` are placeholders: replace them with the ones of your OIDC provider (or use Keycloak to create your own, see [`../keycloak-docker-compose`](../keycloak-docker-compose)).
 
 Set `CATALOGI_INITIAL_ADMIN_EMAIL` to the OIDC email of the first Catalogi administrator. See [Authentication](../../docs/3.1-authentication.md).
 

@@ -240,7 +240,7 @@ Catalogi is configured using Helm values. You can find examples in `deployment-e
 | `postgresql.enabled`                        | Use the built-in PostgreSQL chart.                                                                                                      | `true`                      |
 | `web.env`                                   | Runtime variables of the web image, such as `VITE_HEAD`, `VITE_CSP`, `ENVIRONMENT` or `SENTRY_DSN_WEB`.                                 | `{}`                        |
 | `customization.enabled`                     | Enable the ConfigMap used for custom translations and the optional legacy UI configuration import.                                      | `false`                     |
-| `customization.translations`                | Custom `en` and `fr` translations, merged with the default ones.                                                                        | example `home.title`        |
+| `customization.translations`                | Custom `en` and `fr` translations, merged with the default ones.                                                                        | `{}`                        |
 | `customization.uiConfig`                    | Legacy `ui-config.json` content, imported once by the database migration. Leave empty for new installations.                            | `""`                        |
 | `customization.legacyUiConfigImportEnabled` | Mount `customization.uiConfig` for the one-time database migration. Disable it after verifying the import; translations remain mounted. | `true`                      |
 
@@ -383,23 +383,32 @@ To migrate from an existing Docker Compose deployment:
 docker compose exec postgres pg_dump -U catalogi db > catalogi-backup.sql
 ```
 
-### 2. Deploy Helm chart
+### 2. Deploy Helm chart without starting the API
+
+The API applies the database migrations when it starts. Keep it stopped until the backup is restored, so that the backup is restored into an empty database:
 
 ```bash
 helm install catalogi ./helm-charts/catalogi \
   --namespace catalogi \
-  --values your-production-values.yaml
+  --values your-production-values.yaml \
+  --set api.replicaCount=0
 ```
 
-### 3. Import data
+### 3. Import data and start the API
 
 ```bash
 # Restore database
 kubectl exec -i -n catalogi catalogi-postgresql-0 -- \
   psql -U catalogi_user catalogi_db < catalogi-backup.sql
+
+# Start the API, which applies the pending migrations
+helm upgrade catalogi ./helm-charts/catalogi \
+  --namespace catalogi \
+  --reuse-values \
+  --set api.replicaCount=1
 ```
 
-The restored database already contains the UI configuration if the Docker Compose instance had run the `config_ui` migration; otherwise mount its legacy `ui-config.json` as `customization.uiConfig` for the first startup (see [Customization](#customization)).
+If the Docker Compose instance had already run the `config_ui` migration, the restored database contains the UI configuration. Otherwise, set its legacy `ui-config.json` as `customization.uiConfig` before starting the API, so that it is imported by the migration (see [Customization](#customization)).
 
 ### 4. Update configuration
 

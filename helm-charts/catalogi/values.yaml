@@ -141,21 +141,16 @@ customization:
   # from Administration → Interface configuration. The imported content must follow the historical format
   # frozen in the config_ui migration; keys added since then are rejected.
   uiConfig: ""
-  translations:
-    en: |-
-      {
-        "$schema": "https://raw.githubusercontent.com/codegouvfr/catalogi/refs/heads/main/api/src/rpc/translations/schema.json",
-        "home": {
-          "title": "Software Catalog configured with Helm"
-        }
-      }
-    fr: |-
-      {
-        "$schema": "https://raw.githubusercontent.com/codegouvfr/catalogi/refs/heads/main/api/src/rpc/translations/schema.json",
-        "home": {
-          "title": "Catalogue de Logiciels configuré avec Helm"
-        }
-      }
+  # -- Custom translations, merged with the default ones. Keys are languages (en, fr), values are JSON documents.
+  # Example:
+  #   en: |-
+  #     {
+  #       "$schema": "https://raw.githubusercontent.com/codegouvfr/catalogi/refs/heads/main/api/src/rpc/translations/schema.json",
+  #       "home": {
+  #         "title": "My Software Catalog"
+  #       }
+  #     }
+  translations: {}
 
 # -- Configuration for Adminer (optional database UI)
 adminer:
