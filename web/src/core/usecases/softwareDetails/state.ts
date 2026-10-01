@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { createUsecaseActions } from "redux-clean-architecture";
@@ -63,13 +63,8 @@ export namespace State {
             | undefined;
         addedTime: string;
         license: string;
-        dereferencing:
-            | {
-                  reason?: string;
-                  time: string;
-                  lastRecommendedVersion?: string;
-              }
-            | undefined;
+        status: ApiTypes.Status;
+        statusHistory: ApiTypes.Status[] | undefined;
         customAttributes: ApiTypes.CustomAttributes | undefined;
         protections: ApiTypes.SoftwareDetail["protections"];
         supportedPlatforms: {
@@ -166,12 +161,12 @@ export const { reducer, actions } = createUsecaseActions({
         },
         unreferencingCompleted: (
             state,
-            { payload }: { payload: { reason: string; time: string } }
+            { payload }: { payload: { status: ApiTypes.Status } }
         ) => {
-            const { reason, time } = payload;
+            const { status } = payload;
 
             assert(state.stateDescription === "ready");
-            state.software.dereferencing = { reason, time };
+            state.software.status = status;
             state.isUnreferencingOngoing = false;
         }
     }
