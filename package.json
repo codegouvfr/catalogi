@@ -20,6 +20,7 @@
     "test:e2e": "pnpm --filter e2e test:e2e",
     "test:e2e:ui": "pnpm --filter e2e test:e2e:ui",
     "test:e2e:headed": "pnpm --filter e2e test:e2e:headed",
+    "pentest": "docker compose -f docker-compose.pentest.yml up --build --detach --wait && DOCKER_HOST=${DOCKER_HOST:-unix://$HOME/.docker/run/docker.sock} STRIX_LLM=${STRIX_LLM:-chatgpt/gpt-5.6-sol} strix --target . --target http://host.docker.internal:8088 --instruction-file pentest/strix-instructions.md --scan-mode quick --scope-mode full --max-budget 10",
     "format": "turbo format",
     "format:check": "turbo format:check",
     "fullcheck": "turbo typecheck format:check lint test",
