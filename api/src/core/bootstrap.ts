@@ -18,7 +18,7 @@ import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
-import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
+import { makeChangingCatalogueStatusSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
@@ -78,7 +78,7 @@ export async function bootstrapCore(
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
         createSoftware: makeCreateSofware({ dbApi, withUserInput: true }),
         updateSoftware: makeUpdateSoftware(dbApi),
-        unreferenceSoftware: makeUnreferenceSoftware(dbApi),
+        changingCatalogueStatusSoftware: makeChangingCatalogueStatusSoftware(dbApi),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
             handleAuthCallback: makeHandleAuthCallback({

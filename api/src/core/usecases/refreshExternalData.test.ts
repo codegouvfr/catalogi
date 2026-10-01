@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
@@ -79,7 +79,8 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             name: "Apache HTTP Server",
             isStillInObservation: false,
             addedByUserId: userId,
-            dereferencing: null,
+            status: JSON.stringify({ name: "published", changed: null }),
+            statusHistory: JSON.stringify([]),
             addedTime: new Date(1728462232094).toISOString(),
             updateTime: new Date(1728462232094).toISOString(),
             customAttributes: JSON.stringify({
@@ -112,7 +113,8 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             name: "Acceleo",
             isStillInObservation: false,
             addedByUserId: userId,
-            dereferencing: null,
+            status: JSON.stringify({ name: "published", changed: null }),
+            statusHistory: JSON.stringify([]),
             addedTime: new Date(1514764800000).toISOString(),
             updateTime: new Date(1514764800000).toISOString(),
             customAttributes: JSON.stringify({

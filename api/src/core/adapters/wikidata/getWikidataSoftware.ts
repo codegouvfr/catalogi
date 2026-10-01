@@ -266,7 +266,6 @@ export const getWikidataSoftware: GetSoftwareExternal = memoize(
             ],
             providers: [],
             similarSoftwares: [],
-            dereferencing: undefined,
             customAttributes: undefined,
             userAndReferentCountByOrganization: undefined,
             hasExpertReferent: undefined,

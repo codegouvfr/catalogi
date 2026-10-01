@@ -1,8 +1,13 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { Database, DatabaseRowOutput } from "../adapters/dbApi/kysely/kysely.database";
+import type {
+    Database,
+    DatabaseRowOutput,
+    SoftwareCatalogueStatusNames,
+    Status
+} from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
 import type { LocalizedString } from "../ports/GetSoftwareExternalData";
 import type {
@@ -29,7 +34,7 @@ export type WithUserId = { userId: number };
 // DB-only fields + content fields (content is routed to the UserInput external-data row)
 export type SoftwareExtrinsicRow = Pick<
     DatabaseDataType.SoftwareRow,
-    "name" | "dereferencing" | "isStillInObservation" | "customAttributes" | "addedByUserId"
+    "name" | "status" | "statusHistory" | "isStillInObservation" | "customAttributes" | "addedByUserId"
 > & {
     nameOverride: string | null;
     protections?: DatabaseDataType.SoftwareRow["protections"];
@@ -90,12 +95,13 @@ export interface SoftwareRepository {
     }) => Promise<{ sourceSlug: string; externalId: string; softwareId: number | undefined }[]>;
     countAddedByUser: (params: { userId: number }) => Promise<number>;
     getAllSillSoftwareExternalIds: (sourceSlug: string) => Promise<string[]>;
-    unreference: (params: {
+    changeCatalogStatus: (params: {
+        statusName: SoftwareCatalogueStatusNames;
         softwareId: number;
         reason: string;
         time: string;
-        dereferencedByUserId: number;
-    }) => Promise<void>;
+        changedByUserId: number;
+    }) => Promise<Status>;
 }
 
 export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow & {
