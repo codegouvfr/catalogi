@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { TestOidcClient } from "./oidcClient";
 import { createPgSessionRepository } from "../../adapters/dbApi/kysely/createPgSessionRepository";
 import { InitiateAuth, makeInitiateAuth } from "./initiateAuth";
@@ -33,7 +33,7 @@ describe("Authentication workflow", () => {
             initialAdminEmail
         });
 
-        return callback({ code: "auth-code", state: session.state });
+        return callback({ code: "auth-code", state: session.state, transactionId: sessionId });
     };
 
     const getAuthenticatedUserRole = async (initialAdminEmail?: string) => {
@@ -73,6 +73,91 @@ describe("Authentication workflow", () => {
         refreshSession = makeRefreshSession({
             sessionRepository: createPgSessionRepository(db),
             oidcClient
+        });
+    });
+
+    afterEach(async () => {
+        await db.destroy();
+    });
+
+    it("rejects a callback without browser proof before exchanging the code", async () => {
+        const { authUrl } = await initiateAuth({});
+        const state = new URL(authUrl).searchParams.get("state")!;
+        await expect(handleAuthCallback({ code: "stolen-code", state })).rejects.toThrow(
+            "Invalid authentication transaction"
+        );
+        expect(oidcClient.calls.map(call => call.method)).toEqual(["getAuthorizationEndpoint"]);
+    });
+
+    it("rejects proof from another transaction without consuming either transaction", async () => {
+        const a = await initiateAuth({});
+        const b = await initiateAuth({});
+        const state = new URL(a.authUrl).searchParams.get("state")!;
+        await expect(handleAuthCallback({ code: "code", state, transactionId: b.sessionId })).rejects.toThrow(
+            "Invalid authentication transaction"
+        );
+        expect(oidcClient.calls.filter(c => c.method === "exchangeCodeForTokens")).toHaveLength(0);
+        await expect(handleAuthCallback({ code: "code", state, transactionId: a.sessionId })).resolves.toMatchObject({
+            id: a.sessionId
+        });
+    });
+
+    it("rejects an expired transaction before exchanging the code", async () => {
+        const a = await initiateAuth({});
+        await db
+            .updateTable("user_sessions")
+            .set({ createdAt: new Date(Date.now() - 10 * 60 * 1000) })
+            .where("id", "=", a.sessionId)
+            .execute();
+        await expect(
+            handleAuthCallback({
+                code: "code",
+                state: new URL(a.authUrl).searchParams.get("state")!,
+                transactionId: a.sessionId
+            })
+        ).rejects.toThrow("Invalid authentication transaction");
+        expect(oidcClient.calls.filter(c => c.method === "exchangeCodeForTokens")).toHaveLength(0);
+    });
+
+    it("consumes a transaction only once even with concurrent callbacks", async () => {
+        const a = await initiateAuth({});
+        const params = {
+            code: "code",
+            state: new URL(a.authUrl).searchParams.get("state")!,
+            transactionId: a.sessionId
+        };
+        const outcomes = await Promise.allSettled([handleAuthCallback(params), handleAuthCallback(params)]);
+        expect(outcomes.map(o => o.status).sort()).toEqual(["fulfilled", "rejected"]);
+        await expect(handleAuthCallback(params)).rejects.toThrow("Invalid authentication transaction");
+        expect(oidcClient.calls.filter(c => c.method === "exchangeCodeForTokens")).toHaveLength(1);
+    });
+
+    it("does not allow retry after a provider failure", async () => {
+        const a = await initiateAuth({});
+        const params = {
+            code: "code",
+            state: new URL(a.authUrl).searchParams.get("state")!,
+            transactionId: a.sessionId
+        };
+        const exchange = vi.spyOn(oidcClient, "exchangeCodeForTokens").mockRejectedValue(new Error("Provider failure"));
+        await expect(handleAuthCallback(params)).rejects.toThrow("Provider failure");
+        await expect(handleAuthCallback(params)).rejects.toThrow("Invalid authentication transaction");
+        expect(exchange).toHaveBeenCalledTimes(1);
+    });
+
+    it("never treats an authenticated session as a pending transaction", async () => {
+        const a = await authenticate();
+        const state = "a".repeat(64);
+        await db.updateTable("user_sessions").set({ state }).where("id", "=", a.id).execute();
+        const exchange = vi.spyOn(oidcClient, "exchangeCodeForTokens");
+        await expect(handleAuthCallback({ code: "code", state, transactionId: a.id })).rejects.toThrow(
+            "Invalid authentication transaction"
+        );
+        expect(exchange).not.toHaveBeenCalled();
+        expect(await createPgSessionRepository(db).findById(a.id)).toMatchObject({
+            userId: a.userId,
+            accessToken: a.accessToken,
+            loggedOutAt: null
         });
     });
 
@@ -177,6 +262,7 @@ describe("Authentication workflow", () => {
         const fakeCode = "my-identity-provided-code";
 
         const updatedSession = await handleAuthCallback({
+            transactionId: sessionId,
             code: fakeCode,
             state: session!.state
         });
@@ -240,6 +326,7 @@ describe("Authentication workflow", () => {
 
         const fakeCode = "auth-code-123";
         const authenticatedSession = await handleAuthCallback({
+            transactionId: sessionId,
             code: fakeCode,
             state: session!.state
         });

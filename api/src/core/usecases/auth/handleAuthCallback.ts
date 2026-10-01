@@ -3,7 +3,12 @@
 // SPDX-License-Identifier: MIT
 
 import { Session, SessionRepository, UserRepository } from "../../ports/DbApiV2";
+import { AUTH_TRANSACTION_DURATION_MS } from "./initiateAuth";
 import { OidcClient } from "./oidcClient";
+
+const UUID_V4_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// Matches the 32 random bytes hex-encoded by initiateAuth.
+const STATE_PATTERN = /^[0-9a-f]{64}$/;
 
 // Default session duration when OIDC provider doesn't provide expires_in
 export const DEFAULT_SESSION_DURATION_MS = 6 * 60 * 60 * 1000; // 6 hours
@@ -16,6 +21,7 @@ type HandleAuthCallbackDependencies = {
 };
 
 type HandleAuthCallbackParams = {
+    transactionId?: string;
     code: string;
     state: string;
 };
@@ -27,12 +33,18 @@ export const makeHandleAuthCallback = ({
     oidcClient,
     initialAdminEmail
 }: HandleAuthCallbackDependencies) => {
-    return async ({ code, state }: HandleAuthCallbackParams): Promise<Session> => {
-        // Find session by state
-        const initialSession = await sessionRepository.findByState(state);
-
+    return async ({ code, state, transactionId }: HandleAuthCallbackParams): Promise<Session> => {
+        // Malformed values never reach the database (a non-UUID id would make PostgreSQL throw).
+        if (!transactionId || !UUID_V4_PATTERN.test(transactionId) || !STATE_PATTERN.test(state)) {
+            throw new InvalidAuthTransactionError();
+        }
+        const initialSession = await sessionRepository.consumePending({
+            id: transactionId,
+            state,
+            createdAfter: new Date(Date.now() - AUTH_TRANSACTION_DURATION_MS)
+        });
         if (!initialSession) {
-            throw new Error(`Session not found for state : ${state}`);
+            throw new InvalidAuthTransactionError();
         }
 
         const tokens = await oidcClient.exchangeCodeForTokens(code);
@@ -99,3 +111,9 @@ export const makeHandleAuthCallback = ({
         return updatedSession;
     };
 };
+
+export class InvalidAuthTransactionError extends Error {
+    constructor() {
+        super("Invalid authentication transaction");
+    }
+}

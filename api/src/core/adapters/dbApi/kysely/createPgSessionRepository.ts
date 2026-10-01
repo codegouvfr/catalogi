@@ -29,8 +29,20 @@ export function createPgSessionRepository(db: Kysely<Database>): SessionReposito
                 .execute();
         },
 
-        findByState: async state =>
-            db.selectFrom("user_sessions").selectAll().where("state", "=", state).executeTakeFirst(),
+        consumePending: async ({ id, state, createdAfter }) =>
+            db
+                .updateTable("user_sessions")
+                // An empty state marks consumption, including when the provider subsequently fails.
+                .set({ state: "", updatedAt: new Date() })
+                .where("id", "=", id)
+                .where("state", "=", state)
+                .where("state", "!=", "")
+                .where("createdAt", ">", createdAfter)
+                .where("userId", "is", null)
+                .where("accessToken", "is", null)
+                .where("loggedOutAt", "is", null)
+                .returningAll()
+                .executeTakeFirst(),
 
         findById: async id => db.selectFrom("user_sessions").selectAll().where("id", "=", id).executeTakeFirst(),
 

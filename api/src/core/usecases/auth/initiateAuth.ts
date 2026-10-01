@@ -6,6 +6,8 @@ import crypto from "crypto";
 import { SessionRepository } from "../../ports/DbApiV2";
 import { OidcClient } from "./oidcClient";
 
+export const AUTH_TRANSACTION_DURATION_MS = 10 * 60 * 1000;
+
 type InitiateAuthDependencies = {
     sessionRepository: SessionRepository;
     oidcClient: OidcClient;

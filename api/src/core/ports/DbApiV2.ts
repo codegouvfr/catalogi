@@ -215,7 +215,8 @@ export type Session = {
 
 export interface SessionRepository {
     create: (params: { id: string; state: string; redirectUrl: string | null }) => Promise<void>;
-    findByState: (state: string) => Promise<Session | undefined>;
+    // Atomically clear the state of a matching, unexpired, unauthenticated transaction.
+    consumePending: (params: { id: string; state: string; createdAfter: Date }) => Promise<Session | undefined>;
     findById: (id: string) => Promise<Session | undefined>;
     update: (session: Session) => Promise<void>;
     deleteSessionsNotCompletedByUser: () => Promise<void>;

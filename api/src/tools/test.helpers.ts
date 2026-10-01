@@ -9,7 +9,7 @@ import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { ExternalDataOriginKind, SoftwareExternalDataOption } from "../lib/ApiTypes";
 import { testUiConfig } from "./fixtures/testUiConfig";
 
-export const testPgUrl = "postgresql://catalogi:pg_password@localhost:5432/db";
+export const testPgUrl = process.env.TEST_DATABASE_URL ?? "postgresql://catalogi:pg_password@localhost:5432/db";
 
 export const expectPromiseToFailWith = (promise: Promise<any>, errorMessage: string) => {
     return expect(promise).rejects.toThrow(errorMessage);
