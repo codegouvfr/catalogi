@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -46,7 +46,8 @@ describe("RPC e2e tests", () => {
                 name: params.name,
                 addedTime: now,
                 updateTime: now,
-                dereferencing: null,
+                status: JSON.stringify({ name: "published", changed: null }),
+                statusHistory: JSON.stringify([]),
                 isStillInObservation: false,
                 customAttributes: JSON.stringify(params.customAttributes ?? {}),
                 ...(params.protections ? { protections: JSON.stringify(params.protections) } : {}),
@@ -639,7 +640,7 @@ describe("RPC e2e tests", () => {
         const insertSoftwareWithProtections = async (params: {
             name: string;
             protections: {
-                dereferencing?: { isProtected: boolean };
+                statusChanging?: { isProtected: boolean };
                 edition?: { isProtected: boolean };
             };
         }) => {
@@ -654,8 +655,8 @@ describe("RPC e2e tests", () => {
                 name: params.name,
                 userId: adminUser.id,
                 protections: {
-                    ...(params.protections.dereferencing
-                        ? { dereferencing: toProtection(params.protections.dereferencing.isProtected) }
+                    ...(params.protections.statusChanging
+                        ? { statusChanging: toProtection(params.protections.statusChanging.isProtected) }
                         : {}),
                     ...(params.protections.edition
                         ? { edition: toProtection(params.protections.edition.isProtected) }
@@ -664,7 +665,7 @@ describe("RPC e2e tests", () => {
             });
         };
 
-        it("ignores dereferencing protection on non-admin software creation", async () => {
+        it("ignores statusChanging protection on non-admin software creation", async () => {
             ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
             await resetDB(kyselyDb);
             ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
@@ -677,7 +678,7 @@ describe("RPC e2e tests", () => {
                     externalIdForSource: undefined,
                     similarSoftwareExternalDataItems: [],
                     protections: {
-                        dereferencing: {
+                        statusChanging: {
                             isProtected: true,
                             reason: "Should be ignored"
                         }
@@ -691,7 +692,7 @@ describe("RPC e2e tests", () => {
                 .where("name", "=", "Non-admin protected create test")
                 .executeTakeFirstOrThrow();
 
-            expect(software.protections?.dereferencing).toBeUndefined();
+            expect(software.protections?.statusChanging).toBeUndefined();
         });
 
         it("allows admins to create protected software with audit metadata", async () => {
@@ -706,7 +707,7 @@ describe("RPC e2e tests", () => {
                     externalIdForSource: undefined,
                     similarSoftwareExternalDataItems: [],
                     protections: {
-                        dereferencing: {
+                        statusChanging: {
                             isProtected: true,
                             reason: "Sensitive catalogue entry"
                         }
@@ -720,12 +721,12 @@ describe("RPC e2e tests", () => {
                 .where("name", "=", "Admin protected create test")
                 .executeTakeFirstOrThrow();
 
-            expect(software.protections?.dereferencing).toMatchObject({
+            expect(software.protections?.statusChanging).toMatchObject({
                 isProtected: true,
                 reason: "Sensitive catalogue entry",
                 updatedByUserId: adminUser.id
             });
-            expect(software.protections?.dereferencing?.updatedAt).toEqual(expect.any(String));
+            expect(software.protections?.statusChanging?.updatedAt).toEqual(expect.any(String));
         });
 
         it("prevents non-admins from unreferencing protected software", async () => {
@@ -734,7 +735,7 @@ describe("RPC e2e tests", () => {
             ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
             const softwareId = await insertSoftwareWithProtections({
                 name: "Unreference protection test",
-                protections: { dereferencing: { isProtected: true } }
+                protections: { statusChanging: { isProtected: true } }
             });
 
             await expect(apiCaller.unreferenceSoftware({ softwareId, reason: "Remove it" })).rejects.toThrow(
@@ -748,7 +749,7 @@ describe("RPC e2e tests", () => {
             ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
             const softwareId = await insertSoftwareWithProtections({
                 name: "Admin unreference test",
-                protections: { dereferencing: { isProtected: true } }
+                protections: { statusChanging: { isProtected: true } }
             });
 
             await apiCaller.unreferenceSoftware({ softwareId, reason: "Admin removal" });
@@ -759,9 +760,9 @@ describe("RPC e2e tests", () => {
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();
 
-            expect(software.dereferencing).toMatchObject({
+            expect(software.status.changed).toMatchObject({
                 reason: "Admin removal",
-                dereferencedByUserId: adminUser.id
+                changedByUserId: adminUser.id
             });
         });
 
@@ -778,14 +779,14 @@ describe("RPC e2e tests", () => {
                         externalIdForSource: undefined,
                         similarSoftwareExternalDataItems: [],
                         protections: {
-                            dereferencing: {
+                            statusChanging: {
                                 isProtected: true,
                                 reason: "   "
                             }
                         }
                     })
                 })
-            ).rejects.toThrow("Protected software requires a dereferencing protection reason");
+            ).rejects.toThrow("Protected software requires a statusChanging protection reason");
         });
 
         it("prevents non-admins from lifting protections through software updates", async () => {
@@ -794,7 +795,7 @@ describe("RPC e2e tests", () => {
             ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
             const softwareId = await insertSoftwareWithProtections({
                 name: "Protection strip test",
-                protections: { dereferencing: { isProtected: true } }
+                protections: { statusChanging: { isProtected: true } }
             });
 
             await apiCaller.updateSoftware({
@@ -804,7 +805,7 @@ describe("RPC e2e tests", () => {
                     name: "Protection strip test",
                     similarSoftwareExternalDataItems: [],
                     protections: {
-                        dereferencing: {
+                        statusChanging: {
                             isProtected: false,
                             reason: null
                         }
@@ -818,7 +819,7 @@ describe("RPC e2e tests", () => {
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();
 
-            expect(software.protections?.dereferencing).toMatchObject({
+            expect(software.protections?.statusChanging).toMatchObject({
                 isProtected: true,
                 reason: "Sensitive catalogue entry"
             });
@@ -1026,7 +1027,6 @@ describe("RPC e2e tests", () => {
                         "isPresentInSupportContract": softwareFormData.customAttributes?.isPresentInSupportContract
                     },
                     "name": softwareFormData.name,
-                    "isStillInObservation": false,
                     "id": expect.any(Number),
                     "addedByUserId": user.id
                 });

@@ -14,7 +14,9 @@ export type {
     ScholarlyArticle,
     RepoMetadata,
     SourceCategory,
-    UserRole
+    UserRole,
+    Status,
+    SoftwareCatalogueStatusNames
 } from "../core/adapters/dbApi/kysely/kysely.database";
 
 export type {
