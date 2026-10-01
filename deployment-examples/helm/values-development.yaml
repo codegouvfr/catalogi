@@ -23,6 +23,13 @@ api:
     tag: "latest"
     pullPolicy: Always
   env:
+    # Required by the API at startup. Use your own OIDC provider.
+    OIDC_ISSUER_URI: "https://auth.yourdomain.com/realms/catalogi"
+    OIDC_CLIENT_ID: "catalogi"
+    OIDC_CLIENT_SECRET: "change-this-in-production"
+    OIDC_MANAGE_PROFILE_URL: "https://auth.yourdomain.com/realms/catalogi/account"
+    # Must match the public browser URL of the instance.
+    APP_URL: "http://catalogi.local"
     CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com"
 
   # Lower resource requirements
@@ -91,13 +98,14 @@ adminer:
     repository: adminer
     tag: "latest"
 
-# Development customization
-# Disabled by default. Enable only with a uiConfig matching the current schema.
+# Development customization: custom translations only.
+# The UI configuration is edited from Administration → Interface configuration.
 customization:
   enabled: false
   translations:
     en: |-
       {
-        "welcome": "Development Environment",
-        "description": "This is a development instance"
+        "home": {
+          "title": "Development Environment"
+        }
       }

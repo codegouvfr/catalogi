@@ -238,10 +238,30 @@ Catalogi is configured using Helm values. You can find examples in `deployment-e
 | `api.env.OIDC_MANAGE_PROFILE_URL`           | User profile management URL.                                                                                                            | must be set                 |
 | `database.password`                         | Database password.                                                                                                                      | `change-this-in-production` |
 | `postgresql.enabled`                        | Use the built-in PostgreSQL chart.                                                                                                      | `true`                      |
+| `web.env`                                   | Runtime variables of the web image, such as `VITE_HEAD`, `VITE_CSP`, `ENVIRONMENT` or `SENTRY_DSN_WEB`.                                 | `{}`                        |
 | `customization.enabled`                     | Enable the ConfigMap used for custom translations and the optional legacy UI configuration import.                                      | `false`                     |
+| `customization.translations`                | Custom `en` and `fr` translations, merged with the default ones.                                                                        | example `home.title`        |
+| `customization.uiConfig`                    | Legacy `ui-config.json` content, imported once by the database migration. Leave empty for new installations.                            | `""`                        |
 | `customization.legacyUiConfigImportEnabled` | Mount `customization.uiConfig` for the one-time database migration. Disable it after verifying the import; translations remain mounted. | `true`                      |
 
 **Note:** the API validates required environment variables at startup. Missing OIDC variables or `APP_URL` make the API pod crash before serving traffic.
+
+---
+
+## Customization
+
+### UI configuration
+
+The UI configuration is stored in PostgreSQL and edited from **Administration → Interface configuration**.
+
+- **New installation**: leave `customization.uiConfig` empty. The database migration inserts a standard configuration, which administrators then edit from the administration page.
+- **Upgrading an installation that used `customization.uiConfig`**: keep the previous `customization.uiConfig` value and `customization.enabled: true` for the first startup of the new version. The migration imports it once. Verify the imported configuration in the administration page, then set `customization.legacyUiConfigImportEnabled` to `false` or remove `customization.uiConfig`. The imported content must follow the historical format frozen in the migration: keys added since then are rejected and stop the migration.
+
+See [UI Configuration](6-env-variables-and-customization.md#ui-configuration) for details.
+
+### Translations
+
+Set `customization.enabled: true` and provide `customization.translations.en` and `customization.translations.fr`. Only the keys you set override the default translations. See [Translations](6-env-variables-and-customization.md#translations).
 
 ---
 
@@ -360,7 +380,7 @@ To migrate from an existing Docker Compose deployment:
 
 ```bash
 # From your docker-compose directory
-docker-compose exec postgres pg_dump -U db_user db > catalogi-backup.sql
+docker compose exec postgres pg_dump -U catalogi db > catalogi-backup.sql
 ```
 
 ### 2. Deploy Helm chart
@@ -374,13 +394,12 @@ helm install catalogi ./helm-charts/catalogi \
 ### 3. Import data
 
 ```bash
-# Copy backup to pod
-kubectl cp catalogi-backup.sql catalogi/catalogi-postgresql-0:/tmp/
-
 # Restore database
-kubectl exec -n catalogi catalogi-postgresql-0 -- \
-  psql -U catalogi_user catalogi_db < /tmp/catalogi-backup.sql
+kubectl exec -i -n catalogi catalogi-postgresql-0 -- \
+  psql -U catalogi_user catalogi_db < catalogi-backup.sql
 ```
+
+The restored database already contains the UI configuration if the Docker Compose instance had run the `config_ui` migration; otherwise mount its legacy `ui-config.json` as `customization.uiConfig` for the first startup (see [Customization](#customization)).
 
 ### 4. Update configuration
 
@@ -388,7 +407,9 @@ Migrate your Docker Compose environment variables to Helm values:
 
 - `DATABASE_URL` → `database.*` values
 - `OIDC_*` → `api.env.OIDC_*`
-- `VITE_*` → the initial `customization.uiConfig`; after the first startup, edit the UI configuration from the administration page
+- `APP_URL`, `CATALOGI_INITIAL_ADMIN_EMAIL` and the other API variables → `api.env.*`
+- `VITE_*`, `ENVIRONMENT` and `SENTRY_DSN_WEB` → `web.env.*`
+- `customization/translations/*.json` → `customization.translations`
 
 ## Security Considerations
 

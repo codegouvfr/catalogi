@@ -114,7 +114,9 @@ Note: `values-development.yaml` enables the chart-managed ingress. If your contr
 
 ## Customization
 
-The chart supports extensive customization through the `customization` section in values.yaml. See the example files for different configuration patterns.
+The `customization` section of values.yaml mounts custom translations (`customization.translations`). The UI configuration is stored in the database and edited from **Administration → Interface configuration**: leave `customization.uiConfig` empty for a new installation, and only set it to import a legacy `ui-config.json` once when upgrading. See the [Customization section](../../docs/5-deploying-with-kubernetes.md#customization) of the Kubernetes guide.
+
+Runtime variables of the web image (`VITE_HEAD`, `VITE_CSP`, `ENVIRONMENT`, `SENTRY_DSN_WEB`) are set with `web.env`.
 
 ## Monitoring Health
 

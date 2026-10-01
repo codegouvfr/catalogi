@@ -45,11 +45,13 @@ spec:
             periodSeconds: 5
           resources:
             {{- toYaml .Values.web.resources | nindent 12 }}
+          {{- with .Values.web.env }}
           env:
-            - name: API_URL
-              value: "/api"
-            - name: CSP_SCRIPT_SRC
-              value: "'self' 'unsafe-eval' 'unsafe-inline'"
+            {{- range $key, $value := . }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
           {{- if .Values.web.customNginxConfig }}
           volumeMounts:
             - name: nginx-config

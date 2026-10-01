@@ -9,8 +9,8 @@
 
 To run the application in local, you need :
 
-- docker and docker-compose, do setup the database, and local keycloak server.
-- nodejs 22 and pnpm to run the web application (front and back)
+- docker and docker-compose, to set up the database and a local keycloak server.
+- nodejs 24 and pnpm to run the web application (front and back)
 
 1. Clone the repository
 
@@ -31,7 +31,7 @@ pnpm install
 cp .env.sample .env
 ```
 
-Than you should adjust the variables in the `.env`, look at [the different variables here](6-env-variables-and-customization.md) for more details.
+Then you should adjust the variables in the `.env`, look at [the different variables here](6-env-variables-and-customization.md) for more details. To become administrator of your local instance, set `CATALOGI_INITIAL_ADMIN_EMAIL` to the email of a user you create in the local Keycloak (see [Authentication](3.1-authentication.md)).
 
 4. start the local resources with docker-compose
 
@@ -39,13 +39,19 @@ Than you should adjust the variables in the `.env`, look at [the different varia
 docker compose -f docker-compose.resources.yml up --build -d
 ```
 
-5. load the database with some data by running seed
+5. apply the database migrations
+
+```bash
+pnpm db:up
+```
+
+6. load the database with some data by running seed
 
 ```bash
 cd api && pnpm db:seed
 ```
 
-6. start the frontend and backend in dev
+7. start the frontend and backend in dev
 
 ```bash
 pnpm dev # from the root, this will run both the frontend and backend `pnpm dev`
@@ -54,8 +60,8 @@ pnpm dev # from the root, this will run both the frontend and backend `pnpm dev`
 The docker-compose.resources.yml will start:
 
 - a postgres database
-- an adminer instance so that you can access the database with a UI (http://localhost:8082)
-- a keycloak server (http://localhost:8080/) in dev mode, with a default admin user `admin` and password `admin`.
+- an adminer instance so that you can access the database with a UI (http://localhost:8081)
+- a keycloak server (http://localhost:8080/) in dev mode, with a default Keycloak console admin user `admin` and password `admin` (this is not a Catalogi account).
 
 ## Pushing a new version
 
@@ -79,9 +85,9 @@ You can deploy Catalogi with the following methods:
 
 All the source code is hosted on this repository.
 
-The repository is the source code for 3 differents apps :
+The repository is the source code for 3 different apps :
 
-- `/web`: The web application, runs in the browser. The site is here : [https://code.gouv.fr/catalogi](https://code.gouv.fr/catalogi)
+- `/web`: The web application, runs in the browser. For example, the SILL instance is here : [https://code.gouv.fr/sill](https://code.gouv.fr/sill)
 - `/api`: The RPC API consumed by the web application.
 - `/docs`: The documentation. It is hosted on [https://codegouvfr.github.io/catalogi](https://codegouvfr.github.io/catalogi)
 

@@ -25,12 +25,14 @@ If release name contains chart name it will be used as a full name.
 
 {{/*
 Whether the one-time legacy UI configuration import is enabled.
-Old releases do not have this key, notably with helm upgrade --reuse-values;
-absence must therefore retain the compatibility mount.
+Old releases do not have the legacyUiConfigImportEnabled key, notably with helm upgrade --reuse-values;
+absence must therefore retain the compatibility mount. New installations leave uiConfig empty and mount nothing.
 */}}
 {{- define "catalogi.legacyUiConfigImportEnabled" -}}
 {{- $customization := .Values.customization | default dict -}}
-{{- if not (hasKey $customization "legacyUiConfigImportEnabled") -}}
+{{- if not (trim ($customization.uiConfig | default "")) -}}
+false
+{{- else if not (hasKey $customization "legacyUiConfigImportEnabled") -}}
 true
 {{- else if $customization.legacyUiConfigImportEnabled -}}
 true
@@ -148,8 +150,6 @@ API Environment variables
       key: database-url
 - name: API_PORT
   value: "3000"
-- name: EXTERNAL_SOFTWARE_DATA_ORIGIN
-  value: "wikidata"
 {{- range $key, $value := .Values.api.env }}
 - name: {{ $key }}
   value: {{ $value | quote }}

@@ -43,6 +43,13 @@ api:
     tag: "1.50.3" # Pin to specific version
     pullPolicy: IfNotPresent
   env:
+    # Required by the API at startup. Use your own OIDC provider.
+    OIDC_ISSUER_URI: "https://auth.yourdomain.com/realms/catalogi" # CHANGE THIS
+    OIDC_CLIENT_ID: "catalogi" # CHANGE THIS
+    OIDC_CLIENT_SECRET: "change-this-in-production" # CHANGE THIS
+    OIDC_MANAGE_PROFILE_URL: "https://auth.yourdomain.com/realms/catalogi/account" # CHANGE THIS
+    # Must match the public browser URL of the instance.
+    APP_URL: "https://catalogi.yourdomain.com" # CHANGE THIS
     CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com" # CHANGE THIS to the first administrator's OIDC email
 
   # Security hardening
@@ -130,13 +137,15 @@ customization:
   translations:
     en: |-
       {
-        "welcome": "Welcome to our software catalog",
-        "description": "Discover and evaluate open source software"
+        "home": {
+          "title": "Welcome to our software catalog"
+        }
       }
     fr: |-
       {
-        "welcome": "Bienvenue dans notre catalogue logiciel",
-        "description": "Découvrez et évaluez les logiciels open source"
+        "home": {
+          "title": "Bienvenue dans notre catalogue logiciel"
+        }
       }
 
 # Disable adminer in production

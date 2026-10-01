@@ -1,5 +1,5 @@
 {
-    "$schema": "https://raw.githubusercontent.com/codegouvfr/sill/refs/heads/main/api/src/rpc/translations/schema.json",
+    "$schema": "https://raw.githubusercontent.com/codegouvfr/catalogi/refs/heads/main/api/src/rpc/translations/schema.json",
     "home": {
         "title": "This is a custom title"
     }

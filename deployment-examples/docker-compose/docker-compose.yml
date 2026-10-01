@@ -22,7 +22,10 @@ services:
     restart: unless-stopped
     command: pnpm start
     volumes:
-      # Compatibility import: ui-config.json is read once by the config_ui migration.
+      # Custom translations (customization/translations/en.json and fr.json).
+      # The UI configuration is stored in the database and edited in Administration → Interface configuration.
+      # Only place a legacy ui-config.json here when upgrading an existing file-based installation:
+      # it is imported once on the first startup, then must be removed.
       - ./customization:/app/api/dist/src/customization
 
   # this is the background task that will update the database every 4 hours

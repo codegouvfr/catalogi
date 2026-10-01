@@ -54,6 +54,13 @@ web:
 
 api:
   env:
+    # Required by the API at startup. Use your own OIDC provider.
+    OIDC_ISSUER_URI: "https://auth.yourdomain.com/realms/catalogi" # CHANGE THIS
+    OIDC_CLIENT_ID: "catalogi" # CHANGE THIS
+    OIDC_CLIENT_SECRET: "change-this-in-production" # CHANGE THIS
+    OIDC_MANAGE_PROFILE_URL: "https://auth.yourdomain.com/realms/catalogi/account" # CHANGE THIS
+    # Must match the public browser URL of the instance.
+    APP_URL: "https://catalogi.yourdomain.com" # CHANGE THIS
     CATALOGI_INITIAL_ADMIN_EMAIL: "admin@example.com" # CHANGE THIS to the first administrator's OIDC email
   resources:
     limits:

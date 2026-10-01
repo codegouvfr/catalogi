@@ -1,18 +1,8 @@
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import { readInitialUiConfig } from "./adapters/dbApi/kysely/migrations/1781768391060_add-config-ui-table";
-import { uiConfigSchema } from "./uiConfigSchema";
-
-describe("UI configuration deployment examples", () => {
-    it("keeps the Docker Compose compatibility import valid", async () => {
-        const path = resolve(__dirname, "../../../deployment-examples/docker-compose/customization/ui-config.json");
-        const config = JSON.parse(await readFile(path, "utf8"));
-
-        expect(() => uiConfigSchema.parse(config)).not.toThrow();
-    });
-});
 
 describe("legacy UI configuration migration", () => {
     const temporaryDirectories: string[] = [];

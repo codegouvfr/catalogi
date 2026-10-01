@@ -14,15 +14,33 @@ This is a simple example of how to deploy a Catalogi instance, using Docker and 
 
 ## Configure
 
-First, copy the  `.env.sample` and name it `.env` in the root of the project.
+First, copy the `.env.sample` and name it `.env` in this directory.
 
 ```bash
 cp .env.sample .env
 ```
 
-Then, edit the `.env` file to set the environment variables. 
-You can use the default values for dev.
+Then, edit the `.env` file to set the environment variables. The API refuses to start without `APP_URL`, `OIDC_ISSUER_URI`, `OIDC_CLIENT_ID`, `OIDC_CLIENT_SECRET` and `OIDC_MANAGE_PROFILE_URL`. See [Environment Variables and Customization](../../docs/6-env-variables-and-customization.md) for details.
+
+You should pin the `catalogi-api` and `catalogi-web` images to a specific version in `docker-compose.yml` instead of `latest`.
 
 ## Auth Configuration
 
-The deployment uses https://auth.code.gouv.fr as the OIDC provider. It is the original first project using Catalogi, this is why it is used as the default. However, you should use your own OIDC provider (or use Keycloak to create your own).
+The deployment uses https://auth.code.gouv.fr as the OIDC provider. It is the original first project using Catalogi, this is why it is used as the default. However, you should use your own OIDC provider (or use Keycloak to create your own, see [`../keycloak-docker-compose`](../keycloak-docker-compose)).
+
+Set `CATALOGI_INITIAL_ADMIN_EMAIL` to the OIDC email of the first Catalogi administrator. See [Authentication](../../docs/3.1-authentication.md).
+
+## Start
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+The application is then available on http://localhost:8090, and Adminer on http://localhost:8091.
+
+## UI configuration and translations
+
+A new installation does not need any `ui-config.json`: the database migration inserts a standard UI configuration, which administrators edit from **Administration → Interface configuration**.
+
+The `customization` directory is mounted in the API container for custom translations (`customization/translations/en.json` and `fr.json`). Only place a legacy `ui-config.json` there when upgrading an existing file-based installation: it is imported once on the first startup, then must be removed. See [UI Configuration](../../docs/6-env-variables-and-customization.md#ui-configuration).
