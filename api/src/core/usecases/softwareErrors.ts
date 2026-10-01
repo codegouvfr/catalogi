@@ -23,10 +23,10 @@ export class SoftwareEditionProtectedError extends Error {
     }
 }
 
-export class SoftwareDereferencingProtectedError extends Error {
+export class SoftwareChangingStatusProtectedError extends Error {
     constructor() {
-        super("Software is protected from unreferencing");
-        this.name = "SoftwareDereferencingProtectedError";
+        super("Software is protected from changing status");
+        this.name = "SoftwareStatusChangingProtectedError";
     }
 }
 

@@ -7,7 +7,7 @@ import type { GetUser } from "./getUser";
 import type { GetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import type { CreateSoftware } from "./createSoftware";
 import type { UpdateSoftware } from "./updateSoftware";
-import type { UnreferenceSoftware } from "./unreferenceSoftware";
+import type { ChangingCatalogueStatusSoftware } from "./unreferenceSoftware";
 import type { ResolveRepoUrl } from "./resolveRepoUrl";
 import type { AdminSourcesUseCases } from "./adminSources";
 import { ImportFromSource } from "./importFromSource";
@@ -30,7 +30,7 @@ export type UseCases = {
     importFromSource: ImportFromSource;
     createSoftware: CreateSoftware;
     updateSoftware: UpdateSoftware;
-    unreferenceSoftware: UnreferenceSoftware;
+    changingCatalogueStatusSoftware: ChangingCatalogueStatusSoftware;
     resolveRepoUrl: ResolveRepoUrl;
     adminSources: AdminSourcesUseCases;
 };
