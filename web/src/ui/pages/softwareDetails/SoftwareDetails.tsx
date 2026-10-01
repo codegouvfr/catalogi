@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Fragment, useEffect, useMemo } from "react";
@@ -82,8 +82,8 @@ export default function SoftwareDetails(props: Props) {
     };
 
     const canCurrentUserBypassSoftwareProtections = currentUser?.role === "admin";
-    const isDereferencingProtected =
-        software.protections?.dereferencing?.isProtected === true &&
+    const isChangingStatusProtected =
+        software.protections?.statusChanging?.isProtected === true &&
         !canCurrentUserBypassSoftwareProtections;
     const isEditionProtected =
         software.protections?.edition?.isProtected === true &&
@@ -111,7 +111,7 @@ export default function SoftwareDetails(props: Props) {
                     <HeaderDetailCard
                         image={getLogoUrl()}
                         name={software.name}
-                        softwareDereferencing={software.dereferencing}
+                        status={software.status}
                         authors={software.authors}
                         officialWebsite={software.url}
                         documentationWebsite={software.softwareHelp}
@@ -310,7 +310,7 @@ export default function SoftwareDetails(props: Props) {
                             userCount={software.userCount ?? 0}
                         />
                         <div className={classes.buttons}>
-                            {software.dereferencing === undefined && (
+                            {["archived"].includes(software.status.name) && (
                                 <Button
                                     priority="secondary"
                                     disabled={isUnreferencingOngoing}
@@ -320,11 +320,11 @@ export default function SoftwareDetails(props: Props) {
                                             return;
                                         }
 
-                                        if (isDereferencingProtected) {
+                                        if (isChangingStatusProtected) {
                                             openSoftwareProtectionModal({
-                                                type: "dereferencing",
+                                                type: "statusChanging",
                                                 reason: software.protections
-                                                    ?.dereferencing?.reason
+                                                    ?.statusChanging?.reason
                                             });
                                             return;
                                         }
