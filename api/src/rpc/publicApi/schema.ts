@@ -1,4 +1,7 @@
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
+
 import { z } from "zod";
 import { assert, type Equals } from "tsafe/assert";
 import type { SoftwareV2, CatalogV2 } from "./types";
@@ -11,6 +14,16 @@ const localizedString = z
     .openapi("LocalizedString", { example: { fr: "Suite bureautique", en: "Office suite" } });
 const timestamp = z.string().datetime({ offset: true });
 const protection = z.object({ isProtected: z.boolean(), reason: z.string().nullable() });
+
+const schemaStatus = z.object({
+    name: z.enum(["draft", "submitted", "waiting for change", "published", "rejected", "archived"]),
+    changed: z.object({
+        reason: z.string().optional(),
+        time: timestamp,
+        lastRecommendedVersion: z.string().optional(),
+        changedByUserId: z.number()
+    })
+});
 
 export const softwareV2Schema = z
     .object({
@@ -33,22 +46,18 @@ export const softwareV2Schema = z
             .optional(),
         addedTime: timestamp.describe("Date de référencement, au format ISO 8601."),
         updateTime: timestamp.describe("Date de mise à jour de la fiche, au format ISO 8601."),
-        dereferencing: z
-            .object({
-                reason: z.string().optional(),
-                time: timestamp,
-                lastRecommendedVersion: z.string().optional(),
-                dereferencedByUserId: z.number().optional()
-            })
+        status: schemaStatus.describe(
+            "Status du logiciel dns le catalogue. Filtrer les entrées possédant ce champ pour ne garder que les logiciels actifs."
+        ),
+        statusHistory: z
+            .array(schemaStatus)
             .optional()
-            .describe(
-                "Présent si le logiciel est déréférencé. Filtrer les entrées possédant ce champ pour ne garder que les logiciels actifs."
-            ),
+            .describe("Liste des changements de status du logiciel dans le catalogue."),
         customAttributes: z
             .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
             .optional()
             .describe("Attributs propres à l’instance. Les dates sont sérialisées en chaînes ISO 8601."),
-        protections: z.object({ dereferencing: protection.optional(), edition: protection.optional() }).optional(),
+        protections: z.object({ statusChanging: protection.optional(), edition: protection.optional() }).optional(),
         applicationCategories: z.array(z.string()),
         keywords: z.array(
             z.union([

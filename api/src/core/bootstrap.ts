@@ -18,7 +18,7 @@ import { makeGetUser } from "./usecases/getUser";
 import { makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources } from "./usecases/getSoftwareFormAutoFillDataFromExternalAndOtherSources";
 import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
-import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
+import { makeChangingCatalogueStatusSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
 import { makeResolveRepoUrl } from "./usecases/resolveRepoUrl";
 import { makeAdminSources } from "./usecases/adminSources";
@@ -103,7 +103,7 @@ export async function bootstrapCore(
             repositoryCheckCache
         }),
         updateSoftware: makeUpdateSoftware(dbApi),
-        unreferenceSoftware: makeUnreferenceSoftware(dbApi),
+        changingCatalogueStatusSoftware: makeChangingCatalogueStatusSoftware(dbApi),
         adminSources: makeAdminSources({ dbApi }),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
