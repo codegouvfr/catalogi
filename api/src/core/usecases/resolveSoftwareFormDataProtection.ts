@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import type {
@@ -12,10 +12,10 @@ import { ProtectionReasonRequiredError } from "./softwareErrors";
 
 type CurrentUser = { id: number; role: "admin" | "user" };
 
-const protectionKinds = ["dereferencing", "edition"] as const;
+const protectionKinds = ["statusChanging", "edition"] as const;
 
 const reasonRequiredMessages: Record<(typeof protectionKinds)[number], string> = {
-    dereferencing: "Protected software requires a dereferencing protection reason",
+    statusChanging: "Protected software requires a changing status protection reason",
     edition: "Protected software requires an edition protection reason"
 };
 
