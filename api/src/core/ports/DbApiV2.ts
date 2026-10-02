@@ -138,7 +138,11 @@ export interface SoftwareExternalDataRepository {
     }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
     // A software has at most one external data per source category (enforced in DB).
     hasSourceCategory: (params: { softwareId: number; sourceSlug: string }) => Promise<boolean>;
-    getIds: (params: { minuteSkipSince?: number; sourceSlug?: string }) => Promise<
+    getIds: (params: {
+        minuteSkipSince?: number;
+        sourceSlug?: string;
+        catalogStatus?: SoftwareCatalogueStatusNames[];
+    }) => Promise<
         {
             sourceSlug: string;
             externalId: string;
