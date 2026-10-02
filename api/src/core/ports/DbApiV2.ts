@@ -133,7 +133,11 @@ export interface SoftwareExternalDataRepository {
         sourceSlug: string;
         externalId: string;
     }) => Promise<DatabaseDataType.SoftwareExternalDataRow | undefined>;
-    getIds: (params: { minuteSkipSince?: number; sourceSlug?: string }) => Promise<
+    getIds: (params: {
+        minuteSkipSince?: number;
+        sourceSlug?: string;
+        catalogStatus?: SoftwareCatalogueStatusNames[];
+    }) => Promise<
         {
             sourceSlug: string;
             externalId: string;

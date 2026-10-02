@@ -4,7 +4,7 @@
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
-import { Status, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import { SoftwareCatalogueStatusNames, Status, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 import { Source } from "../../lib/ApiTypes";
@@ -27,6 +27,7 @@ export type FetchAndSaveExternalData = (params: {
     sourceSlugs?: string[];
     softwareIdsToRefresh?: number[];
     externalIdsToRefresh?: string[];
+    catalogStatus?: SoftwareCatalogueStatusNames[];
 }) => Promise<boolean>;
 export type FetchAndSaveExternalDataForSoftware = (args: { softwareId: number }) => Promise<boolean>;
 
@@ -382,14 +383,15 @@ export const refreshAllExternalDataBySource = async (args: {
     dbApi: DbApiV2;
     sourceSlugs: string[];
     minuteSkipSince?: number;
+    catalogStatus?: SoftwareCatalogueStatusNames[];
 }) => {
-    const { dbApi, sourceSlugs, minuteSkipSince = 0 } = args;
+    const { dbApi, sourceSlugs, minuteSkipSince = 0, catalogStatus } = args;
 
     if (sourceSlugs?.length && sourceSlugs.length > 0) {
         const sources = await sourceValidators({ dbApi, sourceSlugs });
         const ids = await Promise.all(
             sources.map(source => {
-                return dbApi.softwareExternalData.getIds({ minuteSkipSince, sourceSlug: source.slug });
+                return dbApi.softwareExternalData.getIds({ minuteSkipSince, sourceSlug: source.slug, catalogStatus });
             })
         );
 
@@ -401,10 +403,19 @@ export const refreshAllExternalDataBySource = async (args: {
 };
 
 // Case 4 : Update all (attention no record)
-export const refreshAllExternalData = async (args: { dbApi: DbApiV2; minuteSkipSince?: number }) => {
-    const { dbApi, minuteSkipSince } = args;
+export const refreshAllExternalData = async (args: {
+    dbApi: DbApiV2;
+    minuteSkipSince?: number;
+    catalogStatus?: SoftwareCatalogueStatusNames[];
+}) => {
+    const { dbApi, minuteSkipSince, catalogStatus } = args;
     const sources = await dbApi.source.getAll();
-    return refreshAllExternalDataBySource({ dbApi, sourceSlugs: sources.map(source => source.slug), minuteSkipSince });
+    return refreshAllExternalDataBySource({
+        dbApi,
+        sourceSlugs: sources.map(source => source.slug),
+        minuteSkipSince,
+        catalogStatus
+    });
 };
 
 // Unified args parser that redirect to the expected logic
@@ -416,6 +427,7 @@ export const makeRefreshExternalData = (deps: ParamsOfrefreshExternalDataUseCase
         sourceSlugs?: string[];
         softwareIdsToRefresh?: number[];
         externalIdsToRefresh?: string[];
+        catalogStatus?: SoftwareCatalogueStatusNames[];
     }) => {
         const { sourceSlugs, minuteSkipSince, softwareIdsToRefresh, externalIdsToRefresh } = params;
 
