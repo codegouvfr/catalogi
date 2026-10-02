@@ -281,6 +281,7 @@ export type SoftwareProtections = {
     edition?: SoftwareProtection | undefined;
 };
 
+export const DEFAULT_APP_STATUS: SoftwareCatalogueStatusNames = "published";
 export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published", "waiting for change"];
 export const UPDATED_STATUS: SoftwareCatalogueStatusNames[] = ["submitted", "waiting for change", "published"];
 

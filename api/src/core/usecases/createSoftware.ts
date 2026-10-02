@@ -26,7 +26,12 @@ export const formDataToSoftwareRow = (
         license: softwareForm.license,
         image: softwareForm.image,
         addedTime: new Date().toISOString(),
-        status: { name: "published", changed: { time: new Date().toISOString(), changedByUserId: userId } },
+        status: softwareForm.catalogStatusTarget
+            ? {
+                  name: softwareForm.catalogStatusTarget,
+                  changed: { time: new Date().toISOString(), changedByUserId: userId }
+              }
+            : undefined,
         statusHistory: [],
         isStillInObservation: false,
         operatingSystems: softwareForm.operatingSystems,

@@ -65,7 +65,8 @@ export namespace DatabaseDataType {
     export type SourceRow = TransformRepoToCleanedRow<DatabaseRowOutput.Source>;
 }
 
-export type SoftwareExtrinsicCreation = SoftwareExtrinsicRow & Pick<DatabaseDataType.SoftwareRow, "addedTime">;
+export type SoftwareExtrinsicCreation = Omit<SoftwareExtrinsicRow, "status"> &
+    Pick<DatabaseDataType.SoftwareRow, "addedTime"> & { status: Status | undefined };
 
 export interface SoftwareRepository {
     getFullList: () => Promise<SoftwareInList[]>;

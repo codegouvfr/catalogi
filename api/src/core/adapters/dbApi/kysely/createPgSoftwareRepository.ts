@@ -7,7 +7,7 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../../types";
-import { Database, SHOWN_STATUS, Status, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import { Database, DEFAULT_APP_STATUS, SHOWN_STATUS, Status, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 
@@ -610,6 +610,14 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             const now = new Date().toISOString();
 
+            const statusValid: Status = status ?? {
+                name: DEFAULT_APP_STATUS,
+                changed: {
+                    time: now,
+                    changedByUserId: addedByUserId
+                }
+            };
+
             return db.transaction().execute(async trx => {
                 const { softwareId } = await trx
                     .insertInto("softwares")
@@ -617,7 +625,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         name,
                         addedTime,
                         updateTime: now,
-                        status: JSON.stringify(status),
+                        status: JSON.stringify(statusValid),
                         statusHistory: JSON.stringify(statusHistory ?? []),
                         isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
