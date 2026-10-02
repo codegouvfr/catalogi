@@ -15,6 +15,8 @@ import { gitLabSourceGateway } from "./GitLab";
 import { ExternalDataOriginKind } from "./dbApi/kysely/kysely.database";
 import { rorSourceGateway } from "./ror.org";
 import { rnsrSourceGateway } from "./RNSR";
+import { scanRSourceGateway } from "./scanR";
+import { Source } from "../usecases/readWriteSillData";
 
 const userInputNoGateway = {
     "sourceType": USER_INPUT_SOURCE_SLUG
@@ -69,6 +71,10 @@ export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind,
             if (feature && !Object.hasOwn(rnsrSourceGateway, feature))
                 throw new Error(`rnsrSourceGateway doesn't implemend ${feature}`);
             return rnsrSourceGateway;
+        case "ScanR":
+            if (feature && !Object.hasOwn(scanRSourceGateway, feature))
+                throw new Error(`scanRSourceGateway doesn't implemend ${feature}`);
+            return scanRSourceGateway;
         case USER_INPUT_SOURCE_SLUG:
             if (feature && !Object.hasOwn(userInputNoGateway, feature))
                 throw new Error(
@@ -78,5 +84,20 @@ export const resolveAdapterFromSourceType = (sourceType: ExternalDataOriginKind,
         default:
             const unreachableCase: never = sourceType;
             throw new Error(`Unreachable case: ${unreachableCase}`);
+    }
+};
+
+export const getSupportedIdentifierType = (source: Source): string[] => {
+    switch (source.kind) {
+        case "wikidata":
+            return ["wikidata"];
+        case "ROR":
+            return ["ROR"];
+        case "RNSR":
+            return ["RNSR"];
+        case "ScanR":
+            return ["RNSR", "ROR"];
+        default:
+            return [];
     }
 };
