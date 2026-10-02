@@ -7,10 +7,10 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../../types";
-import { Database, USER_INPUT_SOURCE_SLUG, SchemaOrganization, SchemaPerson } from "./kysely.database";
+import { Database, USER_INPUT_SOURCE_SLUG, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
-import { isSameOrganization, isSamePerson, mergeOrganizations, mergePersons } from "../../../../tools/mergeAndCompare";
+import { isSameOrganization, mergeOrganizations } from "../../../../tools/mergeAndCompare";
 
 const resolveLocalizedField = (extValue: unknown, fallback: string): LocalizedString =>
     extValue ? (extValue as LocalizedString) : ({ fr: fallback } as LocalizedString);
@@ -795,89 +795,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             }));
         },
         // Alternative index
-        getSoftwareIdsByAuthors: async ({ search }) => {
-            type ResultQ = {
-                softwareId: number | null;
-                authors: SchemaOrganization | SchemaPerson;
-            }[];
-            type ResultFunction = {
-                authors: SchemaOrganization | SchemaPerson;
-                softwareIds: number[];
-            };
-            const resultQuery = await db
-                .selectFrom("software_external_datas")
-                .select([
-                    "software_external_datas.softwareId as softwareId",
-                    sql<
-                        SchemaOrganization | SchemaPerson
-                    >`jsonb_array_elements("software_external_datas"."authors")`.as("authors")
-                ])
-                .execute();
-
-            const result: ResultFunction[] = [];
-
-            while (resultQuery.length !== 0) {
-                let personA: ResultFunction = {
-                    authors: resultQuery[0].authors,
-                    softwareIds: [Number(resultQuery[0].softwareId)]
-                };
-                resultQuery.splice(0, 1);
-
-                if (personA.authors["@type"] === "Person") {
-                    resultQuery.reduce(
-                        (
-                            acc: ResultQ,
-                            val: { softwareId: number | null; authors: SchemaOrganization | SchemaPerson },
-                            index: number
-                        ) => {
-                            if (val.authors["@type"] === "Person" && personA.authors["@type"] === "Person") {
-                                if (isSamePerson(val.authors, personA.authors)) {
-                                    personA.authors = mergePersons(personA.authors, val.authors);
-                                    personA.softwareIds.push(Number(val.softwareId));
-                                    resultQuery.splice(index, 1);
-                                }
-                                return acc;
-                            }
-                            // If Orga or not the same
-                            acc.push(val);
-                            return acc;
-                        },
-                        []
-                    );
-                }
-
-                result.push(personA);
-            }
-
-            if (search) {
-                if (search.name) {
-                    const searchCrit = search.name;
-                    result.filter(row => row.authors.name.includes(searchCrit));
-                }
-                if (search.identifier) {
-                    const searchCritValue = search.identifier.value;
-                    if (search.identifier.key) {
-                        const searchCritKey = search.identifier.key;
-                        result.filter(row =>
-                            row.authors.identifiers?.some(
-                                id =>
-                                    id.subjectOf?.additionalType?.includes(searchCritKey) &&
-                                    id.value.includes(searchCritValue)
-                            )
-                        );
-                    } else {
-                        result.filter(row => row.authors.identifiers?.some(id => id.value.includes(searchCritValue)));
-                    }
-                }
-            }
-
-            return result.map(row => {
-                return {
-                    ...row.authors,
-                    producer: row.softwareIds.map(a => a.toString())
-                };
-            });
-        },
         getSoftwareIdsByOrganisation: async ({ search }) => {
             type OrganizationRow = {
                 organization: SchemaOrganization;

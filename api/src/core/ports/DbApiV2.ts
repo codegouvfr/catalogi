@@ -6,8 +6,7 @@ import type {
     Database,
     DatabaseRowOutput,
     ExternalDataOriginKind,
-    SchemaOrganization,
-    SchemaPerson
+    SchemaOrganization
 } from "../adapters/dbApi/kysely/kysely.database";
 import { TransformRepoToCleanedRow } from "../adapters/dbApi/kysely/kysely.utils";
 import type { LocalizedString } from "../ports/GetSoftwareExternalData";
@@ -112,7 +111,6 @@ export interface SoftwareRepository {
         dereferencedByUserId: number;
     }) => Promise<void>;
     // Alternative index
-    getSoftwareIdsByAuthors: (params: { search?: SearchOptions }) => Promise<Array<SchemaPerson | UIOrganization>>;
     getSoftwareIdsByOrganisation: (params: { search?: SearchOptions }) => Promise<Array<UIOrganization>>;
 }
 
