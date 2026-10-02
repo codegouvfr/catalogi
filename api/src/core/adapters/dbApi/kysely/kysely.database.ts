@@ -353,6 +353,7 @@ export const softwareCatalogueStatusNames = [
 
 export type SoftwareCatalogueStatusNames = (typeof softwareCatalogueStatusNames)[number];
 
+export const DEFAULT_APP_STATUS: SoftwareCatalogueStatusNames = "published";
 export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published"];
 export const DROPPED_STATUS: SoftwareCatalogueStatusNames[] = ["rejected", "archived"];
 
