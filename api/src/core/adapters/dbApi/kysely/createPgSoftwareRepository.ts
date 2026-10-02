@@ -7,7 +7,14 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../../types";
-import { Database, DEFAULT_APP_STATUS, SHOWN_STATUS, Status, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import {
+    Database,
+    DEFAULT_APP_STATUS,
+    SHOWN_STATUS,
+    SoftwareCatalogueStatusNames,
+    Status,
+    USER_INPUT_SOURCE_SLUG
+} from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 
@@ -196,13 +203,20 @@ const buildUserInputWriteValues = (
 
 export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareRepository => {
     return {
-        getFullList: async (): Promise<SoftwareInList[]> => {
+        getFullList: async (params?: {
+            catalogSoftwareStatus?: SoftwareCatalogueStatusNames[];
+        }): Promise<SoftwareInList[]> => {
+            const { catalogSoftwareStatus } = params || {};
+
+            const statusToShow =
+                catalogSoftwareStatus && catalogSoftwareStatus.length > 0 ? catalogSoftwareStatus : SHOWN_STATUS;
+
             const [softwareRows, userCountRows, referentCountRows, enrichedSimilarRows, externalRows] =
                 await Promise.all([
                     db
                         .selectFrom("softwares")
                         .selectAll()
-                        .where(sql`status ->> 'name'`, "in", SHOWN_STATUS)
+                        .where(sql`status ->> 'name'`, "in", statusToShow)
                         .orderBy("name", "asc")
                         .execute(),
 

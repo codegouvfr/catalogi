@@ -69,7 +69,7 @@ export type SoftwareExtrinsicCreation = Omit<SoftwareExtrinsicRow, "status"> &
     Pick<DatabaseDataType.SoftwareRow, "addedTime"> & { status: Status | undefined };
 
 export interface SoftwareRepository {
-    getFullList: () => Promise<SoftwareInList[]>;
+    getFullList: (params?: { catalogSoftwareStatus?: SoftwareCatalogueStatusNames[] }) => Promise<SoftwareInList[]>;
     getPublicList: () => Promise<Software[]>;
     getDetails: (softwareId: number) => Promise<SoftwareDetail | undefined>;
     create: (params: {

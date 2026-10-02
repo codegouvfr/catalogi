@@ -34,6 +34,7 @@ import {
     SoftwareEditionProtectedError,
     SoftwareNotFoundError
 } from "../core/usecases/softwareErrors";
+import { SoftwareCatalogueStatusNames, STATUS_LIST } from "../core/adapters/dbApi/kysely/kysely.database";
 
 export type UseCasesUsedOnRouter = Pick<
     UseCases,
@@ -147,9 +148,19 @@ export function createRouter(params: {
             attributeDefinitions: await dbApi.attributeDefinition.getAll()
         })),
         "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
-        "getSoftwareList": loggedProcedure.query(() => {
-            return dbApi.software.getFullList();
-        }),
+        "getSoftwareList": loggedProcedure
+            .input(
+                z
+                    .object({
+                        catalogSoftwareStatus: z.array(
+                            z.enum(STATUS_LIST as [SoftwareCatalogueStatusNames, ...SoftwareCatalogueStatusNames[]])
+                        )
+                    })
+                    .optional()
+            )
+            .query(({ input }) => {
+                return dbApi.software.getFullList({ catalogSoftwareStatus: input?.catalogSoftwareStatus });
+            }),
         "getSoftwareDetails": loggedProcedure
             .input(z.object({ softwareId: z.number() }))
             .query(({ input }) => dbApi.software.getDetails(input.softwareId)),
