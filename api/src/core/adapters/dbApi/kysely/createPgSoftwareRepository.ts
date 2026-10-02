@@ -892,7 +892,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
     FROM
         software_external_datas,
         jsonb_array_elements(software_external_datas.authors) AS author
-        
+    WHERE
+        software_external_datas."softwareId" IS NOT NULL
         UNION ALL
 
     -- Recursive case: Select parent organizations
