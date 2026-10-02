@@ -11,6 +11,7 @@ import {
     SchemaOrganization,
     SchemaPerson,
     ScholarlyArticle,
+    SoftwareCatalogueStatusNames,
     Status,
     UserRole
 } from "../../adapters/dbApi/kysely/kysely.database";
@@ -148,6 +149,7 @@ export type SoftwareFormData = {
     softwareHelp: string | null;
     latestVersion: { version: string | null; releaseDate: string | null } | null;
     programmingLanguages?: string[] | undefined;
+    catalogStatusTarget?: SoftwareCatalogueStatusNames | undefined;
 };
 
 export type DeclarationFormData = DeclarationFormData.User | DeclarationFormData.Referent;

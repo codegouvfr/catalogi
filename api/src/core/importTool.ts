@@ -4,7 +4,7 @@
 
 import { Kysely } from "kysely";
 import { createKyselyPgDbApi } from "./adapters/dbApi/kysely/createPgDbApi";
-import { Database } from "./adapters/dbApi/kysely/kysely.database";
+import { Database, SoftwareCatalogueStatusNames } from "./adapters/dbApi/kysely/kysely.database";
 import { DbApiV2 } from "./ports/DbApiV2";
 import { importFromSource } from "./usecases/importFromSource";
 
@@ -17,6 +17,7 @@ type ParamsOfImportTool = {
     botUserEmail: string | undefined;
     sourceSlug: string;
     listToImport?: string[];
+    catalogStatusTarget?: SoftwareCatalogueStatusNames;
 };
 
 const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
@@ -31,7 +32,7 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 };
 
 export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
-    const { dbConfig, botUserEmail, listToImport, sourceSlug } = params;
+    const { dbConfig, botUserEmail, listToImport, sourceSlug, catalogStatusTarget } = params;
 
     const { dbApi } = getDbApiAndInitializeCache(dbConfig);
 
@@ -45,7 +46,12 @@ export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
     const importService = importFromSource(dbApi);
 
     console.time(loggerTime);
-    return importService({ userEmail: botUserEmail, source, softwareIdOnSource: listToImport }).then(result => {
+    return importService({
+        userEmail: botUserEmail,
+        source,
+        softwareIdOnSource: listToImport,
+        catalogStatusTarget
+    }).then(result => {
         console.log(`[Loader:Import] Feeding database with ${result.length} software packages`);
         console.timeEnd(loggerTime);
         return true;

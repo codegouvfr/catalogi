@@ -9,7 +9,7 @@ import { Source } from "./readWriteSillData";
 import { GetSoftwareFormData } from "../ports/GetSoftwareFormData";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { makeZenodoApi } from "../adapters/zenodo/zenodoAPI";
-import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import { SoftwareCatalogueStatusNames, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { formatRecordToSoftwareFormData } from "../adapters/zenodo/getZenodoSoftwareForm";
 import { saveExternalData } from "./refreshExternalData";
 import { formatRecordToExternalData } from "../adapters/zenodo/getZenodoExternalData";
@@ -18,10 +18,11 @@ export type ImportFromSource = (params: {
     userEmail: string;
     source: Source;
     softwareIdOnSource?: string[];
+    catalogStatusTarget?: SoftwareCatalogueStatusNames;
 }) => Promise<number[]>;
 
 export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: DbApiV2) => {
-    return async ({ userEmail, source, softwareIdOnSource }) => {
+    return async ({ userEmail, source, softwareIdOnSource, catalogStatusTarget }) => {
         const sourceGateway = resolveAdapterFromSource(source);
 
         if (!sourceGateway?.software?.getSoftwareForm)
@@ -55,13 +56,14 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                     source,
                     externalId,
                     sourceGateway.software.getSoftwareForm,
-                    userId
+                    userId,
+                    catalogStatusTarget
                 );
                 result.push(newId);
             }
         } else if (["Zenodo"].includes(source.kind)) {
             // Direct import
-            result = await directImportFromSource({ dbApi, source, userId });
+            result = await directImportFromSource({ dbApi, source, userId, catalogStatusTarget });
         }
 
         return result.filter(val => val != undefined);
@@ -97,7 +99,8 @@ const checkSoftware = async (
     source: Source,
     externalId: string,
     getSoftwareForm: GetSoftwareFormData,
-    userId: number
+    userId: number,
+    catalogStatusTarget?: SoftwareCatalogueStatusNames
 ) => {
     // Get software form from source
     const softwareForm = await getSoftwareForm({ externalId, source });
@@ -109,11 +112,16 @@ const checkSoftware = async (
         `[UC:Import] Importing ${softwareForm.name}(${externalId}) from ${source.slug} : Adding software and externalData `
     );
     const createSoftware = makeCreateSofware({ dbApi, withUserInput: false });
-    return createSoftware({ formData: softwareForm, userId });
+    return createSoftware({ formData: { ...softwareForm, catalogStatusTarget }, userId });
 };
 
-const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; userId: number }) => {
-    const { source, dbApi, userId } = params;
+const directImportFromSource = async (params: {
+    dbApi: DbApiV2;
+    source: Source;
+    userId: number;
+    catalogStatusTarget?: SoftwareCatalogueStatusNames;
+}) => {
+    const { source, dbApi, userId, catalogStatusTarget } = params;
     const createSoftware = makeCreateSofware({ dbApi, withUserInput: false });
 
     switch (source.kind) {
@@ -142,7 +150,7 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
                 // Save soft
                 for (const softwareRecord of softwareRecords.hits.hits) {
                     const result = await createSoftware({
-                        formData: formatRecordToSoftwareFormData(softwareRecord, source),
+                        formData: { ...formatRecordToSoftwareFormData(softwareRecord, source), catalogStatusTarget },
                         userId
                     });
 
