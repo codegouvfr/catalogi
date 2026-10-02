@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -62,7 +62,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .select([
             "s.id",
             "s.addedByUserId",
-            "s.dereferencing",
+            "s.status", // TODO#594 SELECT ONLY STATUS
             "s.customAttributes",
             "s.isStillInObservation",
             "s.name",
@@ -82,7 +82,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     id,
                     addedByUserId,
                     similarExternalSoftwares,
-                    dereferencing,
+                    status,
                     customAttributes,
                     users,
                     referents,
@@ -130,7 +130,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData ?? undefined,
                         latestVersion: version,
-                        dereferencing: dereferencing ?? undefined,
+                        status: status,
                         serviceProviders: softwareExternalData?.providers ?? [],
                         similarExternalSoftwares: (similarExternalSoftwares ?? [])
                             .filter(isNotNull)

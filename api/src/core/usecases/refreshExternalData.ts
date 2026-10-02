@@ -4,7 +4,7 @@
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
-import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import { Status, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 import { Source } from "../../lib/ApiTypes";
@@ -17,6 +17,10 @@ type ParamsOfrefreshExternalDataUseCase = {
 const useCaseLogTitle = "[UC.refreshExternalData]";
 const useCaseLogTimer = (source: string, ids: number[]) =>
     `${useCaseLogTitle} ${source} ${ids.toString()} Finished fetching external data`;
+
+const validStatus = (status: Status | undefined) => {
+    return status && ["archived", "rejected"].includes(status.name);
+};
 
 export type FetchAndSaveExternalData = (params: {
     minuteSkipSince?: number;
@@ -79,7 +83,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
         }
 
         const softwareByName = await dbApi.software.getByName({ softwareName: trimmedName });
-        const activeId = softwareByName && softwareByName.dereferencing === undefined ? softwareByName.id : undefined;
+        const activeId = softwareByName && validStatus(softwareByName.status) ? softwareByName.id : undefined;
 
         activeSoftwareIdByNameCache[trimmedName] = activeId;
         return activeId;
@@ -91,7 +95,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
     }): Promise<number> => {
         const discoveredSoftware = await getSoftwareById(link.softwareId);
 
-        if (discoveredSoftware?.dereferencing === undefined) return link.softwareId;
+        if (discoveredSoftware?.status && validStatus(discoveredSoftware.status)) return link.softwareId;
         if (!link.softwareName) return link.softwareId;
 
         const activeSoftwareId = await getActiveSoftwareIdByName(link.softwareName);
@@ -147,8 +151,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                               if (!currentlyLinkedSoftware || !discoveredSoftware) return false;
 
                               return (
-                                  currentlyLinkedSoftware.dereferencing !== undefined &&
-                                  discoveredSoftware.dereferencing === undefined
+                                  validStatus(currentlyLinkedSoftware.status) && !validStatus(discoveredSoftware.status)
                               );
                           })();
 

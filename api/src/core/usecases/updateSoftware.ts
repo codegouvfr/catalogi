@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { DbApiV2, WithUserId } from "../ports/DbApiV2";
@@ -43,7 +43,8 @@ export const makeUpdateSoftware: (dbApi: DbApiV2) => UpdateSoftware =
                 description: formFields.description === null ? null : { fr: formFields.description },
                 license: formFields.license,
                 image: formFields.image,
-                dereferencing: undefined,
+                status: { name: "published", changed: { time: new Date().toISOString(), changedByUserId: userId } },
+                statusHistory: [],
                 isStillInObservation: false,
                 customAttributes: formFields.customAttributes,
                 protections,

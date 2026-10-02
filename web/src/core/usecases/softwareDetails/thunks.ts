@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import type { Thunks } from "core/bootstrap";
@@ -151,14 +151,12 @@ export const thunks = {
 
             dispatch(actions.unreferencingStarted());
 
-            const time = new Date().toISOString();
-
-            await sillApi.unreferenceSoftware({
+            const newStatus = await sillApi.unreferenceSoftware({
                 softwareId: state.software.id,
                 reason
             });
 
-            dispatch(actions.unreferencingCompleted({ reason, time }));
+            dispatch(actions.unreferencingCompleted({ status: newStatus }));
         }
 } satisfies Thunks;
 
@@ -187,7 +185,8 @@ function apiSoftwareToSoftware(params: {
         codeRepositoryUrl,
         latestVersion,
         addedTime,
-        dereferencing,
+        status,
+        statusHistory,
         customAttributes,
         protections,
         similarSoftwares: similarSoftwares_api,
@@ -220,7 +219,8 @@ function apiSoftwareToSoftware(params: {
                   releaseDate: latestVersion.releaseDate
               }
             : undefined,
-        dereferencing,
+        status,
+        statusHistory,
         providers: providers ?? [],
         referentCount: Object.values(userAndReferentCountByOrganization)
             .map(({ referentCount }) => referentCount)

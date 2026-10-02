@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -30,7 +30,7 @@ import { sanitizeSoftwareFormDataCustomAttributes } from "../core/usecases/sanit
 import {
     ProtectionReasonRequiredError,
     SoftwareAlreadyExistsError,
-    SoftwareDereferencingProtectedError,
+    SoftwareChangingStatusProtectedError,
     SoftwareEditionProtectedError,
     SoftwareNotFoundError
 } from "../core/usecases/softwareErrors";
@@ -41,7 +41,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "getSoftwareFormAutoFillDataFromExternalAndOtherSources"
     | "createSoftware"
     | "updateSoftware"
-    | "unreferenceSoftware"
+    | "changingCatalogueStatusSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
     | "auth"
 >;
@@ -481,7 +481,8 @@ export function createRouter(params: {
                 const { softwareId, reason } = input;
 
                 try {
-                    await useCases.unreferenceSoftware({
+                    return useCases.changingCatalogueStatusSoftware({
+                        statusName: "archived",
                         softwareId,
                         reason,
                         userId: currentUser.id,
@@ -491,7 +492,7 @@ export function createRouter(params: {
                     if (e instanceof SoftwareNotFoundError) {
                         throw new TRPCError({ "code": "NOT_FOUND", "message": e.message });
                     }
-                    if (e instanceof SoftwareDereferencingProtectedError) {
+                    if (e instanceof SoftwareChangingStatusProtectedError) {
                         throw new TRPCError({ "code": "FORBIDDEN", "message": e.message });
                     }
                     throw e;
@@ -604,7 +605,7 @@ const zSoftwareFormData = (() => {
         "customAttributes": z.record(z.string(), z.any()).optional(),
         "protections": z
             .object({
-                "dereferencing": z
+                "statusChanging": z
                     .object({
                         "isProtected": z.boolean(),
                         "reason": z.string().nullable()
