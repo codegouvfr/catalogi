@@ -464,7 +464,7 @@ describe("fetches software extra data (from different providers)", () => {
                     sourceSlug: source.slug,
                     softwareId: apacheSoftwareId,
                     externalId: "Q11354",
-                    isLibreSoftware: false,
+                    isLibreSoftware: true,
                     keywords: [],
                     name: "Apache HTTP Server",
                     license: "Apache License v2.0",
