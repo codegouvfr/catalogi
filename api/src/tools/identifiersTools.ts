@@ -6,7 +6,7 @@ import { ArticleIdentifier, SchemaIdentifier, WebSite } from "../core/adapters/d
 import { repoURlclean } from "./repoAnalyser";
 
 const cnllSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Union des entreprises du logiciel libre et du numérique ouvert",
     url: new URL("https://cnll.fr"),
     additionalType: "cnll"
@@ -15,96 +15,96 @@ const cnllSource: WebSite = {
 const framaLibreSource: WebSite = {
     url: new URL("https://framalibre.org"),
     name: "FramaLibre Official instance",
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     additionalType: "FramaLibre"
 };
 
 export const doiSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "DOI instance",
     url: new URL("https://doi.org"),
     additionalType: "doi"
 };
 
 const halSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "HAL main instance",
     url: new URL("https://hal.science"),
     additionalType: "HAL"
 };
 
 const wikidataSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Wikidata",
     url: new URL("https://www.wikidata.org"),
     additionalType: "wikidata"
 };
 
 const cdlSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Comptoir du libre",
     url: new URL("https://comptoir-du-libre.org"),
     additionalType: "ComptoirDuLibre"
 };
 
 const swhSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Software Heritage instance",
     url: new URL("https://www.softwareheritage.org/"),
     additionalType: "SWH"
 };
 
 const orcidSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Open Researcher and Contributor ID",
     url: new URL("https://orcid.org/"),
     additionalType: "ORCID"
 };
 
 const gitHubSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
     url: new URL("https://github.com/"),
     additionalType: "GitHub"
 };
 
 const nationalSIREN: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "L’Annuaire des Entreprises",
     url: new URL("https://annuaire-entreprises.data.gouv.fr"),
     additionalType: "SIREN"
 };
 
 const zenodoSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Zenodo",
     url: new URL("https://zenodo.org/"),
     additionalType: "Zenodo"
 };
 
 const twitterSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Twitter",
     url: new URL("https://x.com/"),
     additionalType: "Twitter"
 };
 
 const gravatarSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Gravatar",
     url: new URL("https://gravatar.com/"),
     additionalType: "Gravatar"
 };
 
 const rorSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Research Organization Registry",
     url: new URL("https://ror.org/"),
     additionalType: "ROR"
 };
 
 const rnsrSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Répertoire national des structures de recherche",
     url: new URL("https://www.data.gouv.fr/datasets/repertoire-national-des-structures-de-recherche-rnsr"),
     additionalType: "RNSR"
@@ -112,21 +112,21 @@ const rnsrSource: WebSite = {
 
 type CrossRefType = "fundref";
 const crossRefSource: WebSite = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "One of the official Identifier Registration Agencies",
     url: new URL("https://www.crossref.org"),
     additionalType: "CROSSREF"
 };
 
 const gridSource = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "Global Research Identifier Database",
     url: new URL("https://www.grid.ac"),
     additionalType: "GRID"
 };
 
 const insiSource = {
-    "@type": "Website" as const,
+    "@type": "WebSite" as const,
     name: "International Standard Name Identifier",
     url: new URL("https://insi.org"),
     additionalType: "INSI"
@@ -300,7 +300,7 @@ export const identifersUtils = {
             ...(projectName ? { valueReference: projectName } : {}),
             url: `${gitLabUrl}/${projectName}`,
             subjectOf: {
-                "@type": "Website" as const,
+                "@type": "WebSite" as const,
                 name: "GitLab instance",
                 url: new URL(gitLabUrl),
                 additionalType: "GitLab"
@@ -316,7 +316,7 @@ export const identifersUtils = {
             valueReference: userId.toString(),
             url: `${gitLabUrl}/${username}`, // TODO TO check
             subjectOf: {
-                "@type": "Website" as const,
+                "@type": "WebSite" as const,
                 name: "GitLab instance",
                 url: new URL(gitLabUrl),
                 additionalType: "GitLab"

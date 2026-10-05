@@ -79,7 +79,7 @@ export type SchemaPerson = {
 
 // from https://schema.org/WebSite
 export type WebSite = {
-    "@type": "Website";
+    "@type": "WebSite";
     name: string; // Name of the website or database
     description?: string;
     url: URL; // Name of the website or database

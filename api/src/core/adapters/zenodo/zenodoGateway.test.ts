@@ -25,7 +25,7 @@ const admtoolsSoftware = {
                     value: "0000-0003-1559-1838",
                     url: "https://orcid.org/0000-0003-1559-1838",
                     subjectOf: {
-                        "@type": "Website",
+                        "@type": "WebSite",
                         name: "Open Researcher and Contributor ID",
                         url: new URL("https://orcid.org/"),
                         additionalType: "ORCID"
@@ -61,7 +61,7 @@ const admtoolsSoftware = {
             value: "15479049",
             url: "htpps://zenodo.org/records/15479049",
             subjectOf: {
-                "@type": "Website",
+                "@type": "WebSite",
                 name: "Zenodo",
                 url: new URL("https://zenodo.org/"),
                 additionalType: "Zenodo"
@@ -74,7 +74,7 @@ const admtoolsSoftware = {
             url: new URL("https://doi.org/10.5281/zenodo.15479049"),
             value: "10.5281/zenodo.15479049",
             subjectOf: {
-                "@type": "Website",
+                "@type": "WebSite",
                 name: "DOI instance",
                 url: new URL("https://doi.org/"),
                 additionalType: "doi"
@@ -85,7 +85,7 @@ const admtoolsSoftware = {
             value: "swh:1:dir:8cec52058a668952ac710eff0c9987f550e4404d;origin=https://doi.org/10.5281/zenodo.10213587;visit=swh:1:snp:11cd97b84512b417ce6ecc6b1eae3d358d918bbb;anchor=swh:1:rel:27ef645123e587f8126f6cf814ef5c0ae537500a;path=MindTheGap-ERC-admtools-be5d1ac",
             url: undefined,
             subjectOf: {
-                "@type": "Website",
+                "@type": "WebSite",
                 name: "Software Heritage instance",
                 url: new URL("https://www.softwareheritage.org/"),
                 additionalType: "SWH"

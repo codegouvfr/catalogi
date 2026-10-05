@@ -28,7 +28,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
                 "@type": "PropertyValue",
                 "additionalType": "Organization",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "ROR",
                     "name": "Research Organization Registry",
                     "url": new URL("https://ror.org/")
@@ -40,7 +40,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
                 "@type": "PropertyValue",
                 "additionalType": "fundref",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "CROSSREF",
                     "name": "One of the official Identifier Registration Agencies",
                     "url": new URL("https://www.crossref.org/")
@@ -51,7 +51,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
             {
                 "@type": "PropertyValue",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "GRID",
                     "name": "Global Research Identifier Database",
                     "url": new URL("https://www.grid.ac/")
@@ -61,7 +61,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
             {
                 "@type": "PropertyValue",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "INSI",
                     "name": "International Standard Name Identifier",
                     "url": new URL("https://insi.org/")
@@ -73,7 +73,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
                 "@type": "PropertyValue",
                 "name": "ID on Wikidata",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "wikidata",
                     "name": "Wikidata",
                     "url": new URL("https://www.wikidata.org/")
@@ -100,7 +100,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
                 "@type": "PropertyValue",
                 "additionalType": "Organization",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "ROR",
                     "name": "Research Organization Registry",
                     "url": new URL("https://ror.org/")
@@ -111,7 +111,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
             {
                 "@type": "PropertyValue",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "GRID",
                     "name": "Global Research Identifier Database",
                     "url": new URL("https://www.grid.ac/")
@@ -121,7 +121,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
             {
                 "@type": "PropertyValue",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "INSI",
                     "name": "International Standard Name Identifier",
                     "url": new URL("https://insi.org/")
@@ -133,7 +133,7 @@ describe("fetchRorOrganizationById - Integration Tests", () => {
                 "@type": "PropertyValue",
                 "name": "ID on Wikidata",
                 "subjectOf": {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "wikidata",
                     "name": "Wikidata",
                     "url": new URL("https://www.wikidata.org/")

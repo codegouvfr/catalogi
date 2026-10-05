@@ -285,7 +285,7 @@ describe("fetches software extra data (from different providers)", () => {
                             "additionalType": "Software",
                             "name": "ID on Wikidata",
                             "subjectOf": {
-                                "@type": "Website",
+                                "@type": "WebSite",
                                 "additionalType": "wikidata",
                                 "name": "Wikidata",
                                 "url": new URL("https://www.wikidata.org/")
@@ -297,7 +297,7 @@ describe("fetches software extra data (from different providers)", () => {
                             "@type": "PropertyValue",
                             "additionalType": "Repo",
                             "subjectOf": {
-                                "@type": "Website",
+                                "@type": "WebSite",
                                 "additionalType": "GitHub",
                                 "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
                                 "url": new URL("https://github.com/")
@@ -359,7 +359,7 @@ describe("fetches software extra data (from different providers)", () => {
                             "additionalType": "Software",
                             "name": "ID on Wikidata",
                             "subjectOf": {
-                                "@type": "Website",
+                                "@type": "WebSite",
                                 "additionalType": "wikidata",
                                 "name": "Wikidata",
                                 "url": new URL("https://www.wikidata.org/")
@@ -371,7 +371,7 @@ describe("fetches software extra data (from different providers)", () => {
                             "@type": "PropertyValue",
                             "additionalType": "Repo",
                             "subjectOf": {
-                                "@type": "Website",
+                                "@type": "WebSite",
                                 "additionalType": "GitHub",
                                 "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
                                 "url": new URL("https://github.com/")
@@ -447,7 +447,7 @@ describe("fetches software extra data (from different providers)", () => {
                                     "additionalType": "Organization",
                                     "name": "ID on Wikidata",
                                     "subjectOf": {
-                                        "@type": "Website",
+                                        "@type": "WebSite",
                                         "additionalType": "wikidata",
                                         "name": "Wikidata",
                                         "url": new URL("https://www.wikidata.org/")
