@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Generated, JSONColumnType } from "kysely";
@@ -277,8 +277,29 @@ export type SoftwareProtection = {
 };
 
 export type SoftwareProtections = {
-    dereferencing?: SoftwareProtection | undefined;
+    statusChanging?: SoftwareProtection | undefined;
     edition?: SoftwareProtection | undefined;
+};
+
+export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published", "waiting for change"];
+export const UPDATED_STATUS: SoftwareCatalogueStatusNames[] = ["submitted", "waiting for change", "published"];
+
+export type SoftwareCatalogueStatusNames =
+    | "draft"
+    | "submitted"
+    | "waiting for change"
+    | "published"
+    | "rejected"
+    | "archived";
+
+export type Status = {
+    name: SoftwareCatalogueStatusNames;
+    changed: {
+        reason?: string;
+        time: string;
+        lastRecommendedVersion?: string;
+        changedByUserId: number;
+    };
 };
 
 type SoftwaresTable = {
@@ -286,12 +307,8 @@ type SoftwaresTable = {
     name: string; // kept: denormalized for ORDER BY and getByName lookups
     addedTime: string;
     updateTime: string;
-    dereferencing: JSONColumnType<{
-        reason?: string;
-        time: string;
-        lastRecommendedVersion?: string;
-        dereferencedByUserId: number;
-    }> | null;
+    status: JSONColumnType<Status>;
+    statusHistory: JSONColumnType<Status[]> | null;
     isStillInObservation: boolean;
     customAttributes: JSONColumnType<Record<string, any>> | null;
     protections: JSONColumnType<SoftwareProtections> | null;
