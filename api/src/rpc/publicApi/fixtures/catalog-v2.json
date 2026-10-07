@@ -77,7 +77,7 @@
                 "subjectOf": {
                     "url": "https://framalibre.org/",
                     "name": "FramaLibre Official instance",
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "FramaLibre"
                 },
                 "additionalType": "Software"
@@ -142,7 +142,7 @@
                 "subjectOf": {
                     "url": "https://www.wikidata.org/",
                     "name": "Wikidata",
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "wikidata"
                 },
                 "additionalType": "Software"
@@ -240,7 +240,7 @@
                 "subjectOf": {
                     "url": "https://www.wikidata.org/",
                     "name": "Wikidata",
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "wikidata"
                 },
                 "additionalType": "Software"

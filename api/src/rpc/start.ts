@@ -27,6 +27,7 @@ import { env } from "../env";
 import { createPublicApiRouter } from "./publicApi/routes";
 import { createOpenApiDocument } from "./publicApi/openapi";
 import type { OidcParams } from "../core/usecases/auth/oidcClient";
+import { softwareDetailsToCodeMeta } from "../tools/codemeta";
 
 const makeGetCatalogiJson = (redirectUrl: string | undefined, dbApi: DbApiV2): Handler => {
     const getMemoizedCompiledData = memoize(() => dbApi.getCompiledDataPrivate(), {
@@ -41,6 +42,33 @@ const makeGetCatalogiJson = (redirectUrl: string | undefined, dbApi: DbApiV2): H
 
         const privateCompiledData = await getMemoizedCompiledData();
         const compiledDataPublicJson = JSON.stringify(compiledDataPrivateToPublic(privateCompiledData));
+
+        res.setHeader("Content-Type", "application/json").send(Buffer.from(compiledDataPublicJson, "utf8"));
+    };
+};
+
+const makeGetCatalogiCodeMetaJson = (redirectUrl: string | undefined, dbApi: DbApiV2): Handler => {
+    const getMemoizedFullListData = memoize(() => dbApi.software.getFullList(), {
+        promise: true,
+        maxAge: 2 * 60 * 60 * 1000 // 2 hours
+    });
+
+    return async (req, res) => {
+        if (redirectUrl !== undefined) {
+            return res.redirect(redirectUrl + req.originalUrl);
+        }
+
+        const privateData = await getMemoizedFullListData();
+
+        const details = (
+            await Promise.all(
+                privateData.map(soft => {
+                    return dbApi.software.getDetails(soft.id);
+                })
+            )
+        ).filter(soft => !!soft);
+
+        const compiledDataPublicJson = JSON.stringify(details.map(softwareDetailsToCodeMeta));
 
         res.setHeader("Content-Type", "application/json").send(Buffer.from(compiledDataPublicJson, "utf8"));
     };
@@ -94,6 +122,7 @@ export async function startRpcService(params: {
     });
 
     const catalogiJsonHandler = makeGetCatalogiJson(redirectUrl, dbApi);
+    const codeMetaJsonHandler = makeGetCatalogiCodeMetaJson(redirectUrl, dbApi);
 
     const app = express();
 
@@ -153,6 +182,7 @@ export async function startRpcService(params: {
             })
         )
         .get(`*/catalogi.json`, catalogiJsonHandler)
+        .get(`*/codemeta.json`, codeMetaJsonHandler)
         // the following is just for backward compatibility
         .get(`*/sill.json`, catalogiJsonHandler)
         .use(

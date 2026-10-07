@@ -201,7 +201,7 @@ describe("pgDbApi", () => {
                             additionalType: "Person",
                             name: "ID on Wikidata",
                             subjectOf: {
-                                "@type": "Website" as const,
+                                "@type": "WebSite" as const,
                                 "additionalType": "wikidata",
                                 "name": "Wikidata",
                                 "url": expect.any(String)

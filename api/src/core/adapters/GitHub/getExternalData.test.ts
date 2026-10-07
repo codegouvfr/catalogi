@@ -37,7 +37,7 @@ describe("GitHub Adapter - Get external data", () => {
                 url: "https://github.com/codegouvfr/catalogi",
                 valueReference: "612979682",
                 subjectOf: {
-                    "@type": "Website",
+                    "@type": "WebSite",
                     "additionalType": "GitHub",
                     "name": "GitHub is a proprietary developer platform that allows developers to create, store, manage, and share their code.",
                     "url": new URL("https://github.com/")
