@@ -8,13 +8,13 @@ extendZodWithOpenApi(z);
 
 const websiteSchema = z
     .object({
-        "@type": z.literal("Website"),
+        "@type": z.literal("WebSite"),
         name: z.string(),
         description: z.string().optional(),
         url: z.string(),
         additionalType: z.string().optional()
     })
-    .openapi("Website");
+    .openapi("WebSite");
 
 export const identifierSchema = z
     .object({
