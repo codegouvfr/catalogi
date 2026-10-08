@@ -7,8 +7,19 @@ import { Source } from "../lib/ApiTypes";
 
 export const convertSourceConfigToRequestInit = (sourceConfig: SourceConfig | undefined): RequestInit => {
     if (!sourceConfig) return {};
+    const headers: HeadersInit = {};
+
+    if (sourceConfig.auth) {
+        headers.Authorization = `Bearer ${sourceConfig.auth}`;
+    }
+
+    if (sourceConfig.agent) {
+        headers["User-Agent"] = sourceConfig.agent["User-Agent"];
+        if (sourceConfig.agent.from) headers.from = sourceConfig.agent.from;
+    }
+
     return {
-        ...(sourceConfig.auth ? { headers: { Authorization: `Bearer ${sourceConfig.auth}` } } : {}),
+        headers,
         ...(sourceConfig.queryTimeout ? { signal: AbortSignal.timeout(sourceConfig.queryTimeout) } : {})
     };
 };
