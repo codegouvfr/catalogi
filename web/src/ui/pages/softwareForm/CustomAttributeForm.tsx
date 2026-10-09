@@ -1,6 +1,7 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
+import Tooltip from "@mui/material/Tooltip";
 import type { ApiTypes } from "api";
 import type { NonPostableEvt } from "evt";
 import { useEvt } from "evt/hooks";
@@ -336,9 +337,30 @@ const CustomAttributeFormField = ({
         typeof attributeDefinition.label === "string"
             ? attributeDefinition.label
             : attributeDefinition.label[lang];
+    const description =
+        !attributeDefinition.description ||
+        typeof attributeDefinition.description === "string"
+            ? attributeDefinition.description
+            : attributeDefinition.description[lang];
+    // Mirrors the tooltip already shown for this same attributeDefinition.description
+    // in CustomAttributeDetails.tsx (software details page), so the explanation is
+    // available both when filling the form and when reading the result.
+    const labelWithTooltip = description ? (
+        <>
+            <Tooltip title={description} arrow>
+                <i
+                    className={fr.cx("fr-icon-information-line", "fr-icon--sm", "fr-mr-1v")}
+                    aria-hidden="true"
+                />
+            </Tooltip>
+            {localizedLabel}
+        </>
+    ) : (
+        localizedLabel
+    );
     const label = attributeDefinition.editableByAdminOnly ? (
         <>
-            {localizedLabel}{" "}
+            {labelWithTooltip}{" "}
             <span
                 className={fr.cx(
                     "fr-badge",
@@ -354,7 +376,7 @@ const CustomAttributeFormField = ({
             </span>
         </>
     ) : (
-        localizedLabel
+        labelWithTooltip
     );
     const hintText = attributeDefinition.editableByAdminOnly ? (
         <strong>{t("softwareForm.adminOnlyCustomAttributeHint")}</strong>
