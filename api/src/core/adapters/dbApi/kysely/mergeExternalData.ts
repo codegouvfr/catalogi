@@ -50,6 +50,25 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
         return undefined as Merged[K];
     };
 
+    // Localized texts of external sources are merged per language, so a repository with an
+    // English description doesn't hide the French one of a lower-precedence source. Empty
+    // texts are skipped. A UserInput text is an override and replaces them all.
+    const pickLocalized = (key: "name" | "description"): Merged["name"] => {
+        const merged: Record<string, string> = {};
+        for (const row of rows) {
+            const v = row[key] as string | Record<string, string | undefined> | null | undefined;
+            if (!v) continue;
+            if (typeof v === "string" || row.sourceSlug === USER_INPUT_SOURCE_SLUG) {
+                if (Object.keys(merged).length === 0) return v;
+                continue;
+            }
+            for (const [language, text] of Object.entries(v)) {
+                if (text && !merged[language]) merged[language] = text;
+            }
+        }
+        return (Object.keys(merged).length > 0 ? merged : undefined) as Merged["name"];
+    };
+
     const unionArrays = <T>(key: keyof Merged, dedupeKey: (item: T) => string): T[] => {
         const seen = new Map<string, T>();
         for (const row of rows) {
@@ -83,8 +102,8 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
         sourceSlug: pickScalar("sourceSlug", { skipUserInput: true }),
         sourceCategory: pickScalar("sourceCategory", { skipUserInput: true }),
         softwareId: pickScalar("softwareId"),
-        name: pickScalar("name"),
-        description: pickScalar("description"),
+        name: pickLocalized("name"),
+        description: pickLocalized("description"),
         isLibreSoftware: pickScalar("isLibreSoftware"),
         image: pickScalar("image"),
         url: pickScalar("url"),
