@@ -49,14 +49,15 @@ export const makeImportFromInnerIdentifiers = (
         );
 
         const sources = await dbApi.source.getAll();
-        const sourceUrls = sources.reduce(
+        // Sources are matched by origin: identifiers and sources don't agree on trailing slashes.
+        const slugByOrigin = sources.reduce(
             (acc, source) => {
                 // CNLL is keyed by SILL id, other sources cite its annuaire id (#520).
                 if (source.kind === "CNLL") return acc;
 
-                const newAcc = acc;
-                newAcc[source.url] = source.slug;
-                return newAcc;
+                const origin = URL.parse(source.url)?.origin;
+                if (origin && !acc[origin]) acc[origin] = source.slug;
+                return acc;
             },
             {} as Record<string, string>
         );
@@ -65,9 +66,7 @@ export const makeImportFromInnerIdentifiers = (
 
         // A software has at most one external data per source category.
         const takenCategories = new Set(
-            externalDataList.flatMap(item =>
-                item.softwareId ? [`${item.softwareId}:${categoryBySlug[item.sourceSlug]}`] : []
-            )
+            externalDataList.flatMap(item => (item.softwareId ? [`${item.softwareId}:${item.sourceCategory}`] : []))
         );
 
         // Repositories on a forge instance without source yet get one created on the fly.
@@ -75,7 +74,9 @@ export const makeImportFromInnerIdentifiers = (
             if (!identifier.subjectOf) return undefined;
 
             const url = identifier.subjectOf.url.toString();
-            if (sourceUrls[url]) return sourceUrls[url];
+            const origin = URL.parse(url)?.origin;
+            if (!origin) return undefined;
+            if (slugByOrigin[origin]) return slugByOrigin[origin];
 
             const kind = identifier.subjectOf.additionalType;
             if (identifier.additionalType !== "Repo" || !isForgeKind(kind)) return undefined;
@@ -83,7 +84,7 @@ export const makeImportFromInnerIdentifiers = (
             const source = await ensureForgeSource({ kind, url });
             if (!source) return undefined;
 
-            sourceUrls[url] = source.slug;
+            slugByOrigin[origin] = source.slug;
             categoryBySlug[source.slug] = source.category;
             return source.slug;
         };
