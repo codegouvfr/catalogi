@@ -40,7 +40,7 @@ const seed = async () => {
             description: undefined,
             url: "https://www.wikidata.org/",
             kind: "wikidata",
-            priority: 1,
+            category: "wikidata",
             configuration: undefined,
             lastImport: undefined
         },
@@ -49,7 +49,7 @@ const seed = async () => {
             description: undefined,
             url: "",
             kind: "UserInput",
-            priority: 0,
+            category: "UserInput",
             configuration: undefined,
             lastImport: undefined
         }

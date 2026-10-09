@@ -154,6 +154,12 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
 
                 if (!shouldRebind) continue;
 
+                const isSourceCategoryTaken = await dbApi.softwareExternalData.hasSourceCategory({
+                    softwareId: resolvedSoftwareId,
+                    sourceSlug: source.slug
+                });
+                if (isSourceCategoryTaken) continue;
+
                 await dbApi.softwareExternalData.update({
                     sourceSlug: source.slug,
                     externalId: link.externalId,

@@ -174,12 +174,13 @@ describe("createPgSoftwareRepository", () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
         repository = createPgSoftwareRepository(db);
-        // Seed sources for priority testing
+        // Seed sources for priority testing: priority comes from the source category
+        // (repository ranks before HAL).
         await db
             .insertInto("sources")
             .values([
-                { slug: "high_prio", priority: 2, kind: "wikidata", url: "", description: null },
-                { slug: "low_prio", priority: 3, kind: "wikidata", url: "", description: null }
+                { slug: "high_prio", category: "repository", kind: "GitHub", url: "", description: null },
+                { slug: "low_prio", category: "HAL", kind: "HAL", url: "", description: null }
             ])
             .execute();
     });
@@ -391,6 +392,36 @@ describe("createPgSoftwareRepository", () => {
             // I'll assume standard columns.
 
             expect(details?.externalId).toBe("ext_high"); // High priority external ID
+        });
+
+        it("allows at most one external data per source category for a software", async () => {
+            const softwareId = await insertSoftware(db);
+            await db
+                .insertInto("sources")
+                .values({ slug: "other_forge", category: "repository", kind: "GitLab", url: "", description: null })
+                .execute();
+
+            const insertExternalData = (sourceSlug: string, externalId: string, rowSoftwareId: number | null) =>
+                db
+                    .insertInto("software_external_datas")
+                    .values({ softwareId: rowSoftwareId, sourceSlug, externalId, authors: JSON.stringify([]) })
+                    .execute();
+
+            await insertExternalData("high_prio", "ext_repo", softwareId);
+            const { sourceCategory } = await db
+                .selectFrom("software_external_datas")
+                .select("sourceCategory")
+                .where("externalId", "=", "ext_repo")
+                .executeTakeFirstOrThrow();
+            expect(sourceCategory).toBe("repository");
+
+            await expect(insertExternalData("other_forge", "ext_mirror", softwareId)).rejects.toThrow(
+                "software_external_datas_one_per_source_category"
+            );
+
+            // Rows not attached to a software (similar softwares) are not constrained.
+            await insertExternalData("other_forge", "ext_unattached_1", null);
+            await insertExternalData("other_forge", "ext_unattached_2", null);
         });
 
         it("unions and deduplicates UserInput and external keywords", async () => {

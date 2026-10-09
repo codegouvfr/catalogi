@@ -121,6 +121,7 @@ export type Database = {
     software_external_datas: SoftwareExternalDatasTable;
     softwares__similar_software_external_datas: SimilarExternalSoftwareExternalDataTable;
     sources: SourcesTable;
+    source_categories: SourceCategoriesTable;
     user_sessions: SessionsTable;
     software_attribute_definitions: SoftwareAttributeDefinitionsTable;
     config_ui: ConfigUiTable;
@@ -199,6 +200,36 @@ export type ExternalDataOriginKind =
  * whether you're discriminating on slug (write path) or kind (refresh/import paths).
  */
 export const USER_INPUT_SOURCE_SLUG = "UserInput" as const;
+
+export type SourceCategory =
+    | "UserInput"
+    | "repository"
+    | "wikidata"
+    | "HAL"
+    | "Zenodo"
+    | "ComptoirDuLibre"
+    | "CNLL"
+    | "ROR"
+    | "RNSR";
+
+/**
+ * Priority is carried by source categories, not by sources: several sources (e.g. one per
+ * GitLab instance) can share a category, and a software has at most one external data per
+ * category (enforced in DB). A category must therefore only group sources that are mutually
+ * exclusive for a given software — never complementary ones such as wikidata and HAL.
+ */
+export const categoryByKind = {
+    UserInput: "UserInput",
+    GitHub: "repository",
+    GitLab: "repository",
+    wikidata: "wikidata",
+    HAL: "HAL",
+    Zenodo: "Zenodo",
+    ComptoirDuLibre: "ComptoirDuLibre",
+    CNLL: "CNLL",
+    ROR: "ROR",
+    RNSR: "RNSR"
+} as const satisfies Record<ExternalDataOriginKind, SourceCategory>;
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
@@ -214,11 +245,17 @@ export type SourceConfig = {
     rateLimitRetryDuration?: number;
 };
 
+type SourceCategoriesTable = {
+    category: SourceCategory;
+    // Lower number = higher precedence in the merge.
+    priority: number;
+};
+
 type SourcesTable = {
     slug: string;
     kind: ExternalDataOriginKind;
+    category: SourceCategory;
     url: string;
-    priority: number;
     description: JSONColumnType<LocalizedString> | null;
     configuration: JSONColumnType<SourceConfig> | null;
     lastImport: Date | null;
@@ -245,6 +282,8 @@ type RuntimePlatform = "cloud" | "mobile" | "desktop";
 export type SoftwareExternalDatasTable = {
     externalId: ExternalId;
     sourceSlug: string;
+    // Copy of sources.category, filled by a DB trigger from sourceSlug.
+    sourceCategory: Generated<SourceCategory>;
     softwareId: number | null;
     authors: JSONColumnType<Array<SchemaOrganization | SchemaPerson>>;
     name: string | JSONColumnType<LocalizedString> | null;

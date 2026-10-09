@@ -224,7 +224,7 @@ describe("fetches software extra data (from different providers)", () => {
             .orderBy("sourceSlug", "asc")
             .execute();
 
-        expectToEqual(updatedSoftwareExternalDatas, initialExternalSoftwarePackagesBeforeFetching);
+        expectToEqual(updatedSoftwareExternalDatas, softwareExternalDatas);
     });
 
     it(
@@ -236,7 +236,7 @@ describe("fetches software extra data (from different providers)", () => {
             const source = await db
                 .selectFrom("sources")
                 .selectAll()
-                .orderBy("priority", "desc")
+                .where("kind", "=", "wikidata")
                 .executeTakeFirstOrThrow();
             if (!source) throw new Error("Source not found");
 
@@ -413,7 +413,7 @@ describe("fetches software extra data (from different providers)", () => {
             const source = await db
                 .selectFrom("sources")
                 .selectAll()
-                .orderBy("priority", "desc")
+                .where("kind", "=", "wikidata")
                 .executeTakeFirstOrThrow();
 
             if (!source) throw new Error("Source not found");

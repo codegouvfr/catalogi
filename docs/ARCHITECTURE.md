@@ -27,7 +27,8 @@ The application architecture has been unified to use `SoftwareInList` as the pri
 
 4.  **Database Layer**
     *   **Repository:** `api/src/core/adapters/dbApi/kysely/createPgSoftwareRepository.ts`
-    *   **Priority Merging:** When fetching software details, external data (from Wikidata, etc.) is merged based on priority. Data from sources with numeric priority `1` (Highest) will overwrite data from sources with priority `10` (Lowest).
+    *   **Source Categories:** Each source belongs to a category derived from its kind (`categoryByKind`; GitHub and GitLab sources are `repository`, one source per forge instance). A software has at most one external data per category, enforced in database.
+    *   **Priority Merging:** When fetching software details, external data is merged based on the priority of its source category (`source_categories.priority`, lower number wins): `UserInput`, then `repository`, then the other categories. Localized texts (name, description) are merged per language.
 
 ### Development Guidelines
 

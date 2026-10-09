@@ -29,9 +29,10 @@ const stringKey = (v: unknown): string => {
 /**
  * Merge rows from different sources describing the same software.
  *
- * Convention: **lower priority number = higher precedence** (wikidata=1 wins over cdl=2).
+ * Convention: **lower priority number = higher precedence** (repository=1 wins over wikidata=2).
+ * Priority belongs to the source category (`source_categories.priority`).
  * **Input must be sorted priority-ascending** (highest precedence first); callers get
- * that ordering from their SQL `ORDER BY s.priority ASC` clause.
+ * that ordering from their SQL `ORDER BY sc.priority ASC` clause.
  *
  * - Scalar fields pick the value from the highest-precedence row that has a non-null value.
  * - Array fields take the UNION across all sources with field-specific dedupe.
@@ -47,6 +48,25 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
             if (v !== null && v !== undefined) return v as Merged[K];
         }
         return undefined as Merged[K];
+    };
+
+    // Localized texts of external sources are merged per language, so a repository with an
+    // English description doesn't hide the French one of a lower-precedence source. Empty
+    // texts are skipped. A UserInput text is an override and replaces them all.
+    const pickLocalized = (key: "name" | "description"): Merged["name"] => {
+        const merged: Record<string, string> = {};
+        for (const row of rows) {
+            const v = row[key] as string | Record<string, string | undefined> | null | undefined;
+            if (!v) continue;
+            if (typeof v === "string" || row.sourceSlug === USER_INPUT_SOURCE_SLUG) {
+                if (Object.keys(merged).length === 0) return v;
+                continue;
+            }
+            for (const [language, text] of Object.entries(v)) {
+                if (text && !merged[language]) merged[language] = text;
+            }
+        }
+        return (Object.keys(merged).length > 0 ? merged : undefined) as Merged["name"];
     };
 
     const unionArrays = <T>(key: keyof Merged, dedupeKey: (item: T) => string): T[] => {
@@ -80,9 +100,10 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
         // Identity fields should come from a real external source, not UserInput.
         externalId: pickScalar("externalId", { skipUserInput: true }),
         sourceSlug: pickScalar("sourceSlug", { skipUserInput: true }),
+        sourceCategory: pickScalar("sourceCategory", { skipUserInput: true }),
         softwareId: pickScalar("softwareId"),
-        name: pickScalar("name"),
-        description: pickScalar("description"),
+        name: pickLocalized("name"),
+        description: pickLocalized("description"),
         isLibreSoftware: pickScalar("isLibreSoftware"),
         image: pickScalar("image"),
         url: pickScalar("url"),
