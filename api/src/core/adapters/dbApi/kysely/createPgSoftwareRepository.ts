@@ -31,6 +31,12 @@ const toSoftwareSourceData = (row: PopulatedExternalData): SoftwareSourceData =>
     };
 };
 
+// Hide never-fetched rows of a source that already has a fetched one (#520).
+const withoutUnfetchedDuplicates = (rows: PopulatedExternalData[]): PopulatedExternalData[] => {
+    const fetchedSlugs = new Set(rows.filter(row => row.lastDataFetchAt).map(row => row.slug));
+    return rows.filter(row => row.lastDataFetchAt || !fetchedSlugs.has(row.slug));
+};
+
 // Audit fields (updatedAt/updatedByUserId) stay server-side: list/details payloads
 // are served to unauthenticated clients.
 const toProtectionsData = (
@@ -508,7 +514,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             // `externalDataRows` is already sorted by priority ASC via the query.
             const populatedExternalRows = externalDataRows.map(row => transformNullToUndefined(row));
             const extData = mergeExternalData(populatedExternalRows);
-            const dataBySource: SoftwareSourceData[] = populatedExternalRows.map(toSoftwareSourceData);
+            const dataBySource: SoftwareSourceData[] =
+                withoutUnfetchedDuplicates(populatedExternalRows).map(toSoftwareSourceData);
 
             const userAndReferentCountByOrganization = [
                 ...userCounts.map(r => ({ ...r, countType: "userCount" as const })),
