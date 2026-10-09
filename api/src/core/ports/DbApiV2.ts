@@ -197,6 +197,10 @@ export interface SourceRepository {
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
+    // Returns the existing source when the slug is already taken, whatever its kind or url.
+    createIfMissing: (
+        params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">
+    ) => Promise<DatabaseDataType.SourceRow>;
     updateLastImport: (params: { name: string; date: Date }) => Promise<boolean>;
 }
 

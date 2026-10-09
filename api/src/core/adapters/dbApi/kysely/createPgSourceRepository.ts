@@ -4,7 +4,7 @@
 
 import { Kysely } from "kysely";
 import { SourceRepository } from "../../../ports/DbApiV2";
-import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import { categoryByKind, Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues } from "./kysely.utils";
 
 export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository => ({
@@ -27,13 +27,15 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .then(row => (row ? stripNullOrUndefinedValues(row) : row)),
     // UserInput is a synthetic source that participates in the merge pipeline but is not
     // fetchable. Exclude it here so callers (e.g. getExternalSoftwareOptions) get a real
-    // gateway-backed source.
+    // gateway-backed source. Repositories can't be searched by name, so they can't be
+    // the main source either.
     getMainSource: async () =>
         db
             .selectFrom("sources")
             .innerJoin("source_categories", "source_categories.category", "sources.category")
             .selectAll("sources")
             .where("slug", "!=", USER_INPUT_SOURCE_SLUG)
+            .where("sources.category", "!=", "repository")
             .orderBy("source_categories.priority", "asc")
             .orderBy("sources.slug", "asc")
             .executeTakeFirstOrThrow()
@@ -46,6 +48,20 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .orderBy("slug", "asc")
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row)),
+    createIfMissing: async ({ slug, kind, url }) => {
+        await db
+            .insertInto("sources")
+            .values({ slug, kind, category: categoryByKind[kind], url, description: null })
+            .onConflict(oc => oc.column("slug").doNothing())
+            .execute();
+
+        return db
+            .selectFrom("sources")
+            .selectAll()
+            .where("slug", "=", slug)
+            .executeTakeFirstOrThrow()
+            .then(row => stripNullOrUndefinedValues(row));
+    },
     updateLastImport: async (params: { name: string; date: Date }) =>
         db
             .updateTable("sources")
