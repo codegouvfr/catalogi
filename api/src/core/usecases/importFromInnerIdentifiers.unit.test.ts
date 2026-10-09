@@ -15,8 +15,8 @@ const makeSource = (source: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "
     ({ category: categoryByKind[source.kind], ...source }) as DatabaseDataType.SourceRow;
 
 const sources = [
-    makeSource({ slug: "comptoir-du-libre", kind: "ComptoirDuLibre", url: "https://comptoir-du-libre.org/" }),
-    makeSource({ slug: "wikidata", kind: "wikidata", url: "https://www.wikidata.org/" }),
+    makeSource({ slug: "comptoir-du-libre", kind: "ComptoirDuLibre", url: "https://comptoir-du-libre.org" }),
+    makeSource({ slug: "wikidata", kind: "wikidata", url: "https://www.wikidata.org" }),
     makeSource({ slug: "cnll", kind: "CNLL", url: "https://cnll.fr/" })
 ];
 
@@ -46,6 +46,7 @@ describe("importFromInnerIdentifiers", () => {
         const { dbApi, saved } = makeDbApi([
             {
                 sourceSlug: "comptoir-du-libre",
+                sourceCategory: "ComptoirDuLibre",
                 externalId: "123",
                 softwareId: nextcloudSoftwareId,
                 identifiers: [
@@ -61,5 +62,22 @@ describe("importFromInnerIdentifiers", () => {
         await makeImportFromInnerIdentifiers({ dbApi })();
 
         expectToEqual(saved, [{ sourceSlug: "wikidata", externalId: "Q25874683", softwareId: nextcloudSoftwareId }]);
+    });
+
+    it("does not register a second external data in a source category the software already has", async () => {
+        const { dbApi, saved } = makeDbApi([
+            { sourceSlug: "wikidata", sourceCategory: "wikidata", externalId: "Q1", softwareId: 1 },
+            {
+                sourceSlug: "comptoir-du-libre",
+                sourceCategory: "ComptoirDuLibre",
+                externalId: "123",
+                softwareId: 1,
+                identifiers: [identifersUtils.makeWikidataIdentifier({ wikidataId: "Q2" })]
+            }
+        ]);
+
+        await makeImportFromInnerIdentifiers({ dbApi })();
+
+        expectToEqual(saved, []);
     });
 });
