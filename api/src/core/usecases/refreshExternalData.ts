@@ -117,13 +117,11 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
             const linksToInsert: { sourceSlug: string; externalId: string; softwareId: number }[] = [];
             let rebindCount = 0;
 
-            // A software keeps one external data per source: a link to a software that already has one is skipped.
+            // A software keeps one external data per source category: a link to a software that already has one is skipped.
             const linkedSoftwareIds = new Set<number>();
-            const isLinkedToSource = async (softwareId: number) => {
-                if (linkedSoftwareIds.has(softwareId)) return true;
-                const rows = await dbApi.softwareExternalData.getBySoftwareId({ softwareId });
-                return (rows ?? []).some(row => row.sourceSlug === source.slug);
-            };
+            const isSourceCategoryTaken = async (softwareId: number) =>
+                linkedSoftwareIds.has(softwareId) ||
+                dbApi.softwareExternalData.hasSourceCategory({ softwareId, sourceSlug: source.slug });
 
             for (const link of links) {
                 const resolvedSoftwareId = await resolveDiscoveredSoftwareId(link);
@@ -133,7 +131,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                 });
 
                 if (existingExternalData?.softwareId === resolvedSoftwareId) continue;
-                if (await isLinkedToSource(resolvedSoftwareId)) continue;
+                if (await isSourceCategoryTaken(resolvedSoftwareId)) continue;
 
                 if (!existingExternalData) {
                     linksToInsert.push({

@@ -27,10 +27,11 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .selectFrom("software_external_datas as ext")
         .selectAll("ext")
         .innerJoin("sources as src", "src.slug", "ext.sourceSlug")
-        .select(["src.kind", "src.priority", "src.url as sourceUrl", "src.slug"])
+        .innerJoin("source_categories as sc", "sc.category", "src.category")
+        .select(["src.kind", "sc.priority", "src.url as sourceUrl", "src.slug"])
         .where("ext.softwareId", "is not", null)
         .orderBy("ext.softwareId", "asc")
-        .orderBy("src.priority", "asc")
+        .orderBy("sc.priority", "asc")
         .execute();
 
     const externalDataBySoftwareId = externalDataRows.reduce(

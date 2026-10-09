@@ -50,7 +50,9 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
                     })
                 )
             )
-            .onConflict(oc => oc.columns(["sourceSlug", "externalId"]).doNothing())
+            // No conflict target: also skips rows that would give a software a second
+            // external data in the same source category.
+            .onConflict(oc => oc.doNothing())
             .executeTakeFirst();
     },
     update: async params => {
@@ -95,6 +97,16 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .where("sourceSlug", "=", sourceSlug)
             .executeTakeFirst()
             .then(row => (row ? cleanDataForExternalData(row) : undefined));
+    },
+    hasSourceCategory: async ({ softwareId, sourceSlug }) => {
+        const row = await db
+            .selectFrom("software_external_datas as ext")
+            .innerJoin("sources as s", "s.category", "ext.sourceCategory")
+            .select("ext.externalId")
+            .where("s.slug", "=", sourceSlug)
+            .where("ext.softwareId", "=", softwareId)
+            .executeTakeFirst();
+        return row !== undefined;
     },
     getIds: async ({ minuteSkipSince, sourceSlug }) => {
         // Skip the `UserInput` pseudo-source: it has no gateway to refresh.
