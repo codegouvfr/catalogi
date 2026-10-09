@@ -222,7 +222,9 @@ export function createSillApi(params: { url: string }): SillApi {
             sillApi.getUiConfig.clear();
 
             return out;
-        }
+        },
+        getSoftwareIdsByOrganisation: params =>
+            trpcClient.getSoftwareIdsByOrganisation.query(params)
     };
 
     return sillApi;
