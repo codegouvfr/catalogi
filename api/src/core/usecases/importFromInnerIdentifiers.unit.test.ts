@@ -6,12 +6,13 @@ import { describe, it } from "vitest";
 import { expectToEqual } from "../../tools/test.helpers";
 import { identifersUtils } from "../../tools/identifiersTools";
 import type { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
+import { categoryByKind } from "../adapters/dbApi/kysely/kysely.database";
 import { makeImportFromInnerIdentifiers } from "./importFromInnerIdentifiers";
 
 type SavedIds = { sourceSlug: string; externalId: string; softwareId?: number };
 
 const makeSource = (source: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">) =>
-    ({ priority: 1, ...source }) as DatabaseDataType.SourceRow;
+    ({ category: categoryByKind[source.kind], ...source }) as DatabaseDataType.SourceRow;
 
 const sources = [
     makeSource({ slug: "comptoir-du-libre", kind: "ComptoirDuLibre", url: "https://comptoir-du-libre.org/" }),

@@ -29,9 +29,10 @@ const stringKey = (v: unknown): string => {
 /**
  * Merge rows from different sources describing the same software.
  *
- * Convention: **lower priority number = higher precedence** (wikidata=1 wins over cdl=2).
+ * Convention: **lower priority number = higher precedence** (repository=1 wins over wikidata=2).
+ * Priority belongs to the source category (`source_categories.priority`).
  * **Input must be sorted priority-ascending** (highest precedence first); callers get
- * that ordering from their SQL `ORDER BY s.priority ASC` clause.
+ * that ordering from their SQL `ORDER BY sc.priority ASC` clause.
  *
  * - Scalar fields pick the value from the highest-precedence row that has a non-null value.
  * - Array fields take the UNION across all sources with field-specific dedupe.
@@ -80,6 +81,7 @@ export const mergeExternalData = (rows: PopulatedExternalData[]): Merged | undef
         // Identity fields should come from a real external source, not UserInput.
         externalId: pickScalar("externalId", { skipUserInput: true }),
         sourceSlug: pickScalar("sourceSlug", { skipUserInput: true }),
+        sourceCategory: pickScalar("sourceCategory", { skipUserInput: true }),
         softwareId: pickScalar("softwareId"),
         name: pickScalar("name"),
         description: pickScalar("description"),

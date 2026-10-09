@@ -187,7 +187,7 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
     });
 
-    it("Import a software with the same name but different external Id, should create a new externalData linked with the saved software package", async () => {
+    it("Import a software with the same name but different external Id from the same source category, should keep the existing externalData only", async () => {
         craSoftwareId = await createSoftware({
             formData: craSoftwareFormData,
             userId
@@ -205,10 +205,14 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareList.length, 1);
 
         const externdalDataList = await db.selectFrom("software_external_datas").selectAll().execute();
-        expectToEqual(externdalDataList.length, 4);
+        expectToEqual(externdalDataList.length, 3);
 
         const externalIdForSoft = await dbApi.softwareExternalData.getBySoftwareId({ softwareId: craSoftwareId });
-        expectToEqual(externalIdForSoft?.length, 3);
+        expectToEqual(externalIdForSoft?.length, 2);
+        expectToEqual(
+            externalIdForSoft?.some(externalData => externalData.externalId === "Q118629388"),
+            false
+        );
     });
 
     it("Insert a software when externalData is already saved with no related software, should not create another externalData and linked the existing one to the new software", async () => {

@@ -156,7 +156,7 @@ export const emptyExternalDataCleaned = (
 
 export const testSource = {
     slug: "wikidata",
-    priority: 1,
+    category: "wikidata",
     url: "https://www.wikidata.org",
     description: undefined,
     kind: "wikidata",
@@ -191,7 +191,7 @@ export const resetDB = async (db: Kysely<Database>) => {
             // synthetic source so the FK is satisfied.
             {
                 slug: "UserInput",
-                priority: 0,
+                category: "UserInput",
                 url: "",
                 description: null,
                 kind: "UserInput" satisfies ExternalDataOriginKind

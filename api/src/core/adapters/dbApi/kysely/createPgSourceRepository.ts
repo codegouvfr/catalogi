@@ -23,7 +23,6 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .selectFrom("sources")
             .selectAll()
             .where("slug", "=", params.name)
-            .orderBy("priority", "asc")
             .executeTakeFirst()
             .then(row => (row ? stripNullOrUndefinedValues(row) : row)),
     // UserInput is a synthetic source that participates in the merge pipeline but is not
@@ -32,9 +31,11 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
     getMainSource: async () =>
         db
             .selectFrom("sources")
-            .selectAll()
+            .innerJoin("source_categories", "source_categories.category", "sources.category")
+            .selectAll("sources")
             .where("slug", "!=", USER_INPUT_SOURCE_SLUG)
-            .orderBy("priority", "asc")
+            .orderBy("source_categories.priority", "asc")
+            .orderBy("sources.slug", "asc")
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row)),
     getWikidataSource: async () =>
@@ -42,7 +43,7 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .selectFrom("sources")
             .selectAll()
             .where("kind", "=", "wikidata")
-            .orderBy("priority", "asc")
+            .orderBy("slug", "asc")
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row)),
     updateLastImport: async (params: { name: string; date: Date }) =>

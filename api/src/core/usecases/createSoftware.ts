@@ -151,7 +151,15 @@ export const makeCreateSofware: (params: { dbApi: DbApiV2; withUserInput: boolea
                 externalId: externalIdForSource
             });
 
-            if (savedExternalData && savedExternalData.softwareId === undefined) {
+            const isSourceCategoryTaken =
+                savedExternalData?.softwareId !== softwareId &&
+                (await dbApi.softwareExternalData.hasSourceCategory({ softwareId, sourceSlug }));
+
+            if (isSourceCategoryTaken) {
+                console.log(
+                    `${logTitle} software #${softwareId} already has external data in the category of ${sourceSlug}, ${externalIdForSource} not bound`
+                );
+            } else if (savedExternalData && savedExternalData.softwareId === undefined) {
                 await dbApi.softwareExternalData.update({
                     sourceSlug,
                     externalId: externalIdForSource,
@@ -160,9 +168,7 @@ export const makeCreateSofware: (params: { dbApi: DbApiV2; withUserInput: boolea
                     softwareExternalData: savedExternalData
                 });
                 console.log(`${logTitle} 💾 ${externalIdForSource} now binded with this software`);
-            }
-
-            if (!savedExternalData) {
+            } else if (!savedExternalData) {
                 await dbApi.softwareExternalData.saveMany([
                     {
                         externalId: externalIdForSource,
