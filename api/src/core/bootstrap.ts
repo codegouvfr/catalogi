@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -20,6 +20,7 @@ import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
+import { makeGetAndFetchSoftwareIdsByAuthorOrganization } from "./usecases/getAuthorOrganization";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -79,6 +80,7 @@ export async function bootstrapCore(
         createSoftware: makeCreateSofware({ dbApi, withUserInput: true }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),
+        getAndFetchSoftwareIdsByAuthorOrganization: makeGetAndFetchSoftwareIdsByAuthorOrganization({ dbApi }),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
             handleAuthCallback: makeHandleAuthCallback({
