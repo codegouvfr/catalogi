@@ -110,6 +110,11 @@ export const formatRecordToExternalData = (
                 url: `https://zenodo.org/records/${recordSoftwareItem.id.toString()}`,
                 additionalType: "Software"
             }),
+            identifersUtils.makeZenodoIdentifer({
+                zenodoId: recordSoftwareItem.conceptdoi.toString(),
+                url: `https://zenodo.org/records/${recordSoftwareItem.conceptdoi.toString()}`,
+                additionalType: "Software"
+            }),
             ...(recordSoftwareItem?.metadata?.doi
                 ? [identifersUtils.makeDOIIdentifier({ doi: recordSoftwareItem.metadata.doi })]
                 : []),
