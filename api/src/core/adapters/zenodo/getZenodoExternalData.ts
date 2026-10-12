@@ -20,28 +20,28 @@ export const getZenodoExternalData: GetSoftwareExternal = memoize(
 
         const zenodoApi = makeZenodoApi(source);
 
-        let record: Zenodo.Record | undefined = undefined;
+        const cleanId = externalId.includes("10.5281") ? externalId.split(".")[1] : externalId;
 
-        if (externalId.includes("10.5281")) {
-            record = await zenodoApi.records.getByDOI(externalId);
-        } else {
-            record = await zenodoApi.records.get(Number(externalId));
+        try {
+            const record = await zenodoApi.records.get(Number(cleanId));
+
+            const communities = await zenodoApi.records.getCommunities(Number(externalId));
+            const communitiesRows = communities?.hits?.hits ?? [];
+
+            if (!record) return undefined;
+            if (record.metadata.resource_type.type !== "software") {
+                console.error(`The record corresponding at ${externalId} is not a software`);
+                return undefined;
+            }
+
+            const formatedExternalData = formatRecordToExternalData(record, communitiesRows, source);
+
+            formatedExternalData.identifiers = await populateFromDOIIdentifiers(formatedExternalData.identifiers ?? []);
+
+            return formatedExternalData;
+        } catch (err) {
+            throw err;
         }
-
-        const communities = await zenodoApi.records.getCommunities(Number(externalId));
-        const communitiesRows = communities?.hits?.hits ?? [];
-
-        if (!record) return undefined;
-        if (record.metadata.resource_type.type !== "software") {
-            console.error(`The record corresponding at ${externalId} is not a software`);
-            return undefined;
-        }
-
-        const formatedExternalData = formatRecordToExternalData(record, communitiesRows, source);
-
-        formatedExternalData.identifiers = await populateFromDOIIdentifiers(formatedExternalData.identifiers ?? []);
-
-        return formatedExternalData;
     }
 );
 
@@ -84,7 +84,7 @@ export const formatRecordToExternalData = (
         sourceSlug: source.slug,
         authors: recordSoftwareItem.metadata.creators.map(creatorToPerson),
         name: { "en": recordSoftwareItem.metadata.title },
-        description: { "en": recordSoftwareItem.metadata.description },
+        description: { "en": recordSoftwareItem.metadata.description ?? "" },
         isLibreSoftware: recordSoftwareItem.metadata.access_right === "open",
         image: undefined,
         url: undefined,
