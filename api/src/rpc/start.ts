@@ -182,7 +182,7 @@ export async function startRpcService(params: {
             })
         )
         .get(`*/catalogi.json`, catalogiJsonHandler)
-        .get(`*/codemeta.json`, codeMetaJsonHandler)
+        .get(`*/codemeta_v3.json`, codeMetaJsonHandler)
         // the following is just for backward compatibility
         .get(`*/sill.json`, catalogiJsonHandler)
         .use(
