@@ -49,7 +49,7 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         const versionCommitSha = repoTags?.[0]?.commit?.sha;
         const lastVersionCommit = versionCommitSha
             ? await gitHubApi.repo.commits.getBySha({
-                  repoUrl: externalId,
+                  repoUrl,
                   commit_sha: versionCommitSha
               })
             : undefined;
