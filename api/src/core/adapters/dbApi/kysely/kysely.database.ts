@@ -208,10 +208,16 @@ type SimilarExternalSoftwareExternalDataTable = {
     sourceSlug: string;
 };
 
+export type BotAgent = {
+    "User-Agent": string;
+    from?: string;
+};
+
 export type SourceConfig = {
     queryTimeout?: number;
     auth?: string;
     rateLimitRetryDuration?: number;
+    agent?: BotAgent;
 };
 
 type SourcesTable = {
