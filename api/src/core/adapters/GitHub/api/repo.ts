@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { Octokit } from "@octokit/rest";
-import { Endpoints } from "@octokit/types";
+import { Endpoints, RequestParameters } from "@octokit/types";
 
 export namespace GitHubAPI {
     export type Commit = Endpoints["GET /repos/{owner}/{repo}/commits/{ref}"]["response"]["data"];
@@ -15,6 +15,9 @@ export namespace GitHubAPI {
     export type SearchRepositories = Endpoints["GET /search/repositories"]["response"]["data"];
     export type SearchRepositoriesItem = Endpoints["GET /search/repositories"]["response"]["data"]["items"][0];
 }
+
+const GITHUB_API_API_TIMEOUT = 60 * 1000;
+const GITHUB_API_LOG = "[GitHubAdapter]";
 
 const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
     let repoUrlObj = typeof repoUrl === "string" ? URL.parse(repoUrl) : repoUrl;
@@ -35,26 +38,50 @@ const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
 export const gitHubEndpointMaker = (params?: { auth?: string }) => {
     const octokit = new Octokit(params?.auth ? { auth: params.auth } : {});
 
+    const apiCall = async (url: string, options: RequestParameters) => {
+        try {
+            const resultApi = await octokit.request(url, options);
+
+            if (resultApi.status === 429 || resultApi.status > 500) {
+                console.debug(`${GITHUB_API_LOG} Got ${resultApi.status} let's take a break for 60s`);
+                await new Promise(resolve => setTimeout(resolve, GITHUB_API_API_TIMEOUT));
+                return apiCall(url, options);
+            }
+
+            const remainingRequests = parseInt(resultApi.headers["x-ratelimit-remaining"] || "0");
+            if (remainingRequests < 50) {
+                const now = new Date().valueOf();
+                const resetTime = parseInt(resultApi.headers["x-ratelimit-reset"] || "0") * 1000; // Convert to ms
+                const timeToWait = resetTime - now;
+                console.debug(
+                    `${GITHUB_API_LOG} Got ${resultApi.status} let's take a break for ${Math.round(timeToWait / 1000)}s`
+                );
+                await new Promise(resolve => setTimeout(resolve, timeToWait));
+                return apiCall(url, options);
+            }
+
+            return resultApi.data;
+        } catch (error) {
+            console.error(error);
+            return undefined;
+        }
+    };
+
     return {
         repo: {
             issues: {
                 getLastClosedIssue: async (params: { repoUrl: string | URL }) => {
-                    try {
-                        const { owner, repo } = parseURL(params.repoUrl);
-                        const resIssues = await octokit.request("GET /repos/{owner}/{repo}/issues", {
-                            owner,
-                            repo,
-                            headers: {
-                                "X-GitHub-Api-Version": "2022-11-28"
-                            },
-                            direction: "desc",
-                            state: "closed"
-                        });
-
-                        return resIssues.data[0];
-                    } catch (error) {
-                        return undefined;
-                    }
+                    const { owner, repo } = parseURL(params.repoUrl);
+                    const url = "GET /repos/{owner}/{repo}/issues";
+                    return apiCall(url, {
+                        owner,
+                        repo,
+                        headers: {
+                            "X-GitHub-Api-Version": "2022-11-28"
+                        },
+                        direction: "desc",
+                        state: "closed"
+                    });
                 }
             },
             commits: {
@@ -62,178 +89,135 @@ export const gitHubEndpointMaker = (params?: { auth?: string }) => {
                     repoUrl: string | URL;
                     commit_sha: string;
                 }): Promise<GitHubAPI.Commit | undefined> => {
-                    try {
-                        const { owner, repo } = parseURL(params.repoUrl);
-                        const resCommit = await octokit.request("GET /repos/{owner}/{repo}/commits/{ref}", {
-                            owner,
-                            repo,
-                            ref: params.commit_sha,
-                            headers: {
-                                "X-GitHub-Api-Version": "2022-11-28"
-                            },
-                            direction: "desc"
-                        });
-                        return resCommit.data;
-                    } catch (error) {
-                        return undefined;
-                    }
+                    const { owner, repo } = parseURL(params.repoUrl);
+                    const url = "GET /repos/{owner}/{repo}/commits/{ref}";
+                    const data = await apiCall(url, {
+                        owner,
+                        repo,
+                        ref: params.commit_sha,
+                        headers: {
+                            "X-GitHub-Api-Version": "2022-11-28"
+                        },
+                        direction: "desc"
+                    });
+                    return data[0];
                 },
                 getLastCommit: async (params: { repoUrl: string | URL }): Promise<GitHubAPI.Commit | undefined> => {
-                    try {
-                        const { owner, repo } = parseURL(params.repoUrl);
-                        const resCommit = await octokit.request("GET /repos/{owner}/{repo}/commits", {
-                            owner,
-                            repo,
-                            headers: {
-                                "X-GitHub-Api-Version": "2022-11-28"
-                            },
-                            direction: "desc"
-                        });
-                        return resCommit.data[0];
-                    } catch (error) {
-                        return undefined;
-                    }
+                    const { owner, repo } = parseURL(params.repoUrl);
+                    const url = "GET /repos/{owner}/{repo}/commits";
+                    const data = await apiCall(url, {
+                        owner,
+                        repo,
+                        headers: {
+                            "X-GitHub-Api-Version": "2022-11-28"
+                        },
+                        direction: "desc"
+                    });
+                    return data[0];
                 }
             },
             mergeRequests: {
                 getLast: async (params: { repoUrl: string | URL }) => {
-                    try {
-                        const { owner, repo } = parseURL(params.repoUrl);
-                        const resPull = await octokit.request("GET /repos/{owner}/{repo}/pulls", {
-                            owner,
-                            repo,
-                            headers: {
-                                "X-GitHub-Api-Version": "2022-11-28"
-                            },
-                            direction: "desc",
-                            state: "closed"
-                        });
-
-                        return resPull.data[0];
-                    } catch (error) {
-                        return undefined;
-                    }
+                    const { owner, repo } = parseURL(params.repoUrl);
+                    const url = "GET /repos/{owner}/{repo}/pulls";
+                    const data = await apiCall(url, {
+                        owner,
+                        repo,
+                        headers: {
+                            "X-GitHub-Api-Version": "2022-11-28"
+                        },
+                        direction: "desc",
+                        state: "closed"
+                    });
+                    return data[0];
                 }
             },
             get: async (params: { repoUrl: string | URL }): Promise<GitHubAPI.Repo | undefined> => {
-                try {
-                    const { owner, repo } = parseURL(params.repoUrl);
-                    const resPull = await octokit.request("GET /repos/{owner}/{repo}", {
-                        owner,
-                        repo,
-                        headers: {
-                            "X-GitHub-Api-Version": "2022-11-28"
-                        }
-                    });
-
-                    return resPull.data;
-                } catch (error) {
-                    return undefined;
-                }
+                const { owner, repo } = parseURL(params.repoUrl);
+                const url = "GET /repos/{owner}/{repo}";
+                return apiCall(url, {
+                    owner,
+                    repo,
+                    headers: {
+                        "X-GitHub-Api-Version": "2022-11-28"
+                    }
+                });
             },
             getContributors: async (params: { repoUrl: string | URL }): Promise<GitHubAPI.Contributors | undefined> => {
-                try {
-                    const { owner, repo } = parseURL(params.repoUrl);
-                    const resPull = await octokit.request("GET /repos/{owner}/{repo}/contributors", {
-                        owner,
-                        repo,
-                        headers: {
-                            "X-GitHub-Api-Version": "2022-11-28"
-                        },
-                        direction: "desc"
-                    });
-
-                    return resPull.data;
-                } catch (error) {
-                    return undefined;
-                }
+                const { owner, repo } = parseURL(params.repoUrl);
+                const url = "GET /repos/{owner}/{repo}/contributors";
+                return apiCall(url, {
+                    owner,
+                    repo,
+                    headers: {
+                        "X-GitHub-Api-Version": "2022-11-28"
+                    },
+                    direction: "desc"
+                });
             },
             getLanguages: async (params: { repoUrl: string | URL }): Promise<GitHubAPI.Languages | undefined> => {
-                try {
-                    const { owner, repo } = parseURL(params.repoUrl);
-                    const resPull = await octokit.request("GET /repos/{owner}/{repo}/languages", {
-                        owner,
-                        repo,
-                        headers: {
-                            "X-GitHub-Api-Version": "2022-11-28"
-                        },
-                        direction: "desc"
-                    });
-
-                    return resPull.data;
-                } catch (error) {
-                    return undefined;
-                }
+                const { owner, repo } = parseURL(params.repoUrl);
+                const url = "GET /repos/{owner}/{repo}/languages";
+                return apiCall(url, {
+                    owner,
+                    repo,
+                    headers: {
+                        "X-GitHub-Api-Version": "2022-11-28"
+                    },
+                    direction: "desc"
+                });
             },
             getTags: async (params: { repoUrl: string | URL }): Promise<GitHubAPI.Tags | undefined> => {
-                try {
-                    const { owner, repo } = parseURL(params.repoUrl);
-                    const resPull = await octokit.request("GET /repos/{owner}/{repo}/tags", {
-                        owner,
-                        repo,
-                        headers: {
-                            "X-GitHub-Api-Version": "2022-11-28"
-                        },
-                        direction: "desc"
-                    });
-
-                    return resPull.data;
-                } catch (error) {
-                    return undefined;
-                }
+                const { owner, repo } = parseURL(params.repoUrl);
+                const url = "GET /repos/{owner}/{repo}/tags";
+                return apiCall(url, {
+                    owner,
+                    repo,
+                    headers: {
+                        "X-GitHub-Api-Version": "2022-11-28"
+                    },
+                    direction: "desc"
+                });
             }
         },
         users: {
             getById: async (account_id: number): Promise<GitHubAPI.User | undefined> => {
-                try {
-                    const resPull = await octokit.request("GET /user/{account_id}", {
-                        account_id,
-                        headers: {
-                            "X-GitHub-Api-Version": "2022-11-28"
-                        },
-                        direction: "desc",
-                        state: "closed"
-                    });
-
-                    return resPull.data;
-                } catch (error) {
-                    return undefined;
-                }
+                const url = "GET /user/{account_id}";
+                return apiCall(url, {
+                    account_id,
+                    headers: {
+                        "X-GitHub-Api-Version": "2022-11-28"
+                    },
+                    direction: "desc",
+                    state: "closed"
+                });
             },
             getByUsername: async (username: string): Promise<GitHubAPI.User | undefined> => {
-                try {
-                    const resPull = await octokit.request("GET /users/{username}", {
-                        username,
-                        headers: {
-                            "X-GitHub-Api-Version": "2022-11-28"
-                        },
-                        direction: "desc",
-                        state: "closed"
-                    });
-
-                    return resPull.data;
-                } catch (error) {
-                    return undefined;
-                }
+                const url = "GET /user/{username}";
+                return apiCall(url, {
+                    username,
+                    headers: {
+                        "X-GitHub-Api-Version": "2022-11-28"
+                    },
+                    direction: "desc",
+                    state: "closed"
+                });
             }
         },
         search: {
             repo: {
                 searchByName: async (name: string): Promise<GitHubAPI.SearchRepositories | undefined> => {
-                    try {
-                        const resPull = await octokit.request(`GET /search/repositories?q=${name} in:name`, {
-                            headers: {
-                                "X-GitHub-Api-Version": "2022-11-28"
-                            },
-                            direction: "desc"
-                        });
+                    const url = `GET /search/repositories?q=${name} in:name`;
+                    const data = await apiCall(url, {
+                        headers: {
+                            "X-GitHub-Api-Version": "2022-11-28"
+                        },
+                        direction: "desc"
+                    });
 
-                        if (resPull.data.total_count === 0) return undefined;
+                    if (data.total_count === 0) return undefined;
 
-                        return resPull.data;
-                    } catch (error) {
-                        return undefined;
-                    }
+                    return data;
                 }
             }
         }
