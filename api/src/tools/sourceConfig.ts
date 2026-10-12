@@ -4,6 +4,7 @@
 
 import { SourceConfig } from "../core/adapters/dbApi/kysely/kysely.database";
 import { Source } from "../lib/ApiTypes";
+import { projectVersion } from "./projectVersion";
 
 export const convertSourceConfigToRequestInit = (sourceConfig: SourceConfig | undefined): RequestInit => {
     if (!sourceConfig) return {};
@@ -16,6 +17,8 @@ export const convertSourceConfigToRequestInit = (sourceConfig: SourceConfig | un
     if (sourceConfig.agent) {
         headers["User-Agent"] = sourceConfig.agent["User-Agent"];
         if (sourceConfig.agent.from) headers.from = sourceConfig.agent.from;
+    } else {
+        headers["User-Agent"] = `Catalogi/${projectVersion} (+https://github.com/codegouvfr/catalogi;`;
     }
 
     return {
