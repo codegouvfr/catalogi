@@ -68,6 +68,14 @@
             }
         ],
         "referencePublications": [],
+        "status": {
+            "name": "published",
+            "changed": {
+                "time": "2018-01-01T00:00:00.000Z",
+                "changedByUserId": 1
+            }
+        },
+        "statusHistory": [],
         "identifiers": [
             {
                 "url": "https://framalibre.org/notices/7-zip",
@@ -99,11 +107,6 @@
         },
         "addedTime": "2025-08-19T13:34:28.432Z",
         "updateTime": "2025-08-19T13:39:05.379Z",
-        "dereferencing": {
-            "reason": "Plateforme gratuite mais code source indisponible",
-            "time": "2025-09-04T09:50:48.708Z",
-            "lastRecommendedVersion": "43.35"
-        },
         "applicationCategories": [],
         "customAttributes": {
             "versionMin": "43.35",
@@ -133,6 +136,16 @@
         "programmingLanguages": ["Python"],
         "providers": [],
         "referencePublications": [],
+        "status": {
+            "name": "archived",
+            "changed": {
+                "changedByUserId": 1,
+                "reason": "Plateforme gratuite mais code source indisponible",
+                "time": "2025-09-04T09:50:48.708Z",
+                "lastRecommendedVersion": "43.35"
+            }
+        },
+        "statusHistory": [],
         "identifiers": [
             {
                 "url": "https://www.wikidata.org/wiki/Q18209310",
@@ -247,6 +260,14 @@
             }
         ],
         "repoMetadata": {},
-        "isLibreSoftware": false
+        "isLibreSoftware": false,
+        "status": {
+            "name": "published",
+            "changed": {
+                "time": "2025-01-05T19:47:18.495Z",
+                "changedByUserId": 1
+            }
+        },
+        "statusHistory": []
     }
 ]
