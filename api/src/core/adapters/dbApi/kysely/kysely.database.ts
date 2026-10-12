@@ -356,6 +356,7 @@ export type SoftwareCatalogueStatusNames = (typeof softwareCatalogueStatusNames)
 export const DEFAULT_APP_STATUS: SoftwareCatalogueStatusNames = "published";
 export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published"];
 export const DROPPED_STATUS: SoftwareCatalogueStatusNames[] = ["rejected", "archived"];
+export const UPDATED_STATUS: SoftwareCatalogueStatusNames[] = ["submitted", "waiting for change", "published"];
 
 export type Status = {
     name: SoftwareCatalogueStatusNames;
