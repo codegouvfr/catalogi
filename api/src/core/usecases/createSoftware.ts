@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2";
@@ -26,7 +26,13 @@ export const formDataToSoftwareRow = (
         license: softwareForm.license,
         image: softwareForm.image,
         addedTime: new Date().toISOString(),
-        dereferencing: undefined,
+        status: softwareForm.catalogStatusTarget
+            ? {
+                  name: softwareForm.catalogStatusTarget,
+                  changed: { time: new Date().toISOString(), changedByUserId: userId }
+              }
+            : undefined,
+        statusHistory: [],
         isStillInObservation: false,
         operatingSystems: softwareForm.operatingSystems,
         runtimePlatforms: softwareForm.runtimePlatforms,
