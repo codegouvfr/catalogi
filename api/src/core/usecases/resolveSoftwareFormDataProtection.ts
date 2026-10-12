@@ -15,7 +15,7 @@ type CurrentUser = { id: number; role: "admin" | "user" };
 const protectionKinds = ["statusChanging", "edition"] as const;
 
 const reasonRequiredMessages: Record<(typeof protectionKinds)[number], string> = {
-    statusChanging: "Protected software requires a changing status protection reason",
+    statusChanging: "Protected software requires a statusChanging protection reason",
     edition: "Protected software requires an edition protection reason"
 };
 
