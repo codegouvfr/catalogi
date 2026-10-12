@@ -284,6 +284,14 @@ export type SoftwareProtections = {
 export const DEFAULT_APP_STATUS: SoftwareCatalogueStatusNames = "published";
 export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published", "waiting for change"];
 export const UPDATED_STATUS: SoftwareCatalogueStatusNames[] = ["submitted", "waiting for change", "published"];
+export const STATUS_LIST: readonly SoftwareCatalogueStatusNames[] = [
+    "draft",
+    "submitted",
+    "waiting for change",
+    "published",
+    "rejected",
+    "archived"
+];
 
 export type SoftwareCatalogueStatusNames =
     | "draft"
