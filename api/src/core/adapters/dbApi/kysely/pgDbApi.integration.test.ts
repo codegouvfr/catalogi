@@ -233,7 +233,7 @@ describe("pgDbApi", () => {
                 referencePublications: [],
                 identifiers: undefined,
                 isLibreSoftware: softwareExternalData.isLibreSoftware,
-                status: { name: "published", changed: { time: new Date().toISOString(), changedByUserId: userId } },
+                status: { name: "published", changed: { time: expect.any(String), changedByUserId: userId } },
                 statusHistory: [],
                 providers: [],
                 similarSoftwares: [

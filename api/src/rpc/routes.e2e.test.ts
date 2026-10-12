@@ -509,7 +509,7 @@ describe("RPC e2e tests", () => {
             });
 
             await expect(apiCaller.unreferenceSoftware({ softwareId, reason: "Remove it" })).rejects.toThrow(
-                "Software is protected from unreferencing"
+                "Software is protected from changing status"
             );
         });
 

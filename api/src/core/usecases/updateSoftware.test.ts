@@ -83,7 +83,7 @@ describe("Create software, than updates it adding a similar software", () => {
         expectToEqual(softwareList.length, 1);
         expectToMatchObject(softwareList[0], {
             "addedByUserId": userId,
-            "status": { name: "published", changed: { time: new Date().toISOString(), changedByUserId: userId } },
+            "status": { name: "published", changed: { time: expect.any(String), changedByUserId: userId } },
             "isStillInObservation": false,
             "name": "Create react app",
             "addedTime": expect.any(String),

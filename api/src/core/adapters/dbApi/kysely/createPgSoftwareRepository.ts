@@ -427,7 +427,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     addedTime: softwareRow.addedTime,
                     updateTime: softwareRow.updateTime,
                     status: softwareRow.status, // TODO Need to format time ?
-                    statusHistory: softwareRow.statusHistory ?? undefined,
+                    statusHistory: softwareRow.statusHistory ?? [],
                     applicationCategories: extData?.applicationCategories ?? [],
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     protections: toProtectionsData(softwareRow.protections),
@@ -558,7 +558,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 addedTime: softwareRow.addedTime,
                 updateTime: softwareRow.updateTime,
                 status: softwareRow.status,
-                statusHistory: softwareRow.statusHistory ?? undefined,
+                statusHistory: softwareRow.statusHistory ?? [],
                 applicationCategories: extData?.applicationCategories ?? [],
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 protections: toProtectionsData(softwareRow.protections),
@@ -597,8 +597,16 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             return row ? stripNullOrUndefinedValues(row) : row;
         },
         create: async ({ software, sourceSlug, externalId }) => {
-            const { name, addedTime, isStillInObservation, status, customAttributes, protections, addedByUserId } =
-                software;
+            const {
+                name,
+                addedTime,
+                isStillInObservation,
+                status,
+                customAttributes,
+                protections,
+                addedByUserId,
+                statusHistory
+            } = software;
 
             const now = new Date().toISOString();
 
@@ -610,6 +618,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         addedTime,
                         updateTime: now,
                         status: JSON.stringify(status),
+                        statusHistory: JSON.stringify(statusHistory ?? []),
                         isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
                         protections: JSON.stringify(protections),

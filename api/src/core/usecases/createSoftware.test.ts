@@ -103,7 +103,7 @@ describe("Create software - Trying all the cases", () => {
         expectToEqual(softwareListFromDb.length, 1);
         expectToMatchObject(softwareListFromDb[0], {
             "addedByUserId": userId,
-            "status": { name: "published", changed: { time: new Date().toISOString(), changedByUserId: userId } },
+            "status": { name: "published", changed: { time: expect.any(String), changedByUserId: userId } },
             "statusHistory": [],
             "isStillInObservation": false,
             "name": "Create react app",
