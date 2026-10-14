@@ -99,8 +99,8 @@ export interface SoftwareRepository {
     changeCatalogStatus: (params: {
         statusName: SoftwareCatalogueStatusNames;
         softwareId: number;
-        reason: string;
-        time: string;
+        reason?: string;
+        time?: string;
         changedByUserId: number;
     }) => Promise<Status>;
 }

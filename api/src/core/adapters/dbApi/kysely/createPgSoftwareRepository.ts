@@ -729,7 +729,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .executeTakeFirstOrThrow();
             return +count;
         },
-        changeCatalogStatus: async ({ softwareId, statusName, reason, time, changedByUserId }) => {
+        changeCatalogStatus: async params => {
+            const now = new Date().toISOString();
+            const { softwareId, statusName, reason, time = now, changedByUserId } = params;
             const row = await db
                 .selectFrom("softwares")
                 .select(["customAttributes", "status", "statusHistory"])

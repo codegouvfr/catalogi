@@ -35,7 +35,7 @@ export async function startImportService(params: {
 
     console.log({ isDevEnvironnement });
 
-    if (catalogStatus && (STATUS_LIST as string[]).includes(catalogStatus))
+    if (catalogStatus && !(STATUS_LIST as string[]).includes(catalogStatus))
         throw new RangeError(`${catalogStatus} is not a recognize software catalogue status`);
 
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
