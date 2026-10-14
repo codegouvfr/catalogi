@@ -13,11 +13,8 @@ import { makeImportFromInnerIdentifiers } from "../core/usecases/importFromInner
 export async function startImportFromInnerIdentifersService(params: {
     isDevEnvironnement: boolean;
     databaseUrl: string;
-    botUserEmail?: string;
-    importDataSourceOrigin: string;
-    listToImport?: string[];
 }) {
-    const { isDevEnvironnement, databaseUrl, botUserEmail, listToImport, importDataSourceOrigin, ...rest } = params;
+    const { isDevEnvironnement, databaseUrl, ...rest } = params;
 
     assert<Equals<typeof rest, {}>>();
 
