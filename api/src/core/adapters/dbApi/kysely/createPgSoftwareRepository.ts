@@ -7,9 +7,10 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../../types";
-import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import { Database, USER_INPUT_SOURCE_SLUG, SchemaOrganization } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
+import { isSameOrganization, mergeOrganizations } from "../../../../tools/mergeAndCompare";
 
 const resolveLocalizedField = (extValue: unknown, fallback: string): LocalizedString =>
     extValue ? (extValue as LocalizedString) : ({ fr: fallback } as LocalizedString);
@@ -799,6 +800,110 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 sourceSlug,
                 softwareId: softwareId ?? undefined
             }));
+        },
+        // Alternative index
+        getSoftwareIdsByOrganisation: async ({ search }) => {
+            type OrganizationRow = {
+                organization: SchemaOrganization;
+                softwareId: number;
+            };
+
+            const test = sql<OrganizationRow>`WITH RECURSIVE FlattenedOrganizations AS (
+    -- Base case: Select the root affiliations
+    SELECT
+        jsonb_array_elements(author->'affiliations') AS orga,
+        software_external_datas."softwareId" AS "softwareId"
+    FROM
+        software_external_datas,
+        jsonb_array_elements(software_external_datas.authors) AS author
+    WHERE
+        software_external_datas."softwareId" IS NOT NULL
+        UNION ALL
+
+    -- Recursive case: Select parent organizations
+    SELECT
+        jsonb_array_elements(fo.orga->'parentOrganizations') AS orga,
+        fo."softwareId"
+    FROM
+        FlattenedOrganizations AS fo
+    WHERE
+        fo.orga->'parentOrganizations' IS NOT NULL
+)
+
+SELECT DISTINCT
+    orga AS organization,
+    "softwareId"
+FROM
+    FlattenedOrganizations;`;
+
+            const resultQuery = await test.execute(db);
+            const resultArray = resultQuery.rows;
+
+            // First innocent iteration
+            const resultMap: Map<string, SchemaOrganization> = resultArray.reduce((map, org) => {
+                const actual = { ...org.organization, producer: [org.softwareId.toString()] };
+                const saved = map.get(org.organization.name);
+                if (!saved) {
+                    map.set(org.organization.name, actual);
+                } else {
+                    const toSet = mergeOrganizations(saved, actual);
+
+                    map.set(org.organization.name, toSet);
+                }
+                return map;
+            }, new Map());
+
+            // Second
+            const keys = Array.from(resultMap.keys());
+            const deduplicatedResultMap = new Map<string, SchemaOrganization>();
+
+            for (let i = 0; i < keys.length; i++) {
+                const currentKey = keys[i];
+                const currentOrg = resultMap.get(currentKey)!;
+
+                let isDuplicate = false;
+
+                for (const [existingKey, existingOrg] of deduplicatedResultMap) {
+                    if (isSameOrganization(currentOrg, existingOrg)) {
+                        const mergedOrg = mergeOrganizations(existingOrg, currentOrg);
+                        deduplicatedResultMap.set(existingKey, mergedOrg);
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+
+                if (!isDuplicate) {
+                    deduplicatedResultMap.set(currentKey, currentOrg);
+                }
+            }
+
+            let sortedArray = Array.from(deduplicatedResultMap.values());
+
+            if (search) {
+                if (search.name) {
+                    const searchCrit = search.name;
+                    sortedArray = sortedArray.filter(row => row.name.toLowerCase().includes(searchCrit.toLowerCase()));
+                }
+                if (search.identifier) {
+                    const searchCritValue = search.identifier.value;
+                    if (search.identifier.key) {
+                        const searchCritKey = search.identifier.key;
+                        sortedArray = sortedArray.filter(row =>
+                            row.identifiers?.some(
+                                id =>
+                                    id.subjectOf?.additionalType?.includes(searchCritKey) &&
+                                    id.value.includes(searchCritValue)
+                            )
+                        );
+                    } else {
+                        sortedArray = sortedArray.filter(row =>
+                            row.identifiers?.some(id => id.value.includes(searchCritValue))
+                        );
+                    }
+                }
+            }
+
+            return sortedArray;
         }
     };
 };
