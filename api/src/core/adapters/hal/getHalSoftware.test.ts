@@ -13,7 +13,7 @@ describe("HAL", () => {
         slug: "hal-science",
         kind: "HAL",
         url: "https://hal.science",
-        priority: 1,
+        category: "HAL",
         description: undefined,
         configuration: undefined,
         lastImport: undefined

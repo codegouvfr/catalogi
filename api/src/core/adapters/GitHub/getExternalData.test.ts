@@ -11,7 +11,7 @@ const mockGitHubSource: Source = {
     slug: "GitHub",
     kind: "GitHub",
     url: "https://github.com/",
-    priority: 2,
+    category: "repository",
     description: { "en": "" },
     configuration: {
         auth: ""

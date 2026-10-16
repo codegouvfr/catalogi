@@ -5,6 +5,7 @@
 import { Identifier } from "../../lib/ApiTypes";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 import { DbApiV2 } from "../ports/DbApiV2";
+import { isForgeKind, makeEnsureForgeSource } from "./ensureForgeSource";
 
 type ParamsOfUAutoImportFromIdentifersUseCase = {
     dbApi: DbApiV2;
@@ -21,6 +22,7 @@ export const makeImportFromInnerIdentifiers = (
     deps: ParamsOfUAutoImportFromIdentifersUseCase
 ): ImportFromInnerIdentifers => {
     const { dbApi } = deps;
+    const ensureForgeSource = makeEnsureForgeSource({ dbApi });
 
     return async () => {
         console.time(useCaseLogTimer);
@@ -47,32 +49,61 @@ export const makeImportFromInnerIdentifiers = (
         );
 
         const sources = await dbApi.source.getAll();
-        const sourceUrls = sources.reduce(
+        // Sources are matched by origin: identifiers and sources don't agree on trailing slashes.
+        const slugByOrigin = sources.reduce(
             (acc, source) => {
                 // CNLL is keyed by SILL id, other sources cite its annuaire id (#520).
                 if (source.kind === "CNLL") return acc;
 
-                const newAcc = acc;
-                newAcc[source.url] = source.slug;
-                return newAcc;
+                const origin = URL.parse(source.url)?.origin;
+                if (origin && !acc[origin]) acc[origin] = source.slug;
+                return acc;
             },
             {} as Record<string, string>
         );
+
+        const categoryBySlug = Object.fromEntries(sources.map(source => [source.slug, source.category]));
+
+        // A software has at most one external data per source category.
+        const takenCategories = new Set(
+            externalDataList.flatMap(item => (item.softwareId ? [`${item.softwareId}:${item.sourceCategory}`] : []))
+        );
+
+        // Repositories on a forge instance without source yet get one created on the fly.
+        const resolveSourceSlug = async (identifier: Identifier): Promise<string | undefined> => {
+            if (!identifier.subjectOf) return undefined;
+
+            const url = identifier.subjectOf.url.toString();
+            const origin = URL.parse(url)?.origin;
+            if (!origin) return undefined;
+            if (slugByOrigin[origin]) return slugByOrigin[origin];
+
+            const kind = identifier.subjectOf.additionalType;
+            if (identifier.additionalType !== "Repo" || !isForgeKind(kind)) return undefined;
+
+            const source = await ensureForgeSource({ kind, url });
+            if (!source) return undefined;
+
+            slugByOrigin[origin] = source.slug;
+            categoryBySlug[source.slug] = source.category;
+            return source.slug;
+        };
 
         const resolveRegisterable = async (
             identifier: Identifier,
             softwareId: number
         ): Promise<SaveIds | undefined> => {
-            if (!identifier.subjectOf) return undefined;
-
-            // Find corresponding source
-            const sourceSlug = sourceUrls[identifier.subjectOf.url.toString()];
+            const sourceSlug = await resolveSourceSlug(identifier);
 
             if (!sourceSlug) return undefined;
 
             const registered = await dbApi.softwareExternalData.get({ externalId: identifier.value, sourceSlug });
 
             if (registered) return undefined;
+
+            const softwareCategory = `${softwareId}:${categoryBySlug[sourceSlug]}`;
+            if (takenCategories.has(softwareCategory)) return undefined;
+            takenCategories.add(softwareCategory);
 
             return {
                 sourceSlug: sourceSlug,

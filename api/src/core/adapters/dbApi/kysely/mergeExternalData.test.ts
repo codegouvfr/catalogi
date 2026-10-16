@@ -39,6 +39,30 @@ describe("mergeExternalData", () => {
         expect(merged?.keywords).toEqual(["high", "low"]);
     });
 
+    it("merges localized texts per language, skipping empty ones", () => {
+        const repository = {
+            softwareId: 1,
+            name: "nextcloud",
+            description: { en: "A safe home for all your data" }
+        } as unknown as PopulatedExternalData;
+
+        const wikidata = {
+            softwareId: 1,
+            name: { fr: "Nextcloud", en: "Nextcloud" },
+            description: { fr: "Logiciel de stockage de fichiers", en: "File hosting software" }
+        } as unknown as PopulatedExternalData;
+
+        const comptoirDuLibre = { softwareId: 1, description: { fr: "" } } as unknown as PopulatedExternalData;
+
+        const merged = mergeExternalData([repository, wikidata, comptoirDuLibre]);
+
+        expect(merged?.name).toBe("nextcloud");
+        expect(merged?.description).toEqual({
+            en: "A safe home for all your data",
+            fr: "Logiciel de stockage de fichiers"
+        });
+    });
+
     it("preserves keyword order when merging multiple items", () => {
         const highPrioData = {
             softwareId: 1,

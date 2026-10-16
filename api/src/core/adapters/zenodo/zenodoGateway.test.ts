@@ -137,7 +137,7 @@ describe.skip("zenodoSourceGateway", () => {
         slug: "zenodo",
         kind: "Zenodo",
         url: "https://zenodo.org",
-        priority: 1,
+        category: "Zenodo",
         description: undefined,
         configuration: undefined,
         lastImport: undefined
