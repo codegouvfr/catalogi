@@ -117,6 +117,14 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
             const linksToInsert: { sourceSlug: string; externalId: string; softwareId: number }[] = [];
             let rebindCount = 0;
 
+            // A software keeps one external data per source: a link to a software that already has one is skipped.
+            const linkedSoftwareIds = new Set<number>();
+            const isLinkedToSource = async (softwareId: number) => {
+                if (linkedSoftwareIds.has(softwareId)) return true;
+                const rows = await dbApi.softwareExternalData.getBySoftwareId({ softwareId });
+                return (rows ?? []).some(row => row.sourceSlug === source.slug);
+            };
+
             for (const link of links) {
                 const resolvedSoftwareId = await resolveDiscoveredSoftwareId(link);
                 const existingExternalData = await dbApi.softwareExternalData.get({
@@ -124,16 +132,18 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                     externalId: link.externalId
                 });
 
+                if (existingExternalData?.softwareId === resolvedSoftwareId) continue;
+                if (await isLinkedToSource(resolvedSoftwareId)) continue;
+
                 if (!existingExternalData) {
                     linksToInsert.push({
                         sourceSlug: source.slug,
                         externalId: link.externalId,
                         softwareId: resolvedSoftwareId
                     });
+                    linkedSoftwareIds.add(resolvedSoftwareId);
                     continue;
                 }
-
-                if (existingExternalData.softwareId === resolvedSoftwareId) continue;
 
                 const shouldRebind =
                     existingExternalData.softwareId === undefined
@@ -162,6 +172,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                     softwareExternalData: existingExternalData
                 });
 
+                linkedSoftwareIds.add(resolvedSoftwareId);
                 rebindCount++;
             }
 
