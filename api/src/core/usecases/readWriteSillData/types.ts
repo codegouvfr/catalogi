@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import type { LocalizedString } from "../../ports/GetSoftwareExternalData";
@@ -11,6 +11,7 @@ import {
     SchemaOrganization,
     SchemaPerson,
     ScholarlyArticle,
+    Status,
     UserRole
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
@@ -71,14 +72,8 @@ export type Software = SoftwareData & {
     id: number;
     addedTime: string;
     updateTime: string;
-    dereferencing:
-        | {
-              reason: string | undefined;
-              time: string;
-              lastRecommendedVersion: string | undefined;
-              dereferencedByUserId: number;
-          }
-        | undefined;
+    status: Status;
+    statusHistory?: Status[];
     customAttributes: CustomAttributes | undefined;
     protections?: SoftwareProtectionsData | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
