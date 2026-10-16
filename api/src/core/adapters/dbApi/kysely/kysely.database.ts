@@ -124,6 +124,7 @@ export type Database = {
     user_sessions: SessionsTable;
     software_attribute_definitions: SoftwareAttributeDefinitionsTable;
     config_ui: ConfigUiTable;
+    author_organizations: AuthorOrganizationsTable;
 };
 
 // Singleton table: at most one row (id is always true). Holds the UI configuration
@@ -191,6 +192,7 @@ export type ExternalDataOriginKind =
     | "GitLab"
     | "RNSR"
     | "ROR"
+    | "ScanR"
     | "UserInput";
 
 /**
@@ -212,6 +214,8 @@ export type SourceConfig = {
     queryTimeout?: number;
     auth?: string;
     rateLimitRetryDuration?: number;
+    username?: string;
+    password?: string;
 };
 
 type SourcesTable = {
@@ -323,6 +327,11 @@ type SessionsTable = {
     createdAt: Date;
     updatedAt: Date;
     loggedOutAt: Date | null;
+};
+
+type AuthorOrganizationsTable = {
+    id: string;
+    organization: SchemaOrganization;
 };
 
 // ---------- compiled data ----------

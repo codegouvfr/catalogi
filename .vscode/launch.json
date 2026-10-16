@@ -67,6 +67,18 @@
                 "run",
                 "fullcheck"
             ],
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Rebuild Orgs",
+            "runtimeExecutable": "pnpm",
+            "cwd": "${workspaceFolder}/api",
+            "runtimeArgs": [
+                "run",
+                "job:authororganization",
+                "rebuild"
+            ],
         }
     ]
 }
