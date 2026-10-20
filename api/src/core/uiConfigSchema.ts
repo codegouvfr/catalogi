@@ -26,11 +26,18 @@ const headerSchema = strictObject({
         catalog: strictObject({
             enabled: z.boolean()
         }),
+        devOrganizations: z.object({
+            enabled: z.boolean()
+        }),
         addSoftware: strictObject({
             enabled: z.boolean()
         }),
         about: strictObject({
             enabled: z.boolean()
+        }),
+        documentation: z.object({
+            enabled: z.boolean(),
+            href: z.string()
         }),
         contribute: strictObject({
             enabled: z.boolean(),

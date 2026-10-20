@@ -178,7 +178,7 @@ export function SoftwareCatalogControlled(props: Props) {
                 {softwares.length === 0 ? (
                     <h1>{t("softwareCatalogControlled.noSoftwareFound")}</h1>
                 ) : (
-                    <RowVirtualizerDynamicWindow
+                    <SoftwareRowVirtualizerDynamicWindow
                         softwares={softwares}
                         linksBySoftwareName={linksBySoftwareName}
                     />
@@ -188,7 +188,7 @@ export function SoftwareCatalogControlled(props: Props) {
     );
 }
 
-function RowVirtualizerDynamicWindow(
+export function SoftwareRowVirtualizerDynamicWindow(
     props: Pick<Props, "softwares" | "linksBySoftwareName">
 ) {
     const { softwares, linksBySoftwareName } = props;
