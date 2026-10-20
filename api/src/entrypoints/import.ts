@@ -8,7 +8,8 @@ import commandLineArgs from "command-line-args";
 
 const optionDefinitions = [
     { name: "source", alias: "s", type: String, multiple: false, defaultOption: true },
-    { name: "externalIdsToImport", alias: "e", type: String, multiple: true }
+    { name: "externalIdsToImport", alias: "e", type: String, multiple: true },
+    { name: "catalogStatus", alias: "c", type: String, multiple: false }
 ];
 
 const options = commandLineArgs(optionDefinitions);
@@ -17,6 +18,7 @@ startImportService({
     env,
     args: {
         sourceSlug: options.source,
-        externalIdsToImport: options.externalIdsToImport
+        externalIdsToImport: options.externalIdsToImport,
+        catalogStatus: options.catalogStatus
     }
 }).then(() => console.info("[Entrypoint:Import] Import sucessuful ✅ Closing import"));
