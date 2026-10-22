@@ -512,6 +512,13 @@
         "softwareFormStep2": {
             "type": "object",
             "properties": {
+                "external id": {
+                    "type": "string"
+                },
+                "external id hint_fill": {
+                    "type": "string",
+                    "description": "Helper text explaining the field"
+                },
                 "repository url": {
                     "type": "string"
                 },
@@ -614,6 +621,8 @@
             },
             "additionalProperties": false,
             "required": [
+                "external id",
+                "external id hint_fill",
                 "repository url",
                 "repository url hint",
                 "repository url required",

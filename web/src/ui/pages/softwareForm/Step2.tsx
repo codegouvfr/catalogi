@@ -5,8 +5,9 @@
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Input } from "@codegouvfr/react-dsfr/Input";
+import { SearchInput } from "ui/shared/SearchInput";
 import type { NonPostableEvt } from "evt";
 import { useEvt } from "evt/hooks";
 import { useCore } from "core";
@@ -34,6 +35,17 @@ export type Step2Props = {
     resolveRepoUrl: ReturnType<
         typeof useCore
     >["functions"]["softwareForm"]["resolveRepoUrl"];
+    // Only in the update form: on creation, the entries citing the repository are
+    // found by the API.
+    getLibreSoftwareWikidataOptions: (
+        queryString: string
+    ) => Promise<
+        ReturnType<
+            ReturnType<
+                typeof useCore
+            >["functions"]["softwareForm"]["getExternalSoftwareOptions"]
+        >
+    >;
 };
 
 type ScalarOverridableField = keyof FormData["step2"]["userInputOverrides"];
@@ -60,7 +72,8 @@ export function SoftwareFormStep2(props: Step2Props) {
         dataBySource,
         onSubmit,
         evtActionSubmit,
-        resolveRepoUrl
+        resolveRepoUrl,
+        getLibreSoftwareWikidataOptions
     } = props;
 
     const { t } = useTranslation();
@@ -72,6 +85,7 @@ export function SoftwareFormStep2(props: Step2Props) {
 
     const {
         handleSubmit,
+        control,
         register,
         watch,
         formState: { errors },
@@ -85,6 +99,9 @@ export function SoftwareFormStep2(props: Step2Props) {
         license: string;
         image: string;
         keywordsInputValue: string;
+        wikidataEntry:
+            | ReturnType<typeof getLibreSoftwareWikidataOptions>[number]
+            | undefined;
     }>({
         defaultValues: (() => {
             if (initialFormData === undefined) {
@@ -93,7 +110,7 @@ export function SoftwareFormStep2(props: Step2Props) {
 
             const {
                 codeRepositoryUrl,
-                externalId: _e,
+                externalId,
                 keywords,
                 userInputOverrides: _o,
                 ...rest
@@ -102,6 +119,14 @@ export function SoftwareFormStep2(props: Step2Props) {
             return {
                 ...rest,
                 codeRepositoryUrl: codeRepositoryUrl ?? "",
+                wikidataEntry:
+                    externalId === undefined
+                        ? undefined
+                        : {
+                              externalId,
+                              description: "",
+                              name: rest.name
+                          },
                 keywordsInputValue: keywords.join(", ")
             };
         })()
@@ -536,6 +561,7 @@ export function SoftwareFormStep2(props: Step2Props) {
             onSubmit={handleSubmit(
                 ({
                     codeRepositoryUrl,
+                    wikidataEntry,
                     image,
                     keywordsInputValue,
                     name,
@@ -576,8 +602,10 @@ export function SoftwareFormStep2(props: Step2Props) {
                                 : trimmedRepoUrl === ""
                                   ? undefined
                                   : trimmedRepoUrl,
-                        // Entries citing the repository are bound by the API.
-                        externalId: initialFormData?.externalId,
+                        // On creation, entries citing the repository are bound by the API.
+                        externalId: isUpdateForm
+                            ? wikidataEntry?.externalId
+                            : initialFormData?.externalId,
                         name: resolved.name.value ?? "",
                         description: resolved.description.value ?? "",
                         license: resolved.license.value ?? "",
@@ -648,6 +676,86 @@ export function SoftwareFormStep2(props: Step2Props) {
                         )
                     )}
                 </p>
+            )}
+            {isUpdateForm && (
+                <Controller
+                    name="wikidataEntry"
+                    control={control}
+                    rules={{ required: false }}
+                    render={({ field }) => (
+                        <SearchInput
+                            debounceDelay={500}
+                            getOptions={getLibreSoftwareWikidataOptions}
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            getOptionLabel={wikidataEntry =>
+                                resolveLocalizedString(wikidataEntry.name)
+                            }
+                            renderOption={(liProps, wikidataEntity) => (
+                                <li {...liProps} key={wikidataEntity.externalId}>
+                                    <div>
+                                        <span>
+                                            {resolveLocalizedString(wikidataEntity.name)}
+                                        </span>
+                                        <br />
+                                        <span className={fr.cx("fr-text--xs")}>
+                                            {resolveLocalizedString(
+                                                wikidataEntity.description
+                                            )}
+                                        </span>
+                                    </div>
+                                </li>
+                            )}
+                            noOptionText={t("app.no result")}
+                            loadingText={t("app.loading")}
+                            dsfrInputProps={{
+                                label: t("softwareFormStep2.external id"),
+                                hintText: (
+                                    <Trans
+                                        i18nKey={
+                                            "softwareFormStep2.external id hint_fill"
+                                        }
+                                        components={{
+                                            code: <code />,
+                                            br: <br />,
+                                            space: <span> </span>,
+                                            dataSource: (
+                                                /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                                <a
+                                                    href="https://www.wikidata.org/wiki"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                />
+                                            ),
+                                            dataSourceEntry: (
+                                                /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                                <a
+                                                    href="https://www.wikidata.org/wiki/Q107693197"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                />
+                                            ),
+                                            exampleUrl: (
+                                                <a
+                                                    href="https://code.gouv.fr/sill/detail?id=243"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    Keycloakify
+                                                </a>
+                                            )
+                                        }}
+                                    />
+                                ),
+                                nativeInputProps: {
+                                    ref: field.ref,
+                                    onBlur: field.onBlur,
+                                    name: field.name
+                                }
+                            }}
+                        />
+                    )}
+                />
             )}
             {isRepoLocked && (
                 <p className={fr.cx("fr-info-text")}>
