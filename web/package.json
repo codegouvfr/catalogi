@@ -18,7 +18,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
-        "@codegouvfr/react-dsfr": "^1.32.2",
+        "@codegouvfr/react-dsfr": "^1.36.0",
         "@emotion/react": "^11.11.0",
         "@emotion/styled": "^11.11.0",
         "@mui/icons-material": "^5.15.14",

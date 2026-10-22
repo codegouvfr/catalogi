@@ -193,8 +193,8 @@ importers:
   web:
     dependencies:
       '@codegouvfr/react-dsfr':
-        specifier: ^1.32.2
-        version: 1.32.2
+        specifier: ^1.36.0
+        version: 1.36.0
       '@emotion/react':
         specifier: ^11.11.0
         version: 11.14.0(@types/react@18.3.31)(react@18.3.1)
@@ -471,8 +471,8 @@ packages:
   '@balena/dockerignore@1.0.2':
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
 
-  '@codegouvfr/react-dsfr@1.32.2':
-    resolution: {integrity: sha512-x/NkMTJ1ULdvwSv79b1yA7NMxpcB4uaPrO2OfOZmfVH7psIap4AL2ctRPLgjw38BeLn9t2bcyjVrOPInyda9kw==}
+  '@codegouvfr/react-dsfr@1.36.0':
+    resolution: {integrity: sha512-+rhqdCynxyzWTeNmUbBTzsnikiTsx5IRvahlMRohObrJEReiZowAs2x8qW/OeewaNLCwyTWzRGg7fbY3Sw1qnw==}
     hasBin: true
     peerDependencies:
       '@gouvfr/dsfr-chart': ^1.0.0
@@ -6253,7 +6253,7 @@ snapshots:
 
   '@balena/dockerignore@1.0.2': {}
 
-  '@codegouvfr/react-dsfr@1.32.2':
+  '@codegouvfr/react-dsfr@1.36.0':
     dependencies:
       tsafe: 1.8.12
       yargs-parser: 21.1.1
