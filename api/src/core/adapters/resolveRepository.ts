@@ -6,7 +6,8 @@ import { Gitlab } from "@gitbeaker/rest";
 import type { RepositoryResolution, ResolveRepository } from "../ports/ResolveRepository";
 import type { Source } from "../usecases/readWriteSillData";
 import { repoAnalyser } from "../../tools/repoAnalyser";
-import { gitHubEndpointMaker } from "./GitHub/api/repo";
+import { Octokit } from "@octokit/rest";
+import { makeTtlCache } from "../../tools/ttlCache";
 
 const gitHubOrigin = "https://github.com";
 
@@ -22,35 +23,92 @@ export const normalizeRepoUrl = (input: string): string | undefined => {
     const url = URL.parse(value);
     if (!url || (url.protocol !== "https:" && url.protocol !== "http:")) return undefined;
 
+    // `www.github.com` and `http://github.com` redirect to the same repository.
+    const origin = url.hostname === "github.com" || url.hostname === "www.github.com" ? gitHubOrigin : url.origin;
+
     // GitLab sub-pages all live under `/-/`.
     let pathname = url.pathname
         .split("/-/")[0]
         .replace(/\/+$/, "")
         .replace(/\.git$/, "");
 
-    if (url.origin === gitHubOrigin) {
+    if (origin === gitHubOrigin) {
         const segments = pathname.split("/").filter(segment => segment);
         pathname = "/" + segments.slice(0, 2).join("/");
     }
 
     if (pathname === "" || pathname === "/") return undefined;
 
-    return `${url.origin}${pathname}`;
+    return `${origin}${pathname}`;
+};
+
+// Sub-pages of the forges not handled here (Forgejo, Gitea, Bitbucket, SourceHut...),
+// which all address a repository as `owner/repo`.
+const forgeSubPages = new Set([
+    "src",
+    "tree",
+    "blob",
+    "raw",
+    "blame",
+    "commits",
+    "commit",
+    "log",
+    "refs",
+    "branches",
+    "tags",
+    "releases",
+    "downloads",
+    "issues",
+    "pulls",
+    "pull-requests",
+    "wiki",
+    "actions",
+    "activity",
+    "milestones",
+    "labels",
+    "projects",
+    "packages",
+    "archive",
+    "compare"
+]);
+
+// Only applied to unsupported forges: GitLab groups nest, so a third segment
+// may be a group or a project there.
+export const stripForgeSubPage = (repoUrl: string): string => {
+    const url = new URL(repoUrl);
+    const segments = url.pathname.split("/").filter(segment => segment);
+    if (segments.length <= 2 || !forgeSubPages.has(segments[2].toLowerCase())) return repoUrl;
+    return `${url.origin}/${segments.slice(0, 2).join("/")}`;
 };
 
 const findSourceByOrigin = (sources: Source[], kind: Source["kind"], origin: string) =>
     sources.find(source => source.kind === kind && source.url !== "" && URL.parse(source.url)?.origin === origin);
 
+// A missing repository answers 404; anything else (rate limit, timeout...) says nothing about it.
+// GitHub answers 403 when the rate limit is exceeded.
+const getErrorStatus = (error: unknown): number | undefined => {
+    if (typeof error !== "object" || error === null) return undefined;
+    if ("status" in error && typeof error.status === "number") return error.status;
+    // Gitbeaker keeps the fetch response in `cause`.
+    const response = "cause" in error ? (error.cause as { response?: { status?: unknown } })?.response : undefined;
+    return typeof response?.status === "number" ? response.status : undefined;
+};
+
 const resolveGitHubRepository = async (url: string, sources: Source[]): Promise<RepositoryResolution> => {
     const source = findSourceByOrigin(sources, "GitHub", gitHubOrigin);
-    const gitHubApi = gitHubEndpointMaker(source?.configuration?.auth ? { auth: source.configuration.auth } : {});
+    const octokit = new Octokit(source?.configuration?.auth ? { auth: source.configuration.auth } : {});
 
     // Organization urls have a single path segment.
-    if (new URL(url).pathname.split("/").filter(segment => segment).length < 2)
-        return { status: "notFound", forgeKind: "GitHub" };
+    const [owner, repoName] = new URL(url).pathname.split("/").filter(segment => segment);
+    if (repoName === undefined) return { status: "notFound", forgeKind: "GitHub" };
 
-    const repo = await gitHubApi.repo.get({ repoUrl: url });
-    if (!repo) return { status: "notFound", forgeKind: "GitHub" };
+    let repo;
+    try {
+        repo = (await octokit.request("GET /repos/{owner}/{repo}", { owner, repo: repoName })).data;
+    } catch (error) {
+        console.info(`[resolveRepository] GitHub repository ${url} not readable: ${String(error)}`);
+        return { status: getErrorStatus(error) === 404 ? "notFound" : "unreachable", forgeKind: "GitHub" };
+    }
 
     const license = repo.license?.spdx_id;
 
@@ -80,13 +138,17 @@ const resolveGitLabRepository = async (url: string, sources: Source[]): Promise<
     });
 
     const projectPath = pathname.substring(1);
+    const projectNotFound = new Error(`no project matching ${projectPath}`);
 
     // Some instances sit behind a proxy rejecting encoded slashes in project paths
     // (gitlab.adullact.net): find the project id through the search instead.
     const findProjectId = async (): Promise<number | string> => {
         try {
             return (await gitLabApi.Projects.show(projectPath)).id;
-        } catch {
+        } catch (error) {
+            // A forge not answering would not answer the search either.
+            const status = getErrorStatus(error);
+            if (status === undefined || status === 429 || status >= 500) throw error;
             const candidates = await gitLabApi.Projects.all({
                 search: projectPath.split("/").at(-1),
                 perPage: 100,
@@ -95,7 +157,7 @@ const resolveGitLabRepository = async (url: string, sources: Source[]): Promise<
             const match = candidates.find(
                 candidate => candidate.path_with_namespace.toLowerCase() === projectPath.toLowerCase()
             );
-            if (!match) throw new Error(`no project matching ${projectPath}`);
+            if (!match) throw projectNotFound;
             return match.id;
         }
     };
@@ -118,13 +180,14 @@ const resolveGitLabRepository = async (url: string, sources: Source[]): Promise<
         };
     } catch (error) {
         console.info(`[resolveRepository] GitLab project ${url} not readable: ${String(error)}`);
-        return { status: "notFound", forgeKind: "GitLab" };
+        const isNotFound = error === projectNotFound || getErrorStatus(error) === 404;
+        return { status: isNotFound ? "notFound" : "unreachable", forgeKind: "GitLab" };
     }
 };
 
 export const resolveRepository: ResolveRepository = async ({ url, sources }) => {
     const normalizedUrl = normalizeRepoUrl(url);
-    if (!normalizedUrl) return { status: "unsupported" };
+    if (!normalizedUrl) return { status: "unsupported", url: undefined };
 
     const { origin } = new URL(normalizedUrl);
 
@@ -142,6 +205,27 @@ export const resolveRepository: ResolveRepository = async ({ url, sources }) => 
         case "GitLab":
             return resolveGitLabRepository(normalizedUrl, sources);
         default:
-            return { status: "unsupported" };
+            return { status: "unsupported", url: stripForgeSubPage(normalizedUrl) };
     }
+};
+
+// The form checks the url, then the creation resolves it again: the cache keeps both
+// consistent and spares the forge quotas. A missing repository may be published
+// meanwhile and a forge not answering may come back: both are asked again.
+export const makeCachedResolveRepository = (params: {
+    resolveRepository: ResolveRepository;
+    ttlMs?: number;
+}): ResolveRepository => {
+    const { resolveRepository, ttlMs = 15 * 60_000 } = params;
+    const cache = makeTtlCache<RepositoryResolution>({ ttlMs });
+
+    return async ({ url, sources }) => {
+        const key = normalizeRepoUrl(url) ?? url;
+        const cached = cache.get(key);
+        if (cached) return cached;
+
+        const resolution = await resolveRepository({ url, sources });
+        if (resolution.status === "found" || resolution.status === "unsupported") cache.set(key, resolution);
+        return resolution;
+    };
 };

@@ -533,18 +533,26 @@
                 "repository not found": {
                     "type": "string"
                 },
+                "repository unreachable": {
+                    "type": "string"
+                },
                 "repository unsupported": {
                     "type": "string"
                 },
                 "repository already referenced": {
                     "type": "string"
                 },
-                "external id": {
+                "repository discovered sources": {
                     "type": "string"
                 },
-                "external id hint_fill": {
-                    "type": "string",
-                    "description": "Helper text explaining the field"
+                "repository check": {
+                    "type": "string"
+                },
+                "repository url not checked": {
+                    "type": "string"
+                },
+                "repository fields locked": {
+                    "type": "string"
                 },
                 "software name": {
                     "type": "string"
@@ -564,9 +572,6 @@
                     "description": "Helper text explaining the field"
                 },
                 "url or numeric id": {
-                    "type": "string"
-                },
-                "autofill notice": {
                     "type": "string"
                 },
                 "logo url": {
@@ -616,17 +621,19 @@
                 "repository resolving",
                 "repository found",
                 "repository not found",
+                "repository unreachable",
                 "repository unsupported",
                 "repository already referenced",
-                "external id",
-                "external id hint_fill",
+                "repository discovered sources",
+                "repository check",
+                "repository url not checked",
+                "repository fields locked",
                 "software name",
                 "software feature",
                 "software feature hint",
                 "license",
                 "license hint",
                 "url or numeric id",
-                "autofill notice",
                 "logo url",
                 "logo url hint",
                 "must be an url",

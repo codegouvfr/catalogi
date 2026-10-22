@@ -6,7 +6,9 @@ import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2
 import type { ResolveRepository, ResolvedRepository } from "../ports/ResolveRepository";
 import { SoftwareFormData, SoftwareProtections } from "./readWriteSillData";
 import { makeEnsureForgeSource } from "./ensureForgeSource";
-import { findSoftwareIdByRepository } from "./resolveRepoUrl";
+import type { DiscoverSourcesByRepository, DiscoveredSource } from "./discoverSourcesByRepository";
+import { findSoftwareIdByRepository, getRepoUrlSpellings, getRepositoryKey } from "./resolveRepoUrl";
+import { normalizeRepoUrl } from "../adapters/resolveRepository";
 import { resolveSoftwareFormDataProtections } from "./resolveSoftwareFormDataProtection";
 import { SoftwareAlreadyExistsError } from "./softwareErrors";
 
@@ -122,25 +124,48 @@ const toAlreadyExistsError = (match: ExistingSoftwareMatch, formData: SoftwareFo
 export const makeCreateSofware: (params: {
     dbApi: DbApiV2;
     withUserInput: boolean;
-    // Without it, `codeRepositoryUrl` is only kept as user input.
+    // Without them, `codeRepositoryUrl` is only kept as user input.
     resolveRepository?: ResolveRepository;
+    discoverSourcesByRepository?: DiscoverSourcesByRepository;
 }) => CreateSoftware = params => {
-    const { dbApi, withUserInput, resolveRepository } = params;
+    const { dbApi, withUserInput, resolveRepository, discoverSourcesByRepository } = params;
     const ensureForgeSource = makeEnsureForgeSource({ dbApi });
 
     // A failing forge must not prevent the creation: the url stays in the user input.
+    // `key` identifies the repository even when the forge doesn't answer, for the duplicate check.
     const resolveFormRepository = async (
         formData: SoftwareFormData,
         logTitle: string
-    ): Promise<ResolvedRepository | undefined> => {
-        if (!resolveRepository || !formData.codeRepositoryUrl) return undefined;
+    ): Promise<{ repository?: ResolvedRepository; key?: ReturnType<typeof getRepositoryKey> }> => {
+        const normalizedUrl = formData.codeRepositoryUrl && normalizeRepoUrl(formData.codeRepositoryUrl);
+        if (!resolveRepository || !normalizedUrl) return {};
         try {
             const sources = await dbApi.source.getAll();
-            const resolution = await resolveRepository({ url: formData.codeRepositoryUrl, sources });
-            return resolution.status === "found" ? resolution.repository : undefined;
+            const resolution = await resolveRepository({ url: normalizedUrl, sources });
+            return {
+                repository: resolution.status === "found" ? resolution.repository : undefined,
+                key: getRepositoryKey({ resolution, normalizedUrl })
+            };
         } catch (error) {
             console.error(`${logTitle} repository ${formData.codeRepositoryUrl} not resolved`, error);
-            return undefined;
+            return {};
+        }
+    };
+
+    const discoverFormRepositorySources = async (
+        formData: SoftwareFormData,
+        repository: ResolvedRepository | undefined,
+        logTitle: string
+    ): Promise<DiscoveredSource[]> => {
+        if (!discoverSourcesByRepository || !formData.codeRepositoryUrl) return [];
+        try {
+            return await discoverSourcesByRepository({
+                repoUrls: getRepoUrlSpellings({ input: formData.codeRepositoryUrl, repository }),
+                sources: await dbApi.source.getAll()
+            });
+        } catch (error) {
+            console.error(`${logTitle} sources citing ${formData.codeRepositoryUrl} not discovered`, error);
+            return [];
         }
     };
 
@@ -183,17 +208,21 @@ export const makeCreateSofware: (params: {
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const repository = await resolveFormRepository(formData, logTitle);
+        const { repository, key: repositoryKey } = await resolveFormRepository(formData, logTitle);
+        const discoveredSources = await discoverFormRepositorySources(formData, repository, logTitle);
 
         const match: ExistingSoftwareMatch | undefined = await (async () => {
             const existing = await resolveExistingSoftware({ dbApi, formData });
-            if (existing || !repository) return existing;
+            if (existing) return existing;
 
-            const softwareId = await findSoftwareIdByRepository({
-                dbApi,
-                sources: await dbApi.source.getAll(),
-                repository
-            });
+            const softwareId =
+                (repositoryKey &&
+                    (await findSoftwareIdByRepository({
+                        dbApi,
+                        sources: await dbApi.source.getAll(),
+                        repository: repositoryKey
+                    }))) ??
+                discoveredSources.find(source => source.existingSoftwareId !== undefined)?.existingSoftwareId;
             return softwareId === undefined ? undefined : { softwareId, matchedBy: "repository" };
         })();
 
@@ -228,16 +257,30 @@ export const makeCreateSofware: (params: {
             await bindExternalData({ softwareId, sourceSlug, externalId: externalIdForSource, logTitle });
         }
 
-        if (repository) {
-            const forgeSource = await ensureForgeSource({ kind: repository.forgeKind, url: repository.url });
-            if (forgeSource) {
+        // The software exists at this point: a failing binding is left to the next refresh.
+        try {
+            if (repository) {
+                const forgeSource = await ensureForgeSource({ kind: repository.forgeKind, url: repository.url });
+                if (forgeSource) {
+                    await bindExternalData({
+                        softwareId,
+                        sourceSlug: forgeSource.slug,
+                        externalId: repository.externalId,
+                        logTitle
+                    });
+                }
+            }
+
+            for (const discoveredSource of discoveredSources) {
                 await bindExternalData({
                     softwareId,
-                    sourceSlug: forgeSource.slug,
-                    externalId: repository.externalId,
+                    sourceSlug: discoveredSource.sourceSlug,
+                    externalId: discoveredSource.externalId,
                     logTitle
                 });
             }
+        } catch (error) {
+            console.error(`${logTitle} sources of ${formData.codeRepositoryUrl} not bound`, error);
         }
 
         if (similarSoftwareExternalDataItems && similarSoftwareExternalDataItems.length > 0) {

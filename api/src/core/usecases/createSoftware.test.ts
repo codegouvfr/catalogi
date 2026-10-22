@@ -13,6 +13,7 @@ import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
 import type { ResolveRepository } from "../ports/ResolveRepository";
+import type { DiscoverSourcesByRepository } from "./discoverSourcesByRepository";
 
 const viteOption: SoftwareExternalDataOption = {
     externalId: "Q111590996" /* viteJS */,
@@ -455,6 +456,61 @@ describe("Create software - Trying all the cases", () => {
             expectToEqual(externalData, [
                 { sourceSlug: "UserInput", codeRepositoryUrl: "https://github.com/facebook/create-react-app" }
             ]);
+        });
+
+        it("binds the entries of other sources citing the repository", async () => {
+            const discoverSourcesByRepository: DiscoverSourcesByRepository = async ({ repoUrls }) => {
+                expectToEqual(repoUrls, ["https://github.com/facebook/create-react-app"]);
+                return [
+                    {
+                        sourceSlug: testSource.slug,
+                        sourceKind: testSource.kind,
+                        externalId: "Q118629387",
+                        name: "Create React App",
+                        url: "https://www.wikidata.org/wiki/Q118629387",
+                        existingSoftwareId: undefined
+                    }
+                ];
+            };
+            const createWithRepo = makeCreateSofware({
+                dbApi,
+                withUserInput: true,
+                resolveRepository,
+                discoverSourcesByRepository
+            });
+
+            const softwareId = await createWithRepo({ formData: repoFormData, userId });
+
+            const externalData = await db
+                .selectFrom("software_external_datas")
+                .select(["sourceSlug", "externalId"])
+                .where("softwareId", "=", softwareId)
+                .where("sourceSlug", "=", testSource.slug)
+                .execute();
+
+            expectToEqual(externalData, [{ sourceSlug: testSource.slug, externalId: "Q118629387" }]);
+        });
+
+        it("rejects a software whose repository is cited by an entry already bound", async () => {
+            const createWithRepo = makeCreateSofware({
+                dbApi,
+                withUserInput: true,
+                resolveRepository: async () => ({ status: "unsupported", url: undefined }),
+                discoverSourcesByRepository: async () => [
+                    {
+                        sourceSlug: testSource.slug,
+                        sourceKind: testSource.kind,
+                        externalId: "Q118629387",
+                        name: "Create React App",
+                        url: "https://www.wikidata.org/wiki/Q118629387",
+                        existingSoftwareId: 4242
+                    }
+                ]
+            });
+
+            await expect(createWithRepo({ formData: repoFormData, userId })).rejects.toThrow(
+                "Software already exists with repository https://github.com/facebook/create-react-app"
+            );
         });
     });
 });

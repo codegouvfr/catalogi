@@ -75,6 +75,8 @@ export interface SoftwareRepository {
     getSoftwareIdByExternalIdAndSlug: (params: {
         externalId: string;
         sourceSlug: string;
+        // GitHub repositories are case-insensitive.
+        ignoreCase?: boolean;
     }) => Promise<number | undefined>;
     getBySoftwareId: (id: number) => Promise<DatabaseDataType.SoftwareRow | undefined>;
     getByName: (params: { softwareName: string }) => Promise<DatabaseDataType.SoftwareRow | undefined>;
@@ -197,6 +199,8 @@ export interface SourceRepository {
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
+    // Lower number = higher precedence in the merge.
+    getCategoryPriorities: () => Promise<Partial<Record<DatabaseDataType.SourceRow["category"], number>>>;
     // Returns the existing source when the slug is already taken, whatever its kind or url.
     createIfMissing: (
         params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">

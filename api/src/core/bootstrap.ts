@@ -21,7 +21,14 @@ import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
 import { makeResolveRepoUrl } from "./usecases/resolveRepoUrl";
-import { resolveRepository } from "./adapters/resolveRepository";
+import {
+    makeDiscoverSourcesByRepository,
+    makeFetchDiscoveredSourcesData
+} from "./usecases/discoverSourcesByRepository";
+import {
+    makeCachedResolveRepository,
+    resolveRepository as resolveRepositoryWithoutCache
+} from "./adapters/resolveRepository";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -73,13 +80,27 @@ export async function bootstrapCore(
     const oidcClient =
         params.oidcKind === "http" ? await HttpOidcClient.create(oidcParams) : new TestOidcClient(oidcParams);
 
+    const resolveRepository = makeCachedResolveRepository({ resolveRepository: resolveRepositoryWithoutCache });
+    const discoverSourcesByRepository = makeDiscoverSourcesByRepository({ dbApi });
+    const fetchDiscoveredSourcesData = makeFetchDiscoveredSourcesData({ dbApi });
+
     const useCases: UseCasesUsedOnRouter = {
         getSoftwareFormAutoFillDataFromExternalAndOtherSources:
             makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources(context, {}),
         getUser: makeGetUser({ userRepository: dbApi.user }),
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
-        createSoftware: makeCreateSofware({ dbApi, withUserInput: true, resolveRepository }),
-        resolveRepoUrl: makeResolveRepoUrl({ dbApi, resolveRepository }),
+        createSoftware: makeCreateSofware({
+            dbApi,
+            withUserInput: true,
+            resolveRepository,
+            discoverSourcesByRepository
+        }),
+        resolveRepoUrl: makeResolveRepoUrl({
+            dbApi,
+            resolveRepository,
+            discoverSourcesByRepository,
+            fetchDiscoveredSourcesData
+        }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),
         auth: {

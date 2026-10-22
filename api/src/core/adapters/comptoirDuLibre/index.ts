@@ -5,6 +5,7 @@
 import { getCDLSoftwareOptions } from "./getCDLSoftwareOptions";
 import { getCDLSoftwareExternalData } from "./getCDLExternalData";
 import { getCDLFormData } from "./getCDLFormData";
+import { findCDLByRepositoryUrl } from "./findByRepositoryUrl";
 import { SourceGateway } from "../../ports/SourceGateway";
 import { comptoirDuLibreApi } from "../comptoirDuLibreApi";
 
@@ -33,6 +34,7 @@ export const comptoirDuLibreSourceGateway: CDLGateway = {
                         softwareName: software.name
                     };
                 });
-        }
+        },
+        findByRepositoryUrl: findCDLByRepositoryUrl
     }
 };

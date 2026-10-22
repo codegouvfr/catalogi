@@ -257,14 +257,7 @@ export default function SoftwareForm(props: Props) {
                             formDataStep2: formData
                         })
                     }
-                    getAutofillDataFromWikidata={softwareForm.getAutofillData}
                     resolveRepoUrl={softwareForm.resolveRepoUrl}
-                    getLibreSoftwareWikidataOptions={queryString =>
-                        softwareForm.getExternalSoftwareOptions({
-                            language: lang,
-                            queryString
-                        })
-                    }
                     evtActionSubmit={evtActionSubmitStep.pipe(() => step === 2)}
                 />
                 <SoftwareFormStep3
