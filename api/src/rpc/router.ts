@@ -43,6 +43,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "updateSoftware"
     | "unreferenceSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
+    | "resolveRepoUrl"
     | "auth"
 >;
 
@@ -216,6 +217,9 @@ export function createRouter(params: {
                     externalId: input.externalId
                 })
             ),
+        "resolveRepoUrl": protectedProcedure
+            .input(z.object({ "url": z.string() }))
+            .query(({ input }) => useCases.resolveRepoUrl({ url: input.url })),
         "createSoftware": protectedProcedure
             .input(
                 z.object({

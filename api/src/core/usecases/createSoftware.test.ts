@@ -12,6 +12,7 @@ import { expectToEqual, expectToMatchObject, resetDB, testPgUrl, testSource } fr
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
+import type { ResolveRepository } from "../ports/ResolveRepository";
 
 const viteOption: SoftwareExternalDataOption = {
     externalId: "Q111590996" /* viteJS */,
@@ -377,4 +378,83 @@ describe("Create software - Trying all the cases", () => {
     });
 
     // TODO Another case : register
+
+    describe("with a code repository url", () => {
+        const repoFormData: SoftwareFormData = {
+            ...craSoftwareFormData,
+            externalIdForSource: undefined,
+            similarSoftwareExternalDataItems: [],
+            codeRepositoryUrl: "https://github.com/facebook/create-react-app"
+        };
+
+        const resolveRepository: ResolveRepository = async () => ({
+            status: "found",
+            repository: {
+                forgeKind: "GitHub",
+                url: "https://github.com/facebook/create-react-app",
+                externalId: "facebook/create-react-app",
+                name: "create-react-app",
+                description: undefined,
+                license: "MIT",
+                image: undefined,
+                keywords: []
+            }
+        });
+
+        it("binds the repository to the software through its forge source", async () => {
+            const createWithRepo = makeCreateSofware({ dbApi, withUserInput: true, resolveRepository });
+
+            const softwareId = await createWithRepo({ formData: repoFormData, userId });
+
+            const forgeData = await db
+                .selectFrom("software_external_datas")
+                .select(["sourceSlug", "externalId", "softwareId", "sourceCategory"])
+                .where("sourceSlug", "=", "github-com")
+                .execute();
+
+            expectToEqual(forgeData, [
+                {
+                    sourceSlug: "github-com",
+                    externalId: "facebook/create-react-app",
+                    softwareId,
+                    sourceCategory: "repository"
+                }
+            ]);
+        });
+
+        it("rejects a software whose repository is already referenced", async () => {
+            const createWithRepo = makeCreateSofware({ dbApi, withUserInput: true, resolveRepository });
+
+            await createWithRepo({ formData: repoFormData, userId });
+
+            await expect(createWithRepo({ formData: { ...repoFormData, name: "CRA" }, userId })).rejects.toThrow(
+                "Software already exists with repository https://github.com/facebook/create-react-app"
+            );
+
+            const softwareList = await db.selectFrom("softwares").selectAll().execute();
+            expectToEqual(softwareList.length, 1);
+        });
+
+        it("still creates the software when the forge can't be reached", async () => {
+            const createWithRepo = makeCreateSofware({
+                dbApi,
+                withUserInput: true,
+                resolveRepository: async () => {
+                    throw new Error("network down");
+                }
+            });
+
+            const softwareId = await createWithRepo({ formData: repoFormData, userId });
+
+            const externalData = await db
+                .selectFrom("software_external_datas")
+                .select(["sourceSlug", "codeRepositoryUrl"])
+                .where("softwareId", "=", softwareId)
+                .execute();
+
+            expectToEqual(externalData, [
+                { sourceSlug: "UserInput", codeRepositoryUrl: "https://github.com/facebook/create-react-app" }
+            ]);
+        });
+    });
 });
