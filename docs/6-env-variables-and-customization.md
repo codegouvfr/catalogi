@@ -180,6 +180,18 @@ Catalogi has no local passwords and never creates an `admin/admin` account. To i
 
 The address is normalized to lowercase and is used only while no administrator exists. Without the variable, the public application starts but new users remain regular users and the API logs an initialization warning. All credentials and password policies are managed by the OIDC provider.
 
+## Forge credentials
+
+Each forge instance (GitHub, every GitLab instance) is a row of the `sources` table, created automatically the first time one of its repositories is referenced. Its `configuration` column (JSON) can hold an access token in `auth`, sent with every call (GitLab instances use it as a private token). The configuration is never sent to the browser.
+
+Anonymous calls to github.com are limited to 60 per hour, authenticated ones to 5000. Use the token of a dedicated account owned by the organization (a [machine user](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts)) rather than a personal one: a fine-grained token with read-only access to public repositories and no permission is enough.
+
+```sql
+UPDATE sources
+SET configuration = coalesce(configuration, '{}'::jsonb) || jsonb_build_object('auth', '<token>')
+WHERE slug = 'github-com';
+```
+
 ## Translations
 
 The translations are also configurable, so you can choose any wording you want. It is defined in `api/src/customization/translations`. There you can add your own translations, providing a `en.json` and `fr.json` file. For now we support only English and French, but feel free to [raise an issue](https://github.com/codegouvfr/catalogi/issues/new) if you want to add more languages.
