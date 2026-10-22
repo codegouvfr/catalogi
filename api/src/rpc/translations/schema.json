@@ -512,6 +512,33 @@
         "softwareFormStep2": {
             "type": "object",
             "properties": {
+                "repository url": {
+                    "type": "string"
+                },
+                "repository url hint": {
+                    "type": "string"
+                },
+                "repository url required": {
+                    "type": "string"
+                },
+                "repository url invalid": {
+                    "type": "string"
+                },
+                "repository resolving": {
+                    "type": "string"
+                },
+                "repository found": {
+                    "type": "string"
+                },
+                "repository not found": {
+                    "type": "string"
+                },
+                "repository unsupported": {
+                    "type": "string"
+                },
+                "repository already referenced": {
+                    "type": "string"
+                },
                 "external id": {
                     "type": "string"
                 },
@@ -582,6 +609,15 @@
             },
             "additionalProperties": false,
             "required": [
+                "repository url",
+                "repository url hint",
+                "repository url required",
+                "repository url invalid",
+                "repository resolving",
+                "repository found",
+                "repository not found",
+                "repository unsupported",
+                "repository already referenced",
                 "external id",
                 "external id hint_fill",
                 "software name",

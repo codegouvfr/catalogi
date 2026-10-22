@@ -258,6 +258,7 @@ export default function SoftwareForm(props: Props) {
                         })
                     }
                     getAutofillDataFromWikidata={softwareForm.getAutofillData}
+                    resolveRepoUrl={softwareForm.resolveRepoUrl}
                     getLibreSoftwareWikidataOptions={queryString =>
                         softwareForm.getExternalSoftwareOptions({
                             language: lang,
