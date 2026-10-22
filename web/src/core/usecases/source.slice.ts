@@ -19,7 +19,7 @@ export namespace State {
 
     export type Ready = {
         stateDescription: "initialized";
-        mainSource: ApiTypes.Source;
+        mainSource: Omit<ApiTypes.Source, "configuration">;
     };
 }
 
@@ -30,7 +30,7 @@ export const { reducer, actions } = createUsecaseActions({
         fetchMainSourceStarted: state => state,
         fetchMainSourceSucceeded: (
             _,
-            action: { payload: { mainSource: ApiTypes.Source } }
+            action: { payload: { mainSource: Omit<ApiTypes.Source, "configuration"> } }
         ) => ({ stateDescription: "initialized", mainSource: action.payload.mainSource })
     }
 });
