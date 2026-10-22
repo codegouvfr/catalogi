@@ -185,9 +185,12 @@ export function createSillApi(params: { url: string }): SillApi {
             sillApi.getUsers.clear();
         },
         unreferenceSoftware: async params => {
-            await trpcClient.unreferenceSoftware.mutate(params).catch(errorHandler);
+            const newStatus = await trpcClient.unreferenceSoftware
+                .mutate(params)
+                .catch(errorHandler);
 
             sillApi.getSoftwareList.clear();
+            return newStatus;
         },
         getAttributeDefinitions: memoize(
             () => trpcClient.getAttributeDefinitions.query(),

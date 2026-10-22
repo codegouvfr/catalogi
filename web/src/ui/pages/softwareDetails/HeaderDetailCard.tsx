@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { memo } from "react";
@@ -25,13 +25,7 @@ export type Props = {
     className?: string;
     image?: string;
     name: string;
-    softwareDereferencing:
-        | {
-              reason?: string;
-              time: string;
-              lastRecommendedVersion?: string;
-          }
-        | undefined;
+    status: ApiTypes.Status;
     authors: Array<ApiTypes.Person | ApiTypes.Organization>;
     officialWebsite?: string;
     documentationWebsite?: string;
@@ -57,7 +51,7 @@ export const HeaderDetailCard = memo((props: Props) => {
         sourceCodeRepository,
         onGoBackClick,
         userDeclaration,
-        softwareDereferencing,
+        status,
         dataBySource,
         ...rest
     } = props;
@@ -213,25 +207,25 @@ export const HeaderDetailCard = memo((props: Props) => {
                                 </span>
                             </div>
                         )}
-                        {softwareDereferencing !== undefined && (
+                        {["archived", "rejected"].includes(status.name) && (
                             <>
                                 &nbsp; &nbsp;
                                 <p className={classes.dereferencedText}>
                                     {t("headerDetailCard.software dereferenced", {
                                         when: getFormattedDate({
-                                            time: softwareDereferencing.time,
+                                            time: status.changed.time,
                                             lang,
                                             doAlwaysShowYear: true
                                         })
                                     })}
-                                    {softwareDereferencing.reason === undefined
+                                    {status.changed.reason === undefined
                                         ? ""
-                                        : `, ${softwareDereferencing.reason}`}
+                                        : `, ${status.changed.reason}`}
                                     {t(
                                         "headerDetailCard.software dereferenced last version",
                                         {
                                             lastRecommendedVersion:
-                                                softwareDereferencing.lastRecommendedVersion
+                                                status.changed.lastRecommendedVersion
                                         }
                                     )}
                                 </p>
