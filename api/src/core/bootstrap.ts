@@ -20,6 +20,8 @@ import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
+import { makeResolveRepoUrl } from "./usecases/resolveRepoUrl";
+import { resolveRepository } from "./adapters/resolveRepository";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -76,7 +78,8 @@ export async function bootstrapCore(
             makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources(context, {}),
         getUser: makeGetUser({ userRepository: dbApi.user }),
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
-        createSoftware: makeCreateSofware({ dbApi, withUserInput: true }),
+        createSoftware: makeCreateSofware({ dbApi, withUserInput: true, resolveRepository }),
+        resolveRepoUrl: makeResolveRepoUrl({ dbApi, resolveRepository }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),
         auth: {
