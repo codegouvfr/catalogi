@@ -11,12 +11,14 @@ test("add a new software and verify it appears in the catalog", async ({ page })
     await page.getByLabel("GNU/Linux").check({ force: true });
     await page.getByRole("button", { name: "Suivant" }).click();
 
-    // Step 2: fill software info (use getByRole to disambiguate from wikidata combobox)
-    // An unknown forge keeps the test away from the GitHub API; the step stays
-    // blocked until the url is resolved.
+    // Step 2: fill software info
+    // An unknown forge keeps the test away from the GitHub API; the fields stay
+    // locked until the url is checked.
     await page
         .getByRole("textbox", { name: "URL du dépôt de code source" })
         .fill("https://example.org/e2e/test-software");
+    await expect(page.getByRole("textbox", { name: "Nom du logiciel" })).toBeDisabled();
+    await page.getByRole("button", { name: "Vérifier" }).click();
     await expect(page.getByText("Forge non reconnue")).toBeVisible({ timeout: 15_000 });
     await page
         .getByRole("textbox", { name: "Nom du logiciel" })

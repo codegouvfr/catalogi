@@ -40,6 +40,12 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .orderBy("sources.slug", "asc")
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row)),
+    getCategoryPriorities: async () =>
+        db
+            .selectFrom("source_categories")
+            .select(["category", "priority"])
+            .execute()
+            .then(rows => Object.fromEntries(rows.map(({ category, priority }) => [category, priority]))),
     getWikidataSource: async () =>
         db
             .selectFrom("sources")
