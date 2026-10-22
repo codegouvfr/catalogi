@@ -103,26 +103,6 @@ describe("discoverSourcesByRepository", () => {
 
         expect(discovered.map(({ sourceSlug }) => sourceSlug)).toEqual(["cdl"]);
     });
-
-    it("reuses the answers of the sources, but asks a failing source again", async () => {
-        const calls: string[] = [];
-        let isHalDown = true;
-        const discover = makeDiscoverSourcesByRepository({
-            dbApi,
-            getFinder: source => async () => {
-                calls.push(source.slug);
-                if (source.slug === "hal" && isHalDown) throw new Error("down");
-                return { externalId: `id-${source.slug}`, name: undefined, url: "" };
-            }
-        });
-
-        await discover({ repoUrls: [repoUrl], sources: [wikidata, hal] });
-        isHalDown = false;
-        const discovered = await discover({ repoUrls: [repoUrl], sources: [wikidata, hal] });
-
-        expect(calls).toEqual(["wikidata", "hal", "hal"]);
-        expect(discovered.map(({ sourceSlug }) => sourceSlug)).toEqual(["wikidata", "hal"]);
-    });
 });
 
 const makeFetcher = (fetch: (externalId: string) => Promise<SoftwareExternal | undefined>): GetSoftwareExternal =>

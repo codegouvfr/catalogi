@@ -3,8 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import type { RepositoryResolution } from "../ports/ResolveRepository";
-import { makeCachedResolveRepository, normalizeRepoUrl, stripForgeSubPage } from "./resolveRepository";
+import { normalizeRepoUrl, stripForgeSubPage, toComparableRepoUrl } from "./resolveRepository";
 
 describe("normalizeRepoUrl", () => {
     it.each([
@@ -44,33 +43,14 @@ describe("stripForgeSubPage", () => {
     });
 });
 
-describe("makeCachedResolveRepository", () => {
-    it("resolves each repository once, but asks again a forge not answering", async () => {
-        const resolved: string[] = [];
-        const resolutions: Record<string, RepositoryResolution> = {
-            "https://github.com/org/repo": { status: "unsupported", url: "https://github.com/org/repo" },
-            "https://gitlab.com/org/repo": { status: "unreachable", forgeKind: "GitLab" }
-        };
-        const resolveRepository = makeCachedResolveRepository({
-            resolveRepository: async ({ url }) => {
-                resolved.push(url);
-                return resolutions[url];
-            }
-        });
-
-        for (const url of [
-            "https://github.com/org/repo",
-            "https://github.com/org/repo.git",
-            "https://gitlab.com/org/repo",
-            "https://gitlab.com/org/repo"
-        ]) {
-            await resolveRepository({ url, sources: [] });
-        }
-
-        expect(resolved).toEqual([
-            "https://github.com/org/repo",
-            "https://gitlab.com/org/repo",
-            "https://gitlab.com/org/repo"
-        ]);
+describe("toComparableRepoUrl", () => {
+    it("gives the same value for every spelling of a repository", () => {
+        const spellings = [
+            "https://codeberg.org/Org/Repo",
+            " http://codeberg.org/org/repo/ ",
+            "https://codeberg.org/org/repo.git",
+            "git@codeberg.org:org/repo.git"
+        ];
+        expect(new Set(spellings.map(toComparableRepoUrl))).toEqual(new Set(["https://codeberg.org/org/repo"]));
     });
 });

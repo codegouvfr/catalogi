@@ -6,7 +6,12 @@ import { DbApiV2, SoftwareExtrinsicCreation, WithUserId } from "../ports/DbApiV2
 import type { ResolveRepository, ResolvedRepository } from "../ports/ResolveRepository";
 import { SoftwareFormData, SoftwareProtections } from "./readWriteSillData";
 import { makeEnsureForgeSource } from "./ensureForgeSource";
-import type { DiscoverSourcesByRepository, DiscoveredSource } from "./discoverSourcesByRepository";
+import {
+    withExistingSoftwareIds,
+    type DiscoverSourcesByRepository,
+    type DiscoveredSource
+} from "./discoverSourcesByRepository";
+import type { RepositoryCheckCache } from "./repositoryCheckCache";
 import { findSoftwareIdByRepository, getRepoUrlSpellings, getRepositoryKey } from "./resolveRepoUrl";
 import { normalizeRepoUrl } from "../adapters/resolveRepository";
 import { resolveSoftwareFormDataProtections } from "./resolveSoftwareFormDataProtection";
@@ -127,18 +132,19 @@ export const makeCreateSofware: (params: {
     // Without them, `codeRepositoryUrl` is only kept as user input.
     resolveRepository?: ResolveRepository;
     discoverSourcesByRepository?: DiscoverSourcesByRepository;
+    // What the form showed: reused rather than asked again to the forge and the sources.
+    repositoryCheckCache?: RepositoryCheckCache;
 }) => CreateSoftware = params => {
-    const { dbApi, withUserInput, resolveRepository, discoverSourcesByRepository } = params;
+    const { dbApi, withUserInput, resolveRepository, discoverSourcesByRepository, repositoryCheckCache } = params;
     const ensureForgeSource = makeEnsureForgeSource({ dbApi });
 
     // A failing forge must not prevent the creation: the url stays in the user input.
     // `key` identifies the repository even when the forge doesn't answer, for the duplicate check.
     const resolveFormRepository = async (
-        formData: SoftwareFormData,
+        normalizedUrl: string,
         logTitle: string
     ): Promise<{ repository?: ResolvedRepository; key?: ReturnType<typeof getRepositoryKey> }> => {
-        const normalizedUrl = formData.codeRepositoryUrl && normalizeRepoUrl(formData.codeRepositoryUrl);
-        if (!resolveRepository || !normalizedUrl) return {};
+        if (!resolveRepository) return {};
         try {
             const sources = await dbApi.source.getAll();
             const resolution = await resolveRepository({ url: normalizedUrl, sources });
@@ -147,26 +153,39 @@ export const makeCreateSofware: (params: {
                 key: getRepositoryKey({ resolution, normalizedUrl })
             };
         } catch (error) {
-            console.error(`${logTitle} repository ${formData.codeRepositoryUrl} not resolved`, error);
+            console.error(`${logTitle} repository ${normalizedUrl} not resolved`, error);
             return {};
         }
     };
 
-    const discoverFormRepositorySources = async (
-        formData: SoftwareFormData,
-        repository: ResolvedRepository | undefined,
-        logTitle: string
-    ): Promise<DiscoveredSource[]> => {
-        if (!discoverSourcesByRepository || !formData.codeRepositoryUrl) return [];
+    const discoverFormRepositorySources = async (repoUrls: string[], logTitle: string): Promise<DiscoveredSource[]> => {
+        if (!discoverSourcesByRepository) return [];
         try {
-            return await discoverSourcesByRepository({
-                repoUrls: getRepoUrlSpellings({ input: formData.codeRepositoryUrl, repository }),
-                sources: await dbApi.source.getAll()
-            });
+            return await discoverSourcesByRepository({ repoUrls, sources: await dbApi.source.getAll() });
         } catch (error) {
-            console.error(`${logTitle} sources citing ${formData.codeRepositoryUrl} not discovered`, error);
+            console.error(`${logTitle} sources citing ${repoUrls[0]} not discovered`, error);
             return [];
         }
+    };
+
+    const getFormRepository = async (formData: SoftwareFormData, logTitle: string) => {
+        const normalizedUrl = formData.codeRepositoryUrl && normalizeRepoUrl(formData.codeRepositoryUrl);
+        if (!resolveRepository || !normalizedUrl) return undefined;
+
+        const check = repositoryCheckCache?.get(normalizedUrl);
+        const { repository, key } = check?.repository
+            ? { repository: check.repository, key: check.repository }
+            : await resolveFormRepository(normalizedUrl, logTitle);
+        const repoUrls = getRepoUrlSpellings({ input: normalizedUrl, repository });
+
+        return {
+            repository,
+            key,
+            repoUrls,
+            discoveredSources: check
+                ? await withExistingSoftwareIds({ dbApi, discoveredSources: check.discoveredSources })
+                : await discoverFormRepositorySources(repoUrls, logTitle)
+        };
     };
 
     const bindExternalData = async (params: {
@@ -208,19 +227,21 @@ export const makeCreateSofware: (params: {
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const { repository, key: repositoryKey } = await resolveFormRepository(formData, logTitle);
-        const discoveredSources = await discoverFormRepositorySources(formData, repository, logTitle);
+        const formRepository = await getFormRepository(formData, logTitle);
+        const repository = formRepository?.repository;
+        const discoveredSources = formRepository?.discoveredSources ?? [];
 
         const match: ExistingSoftwareMatch | undefined = await (async () => {
             const existing = await resolveExistingSoftware({ dbApi, formData });
             if (existing) return existing;
 
             const softwareId =
-                (repositoryKey &&
+                (formRepository &&
                     (await findSoftwareIdByRepository({
                         dbApi,
                         sources: await dbApi.source.getAll(),
-                        repository: repositoryKey
+                        repositoryKey: formRepository.key,
+                        repoUrls: formRepository.repoUrls
                     }))) ??
                 discoveredSources.find(source => source.existingSoftwareId !== undefined)?.existingSoftwareId;
             return softwareId === undefined ? undefined : { softwareId, matchedBy: "repository" };

@@ -142,6 +142,8 @@ export interface SoftwareExternalDataRepository {
     getAll: () => Promise<DatabaseDataType.SoftwareExternalDataRow[] | undefined>;
     delete: (params: { sourceSlug: string; externalId: string }) => Promise<boolean>;
     getOtherIdentifierIdsBySourceURL: (params: { sourceURL: string }) => Promise<Record<string, number> | undefined>;
+    // Software whose external data (user input included) gives this repository, whatever its spelling.
+    getSoftwareIdByCodeRepositoryUrl: (params: { repoUrl: string }) => Promise<number | undefined>;
 }
 
 export interface InstanceRepository {

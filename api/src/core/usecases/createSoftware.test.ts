@@ -12,8 +12,9 @@ import { expectToEqual, expectToMatchObject, resetDB, testPgUrl, testSource } fr
 import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import { CreateSoftware, makeCreateSofware } from "./createSoftware";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
-import type { ResolveRepository } from "../ports/ResolveRepository";
+import type { ResolveRepository, ResolvedRepository } from "../ports/ResolveRepository";
 import type { DiscoverSourcesByRepository } from "./discoverSourcesByRepository";
+import { makeRepositoryCheckCache } from "./repositoryCheckCache";
 
 const viteOption: SoftwareExternalDataOption = {
     externalId: "Q111590996" /* viteJS */,
@@ -388,19 +389,18 @@ describe("Create software - Trying all the cases", () => {
             codeRepositoryUrl: "https://github.com/facebook/create-react-app"
         };
 
-        const resolveRepository: ResolveRepository = async () => ({
-            status: "found",
-            repository: {
-                forgeKind: "GitHub",
-                url: "https://github.com/facebook/create-react-app",
-                externalId: "facebook/create-react-app",
-                name: "create-react-app",
-                description: undefined,
-                license: "MIT",
-                image: undefined,
-                keywords: []
-            }
-        });
+        const craRepository: ResolvedRepository = {
+            forgeKind: "GitHub",
+            url: "https://github.com/facebook/create-react-app",
+            externalId: "facebook/create-react-app",
+            name: "create-react-app",
+            description: undefined,
+            license: "MIT",
+            image: undefined,
+            keywords: []
+        };
+
+        const resolveRepository: ResolveRepository = async () => ({ status: "found", repository: craRepository });
 
         it("binds the repository to the software through its forge source", async () => {
             const createWithRepo = makeCreateSofware({ dbApi, withUserInput: true, resolveRepository });
@@ -511,6 +511,70 @@ describe("Create software - Trying all the cases", () => {
             await expect(createWithRepo({ formData: repoFormData, userId })).rejects.toThrow(
                 "Software already exists with repository https://github.com/facebook/create-react-app"
             );
+        });
+
+        it("binds what the form showed, even when the forge and the sources stop answering", async () => {
+            const repositoryCheckCache = makeRepositoryCheckCache();
+            repositoryCheckCache.set([craRepository.url], {
+                repository: craRepository,
+                discoveredSources: [
+                    {
+                        sourceSlug: testSource.slug,
+                        sourceKind: testSource.kind,
+                        externalId: "Q118629387",
+                        name: "Create React App",
+                        url: "https://www.wikidata.org/wiki/Q118629387",
+                        existingSoftwareId: undefined
+                    }
+                ]
+            });
+            const createWithRepo = makeCreateSofware({
+                dbApi,
+                withUserInput: true,
+                resolveRepository: async () => {
+                    throw new Error("network down");
+                },
+                discoverSourcesByRepository: async () => [],
+                repositoryCheckCache
+            });
+
+            const softwareId = await createWithRepo({
+                formData: { ...repoFormData, codeRepositoryUrl: "https://github.com/Facebook/Create-React-App/" },
+                userId
+            });
+
+            const externalData = await db
+                .selectFrom("software_external_datas")
+                .select(["sourceSlug", "externalId"])
+                .where("softwareId", "=", softwareId)
+                .where("sourceSlug", "!=", "UserInput")
+                .orderBy("sourceSlug")
+                .execute();
+
+            expectToEqual(externalData, [
+                { sourceSlug: "github-com", externalId: "facebook/create-react-app" },
+                { sourceSlug: testSource.slug, externalId: "Q118629387" }
+            ]);
+        });
+
+        it("rejects a software whose repository url is already given by a software, whatever the spelling", async () => {
+            const createWithRepo = makeCreateSofware({
+                dbApi,
+                withUserInput: true,
+                resolveRepository: async () => ({ status: "unsupported", url: undefined })
+            });
+
+            await createWithRepo({
+                formData: { ...repoFormData, codeRepositoryUrl: "https://codeberg.org/Org/Tool" },
+                userId
+            });
+
+            await expect(
+                createWithRepo({
+                    formData: { ...repoFormData, name: "Tool", codeRepositoryUrl: "http://codeberg.org/org/tool.git" },
+                    userId
+                })
+            ).rejects.toThrow("Software already exists with repository http://codeberg.org/org/tool.git");
         });
     });
 });

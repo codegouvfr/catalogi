@@ -11,6 +11,7 @@ import type {
 } from "./discoverSourcesByRepository";
 import type { ForgeKind } from "./ensureForgeSource";
 import type { Source, SoftwareSourceData } from "./readWriteSillData";
+import type { RepositoryCheckCache } from "./repositoryCheckCache";
 import { normalizeRepoUrl } from "../adapters/resolveRepository";
 
 type ResolvedRepoUrl = {
@@ -58,24 +59,47 @@ export const getRepositoryKey = (params: {
     return { forgeKind: "GitHub", url: normalizedUrl, externalId: segments.join("/") };
 };
 
-// A repository is already known when it is bound as forge external data, or when
-// another source (Wikidata, HAL...) cites it as identifier of a software.
+// A repository is already known when it is bound as forge external data, when another
+// source (Wikidata, HAL...) cites it as identifier of a software, or when the external
+// data of a software (user input included) gives it as repository url.
 export const findSoftwareIdByRepository = async (params: {
     dbApi: DbApiV2;
     sources: Source[];
-    repository: RepositoryKey;
+    repositoryKey: RepositoryKey | undefined;
+    repoUrls: string[];
 }): Promise<number | undefined> => {
-    const { dbApi, sources, repository } = params;
-    const { origin } = new URL(repository.url);
+    const { dbApi, sources, repositoryKey, repoUrls } = params;
+
+    if (repositoryKey) {
+        const softwareId = await findSoftwareIdByForgeIdentifier({ dbApi, sources, repositoryKey });
+        if (softwareId !== undefined) return softwareId;
+    }
+
+    for (const repoUrl of repoUrls) {
+        const softwareId = await dbApi.softwareExternalData.getSoftwareIdByCodeRepositoryUrl({ repoUrl });
+        if (softwareId !== undefined) return softwareId;
+    }
+
+    return undefined;
+};
+
+const findSoftwareIdByForgeIdentifier = async (params: {
+    dbApi: DbApiV2;
+    sources: Source[];
+    repositoryKey: RepositoryKey;
+}): Promise<number | undefined> => {
+    const { dbApi, sources, repositoryKey } = params;
+    const { origin } = new URL(repositoryKey.url);
 
     const forgeSource = sources.find(
-        source => source.kind === repository.forgeKind && source.url !== "" && URL.parse(source.url)?.origin === origin
+        source =>
+            source.kind === repositoryKey.forgeKind && source.url !== "" && URL.parse(source.url)?.origin === origin
     );
 
     if (forgeSource) {
         const softwareId = await dbApi.software.getSoftwareIdByExternalIdAndSlug({
             sourceSlug: forgeSource.slug,
-            externalId: repository.externalId,
+            externalId: repositoryKey.externalId,
             ignoreCase: true
         });
         if (softwareId !== undefined) return softwareId;
@@ -87,7 +111,7 @@ export const findSoftwareIdByRepository = async (params: {
     if (!softwareIdByIdentifier) return undefined;
 
     // Identifiers keep the case of the url they were built from.
-    const externalId = repository.externalId.toLowerCase();
+    const externalId = repositoryKey.externalId.toLowerCase();
     const match = Object.entries(softwareIdByIdentifier).find(([value]) => value.toLowerCase() === externalId);
     return match?.[1];
 };
@@ -108,6 +132,7 @@ export const makeResolveRepoUrl =
         resolveRepository: ResolveRepository;
         discoverSourcesByRepository: DiscoverSourcesByRepository;
         fetchDiscoveredSourcesData: FetchDiscoveredSourcesData;
+        repositoryCheckCache: RepositoryCheckCache;
     }): ResolveRepoUrl =>
     async ({ url }) => {
         const { dbApi, resolveRepository, discoverSourcesByRepository, fetchDiscoveredSourcesData } = deps;
@@ -116,18 +141,27 @@ export const makeResolveRepoUrl =
         if (!normalizedUrl) return { status: "invalid" };
 
         const sources = await dbApi.source.getAll();
-        const resolution = await resolveRepository({ url: normalizedUrl, sources });
+        // A repository found by a previous check is not asked again to the forge.
+        const cachedRepository = deps.repositoryCheckCache.get(normalizedUrl)?.repository;
+        const resolution: RepositoryResolution = cachedRepository
+            ? { status: "found", repository: cachedRepository }
+            : await resolveRepository({ url: normalizedUrl, sources });
         const repository = resolution.status === "found" ? resolution.repository : undefined;
-        const repositoryKey = getRepositoryKey({ resolution, normalizedUrl });
         const repoUrl = (resolution.status === "unsupported" ? resolution.url : undefined) ?? normalizedUrl;
+        const repoUrls = getRepoUrlSpellings({ input: repoUrl, repository });
 
         const [discoveredSources, softwareIdByRepository] = await Promise.all([
-            discoverSourcesByRepository({
-                repoUrls: getRepoUrlSpellings({ input: repoUrl, repository }),
-                sources
-            }),
-            repositoryKey ? findSoftwareIdByRepository({ dbApi, sources, repository: repositoryKey }) : undefined
+            discoverSourcesByRepository({ repoUrls, sources }),
+            findSoftwareIdByRepository({
+                dbApi,
+                sources,
+                repositoryKey: getRepositoryKey({ resolution, normalizedUrl }),
+                repoUrls
+            })
         ]);
+
+        // The creation binds what the form shows.
+        deps.repositoryCheckCache.set([normalizedUrl, ...repoUrls], { repository, discoveredSources });
 
         const existingSoftwareId =
             softwareIdByRepository ??

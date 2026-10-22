@@ -7,9 +7,7 @@ import type { GetSoftwareExternal } from "../ports/GetSoftwareExternal";
 import type { FindSoftwareByRepositoryUrl } from "../ports/SourceGateway";
 import type { SoftwareExternal } from "../types/SoftwareTypes";
 import type { Source, SoftwareSourceData } from "./readWriteSillData";
-import type { RepositoryMatch } from "../ports/SourceGateway";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
-import { makeTtlCache } from "../../tools/ttlCache";
 
 export type DiscoveredSource = {
     sourceSlug: string;
@@ -41,17 +39,15 @@ const rejectOnAbort = (signal: AbortSignal) =>
 
 // Looks for the repository in every configured source able to search by repository url,
 // so an instance only queries the sources it uses. A slow or failing source is skipped.
-// Answers are cached so the creation binds what the form showed; failures are not.
-export const makeDiscoverSourcesByRepository = (deps: {
-    dbApi: DbApiV2;
-    timeoutMs?: number;
-    cacheTtlMs?: number;
-    getFinder?: (source: Source) => FindSoftwareByRepositoryUrl | undefined;
-}): DiscoverSourcesByRepository => {
-    const { dbApi, timeoutMs = defaultTimeoutMs, cacheTtlMs = 15 * 60_000, getFinder = getRepositoryFinder } = deps;
-    const cache = makeTtlCache<{ match: RepositoryMatch | undefined }>({ ttlMs: cacheTtlMs });
+export const makeDiscoverSourcesByRepository =
+    (deps: {
+        dbApi: DbApiV2;
+        timeoutMs?: number;
+        getFinder?: (source: Source) => FindSoftwareByRepositoryUrl | undefined;
+    }): DiscoverSourcesByRepository =>
+    async ({ repoUrls, sources }) => {
+        const { dbApi, timeoutMs = defaultTimeoutMs, getFinder = getRepositoryFinder } = deps;
 
-    return async ({ repoUrls, sources }) => {
         const variants = repoUrlVariants(repoUrls);
         if (variants.length === 0) return [];
 
@@ -60,17 +56,12 @@ export const makeDiscoverSourcesByRepository = (deps: {
                 const find = getFinder(source);
                 if (!find) return undefined;
 
-                const cacheKey = `${source.slug} ${variants.join(" ")}`;
-                const cached = cache.get(cacheKey);
-                if (cached) return cached.match && { source, match: cached.match };
-
                 const signal = AbortSignal.timeout(timeoutMs);
                 try {
                     const match = await Promise.race([
                         find({ repoUrls: variants, source, signal }),
                         rejectOnAbort(signal)
                     ]);
-                    cache.set(cacheKey, { match });
                     return match && { source, match };
                 } catch (error) {
                     console.info(`[UC.discoverSourcesByRepository] ${source.slug} skipped: ${String(error)}`);
@@ -87,8 +78,9 @@ export const makeDiscoverSourcesByRepository = (deps: {
             return true;
         });
 
-        return Promise.all(
-            discovered.map(async found => {
+        return withExistingSoftwareIds({
+            dbApi,
+            discoveredSources: discovered.map(found => {
                 const { source, match } = found!;
                 return {
                     sourceSlug: source.slug,
@@ -96,15 +88,26 @@ export const makeDiscoverSourcesByRepository = (deps: {
                     externalId: match.externalId,
                     name: match.name,
                     url: match.url,
-                    existingSoftwareId: await dbApi.software.getSoftwareIdByExternalIdAndSlug({
-                        sourceSlug: source.slug,
-                        externalId: match.externalId
-                    })
+                    existingSoftwareId: undefined
                 };
             })
-        );
+        });
     };
-};
+
+// The software an entry is bound to changes over time: refreshed on each use.
+export const withExistingSoftwareIds = (params: {
+    dbApi: DbApiV2;
+    discoveredSources: DiscoveredSource[];
+}): Promise<DiscoveredSource[]> =>
+    Promise.all(
+        params.discoveredSources.map(async discoveredSource => ({
+            ...discoveredSource,
+            existingSoftwareId: await params.dbApi.software.getSoftwareIdByExternalIdAndSlug({
+                sourceSlug: discoveredSource.sourceSlug,
+                externalId: discoveredSource.externalId
+            })
+        }))
+    );
 
 export type FetchDiscoveredSourcesData = (params: {
     discoveredSources: DiscoveredSource[];
