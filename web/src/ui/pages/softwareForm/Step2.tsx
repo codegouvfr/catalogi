@@ -16,6 +16,7 @@ import { useCore } from "core";
 import type { FormData } from "core/usecases/softwareForm";
 import type { ReturnType } from "tsafe";
 import { useResolveLocalizedString } from "ui/i18n";
+import { routes } from "ui/routes";
 import { Trans, useTranslation } from "react-i18next";
 import { useStyles } from "tss-react";
 import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
@@ -36,6 +37,9 @@ export type Step2Props = {
     getAutofillDataFromWikidata: ReturnType<
         typeof useCore
     >["functions"]["softwareForm"]["getAutofillData"];
+    resolveRepoUrl: ReturnType<
+        typeof useCore
+    >["functions"]["softwareForm"]["resolveRepoUrl"];
     getLibreSoftwareWikidataOptions: (
         queryString: string
     ) => Promise<
@@ -48,6 +52,11 @@ export type Step2Props = {
 };
 
 type ScalarOverridableField = keyof FormData["step2"]["userInputOverrides"];
+
+type RepoResolutionState =
+    | { status: "idle" }
+    | { status: "resolving" }
+    | ReturnType<Step2Props["resolveRepoUrl"]>;
 
 const fieldRowStyle = { display: "flex", alignItems: "flex-end" } as const;
 
@@ -67,7 +76,8 @@ export function SoftwareFormStep2(props: Step2Props) {
         onSubmit,
         evtActionSubmit,
         getLibreSoftwareWikidataOptions,
-        getAutofillDataFromWikidata
+        getAutofillDataFromWikidata,
+        resolveRepoUrl
     } = props;
 
     const { t } = useTranslation();
@@ -85,6 +95,7 @@ export function SoftwareFormStep2(props: Step2Props) {
         formState: { errors },
         setValue
     } = useForm<{
+        codeRepositoryUrl: string;
         wikidataEntry:
             | ReturnType<typeof getLibreSoftwareWikidataOptions>[number]
             | undefined;
@@ -100,6 +111,7 @@ export function SoftwareFormStep2(props: Step2Props) {
             }
 
             const {
+                codeRepositoryUrl,
                 externalId,
                 keywords,
                 userInputOverrides: _o,
@@ -108,6 +120,7 @@ export function SoftwareFormStep2(props: Step2Props) {
 
             return {
                 ...rest,
+                codeRepositoryUrl: codeRepositoryUrl ?? "",
                 wikidataEntry:
                     externalId === undefined
                         ? undefined
@@ -151,9 +164,39 @@ export function SoftwareFormStep2(props: Step2Props) {
         };
     });
 
+    // Stand-in for the repository, like `virtualSource` for Wikidata. The
+    // repository category comes first in source precedence.
+    const [repoResolution, setRepoResolution] = useState<RepoResolutionState>({
+        status: "idle"
+    });
+
+    const repoVirtualSource = useMemo((): ApiTypes.SoftwareSourceData | undefined => {
+        if (repoResolution.status !== "found") return undefined;
+        if (repoResolution.existingSoftwareId !== undefined) return undefined;
+
+        return {
+            sourceSlug: new URL(repoResolution.codeRepositoryUrl).host,
+            priority: 1,
+            kind: repoResolution.forgeKind,
+            sourceUrl: repoResolution.codeRepositoryUrl,
+            externalId: repoResolution.externalId,
+            lastDataFetchAt: undefined,
+            name: { en: repoResolution.name },
+            description: repoResolution.description
+                ? { en: repoResolution.description }
+                : undefined,
+            license: repoResolution.license,
+            image: repoResolution.image,
+            keywords: repoResolution.keywords
+        };
+    }, [repoResolution]);
+
     const effectiveDataBySource = useMemo(
-        () => (virtualSource ? [virtualSource, ...dataBySource] : dataBySource),
-        [virtualSource, dataBySource]
+        () =>
+            [repoVirtualSource, virtualSource, ...dataBySource].filter(
+                (source): source is ApiTypes.SoftwareSourceData => source !== undefined
+            ),
+        [repoVirtualSource, virtualSource, dataBySource]
     );
 
     type FieldUiState = {
@@ -257,6 +300,109 @@ export function SoftwareFormStep2(props: Step2Props) {
     );
 
     const wikidataInputId = useId();
+
+    const codeRepositoryUrl = watch("codeRepositoryUrl");
+
+    useEffect(() => {
+        if (isUpdateForm) return;
+
+        const url = codeRepositoryUrl?.trim() ?? "";
+        if (url === "") {
+            setRepoResolution({ status: "idle" });
+            return;
+        }
+
+        let isActive = true;
+        setRepoResolution({ status: "resolving" });
+
+        const timer = setTimeout(async () => {
+            try {
+                const resolution = await resolveRepoUrl({ url });
+                if (isActive) setRepoResolution(resolution);
+            } catch (error) {
+                console.error("Failed to resolve repository url", { url, error });
+                // The url is kept as user input, the form just isn't prefilled.
+                if (isActive)
+                    setRepoResolution({ status: "unsupported", codeRepositoryUrl: url });
+            }
+        }, 600);
+
+        return () => {
+            isActive = false;
+            clearTimeout(timer);
+        };
+    }, [codeRepositoryUrl, isUpdateForm, resolveRepoUrl]);
+
+    const repoUrlFeedback = (():
+        | {
+              state: "error" | "success" | "info";
+              message: React.ReactNode;
+          }
+        | undefined => {
+        if (errors.codeRepositoryUrl?.type === "required")
+            return {
+                state: "error",
+                message: t("softwareFormStep2.repository url required")
+            };
+
+        switch (repoResolution.status) {
+            case "idle":
+                return undefined;
+            case "resolving":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository resolving")
+                };
+            case "invalid":
+                return {
+                    state: "error",
+                    message: t("softwareFormStep2.repository url invalid")
+                };
+            case "unsupported":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository unsupported")
+                };
+            case "notFound":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository not found", {
+                        forgeKind: repoResolution.forgeKind
+                    })
+                };
+            case "found":
+                if (repoResolution.existingSoftwareId !== undefined) {
+                    return {
+                        state: "error",
+                        message: (
+                            <Trans
+                                i18nKey="softwareFormStep2.repository already referenced"
+                                components={{
+                                    softwareLink: (
+                                        /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                        <a
+                                            href={
+                                                routes.softwareDetails({
+                                                    id: repoResolution.existingSoftwareId
+                                                }).href
+                                            }
+                                            target="_blank"
+                                            rel="noreferrer"
+                                        />
+                                    )
+                                }}
+                            />
+                        )
+                    };
+                }
+                return {
+                    state: "success",
+                    message: t("softwareFormStep2.repository found", {
+                        forgeKind: repoResolution.forgeKind
+                    })
+                };
+        }
+    })();
 
     const { isAutocompleteInProgress } = (function useClosure() {
         const [isAutocompleteInProgress, setIsAutocompleteInProgress] = useState(false);
@@ -423,6 +569,7 @@ export function SoftwareFormStep2(props: Step2Props) {
             className={className}
             onSubmit={handleSubmit(
                 ({
+                    codeRepositoryUrl,
                     wikidataEntry,
                     image,
                     keywordsInputValue,
@@ -452,7 +599,17 @@ export function SoftwareFormStep2(props: Step2Props) {
                         image: resolveField("image", image)
                     };
 
+                    const trimmedRepoUrl = codeRepositoryUrl.trim();
+
                     onSubmit({
+                        codeRepositoryUrl:
+                            repoResolution.status === "found" ||
+                            repoResolution.status === "notFound" ||
+                            repoResolution.status === "unsupported"
+                                ? repoResolution.codeRepositoryUrl
+                                : trimmedRepoUrl === ""
+                                  ? undefined
+                                  : trimmedRepoUrl,
                         externalId: wikidataEntry?.externalId,
                         name: resolved.name.value ?? "",
                         description: resolved.description.value ?? "",
@@ -476,6 +633,27 @@ export function SoftwareFormStep2(props: Step2Props) {
                 }
             )}
         >
+            <Input
+                label={t("softwareFormStep2.repository url")}
+                hintText={t("softwareFormStep2.repository url hint")}
+                nativeInputProps={{
+                    ...register("codeRepositoryUrl", {
+                        required: !isUpdateForm,
+                        // Block the step on an unusable url or a duplicate.
+                        validate: () =>
+                            repoResolution.status !== "invalid" &&
+                            repoResolution.status !== "resolving" &&
+                            !(
+                                repoResolution.status === "found" &&
+                                repoResolution.existingSoftwareId !== undefined
+                            )
+                    }),
+                    inputMode: "url",
+                    placeholder: "https://github.com/organisation/logiciel"
+                }}
+                state={repoUrlFeedback?.state}
+                stateRelatedMessage={repoUrlFeedback?.message}
+            />
             <Controller
                 name="wikidataEntry"
                 control={control}
