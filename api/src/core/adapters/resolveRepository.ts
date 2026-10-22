@@ -7,7 +7,6 @@ import type { RepositoryResolution, ResolveRepository } from "../ports/ResolveRe
 import type { Source } from "../usecases/readWriteSillData";
 import { repoAnalyser } from "../../tools/repoAnalyser";
 import { Octokit } from "@octokit/rest";
-import { makeTtlCache } from "../../tools/ttlCache";
 
 const gitHubOrigin = "https://github.com";
 
@@ -41,6 +40,13 @@ export const normalizeRepoUrl = (input: string): string | undefined => {
 
     return `${origin}${pathname}`;
 };
+
+// Two spellings of the same repository give the same value: case, protocol,
+// trailing slash and `.git` are ignored.
+export const toComparableRepoUrl = (input: string): string | undefined =>
+    normalizeRepoUrl(input)
+        ?.toLowerCase()
+        .replace(/^http:/, "https:");
 
 // Sub-pages of the forges not handled here (Forgejo, Gitea, Bitbucket, SourceHut...),
 // which all address a repository as `owner/repo`.
@@ -207,25 +213,4 @@ export const resolveRepository: ResolveRepository = async ({ url, sources }) => 
         default:
             return { status: "unsupported", url: stripForgeSubPage(normalizedUrl) };
     }
-};
-
-// The form checks the url, then the creation resolves it again: the cache keeps both
-// consistent and spares the forge quotas. A missing repository may be published
-// meanwhile and a forge not answering may come back: both are asked again.
-export const makeCachedResolveRepository = (params: {
-    resolveRepository: ResolveRepository;
-    ttlMs?: number;
-}): ResolveRepository => {
-    const { resolveRepository, ttlMs = 15 * 60_000 } = params;
-    const cache = makeTtlCache<RepositoryResolution>({ ttlMs });
-
-    return async ({ url, sources }) => {
-        const key = normalizeRepoUrl(url) ?? url;
-        const cached = cache.get(key);
-        if (cached) return cached;
-
-        const resolution = await resolveRepository({ url, sources });
-        if (resolution.status === "found" || resolution.status === "unsupported") cache.set(key, resolution);
-        return resolution;
-    };
 };

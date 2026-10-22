@@ -25,10 +25,8 @@ import {
     makeDiscoverSourcesByRepository,
     makeFetchDiscoveredSourcesData
 } from "./usecases/discoverSourcesByRepository";
-import {
-    makeCachedResolveRepository,
-    resolveRepository as resolveRepositoryWithoutCache
-} from "./adapters/resolveRepository";
+import { resolveRepository } from "./adapters/resolveRepository";
+import { makeRepositoryCheckCache } from "./usecases/repositoryCheckCache";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -80,7 +78,7 @@ export async function bootstrapCore(
     const oidcClient =
         params.oidcKind === "http" ? await HttpOidcClient.create(oidcParams) : new TestOidcClient(oidcParams);
 
-    const resolveRepository = makeCachedResolveRepository({ resolveRepository: resolveRepositoryWithoutCache });
+    const repositoryCheckCache = makeRepositoryCheckCache();
     const discoverSourcesByRepository = makeDiscoverSourcesByRepository({ dbApi });
     const fetchDiscoveredSourcesData = makeFetchDiscoveredSourcesData({ dbApi });
 
@@ -93,13 +91,15 @@ export async function bootstrapCore(
             dbApi,
             withUserInput: true,
             resolveRepository,
-            discoverSourcesByRepository
+            discoverSourcesByRepository,
+            repositoryCheckCache
         }),
         resolveRepoUrl: makeResolveRepoUrl({
             dbApi,
             resolveRepository,
             discoverSourcesByRepository,
-            fetchDiscoveredSourcesData
+            fetchDiscoveredSourcesData,
+            repositoryCheckCache
         }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),

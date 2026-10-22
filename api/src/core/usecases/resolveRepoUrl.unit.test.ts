@@ -8,6 +8,7 @@ import type { RepositoryResolution } from "../ports/ResolveRepository";
 import type { DiscoveredSource } from "./discoverSourcesByRepository";
 import type { Source, SoftwareSourceData } from "./readWriteSillData";
 import { makeResolveRepoUrl } from "./resolveRepoUrl";
+import { makeRepositoryCheckCache } from "./repositoryCheckCache";
 
 const github: Source = {
     slug: "github-com",
@@ -19,7 +20,8 @@ const github: Source = {
     lastImport: undefined
 };
 
-// Software #3 is bound to the GitHub repository `Org/Repo`.
+// Software #3 is bound to the GitHub repository `Org/Repo`; software #8 gives
+// `https://codeberg.org/Org/Tool` as repository url.
 const makeDbApi = () =>
     ({
         source: { getAll: async () => [github] },
@@ -34,8 +36,23 @@ const makeDbApi = () =>
                 return params.sourceSlug === "github-com" && externalId === stored ? 3 : undefined;
             }
         },
-        softwareExternalData: { getOtherIdentifierIdsBySourceURL: async () => ({}) }
+        softwareExternalData: {
+            getOtherIdentifierIdsBySourceURL: async () => ({}),
+            getSoftwareIdByCodeRepositoryUrl: async ({ repoUrl }: { repoUrl: string }) =>
+                repoUrl.toLowerCase() === "https://codeberg.org/org/tool" ? 8 : undefined
+        }
     }) as unknown as DbApiV2;
+
+const otherRepository = {
+    forgeKind: "GitHub",
+    url: "https://github.com/other/repo",
+    externalId: "other/repo",
+    name: "repo",
+    description: undefined,
+    license: "MIT",
+    image: undefined,
+    keywords: []
+} as const;
 
 const wikidataEntry = (existingSoftwareId: number | undefined): DiscoveredSource => ({
     sourceSlug: "wikidata",
@@ -48,16 +65,22 @@ const wikidataEntry = (existingSoftwareId: number | undefined): DiscoveredSource
 
 const makeUseCase = (params: { resolution: RepositoryResolution; discoveredSources?: DiscoveredSource[] }) => {
     const fetchedFor: DiscoveredSource[][] = [];
+    const resolvedUrls: string[] = [];
+    const repositoryCheckCache = makeRepositoryCheckCache();
     const resolveRepoUrl = makeResolveRepoUrl({
         dbApi: makeDbApi(),
-        resolveRepository: async () => params.resolution,
+        repositoryCheckCache,
+        resolveRepository: async ({ url }) => {
+            resolvedUrls.push(url);
+            return params.resolution;
+        },
         discoverSourcesByRepository: async () => params.discoveredSources ?? [],
         fetchDiscoveredSourcesData: async ({ discoveredSources }) => {
             fetchedFor.push(discoveredSources);
             return discoveredSources.map(({ sourceSlug }) => ({ sourceSlug }) as SoftwareSourceData);
         }
     });
-    return { resolveRepoUrl, fetchedFor };
+    return { resolveRepoUrl, fetchedFor, resolvedUrls, repositoryCheckCache };
 };
 
 describe("resolveRepoUrl", () => {
@@ -69,19 +92,7 @@ describe("resolveRepoUrl", () => {
 
     it("returns the forge data and the data of the discovered entries", async () => {
         const { resolveRepoUrl, fetchedFor } = makeUseCase({
-            resolution: {
-                status: "found",
-                repository: {
-                    forgeKind: "GitHub",
-                    url: "https://github.com/other/repo",
-                    externalId: "other/repo",
-                    name: "repo",
-                    description: undefined,
-                    license: "MIT",
-                    image: undefined,
-                    keywords: []
-                }
-            },
+            resolution: { status: "found", repository: { ...otherRepository, keywords: [] } },
             discoveredSources: [wikidataEntry(undefined)]
         });
 
@@ -125,5 +136,42 @@ describe("resolveRepoUrl", () => {
             discoveredDataBySource: []
         });
         expect(fetchedFor).toEqual([]);
+    });
+
+    it("finds a software giving the repository url in its external data, whatever the spelling", async () => {
+        const { resolveRepoUrl } = makeUseCase({
+            resolution: { status: "unsupported", url: "https://codeberg.org/org/tool" }
+        });
+
+        const resolution = await resolveRepoUrl({ url: "https://codeberg.org/org/tool/" });
+
+        expect(resolution).toMatchObject({ status: "unsupported", existingSoftwareId: 8 });
+    });
+
+    it("keeps what the form showed for the creation, and asks the forge only once for a found repository", async () => {
+        const { resolveRepoUrl, resolvedUrls, repositoryCheckCache } = makeUseCase({
+            resolution: { status: "found", repository: { ...otherRepository, keywords: [] } },
+            discoveredSources: [wikidataEntry(undefined)]
+        });
+
+        await resolveRepoUrl({ url: "https://github.com/Other/Repo.git" });
+        await resolveRepoUrl({ url: "https://github.com/other/repo/" });
+
+        expect(resolvedUrls).toEqual(["https://github.com/Other/Repo"]);
+        expect(repositoryCheckCache.get("https://github.com/other/repo")).toEqual({
+            repository: { ...otherRepository, keywords: [] },
+            discoveredSources: [wikidataEntry(undefined)]
+        });
+    });
+
+    it("asks the forge again when it didn't answer", async () => {
+        const { resolveRepoUrl, resolvedUrls } = makeUseCase({
+            resolution: { status: "unreachable", forgeKind: "GitHub" }
+        });
+
+        await resolveRepoUrl({ url: "https://github.com/other/repo" });
+        await resolveRepoUrl({ url: "https://github.com/other/repo" });
+
+        expect(resolvedUrls).toEqual(["https://github.com/other/repo", "https://github.com/other/repo"]);
     });
 });
