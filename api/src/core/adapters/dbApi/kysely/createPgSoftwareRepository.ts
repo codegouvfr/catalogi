@@ -641,6 +641,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                                 externalId
                             })
                         )
+                        .onConflict(oc => oc.columns(["sourceSlug", "externalId"]).doUpdateSet({ softwareId }))
                         .execute();
                 } else {
                     await trx
