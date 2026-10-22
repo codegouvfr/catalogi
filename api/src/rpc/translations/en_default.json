@@ -251,7 +251,22 @@
             "notFound": "The requested software could not be found in the catalog. It may have been removed or the name might be incorrect.",
             "generic": "An unexpected error occurred while loading the software details.",
             "searchInCatalog": "Look for it in the catalog"
-        }
+        },
+        "nav burger button": "On this page",
+        "section summary": "Summary",
+        "section usages": "Usage",
+        "section vitality": "Project vitality",
+        "section legal": "Legal and economic framework",
+        "section deployment": "Deployment",
+        "section participation": "Participation",
+        "section similar software": "Similar software",
+        "section sources": "Sources and updates",
+        "subsection instances": "Instances",
+        "subsection providers": "Service providers",
+        "see all sources": "See all sources",
+        "official website": "Visit the official website",
+        "new window": "new window",
+        "source code": "View the source code"
     },
     "headerDetailCard": {
         "authors": "Authors : ",

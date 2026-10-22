@@ -1023,6 +1023,52 @@
                     },
                     "additionalProperties": false,
                     "required": ["title", "notFound", "generic", "searchInCatalog"]
+                },
+                "nav burger button": {
+                    "type": "string",
+                    "description": "Text for a button"
+                },
+                "section summary": {
+                    "type": "string"
+                },
+                "section usages": {
+                    "type": "string"
+                },
+                "section vitality": {
+                    "type": "string"
+                },
+                "section legal": {
+                    "type": "string"
+                },
+                "section deployment": {
+                    "type": "string"
+                },
+                "section participation": {
+                    "type": "string"
+                },
+                "section similar software": {
+                    "type": "string"
+                },
+                "section sources": {
+                    "type": "string"
+                },
+                "subsection instances": {
+                    "type": "string"
+                },
+                "subsection providers": {
+                    "type": "string"
+                },
+                "see all sources": {
+                    "type": "string"
+                },
+                "official website": {
+                    "type": "string"
+                },
+                "new window": {
+                    "type": "string"
+                },
+                "source code": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -1059,7 +1105,22 @@
                 "protectedFromEditingDescription",
                 "protectionAdminMessage",
                 "protectionModalClose",
-                "error"
+                "error",
+                "nav burger button",
+                "section summary",
+                "section usages",
+                "section vitality",
+                "section legal",
+                "section deployment",
+                "section participation",
+                "section similar software",
+                "section sources",
+                "subsection instances",
+                "subsection providers",
+                "see all sources",
+                "official website",
+                "new window",
+                "source code"
             ]
         },
         "headerDetailCard": {
@@ -1730,6 +1791,66 @@
                     "type": "string",
                     "description": "Title text"
                 },
+                "catalogTab": {
+                    "type": "string"
+                },
+                "uiConfig": {
+                    "type": "object",
+                    "properties": {
+                        "tab": {
+                            "type": "string"
+                        },
+                        "title": {
+                            "type": "string",
+                            "description": "Title text"
+                        },
+                        "description": {
+                            "type": "string"
+                        },
+                        "editorLabel": {
+                            "type": "string"
+                        },
+                        "editorHint": {
+                            "type": "string"
+                        },
+                        "root": {
+                            "type": "string"
+                        },
+                        "invalidJson": {
+                            "type": "string"
+                        },
+                        "saveError": {
+                            "type": "string"
+                        },
+                        "saved": {
+                            "type": "string"
+                        },
+                        "reset": {
+                            "type": "string"
+                        },
+                        "save": {
+                            "type": "string"
+                        },
+                        "saving": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "tab",
+                        "title",
+                        "description",
+                        "editorLabel",
+                        "editorHint",
+                        "root",
+                        "invalidJson",
+                        "saveError",
+                        "saved",
+                        "reset",
+                        "save",
+                        "saving"
+                    ]
+                },
                 "softwareEntries": {
                     "type": "object",
                     "properties": {
@@ -1960,7 +2081,7 @@
                 }
             },
             "additionalProperties": false,
-            "required": ["title", "softwareEntries", "customAttributes", "form"]
+            "required": ["title", "catalogTab", "uiConfig", "softwareEntries", "customAttributes", "form"]
         },
         "authorCard": {
             "type": "object",
@@ -1975,15 +2096,15 @@
         "footer": {
             "type": "object",
             "properties": {
-                "contribute": {
+                "apiDocumentation": {
                     "type": "string"
                 },
-                "apiDocumentation": {
+                "contribute": {
                     "type": "string"
                 }
             },
             "additionalProperties": false,
-            "required": ["contribute", "apiDocumentation"]
+            "required": ["apiDocumentation", "contribute"]
         },
         "declarationRemovalModal": {
             "type": "object",

@@ -254,7 +254,22 @@
             "notFound": "Le logiciel demandé n'a pas pu être trouvé dans le catalogue. Il a peut-être été supprimé ou le nom pourrait être incorrect.",
             "generic": "Une erreur inattendue s'est produite lors du chargement des détails du logiciel.",
             "searchInCatalog": "Le chercher dans le catalogue"
-        }
+        },
+        "nav burger button": "Dans cette page",
+        "section summary": "Résumé",
+        "section usages": "Usages",
+        "section vitality": "Vitalité du projet",
+        "section legal": "Cadre juridique et économique",
+        "section deployment": "Déploiement",
+        "section participation": "Participation",
+        "section similar software": "Logiciels similaires",
+        "section sources": "Sources et mises à jour",
+        "subsection instances": "Instances",
+        "subsection providers": "Prestataires",
+        "see all sources": "Voir toutes les sources",
+        "official website": "Voir le site officiel",
+        "new window": "nouvelle fenêtre",
+        "source code": "Accéder au code source"
     },
     "headerDetailCard": {
         "authors": "Auteurs : ",

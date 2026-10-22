@@ -2,35 +2,34 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Fragment, useEffect, useMemo } from "react";
+import { Fragment, useEffect, useMemo, type ReactNode } from "react";
 import { useCoreState, useCore } from "core";
-import { Breadcrumb } from "@codegouvfr/react-dsfr/Breadcrumb";
 import { tss } from "tss-react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { useTranslation } from "react-i18next";
-import { HeaderDetailCard } from "ui/pages/softwareDetails/HeaderDetailCard";
-import { PreviewTab } from "ui/pages/softwareDetails/PreviewTab";
-import { ReferencedInstancesTab } from "ui/pages/softwareDetails/ReferencedInstancesTab";
-import { Tabs } from "@codegouvfr/react-dsfr/Tabs";
-import { SimilarSoftwareTab } from "ui/pages/softwareDetails/AlikeSoftwareTab";
-import { PublicationTab } from "./PublicationTab";
-import { ActionsFooter } from "ui/shared/ActionsFooter";
-import { DetailUsersAndReferents } from "ui/shared/DetailUsersAndReferents";
 import { Alert } from "@codegouvfr/react-dsfr/Alert";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { PreviewTab } from "ui/pages/softwareDetails/PreviewTab";
+import { ReferencedInstancesTab } from "ui/pages/softwareDetails/ReferencedInstancesTab";
+import { SimilarSoftwareTab } from "ui/pages/softwareDetails/AlikeSoftwareTab";
+import { PublicationTab } from "./PublicationTab";
+import { SoftwareDetailsHero } from "./SoftwareDetailsHero";
+import { SectionNav, scrollToSection, type NavSection } from "./SectionNav";
+import { DetailSection, DetailSubsection } from "./DetailSection";
+import { ParticipationSection } from "./ParticipationSection";
+import {
+    SourceProvenanceModal,
+    openSourceProvenanceModal
+} from "./SourceProvenanceModal";
 import type { PageRoute } from "./route";
 import softwareLogoPlaceholder from "ui/assets/software_logo_placeholder.png";
 import { LoadingFallback } from "ui/shared/LoadingFallback";
-import { routes, getPreviousRouteName, session } from "ui/routes";
-import {
-    openDeclarationRemovalModal,
-    DeclarationRemovalModal
-} from "ui/shared/DeclarationRemovalModal";
+import { routes } from "ui/routes";
+import { DeclarationRemovalModal } from "ui/shared/DeclarationRemovalModal";
 import {
     openSoftwareProtectionModal,
     SoftwareProtectionModal
 } from "ui/shared/SoftwareProtectionModal";
-import CircularProgress from "@mui/material/CircularProgress";
 import type { ApiTypes } from "api";
 
 type Props = {
@@ -38,10 +37,20 @@ type Props = {
     route: PageRoute;
 };
 
+type Section = NavSection & {
+    /** Undefined when there is nothing to show: the section is left out of the page and the navigation */
+    content: ReactNode | undefined;
+};
+
+const sectionIdByTab = {
+    instances: "usages",
+    alternatives: "similar-software"
+} as const;
+
 export default function SoftwareDetails(props: Props) {
     const { route, className } = props;
 
-    const { softwareDetails, userAuthentication } = useCore().functions;
+    const { softwareDetails } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
     const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
     const { allSoftwares } = useCoreState("softwareCatalog", "main");
@@ -66,6 +75,18 @@ export default function SoftwareDetails(props: Props) {
         return () => softwareDetails.clear();
     }, [route.params.id]);
 
+    // Legacy `?tab=` links and `#section` links land on the matching section once loaded
+    useEffect(() => {
+        if (!isReady) return;
+
+        const sectionId =
+            route.params.tab !== undefined
+                ? sectionIdByTab[route.params.tab]
+                : window.location.hash.slice(1);
+
+        if (sectionId !== "") scrollToSection(sectionId);
+    }, [isReady]);
+
     if (error) {
         return (
             <SoftwareDetailsErrorFallback error={error} softwareId={route.params.id} />
@@ -89,348 +110,220 @@ export default function SoftwareDetails(props: Props) {
         software.protections?.edition?.isProtected === true &&
         !canCurrentUserBypassSoftwareProtections;
 
+    const isUserActionsEnabled = uiConfig?.softwareDetails.userActions.enabled === true;
+
+    const hasReferencePublications =
+        software.referencePublications !== undefined &&
+        software.referencePublications.length > 0;
+
+    const sections: Section[] = [
+        {
+            id: "summary",
+            label: t("softwareDetails.section summary"),
+            content: (
+                <PreviewTab
+                    name={software.name}
+                    providers={software.providers}
+                    description={software.description}
+                    license={software.license}
+                    supportedPlatforms={software.supportedPlatforms}
+                    customAttributes={software.customAttributes}
+                    registerDate={software.addedTime}
+                    softwareDateCurrentVersion={software.latestVersion?.releaseDate}
+                    softwareCurrentVersion={software.latestVersion?.version}
+                    keywords={software.keywords}
+                    programmingLanguages={software.programmingLanguages}
+                    applicationCategories={software.applicationCategories}
+                    operatingSystems={software.operatingSystems}
+                    runtimePlatforms={software.runtimePlatforms}
+                    identifiers={software.identifiers}
+                    url={software.url}
+                    repoMetadata={software.repoMetadata}
+                />
+            )
+        },
+        {
+            id: "usages",
+            label: t("softwareDetails.section usages"),
+            content:
+                software.instances === undefined &&
+                !hasReferencePublications ? undefined : (
+                    <>
+                        {software.instances !== undefined && (
+                            <DetailSubsection
+                                title={t("softwareDetails.subsection instances")}
+                            >
+                                <ReferencedInstancesTab
+                                    instanceList={software.instances}
+                                    createInstanceLink={
+                                        routes.instanceCreationForm({
+                                            softwareId: software.id
+                                        }).link
+                                    }
+                                />
+                            </DetailSubsection>
+                        )}
+                        {hasReferencePublications && (
+                            <DetailSubsection
+                                title={t("softwareDetails.tabReferencePublication")}
+                            >
+                                <PublicationTab
+                                    referencePublications={software.referencePublications}
+                                />
+                            </DetailSubsection>
+                        )}
+                    </>
+                )
+        },
+        {
+            id: "vitality",
+            label: t("softwareDetails.section vitality"),
+            content: undefined
+        },
+        {
+            id: "legal",
+            label: t("softwareDetails.section legal"),
+            content: undefined
+        },
+        {
+            id: "deployment",
+            label: t("softwareDetails.section deployment"),
+            content:
+                software.providers.length === 0 ? undefined : (
+                    <DetailSubsection title={t("softwareDetails.subsection providers")}>
+                        <ul>
+                            {software.providers.map(serviceProvider => (
+                                <ServiceProviderRow
+                                    key={serviceProvider.name}
+                                    serviceProvider={serviceProvider}
+                                />
+                            ))}
+                        </ul>
+                    </DetailSubsection>
+                )
+        },
+        {
+            id: "participation",
+            label: t("softwareDetails.section participation"),
+            content: !isUserActionsEnabled ? undefined : (
+                <ParticipationSection
+                    software={software}
+                    userDeclaration={userDeclaration}
+                    isUnreferencingOngoing={isUnreferencingOngoing}
+                    isDereferencingProtected={isDereferencingProtected}
+                />
+            )
+        },
+        {
+            id: "similar-software",
+            label: t("softwareDetails.section similar software"),
+            content:
+                software.similarSoftwares.length === 0 ? undefined : (
+                    <SimilarSoftwareTab
+                        similarSoftwares={software.similarSoftwares}
+                        getLinks={({ name: softwareName }) => {
+                            const softwareId = softwareIdByName.get(softwareName)!;
+                            return {
+                                declarationForm: routes.declarationForm({
+                                    id: softwareId
+                                }).link,
+                                softwareDetails: routes.softwareDetails({
+                                    id: softwareId
+                                }).link,
+                                softwareUsersAndReferents:
+                                    routes.softwareUsersAndReferents({
+                                        id: softwareId
+                                    }).link
+                            };
+                        }}
+                        getAddWikipediaSoftwareToSillLink={({ externalId }) =>
+                            routes.softwareCreationForm({ externalId }).link
+                        }
+                    />
+                )
+        },
+        {
+            id: "sources",
+            label: t("softwareDetails.section sources"),
+            content:
+                software.dataBySource.length === 0 ? undefined : (
+                    <Button
+                        priority="secondary"
+                        iconId="fr-icon-information-line"
+                        onClick={() => openSourceProvenanceModal()}
+                    >
+                        {t("softwareDetails.see all sources")}
+                    </Button>
+                )
+        }
+    ];
+
+    const visibleSections = sections.filter(({ content }) => content !== undefined);
+
     return (
         <>
             <div className={className}>
-                <div
-                    className={fr.cx("fr-container")}
-                    style={{ marginBottom: fr.spacing("6v") }}
-                >
-                    <Breadcrumb
-                        segments={[
-                            {
-                                linkProps: {
-                                    ...routes.softwareCatalog().link
-                                },
-                                label: t("softwareDetails.catalog breadcrumb")
-                            }
-                        ]}
-                        currentPageLabel={software.name}
-                        className={classes.breadcrumb}
-                    />
-                    <HeaderDetailCard
-                        image={getLogoUrl()}
-                        name={software.name}
-                        softwareDereferencing={software.dereferencing}
-                        authors={software.authors}
-                        officialWebsite={software.url}
-                        documentationWebsite={software.softwareHelp}
-                        sourceCodeRepository={software.codeRepositoryUrl}
-                        dataBySource={software.dataBySource}
-                        onGoBackClick={() => {
-                            const previousRouteName = getPreviousRouteName();
-
-                            if (previousRouteName === "softwareCatalog") {
-                                //Restore scroll position
-                                session.back();
-                                return;
-                            }
-
-                            routes.softwareCatalog().push();
-                        }}
-                        userDeclaration={userDeclaration}
-                    />
-                    <Tabs
-                        tabs={[
-                            {
-                                label: t("softwareDetails.tab title overview"),
-                                isDefault: route.params.tab === undefined,
-                                content: (
-                                    <PreviewTab
-                                        name={software.name}
-                                        providers={software.providers}
-                                        description={software.description}
-                                        license={software.license}
-                                        supportedPlatforms={software.supportedPlatforms}
-                                        customAttributes={software.customAttributes}
-                                        registerDate={software.addedTime}
-                                        softwareDateCurrentVersion={
-                                            software.latestVersion?.releaseDate
-                                        }
-                                        softwareCurrentVersion={
-                                            software.latestVersion?.version
-                                        }
-                                        keywords={software?.keywords}
-                                        programmingLanguages={
-                                            software?.programmingLanguages
-                                        }
-                                        applicationCategories={
-                                            software?.applicationCategories
-                                        }
-                                        operatingSystems={software?.operatingSystems}
-                                        runtimePlatforms={software?.runtimePlatforms}
-                                        identifiers={software.identifiers}
-                                        url={software.url}
-                                        repoMetadata={software.repoMetadata}
-                                    />
-                                )
-                            },
-                            ...(software.instances === undefined
-                                ? []
-                                : [
-                                      {
-                                          label: t("softwareDetails.tab title instance", {
-                                              instanceCount: software.instances.length
-                                          }),
-                                          isDefault: route.params.tab === "instances",
-                                          content: (
-                                              <ReferencedInstancesTab
-                                                  instanceList={software.instances}
-                                                  createInstanceLink={
-                                                      routes.instanceCreationForm({
-                                                          softwareId: software.id
-                                                      }).link
-                                                  }
-                                              />
-                                          )
-                                      }
-                                  ]),
-                            ...(software.providers.length === 0
-                                ? []
-                                : [
-                                      {
-                                          label: t(
-                                              "softwareDetails.tab service providers",
-                                              {
-                                                  serviceProvidersCount:
-                                                      software.providers.length
-                                              }
-                                          ),
-                                          content: (
-                                              <div>
-                                                  <p className={fr.cx("fr-text--bold")}>
-                                                      {t(
-                                                          "softwareDetails.list of service providers"
-                                                      )}
-                                                  </p>
-                                                  <ul>
-                                                      {software.providers.map(
-                                                          serviceProvider => (
-                                                              <ServiceProviderRow
-                                                                  key={
-                                                                      serviceProvider.name
-                                                                  }
-                                                                  serviceProvider={
-                                                                      serviceProvider
-                                                                  }
-                                                              />
-                                                          )
-                                                      )}
-                                                  </ul>
-                                              </div>
-                                          )
-                                      }
-                                  ]),
-                            ...(software.similarSoftwares.length === 0
-                                ? []
-                                : [
-                                      {
-                                          label: t(
-                                              "softwareDetails.tab title alike software",
-                                              {
-                                                  alikeSoftwareCount:
-                                                      software.similarSoftwares.length ??
-                                                      0
-                                              }
-                                          ),
-                                          isDefault: route.params.tab === "alternatives",
-                                          content: (
-                                              <SimilarSoftwareTab
-                                                  similarSoftwares={
-                                                      software.similarSoftwares
-                                                  }
-                                                  getLinks={({ name: softwareName }) => {
-                                                      const softwareId =
-                                                          softwareIdByName.get(
-                                                              softwareName
-                                                          )!;
-                                                      return {
-                                                          declarationForm:
-                                                              routes.declarationForm({
-                                                                  id: softwareId
-                                                              }).link,
-                                                          softwareDetails:
-                                                              routes.softwareDetails({
-                                                                  id: softwareId
-                                                              }).link,
-                                                          softwareUsersAndReferents:
-                                                              routes.softwareUsersAndReferents(
-                                                                  {
-                                                                      id: softwareId
-                                                                  }
-                                                              ).link
-                                                      };
-                                                  }}
-                                                  getAddWikipediaSoftwareToSillLink={({
-                                                      externalId
-                                                  }) =>
-                                                      routes.softwareCreationForm({
-                                                          externalId: externalId
-                                                      }).link
-                                                  }
-                                              />
-                                          )
-                                      }
-                                  ]),
-                            ...(software.referencePublications === undefined ||
-                            software.referencePublications.length === 0
-                                ? []
-                                : [
-                                      {
-                                          label: t(
-                                              "softwareDetails.tabReferencePublication"
-                                          ),
-                                          content: (
-                                              <PublicationTab
-                                                  referencePublications={
-                                                      software.referencePublications
-                                                  }
-                                              />
-                                          )
-                                      }
-                                  ])
-                        ]}
-                    />
-                </div>
-                {uiConfig?.softwareDetails.userActions.enabled && (
-                    <ActionsFooter className={classes.container}>
-                        <DetailUsersAndReferents
-                            className={cx(
-                                fr.cx("fr-text--lg"),
-                                classes.detailUsersAndReferents
-                            )}
-                            seeUserAndReferent={
-                                software.referentCount > 0 || software.userCount > 0
-                                    ? routes.softwareUsersAndReferents({
-                                          id: software.id
-                                      }).link
-                                    : undefined
-                            }
-                            referentCount={software.referentCount ?? 0}
-                            userCount={software.userCount ?? 0}
-                        />
-                        <div className={classes.buttons}>
-                            {software.dereferencing === undefined && (
-                                <Button
-                                    priority="secondary"
-                                    disabled={isUnreferencingOngoing}
-                                    onClick={() => {
-                                        if (!currentUser) {
-                                            userAuthentication.login();
-                                            return;
-                                        }
-
-                                        if (isDereferencingProtected) {
-                                            openSoftwareProtectionModal({
-                                                type: "dereferencing",
-                                                reason: software.protections
-                                                    ?.dereferencing?.reason
-                                            });
-                                            return;
-                                        }
-
-                                        const userInput = window.prompt(
-                                            t(
-                                                "softwareDetails.please provide a reason for unreferencing this software"
-                                            )
-                                        );
-
-                                        if (userInput === null || userInput === "") {
-                                            return;
-                                        }
-
-                                        softwareDetails.unreference({
-                                            reason: userInput
-                                        });
-                                    }}
-                                >
-                                    {isUnreferencingOngoing ? (
-                                        <CircularProgress size={17} />
-                                    ) : (
-                                        t("softwareDetails.unreference software")
-                                    )}
-                                </Button>
-                            )}
-
-                            <Button
-                                priority="secondary"
-                                {...(isEditionProtected
-                                    ? {
-                                          onClick: () =>
-                                              openSoftwareProtectionModal({
-                                                  type: "edition",
-                                                  reason: software.protections?.edition
-                                                      ?.reason
-                                              })
-                                      }
-                                    : {
-                                          linkProps: routes.softwareUpdateForm({
-                                              id: software.id
-                                          }).link
-                                      })}
-                            >
-                                {t("softwareDetails.edit software")}
-                            </Button>
-                            {(() => {
-                                const declarationType = userDeclaration?.isReferent
-                                    ? "referent"
-                                    : userDeclaration?.isUser
-                                      ? "user"
-                                      : undefined;
-
-                                if (declarationType === undefined) {
-                                    return (
-                                        <Button
-                                            linkProps={
-                                                routes.declarationForm({
-                                                    id: software.id
-                                                }).link
-                                            }
-                                        >
-                                            {t("softwareDetails.declare referent")}
-                                        </Button>
-                                    );
-                                }
-
-                                return (
-                                    <>
-                                        <Button
-                                            priority="tertiary no outline"
-                                            onClick={() =>
-                                                openDeclarationRemovalModal({
-                                                    declarationType,
-                                                    name: software.name,
-                                                    softwareId: software.id
+                <SoftwareDetailsHero
+                    software={software}
+                    logoUrl={getLogoUrl()}
+                    userDeclaration={userDeclaration}
+                    onShowSourcesClick={
+                        software.dataBySource.length === 0
+                            ? undefined
+                            : () => openSourceProvenanceModal()
+                    }
+                    editButton={
+                        !isUserActionsEnabled
+                            ? undefined
+                            : {
+                                  children: t("softwareDetails.edit software"),
+                                  priority: "tertiary",
+                                  iconId: "fr-icon-edit-line",
+                                  ...(isEditionProtected
+                                      ? {
+                                            onClick: () =>
+                                                openSoftwareProtectionModal({
+                                                    type: "edition",
+                                                    reason: software.protections?.edition
+                                                        ?.reason
                                                 })
-                                            }
-                                        >
-                                            {declarationType === "user"
-                                                ? t("softwareDetails.stop being user")
-                                                : t(
-                                                      "softwareDetails.stop being referent"
-                                                  )}
-                                        </Button>
-                                        {declarationType === "user" && (
-                                            <Button
-                                                linkProps={
-                                                    routes.declarationForm({
-                                                        id: software.id,
-                                                        declarationType: "referent"
-                                                    }).link
-                                                }
-                                            >
-                                                {t("softwareDetails.become referent")}
-                                            </Button>
-                                        )}
-                                    </>
-                                );
-                            })()}
+                                        }
+                                      : {
+                                            linkProps: routes.softwareUpdateForm({
+                                                id: software.id
+                                            }).link
+                                        })
+                              }
+                    }
+                />
+                <div className={fr.cx("fr-container")}>
+                    <div className={fr.cx("fr-grid-row")}>
+                        <div
+                            className={cx(
+                                fr.cx("fr-col-12", "fr-col-md-3"),
+                                classes.navColumn
+                            )}
+                        >
+                            <SectionNav sections={visibleSections} />
                         </div>
-                    </ActionsFooter>
-                )}
+                        <div
+                            className={cx(
+                                fr.cx("fr-col-12", "fr-col-md-8", "fr-col-offset-md-1"),
+                                classes.contentColumn
+                            )}
+                        >
+                            {visibleSections.map(({ id, label, content }) => (
+                                <DetailSection key={id} id={id} title={label}>
+                                    {content}
+                                </DetailSection>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </div>
             {userDeclaration !== undefined && <DeclarationRemovalModal />}
             <SoftwareProtectionModal />
+            <SourceProvenanceModal dataBySource={software.dataBySource} />
         </>
     );
 }
@@ -515,26 +408,20 @@ function SoftwareDetailsErrorFallback({
 }
 
 const useStyles = tss.withName({ SoftwareDetails }).create({
-    breadcrumb: {
-        marginBottom: fr.spacing("4v")
-    },
-    container: {
-        display: "grid",
-        gridTemplateColumns: `1fr 2fr`,
-        columnGap: fr.spacing("6v"),
-        marginBottom: fr.spacing("6v"),
+    navColumn: {
+        paddingTop: fr.spacing("10v"),
+        [fr.breakpoints.up("md")]: {
+            borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`
+        },
         [fr.breakpoints.down("md")]: {
-            gridTemplateColumns: `repeat(1, 1fr)`,
-            gridRowGap: fr.spacing("6v")
+            paddingTop: fr.spacing("6v")
         }
     },
-    buttons: {
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "end",
-        gap: fr.spacing("4v")
-    },
-    detailUsersAndReferents: {
-        color: fr.colors.decisions.text.actionHigh.blueFrance.default
+    contentColumn: {
+        paddingTop: fr.spacing("10v"),
+        paddingBottom: fr.spacing("20v"),
+        [fr.breakpoints.down("md")]: {
+            paddingTop: fr.spacing("8v")
+        }
     }
 });
