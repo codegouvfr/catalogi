@@ -48,7 +48,7 @@ pnpm db:up
 6. load the database with some data by running seed
 
 ```bash
-cd api && pnpm db:seed
+pnpm db:seed
 ```
 
 7. start the frontend and backend in dev
