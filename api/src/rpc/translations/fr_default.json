@@ -122,6 +122,8 @@
         "checkbox legend": "Système d'exploitation sur lequel le logiciel peut être installé"
     },
     "softwareFormStep2": {
+        "external id": "Fiche Wikidata",
+        "external id hint_fill": "Renseignez le nom du logiciel ou directement l'identifiant (de la forme <code>QXXXXX</code>) pour associer le logiciel à une fiche existante<space /><dataSource>Wikidata</dataSource>.<br />La plupart des informations générales, telles que le logo ou l'URL du dépôt de code, sont extraites de Wikidata. Si le logiciel que vous souhaitez ajouter ne possède pas encore de fiche sur Wikidata, vous pouvez en créer une. Vous trouverez ici un<space /><dataSourceEntry>exemple de fiche Wikidata</dataSourceEntry><space />pour le logiciel<space /><exampleUrl></exampleUrl>.",
         "repository url": "URL du dépôt de code source",
         "repository url hint": "Adresse publique du dépôt (GitHub, GitLab, etc.), à coller puis vérifier. Les informations du dépôt pré-remplissent le formulaire.",
         "repository url required": "L'URL du dépôt de code source est obligatoire",

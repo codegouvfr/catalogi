@@ -120,6 +120,8 @@
         "checkbox legend": "Operating system on which the software can be installed"
     },
     "softwareFormStep2": {
+        "external id": "Wikidata item",
+        "external id hint_fill": "Fill up a name or directly the id (of the form <code>Qxxxxx</code>) to associate the software with an existing entry <space /><dataSource>Wikidata</dataSource>.<br />Most general information, such as the logo or the URL of the code repository, is extracted from Wikidata. If the software you want to add does not have a Wikidata entry yet, you can create one . Find here an <space /><dataSourceEntry>example of a Wikidata entry</dataSourceEntry><space />for the software<space /><exampleUrl /><space />.",
         "repository url": "Source code repository URL",
         "repository url hint": "Public address of the repository (GitHub, GitLab, etc.), to paste then check. The repository information prefills the form.",
         "repository url required": "The source code repository URL is required",
