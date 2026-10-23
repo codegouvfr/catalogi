@@ -119,9 +119,9 @@ const ReferenceInstancesSection = ({
                                         className={cx(fr.cx("fr-card"), classes.card)}
                                         key={instanceUrl}
                                     >
-                                        <h6 className={cx(classes.name)}>
+                                        <h4 className={cx(fr.cx("fr-h6"), classes.name)}>
                                             {instanceUrl}
-                                        </h6>
+                                        </h4>
                                         <p
                                             className={cx(
                                                 fr.cx("fr-text--xs"),

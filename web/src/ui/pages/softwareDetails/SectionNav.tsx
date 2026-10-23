@@ -44,13 +44,19 @@ export const SectionNav = (props: Props) => {
                         event.preventDefault();
                         pinActiveSectionId(id);
                         scrollToSection(id);
-                        window.history.replaceState(null, "", `#${id}`);
+                        // Like a native anchor, keyboard navigation resumes from the section
+                        document
+                            .getElementById(getSectionTitleId(id))
+                            ?.focus({ preventScroll: true });
+                        window.history.replaceState(window.history.state, "", `#${id}`);
                     }
                 }
             }))}
         />
     );
 };
+
+export const getSectionTitleId = (id: string) => `${id}-title`;
 
 export const scrollToSection = (id: string) => {
     const prefersReducedMotion = window.matchMedia(
@@ -64,8 +70,9 @@ export const scrollToSection = (id: string) => {
 
 /**
  * The active section is the last one whose top has crossed the upper quarter of the viewport.
- * A section picked in the menu stays active until the user scrolls by themselves: short sections
- * near the bottom of the page can't reach the top of the viewport and would never be selected.
+ * A section picked in the menu stays active until the scroll it triggers ends or the user scrolls by
+ * themselves: short sections near the bottom of the page can't reach the top of the viewport and
+ * would never be selected.
  */
 const useActiveSectionId = (sectionIds: string[]) => {
     const [activeSectionId, setActiveSectionId] = useState<string | undefined>(
@@ -83,9 +90,11 @@ const useActiveSectionId = (sectionIds: string[]) => {
 
             if (pinnedSectionIdRef.current !== undefined) return;
 
+            const { scrollHeight } = document.documentElement;
             const isScrolledToBottom =
-                window.innerHeight + window.scrollY >=
-                document.documentElement.scrollHeight - 2;
+                scrollHeight > window.innerHeight &&
+                window.scrollY > 0 &&
+                window.innerHeight + window.scrollY >= scrollHeight - 2;
 
             if (isScrolledToBottom) {
                 setActiveSectionId(sectionIds[sectionIds.length - 1]);
@@ -113,9 +122,15 @@ const useActiveSectionId = (sectionIds: string[]) => {
             onScroll();
         };
 
+        // Not every browser fires it, the user scroll intents remain the fallback
+        const onScrollEnd = () => {
+            pinnedSectionIdRef.current = undefined;
+        };
+
         update();
         window.addEventListener("scroll", onScroll, { passive: true });
         window.addEventListener("resize", onScroll, { passive: true });
+        window.addEventListener("scrollend", onScrollEnd);
         userScrollIntentEvents.forEach(eventName =>
             window.addEventListener(eventName, onUserScrollIntent, { passive: true })
         );
@@ -123,6 +138,7 @@ const useActiveSectionId = (sectionIds: string[]) => {
         return () => {
             window.removeEventListener("scroll", onScroll);
             window.removeEventListener("resize", onScroll);
+            window.removeEventListener("scrollend", onScrollEnd);
             userScrollIntentEvents.forEach(eventName =>
                 window.removeEventListener(eventName, onUserScrollIntent)
             );
@@ -140,7 +156,8 @@ const useActiveSectionId = (sectionIds: string[]) => {
     return { activeSectionId, pinActiveSectionId };
 };
 
-const userScrollIntentEvents = ["wheel", "touchmove", "keydown"] as const;
+// pointerdown covers dragging the scrollbar
+const userScrollIntentEvents = ["wheel", "touchmove", "keydown", "pointerdown"] as const;
 
 const scrollKeys = ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "];
 

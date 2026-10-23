@@ -16,28 +16,25 @@ export const PublicationTab = (props: Props) => {
     const { t } = useTranslation();
 
     return (
-        <>
-            <h6>{t("softwareDetails.tabReferencePublicationTitle")}</h6>
-            <ul>
-                {referencePublications?.map(article => {
-                    return (
-                        <li>
-                            <a
-                                href={article.identifiers?.[0]?.url?.toString()} // It doesn't matter which id we take
-                                target="_blank"
-                                rel="noreferrer"
-                                style={{
-                                    marginRight: fr.spacing("2v"),
-                                    color: fr.colors.decisions.text.actionHigh.blueFrance
-                                        .default
-                                }}
-                            >
-                                {article.headline ?? article["@id"]}
-                            </a>
-                        </li>
-                    );
-                })}
-            </ul>
-        </>
+        <ul>
+            {referencePublications?.map(article => {
+                return (
+                    <li key={article["@id"]}>
+                        <a
+                            href={article.identifiers?.[0]?.url?.toString()} // It doesn't matter which id we take
+                            target="_blank"
+                            rel="noreferrer"
+                            style={{
+                                marginRight: fr.spacing("2v"),
+                                color: fr.colors.decisions.text.actionHigh.blueFrance
+                                    .default
+                            }}
+                        >
+                            {article.headline ?? article["@id"]}
+                        </a>
+                    </li>
+                );
+            })}
+        </ul>
     );
 };

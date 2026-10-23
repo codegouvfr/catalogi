@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Fragment, useEffect, useMemo, type ReactNode } from "react";
+import { Fragment, useEffect, useMemo, type ReactElement } from "react";
 import { useCoreState, useCore } from "core";
 import { tss } from "tss-react";
 import { fr } from "@codegouvfr/react-dsfr";
@@ -44,8 +44,8 @@ type Props = {
 };
 
 type Section = NavSection & {
-    /** Undefined when there is nothing to show: the section is left out of the page and the navigation */
-    content: ReactNode | undefined;
+    /** Null when there is nothing to show: the section is left out of the page and the navigation */
+    content: ReactElement | null;
 };
 
 const sectionIdByTab = {
@@ -122,6 +122,15 @@ export default function SoftwareDetails(props: Props) {
         software.referencePublications !== undefined &&
         software.referencePublications.length > 0;
 
+    const isSummaryEnabled =
+        uiConfig !== undefined &&
+        (uiConfig.softwareDetails.details.enabled ||
+            uiConfig.softwareDetails.metadata.enabled ||
+            uiConfig.softwareDetails.customAttributes.enabled ||
+            (uiConfig.softwareDetails.repoMetadata.enabled &&
+                software.repoMetadata !== undefined &&
+                Object.keys(software.repoMetadata).length > 0));
+
     const usefulLinks =
         uiConfig?.softwareDetails.links.enabled === true
             ? getUsefulLinks({
@@ -134,7 +143,7 @@ export default function SoftwareDetails(props: Props) {
         {
             id: "summary",
             label: t("softwareDetails.section summary"),
-            content: (
+            content: !isSummaryEnabled ? null : (
                 <PreviewTab
                     name={software.name}
                     providers={software.providers}
@@ -157,8 +166,7 @@ export default function SoftwareDetails(props: Props) {
             id: "usages",
             label: t("softwareDetails.section usages"),
             content:
-                software.instances === undefined &&
-                !hasReferencePublications ? undefined : (
+                software.instances === undefined && !hasReferencePublications ? null : (
                     <>
                         {software.instances !== undefined && (
                             <DetailSubsection
@@ -187,20 +195,10 @@ export default function SoftwareDetails(props: Props) {
                 )
         },
         {
-            id: "vitality",
-            label: t("softwareDetails.section vitality"),
-            content: undefined
-        },
-        {
-            id: "legal",
-            label: t("softwareDetails.section legal"),
-            content: undefined
-        },
-        {
             id: "deployment",
             label: t("softwareDetails.section deployment"),
             content:
-                software.providers.length === 0 ? undefined : (
+                software.providers.length === 0 ? null : (
                     <DetailSubsection title={t("softwareDetails.subsection providers")}>
                         <ul>
                             {software.providers.map(serviceProvider => (
@@ -216,7 +214,7 @@ export default function SoftwareDetails(props: Props) {
         {
             id: "participation",
             label: t("softwareDetails.section participation"),
-            content: !isUserActionsEnabled ? undefined : (
+            content: !isUserActionsEnabled ? null : (
                 <ParticipationSection
                     software={software}
                     userDeclaration={userDeclaration}
@@ -229,7 +227,7 @@ export default function SoftwareDetails(props: Props) {
             id: "similar-software",
             label: t("softwareDetails.section similar software"),
             content:
-                software.similarSoftwares.length === 0 ? undefined : (
+                software.similarSoftwares.length === 0 ? null : (
                     <SimilarSoftwareTab
                         similarSoftwares={software.similarSoftwares}
                         getLinks={({ name: softwareName }) => {
@@ -257,8 +255,7 @@ export default function SoftwareDetails(props: Props) {
             id: "sources",
             label: t("softwareDetails.section sources"),
             content:
-                software.dataBySource.length === 0 &&
-                usefulLinks.length === 0 ? undefined : (
+                software.dataBySource.length === 0 && usefulLinks.length === 0 ? null : (
                     <>
                         {usefulLinks.length > 0 && <UsefulLinks links={usefulLinks} />}
                         {software.dataBySource.length > 0 && (
@@ -275,7 +272,7 @@ export default function SoftwareDetails(props: Props) {
         }
     ];
 
-    const visibleSections = sections.filter(({ content }) => content !== undefined);
+    const visibleSections = sections.filter(({ content }) => content !== null);
 
     return (
         <>

@@ -911,27 +911,6 @@
                 "tabReferencePublication": {
                     "type": "string"
                 },
-                "tabReferencePublicationTitle": {
-                    "type": "string"
-                },
-                "tab title overview": {
-                    "type": "string",
-                    "description": "Title text"
-                },
-                "tab title instance": {
-                    "type": "string",
-                    "description": "Title text"
-                },
-                "tab service providers": {
-                    "type": "string"
-                },
-                "tab title alike software": {
-                    "type": "string",
-                    "description": "Title text"
-                },
-                "list of service providers": {
-                    "type": "string"
-                },
                 "customAttributesTitle": {
                     "type": "string"
                 },
@@ -1034,12 +1013,6 @@
                 "section usages": {
                     "type": "string"
                 },
-                "section vitality": {
-                    "type": "string"
-                },
-                "section legal": {
-                    "type": "string"
-                },
                 "section deployment": {
                     "type": "string"
                 },
@@ -1064,6 +1037,9 @@
                 "official website": {
                     "type": "string"
                 },
+                "documentation": {
+                    "type": "string"
+                },
                 "new window": {
                     "type": "string"
                 },
@@ -1075,12 +1051,6 @@
             "required": [
                 "catalog breadcrumb",
                 "tabReferencePublication",
-                "tabReferencePublicationTitle",
-                "tab title overview",
-                "tab title instance",
-                "tab service providers",
-                "tab title alike software",
-                "list of service providers",
                 "customAttributesTitle",
                 "last version",
                 "last version date",
@@ -1109,8 +1079,6 @@
                 "nav burger button",
                 "section summary",
                 "section usages",
-                "section vitality",
-                "section legal",
                 "section deployment",
                 "section participation",
                 "section similar software",
@@ -1119,6 +1087,7 @@
                 "subsection providers",
                 "see all sources",
                 "official website",
+                "documentation",
                 "new window",
                 "source code"
             ]
@@ -1127,18 +1096,6 @@
             "type": "object",
             "properties": {
                 "authors": {
-                    "type": "string"
-                },
-                "website": {
-                    "type": "string"
-                },
-                "documentation": {
-                    "type": "string"
-                },
-                "repository": {
-                    "type": "string"
-                },
-                "software logo": {
                     "type": "string"
                 },
                 "you are user": {
@@ -1160,10 +1117,6 @@
             "additionalProperties": false,
             "required": [
                 "authors",
-                "website",
-                "documentation",
-                "repository",
-                "software logo",
                 "you are user",
                 "you are referent",
                 "software dereferenced",
@@ -1253,9 +1206,6 @@
                 "about": {
                     "type": "string"
                 },
-                "useful links": {
-                    "type": "string"
-                },
                 "customAttributesTitle": {
                     "type": "string"
                 },
@@ -1329,7 +1279,6 @@
             "additionalProperties": false,
             "required": [
                 "about",
-                "useful links",
                 "customAttributesTitle",
                 "supportedPlatforms",
                 "last version",

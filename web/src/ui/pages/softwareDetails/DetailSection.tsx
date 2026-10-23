@@ -5,7 +5,7 @@
 import type { ReactNode } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
-import { sectionNavStickyTop } from "./SectionNav";
+import { getSectionTitleId, sectionNavStickyTop } from "./SectionNav";
 
 type DetailSectionProps = {
     id: string;
@@ -19,8 +19,13 @@ export const DetailSection = (props: DetailSectionProps) => {
     const { classes } = useStyles();
 
     return (
-        <section id={id} aria-labelledby={`${id}-title`} className={classes.section}>
-            <h2 id={`${id}-title`} className={classes.sectionTitle}>
+        <section
+            id={id}
+            aria-labelledby={getSectionTitleId(id)}
+            className={classes.section}
+        >
+            {/* Focusable from script only, see SectionNav */}
+            <h2 id={getSectionTitleId(id)} tabIndex={-1} className={classes.sectionTitle}>
                 {title}
             </h2>
             {children}

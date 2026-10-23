@@ -32,7 +32,7 @@ export const ParticipationSection = (props: Props) => {
     const { softwareDetails, userAuthentication } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
     const { t } = useTranslation();
-    const { classes } = useStyles();
+    const { classes, cx } = useStyles();
 
     const declarationType = userDeclaration?.isReferent
         ? "referent"
@@ -68,7 +68,7 @@ export const ParticipationSection = (props: Props) => {
     return (
         <>
             <DetailUsersAndReferents
-                className={fr.cx("fr-text--lg")}
+                className={cx(fr.cx("fr-text--lg"), classes.usersAndReferents)}
                 seeUserAndReferent={
                     software.referentCount > 0 || software.userCount > 0
                         ? routes.softwareUsersAndReferents({ id: software.id }).link
@@ -131,6 +131,9 @@ export const ParticipationSection = (props: Props) => {
 };
 
 const useStyles = tss.withName({ ParticipationSection }).create({
+    usersAndReferents: {
+        color: fr.colors.decisions.text.actionHigh.blueFrance.default
+    },
     buttons: {
         display: "flex",
         flexWrap: "wrap",
