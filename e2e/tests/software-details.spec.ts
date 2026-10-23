@@ -10,10 +10,10 @@ test("view desktop software details: name, license, keywords, platforms", async 
         .click();
     await expect(page).toHaveURL(/\/detail/);
 
-    await expect(page.getByRole("heading", { name: "Git" })).toBeVisible();
-    const previewTab = page.getByLabel("Aperçu");
-    await expect(previewTab.getByText("GPL-2.0")).toBeVisible();
-    await expect(previewTab.getByText("vcs")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Git", exact: true })).toBeVisible();
+    const summary = page.getByRole("region", { name: "Résumé" });
+    await expect(summary.getByText("GPL-2.0")).toBeVisible();
+    await expect(summary.getByText("vcs")).toBeVisible();
     await expect(page.getByText(/plateformes supportées/i)).toBeVisible();
 
     // Back navigation returns to catalog
@@ -32,11 +32,11 @@ test("view cloud software details and instances", async ({ page }) => {
     await expect(page).toHaveURL(/\/detail/);
 
     await expect(page.getByRole("heading", { name: "Onyxia", exact: true })).toBeVisible();
-    await expect(page.getByLabel("Aperçu").getByText(/datascience/i)).toBeVisible();
+    await expect(page.locator(".fr-text--lead").getByText(/datascience/i)).toBeVisible();
 
-    // Instances tab: expand accordion to see instance URL
-    await page.getByRole("tab", { name: /instance/i }).click();
-    await expect(page.getByText("DINUM")).toBeVisible();
-    await page.getByRole("button", { name: /DINUM/i }).click();
-    await expect(page.getByText("onyxia-demo.data.gouv.fr")).toBeVisible();
+    // Usages section, reached from the side menu: expand accordion to see instance URL
+    await page.getByRole("navigation", { name: "Dans cette page" }).getByRole("link", { name: "Usages" }).click();
+    const usages = page.getByRole("region", { name: "Usages" });
+    await usages.getByRole("button", { name: /DINUM/i }).click();
+    await expect(usages.getByText("onyxia-demo.data.gouv.fr")).toBeVisible();
 });
