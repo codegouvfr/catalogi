@@ -14,9 +14,15 @@ import { ReferencedInstancesTab } from "ui/pages/softwareDetails/ReferencedInsta
 import { SimilarSoftwareTab } from "ui/pages/softwareDetails/AlikeSoftwareTab";
 import { PublicationTab } from "./PublicationTab";
 import { SoftwareDetailsHero } from "./SoftwareDetailsHero";
-import { SectionNav, scrollToSection, type NavSection } from "./SectionNav";
+import {
+    SectionNav,
+    scrollToSection,
+    sectionNavStickyTop,
+    type NavSection
+} from "./SectionNav";
 import { DetailSection, DetailSubsection } from "./DetailSection";
 import { ParticipationSection } from "./ParticipationSection";
+import { UsefulLinks, getUsefulLinks } from "./UsefulLinks";
 import {
     SourceProvenanceModal,
     openSourceProvenanceModal
@@ -116,6 +122,14 @@ export default function SoftwareDetails(props: Props) {
         software.referencePublications !== undefined &&
         software.referencePublications.length > 0;
 
+    const usefulLinks =
+        uiConfig?.softwareDetails.links.enabled === true
+            ? getUsefulLinks({
+                  identifiers: software.identifiers,
+                  officialWebsiteUrl: software.url
+              })
+            : [];
+
     const sections: Section[] = [
         {
             id: "summary",
@@ -124,7 +138,6 @@ export default function SoftwareDetails(props: Props) {
                 <PreviewTab
                     name={software.name}
                     providers={software.providers}
-                    description={software.description}
                     license={software.license}
                     supportedPlatforms={software.supportedPlatforms}
                     customAttributes={software.customAttributes}
@@ -136,8 +149,6 @@ export default function SoftwareDetails(props: Props) {
                     applicationCategories={software.applicationCategories}
                     operatingSystems={software.operatingSystems}
                     runtimePlatforms={software.runtimePlatforms}
-                    identifiers={software.identifiers}
-                    url={software.url}
                     repoMetadata={software.repoMetadata}
                 />
             )
@@ -246,14 +257,20 @@ export default function SoftwareDetails(props: Props) {
             id: "sources",
             label: t("softwareDetails.section sources"),
             content:
-                software.dataBySource.length === 0 ? undefined : (
-                    <Button
-                        priority="secondary"
-                        iconId="fr-icon-information-line"
-                        onClick={() => openSourceProvenanceModal()}
-                    >
-                        {t("softwareDetails.see all sources")}
-                    </Button>
+                software.dataBySource.length === 0 &&
+                usefulLinks.length === 0 ? undefined : (
+                    <>
+                        {usefulLinks.length > 0 && <UsefulLinks links={usefulLinks} />}
+                        {software.dataBySource.length > 0 && (
+                            <Button
+                                priority="secondary"
+                                iconId="fr-icon-information-line"
+                                onClick={() => openSourceProvenanceModal()}
+                            >
+                                {t("softwareDetails.see all sources")}
+                            </Button>
+                        )}
+                    </>
                 )
         }
     ];
@@ -409,7 +426,7 @@ function SoftwareDetailsErrorFallback({
 
 const useStyles = tss.withName({ SoftwareDetails }).create({
     navColumn: {
-        paddingTop: fr.spacing("10v"),
+        paddingTop: sectionNavStickyTop,
         [fr.breakpoints.up("md")]: {
             borderRight: `1px solid ${fr.colors.decisions.border.default.grey.default}`
         },
@@ -418,7 +435,7 @@ const useStyles = tss.withName({ SoftwareDetails }).create({
         }
     },
     contentColumn: {
-        paddingTop: fr.spacing("10v"),
+        paddingTop: sectionNavStickyTop,
         paddingBottom: fr.spacing("20v"),
         [fr.breakpoints.down("md")]: {
             paddingTop: fr.spacing("8v")

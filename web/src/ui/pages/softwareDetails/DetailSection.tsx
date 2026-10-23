@@ -5,6 +5,7 @@
 import type { ReactNode } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
+import { sectionNavStickyTop } from "./SectionNav";
 
 type DetailSectionProps = {
     id: string;
@@ -46,7 +47,8 @@ export const DetailSubsection = (props: DetailSubsectionProps) => {
 
 const useStyles = tss.withName({ DetailSection }).create({
     section: {
-        scrollMarginTop: fr.spacing("6v"),
+        // Lands the title level with the stuck side menu
+        scrollMarginTop: sectionNavStickyTop,
         "& + &": {
             marginTop: fr.spacing("20v")
         }

@@ -78,10 +78,11 @@ export const SoftwareDetailsHero = (props: Props) => {
     ];
 
     return (
-        <div className={classes.root}>
+        // DSFR buttons of a group already have a 4v bottom margin, hence 12v for 16v
+        <div className={cx(fr.cx("fr-pb-12v"), classes.root)}>
             <div className={fr.cx("fr-container")}>
                 <Breadcrumb
-                    className={classes.breadcrumb}
+                    className={fr.cx("fr-mt-16v", "fr-mb-8v")}
                     homeLinkProps={routes.home().link}
                     segments={[
                         {
@@ -93,7 +94,7 @@ export const SoftwareDetailsHero = (props: Props) => {
                 />
                 <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
                     <div className={fr.cx("fr-col-12", "fr-col-md-8")}>
-                        <div className={classes.titleRow}>
+                        <div className={cx(fr.cx("fr-mb-8v"), classes.titleRow)}>
                             <h1 className={classes.title}>{name}</h1>
                             {onShowSourcesClick !== undefined && (
                                 <Button
@@ -108,7 +109,7 @@ export const SoftwareDetailsHero = (props: Props) => {
                             <Badge
                                 noIcon
                                 small
-                                className={fr.cx("fr-badge--blue-cumulus")}
+                                className={fr.cx("fr-badge--blue-cumulus", "fr-mb-8v")}
                             >
                                 {t("headerDetailCard.you are referent")}
                             </Badge>
@@ -116,15 +117,17 @@ export const SoftwareDetailsHero = (props: Props) => {
                             <Badge
                                 noIcon
                                 small
-                                className={fr.cx("fr-badge--green-archipel")}
+                                className={fr.cx("fr-badge--green-archipel", "fr-mb-8v")}
                             >
                                 {t("headerDetailCard.you are user")}
                             </Badge>
                         ) : null}
-                        <p className={fr.cx("fr-text--lead")}>{description}</p>
+                        <p className={fr.cx("fr-text--lead", "fr-mb-8v")}>
+                            {description}
+                        </p>
                         {dereferencing !== undefined && (
                             <Alert
-                                className={fr.cx("fr-mb-6v")}
+                                className={fr.cx("fr-mb-8v")}
                                 severity="warning"
                                 small
                                 description={
@@ -179,17 +182,12 @@ export const SoftwareDetailsHero = (props: Props) => {
 
 const useStyles = tss.withName({ SoftwareDetailsHero }).create({
     root: {
-        borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`,
-        paddingBottom: fr.spacing("8v")
-    },
-    breadcrumb: {
-        marginBottom: fr.spacing("4v")
+        borderBottom: `1px solid ${fr.colors.decisions.border.default.grey.default}`
     },
     titleRow: {
         display: "flex",
         alignItems: "center",
-        gap: fr.spacing("2v"),
-        marginBottom: fr.spacing("4v")
+        gap: fr.spacing("2v")
     },
     title: {
         marginBottom: 0

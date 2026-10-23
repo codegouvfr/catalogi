@@ -13,7 +13,6 @@ import { useCoreState } from "../../../core";
 import { SupportedPlatforms } from "../../../core/usecases/softwareCatalog";
 import { CnllServiceProviderModal } from "./CnllServiceProviderModal";
 import { OperatingSystemsTable } from "ui/shared/OperatingSystemsTable";
-import { LogoURLButton } from "ui/shared/LogoURLButton";
 import { ApiTypes } from "api";
 import { CustomAttributeDetails } from "./CustomAttributeDetails";
 import { Chip } from "@mui/material";
@@ -25,7 +24,6 @@ export type Props = {
     name: string;
     softwareCurrentVersion?: string;
     softwareDateCurrentVersion?: string;
-    description: string;
     registerDate?: string;
     license?: string;
     providers: ApiTypes.Organization[];
@@ -36,8 +34,6 @@ export type Props = {
     applicationCategories: string[];
     operatingSystems: Partial<Record<string, boolean>>;
     runtimePlatforms: string[];
-    identifiers: ApiTypes.Identifier[];
-    url?: string;
     repoMetadata?: ApiTypes.RepoMetadata;
 };
 export const PreviewTab = (props: Props) => {
@@ -45,7 +41,6 @@ export const PreviewTab = (props: Props) => {
         name: softwareName,
         softwareCurrentVersion,
         softwareDateCurrentVersion,
-        description: softwareDescription,
         registerDate,
         license,
         supportedPlatforms,
@@ -56,8 +51,6 @@ export const PreviewTab = (props: Props) => {
         applicationCategories,
         operatingSystems,
         runtimePlatforms,
-        identifiers,
-        url: officialWebsiteUrl,
         repoMetadata
     } = props;
     const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main")!;
@@ -67,39 +60,9 @@ export const PreviewTab = (props: Props) => {
     const { t } = useTranslation();
     const { lang } = useLang();
 
-    const usefulLinks = identifiers
-        .filter(identifier => {
-            const identifierURLString = identifier?.url?.toString();
-            return (
-                !officialWebsiteUrl ||
-                (officialWebsiteUrl &&
-                    identifierURLString &&
-                    !officialWebsiteUrl.startsWith(identifierURLString))
-            );
-        })
-        .reduce((acc, identifier) => {
-            // make sure we don't have duplicate links
-            const url = identifier.url ?? identifier.subjectOf?.url;
-            if (!url) return acc;
-            const domain = new URL(url).hostname.replace("www.", "");
-            if (
-                acc.some(i => {
-                    const iUrl = i.url ?? i.subjectOf?.url;
-                    if (!iUrl) return false;
-                    const iDomain = new URL(iUrl).hostname.replace("www.", "");
-                    return iDomain === domain;
-                })
-            ) {
-                return acc;
-            }
-            acc.push(identifier);
-            return acc;
-        }, [] as ApiTypes.Identifier[]);
-
     return (
         <>
             <section className={classes.tabContainer}>
-                <p style={{ gridColumn: "span 2" }}>{softwareDescription}</p>
                 {uiConfig.softwareDetails.details.enabled && (
                     <div className="section">
                         <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
@@ -169,51 +132,6 @@ export const PreviewTab = (props: Props) => {
                                 </span>
                                 <span>{license}</span>
                             </p>
-                        )}
-                    </div>
-                )}
-
-                {uiConfig.softwareDetails.customAttributes.enabled && (
-                    <div className={cx(classes.section, fr.cx("fr-mb-4v"))}>
-                        {Object.keys(supportedPlatforms).length > 0 && (
-                            <>
-                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                                    {t("previewTab.supportedPlatforms")}
-                                </p>
-                                <CustomAttributeDetails
-                                    customAttributes={supportedPlatforms}
-                                    attributeDefinitions={[
-                                        {
-                                            name: id<keyof SupportedPlatforms>(
-                                                "hasDesktopApp"
-                                            ),
-                                            label: t("previewTab.hasDesktopApp"),
-                                            kind: "boolean",
-                                            displayInDetails: true
-                                        },
-                                        {
-                                            name: id<keyof SupportedPlatforms>(
-                                                "isAvailableAsMobileApp"
-                                            ),
-                                            label: t("previewTab.isAvailableAsMobileApp"),
-                                            kind: "boolean",
-                                            displayInDetails: true
-                                        }
-                                    ]}
-                                />
-                            </>
-                        )}
-
-                        {customAttributes && Object.keys(customAttributes).length > 0 && (
-                            <>
-                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                                    {t("previewTab.customAttributesTitle")}
-                                </p>
-                                <CustomAttributeDetails
-                                    customAttributes={customAttributes}
-                                    attributeDefinitions={attributeDefinitions}
-                                />
-                            </>
                         )}
                     </div>
                 )}
@@ -303,29 +221,51 @@ export const PreviewTab = (props: Props) => {
                     </div>
                 )}
 
-                {uiConfig.softwareDetails.links.enabled && usefulLinks.length > 0 && (
-                    <div className={classes.section}>
-                        <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                            {t("previewTab.useful links")}
-                        </p>
-
-                        {usefulLinks.map(identifier => {
-                            const url = identifier.url ?? identifier.subjectOf?.url;
-
-                            if (!url) return null;
-
-                            return (
-                                <LogoURLButton
-                                    key={url?.toString()}
-                                    className={cx(fr.cx("fr-ml-4v", "fr-my-2v"))}
-                                    priority="secondary"
-                                    url={url}
-                                    labelFromURL={true}
+                {uiConfig.softwareDetails.customAttributes.enabled && (
+                    <div className={cx(classes.section, fr.cx("fr-mb-4v"))}>
+                        {Object.keys(supportedPlatforms).length > 0 && (
+                            <>
+                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
+                                    {t("previewTab.supportedPlatforms")}
+                                </p>
+                                <CustomAttributeDetails
+                                    customAttributes={supportedPlatforms}
+                                    attributeDefinitions={[
+                                        {
+                                            name: id<keyof SupportedPlatforms>(
+                                                "hasDesktopApp"
+                                            ),
+                                            label: t("previewTab.hasDesktopApp"),
+                                            kind: "boolean",
+                                            displayInDetails: true
+                                        },
+                                        {
+                                            name: id<keyof SupportedPlatforms>(
+                                                "isAvailableAsMobileApp"
+                                            ),
+                                            label: t("previewTab.isAvailableAsMobileApp"),
+                                            kind: "boolean",
+                                            displayInDetails: true
+                                        }
+                                    ]}
                                 />
-                            );
-                        })}
+                            </>
+                        )}
+
+                        {customAttributes && Object.keys(customAttributes).length > 0 && (
+                            <>
+                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
+                                    {t("previewTab.customAttributesTitle")}
+                                </p>
+                                <CustomAttributeDetails
+                                    customAttributes={customAttributes}
+                                    attributeDefinitions={attributeDefinitions}
+                                />
+                            </>
+                        )}
                     </div>
                 )}
+
                 {uiConfig?.softwareDetails.repoMetadata.enabled &&
                     repoMetadata &&
                     Object.keys(repoMetadata).length > 0 && (
@@ -411,13 +351,9 @@ export const PreviewTab = (props: Props) => {
 
 const useStyles = tss.withName({ PreviewTab }).create({
     tabContainer: {
-        display: "grid",
-        gridTemplateColumns: `repeat(2, 1fr)`,
-        columnGap: fr.spacing("4v"),
-        rowGap: fr.spacing("3v"),
-        [fr.breakpoints.down("md")]: {
-            gridTemplateColumns: `repeat(1, 1fr)`
-        }
+        display: "flex",
+        flexDirection: "column",
+        rowGap: fr.spacing("3v")
     },
     section: {
         display: "flex",

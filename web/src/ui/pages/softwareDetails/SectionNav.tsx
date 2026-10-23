@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { useEffect, useRef, useState } from "react";
+import { fr } from "@codegouvfr/react-dsfr";
 import { SideMenu } from "@codegouvfr/react-dsfr/SideMenu";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
@@ -29,10 +30,10 @@ export const SectionNav = (props: Props) => {
     return (
         <SideMenu
             className={className}
-            classes={{ inner: classes.inner }}
+            classes={{ root: classes.root, inner: classes.inner }}
             sticky
-            // Also gives its accessible name to the <nav>
-            title={t("softwareDetails.nav burger button")}
+            // No visible title, the <nav> still needs an accessible name
+            aria-label={t("softwareDetails.nav burger button")}
             burgerMenuButtonText={t("softwareDetails.nav burger button")}
             items={sections.map(({ id, label }) => ({
                 text: label,
@@ -143,9 +144,20 @@ const userScrollIntentEvents = ["wheel", "touchmove", "keydown"] as const;
 
 const scrollKeys = ["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", " "];
 
+// Same as the column top padding, so that the menu keeps its gap once stuck
+export const sectionNavStickyTop = fr.spacing("16v");
+
 const useStyles = tss.withName({ SectionNav }).create({
+    root: {
+        "&&": {
+            top: sectionNavStickyTop
+        }
+    },
     // The page column carries the vertical separator, so it spans the whole content height
     inner: {
-        boxShadow: "none"
+        boxShadow: "none",
+        "&&": {
+            maxHeight: `calc(100vh - ${sectionNavStickyTop})`
+        }
     }
 });
