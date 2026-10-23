@@ -33,28 +33,8 @@ const seed = async () => {
 
     const dbApi: DbApiV2 = createKyselyPgDbApi(db);
 
-    // Source configurations hold credentials set by hand (e.g. the GitHub token), they survive a reseed
-    const previousConfigurationBySlug = new Map(
-        (await db.selectFrom("sources").select(["slug", "configuration"]).execute()).map(({ slug, configuration }) => [
-            slug,
-            configuration
-        ])
-    );
-
-    // Clear existing data
-    console.info("Clearing existing data");
-
-    await db.deleteFrom("software_external_datas").execute();
-    await db.deleteFrom("softwares__similar_software_external_datas").execute();
-    await db.deleteFrom("softwares").execute();
-    await db.deleteFrom("users").execute();
-    await db.deleteFrom("sources").execute();
-
-    console.info("Data cleared");
-
     // Forge sources use the slug `ensureForgeSource` derives from the host, so the update job
     // reuses them instead of creating duplicates.
-    console.info("Adding sources");
     const sources: Array<Omit<Source, "configuration" | "lastImport" | "description">> = [
         { slug: "UserInput", url: "", kind: "UserInput", category: "UserInput" },
         { slug: "github-com", url: "https://github.com/", kind: "GitHub", category: "repository" },
@@ -69,19 +49,41 @@ const seed = async () => {
             category: "ComptoirDuLibre"
         }
     ];
-    await db
-        .insertInto("sources")
-        .values(
-            sources.map(source => {
-                const configuration: SourceConfig | null | undefined = previousConfigurationBySlug.get(source.slug);
-                return {
-                    ...source,
-                    description: null,
-                    configuration: configuration ? JSON.stringify(configuration) : null
-                };
-            })
-        )
-        .execute();
+
+    // Within one transaction so a failure can't lose the configurations. The rest of the seed
+    // can't join it: dbApi opens its own transactions, which Kysely doesn't allow nesting.
+    await db.transaction().execute(async trx => {
+        // Source configurations hold credentials set by hand (e.g. the GitHub token): those of
+        // the sources recreated below survive a reseed
+        const previousConfigurationBySlug = new Map(
+            (await trx.selectFrom("sources").select(["slug", "configuration"]).execute()).map(
+                ({ slug, configuration }) => [slug, configuration]
+            )
+        );
+
+        console.info("Clearing existing data");
+
+        await trx.deleteFrom("software_external_datas").execute();
+        await trx.deleteFrom("softwares__similar_software_external_datas").execute();
+        await trx.deleteFrom("softwares").execute();
+        await trx.deleteFrom("users").execute();
+        await trx.deleteFrom("sources").execute();
+
+        console.info("Adding sources");
+        await trx
+            .insertInto("sources")
+            .values(
+                sources.map(source => {
+                    const configuration: SourceConfig | null | undefined = previousConfigurationBySlug.get(source.slug);
+                    return {
+                        ...source,
+                        description: null,
+                        configuration: configuration ? JSON.stringify(configuration) : null
+                    };
+                })
+            )
+            .execute();
+    });
 
     console.info("Adding users");
     const seedUsers: Array<OmitFromExisting<DbUser, "id">> = [
@@ -103,14 +105,14 @@ const seed = async () => {
         },
         ...(
             [
-                ["alice.martin@numerique.gouv.fr", "DINUM"],
-                ["bruno.leroy@education.gouv.fr", "Ministère de l'Éducation nationale"],
-                ["chloe.bernard@interieur.gouv.fr", "Ministère de l'Intérieur"],
-                ["david.petit@insee.fr", "INSEE"],
-                ["emma.robert@culture.gouv.fr", "Ministère de la Culture"],
-                ["francois.durand@cnrs.fr", "CNRS"],
-                ["gaelle.moreau@strasbourg.eu", "Eurométropole de Strasbourg"],
-                ["hugo.simon@ademe.fr", "ADEME"]
+                ["alice.martin@example.org", "DINUM"],
+                ["bruno.leroy@example.org", "Ministère de l'Éducation nationale"],
+                ["chloe.bernard@example.org", "Ministère de l'Intérieur"],
+                ["david.petit@example.org", "INSEE"],
+                ["emma.robert@example.org", "Ministère de la Culture"],
+                ["francois.durand@example.org", "CNRS"],
+                ["gaelle.moreau@example.org", "Eurométropole de Strasbourg"],
+                ["hugo.simon@example.org", "ADEME"]
             ] as const
         ).map(([email, organization]) => ({
             email,
@@ -339,19 +341,6 @@ const seed = async () => {
     // each adapter produces. Forge project and user ids are illustrative.
     console.info("Adding external data");
 
-    const organization = (name: string, url?: string, description?: string): SchemaOrganization => ({
-        "@type": "Organization",
-        name,
-        ...(url === undefined ? {} : { url }),
-        ...(description === undefined ? {} : { description })
-    });
-
-    const person = (name: string, url?: string): SchemaPerson => ({
-        "@type": "Person",
-        name,
-        ...(url === undefined ? {} : { url })
-    });
-
     const gitHubContributor = (name: string, login: string, userId: number): SchemaPerson => ({
         "@type": "Person",
         name,
@@ -364,13 +353,6 @@ const seed = async () => {
         name,
         url: `${gitLabUrl}/${username}`,
         identifiers: [identifersUtils.makeUserGitLabIdentifer({ gitLabUrl, username, userId })]
-    });
-
-    const article = (params: { doi: string; headline: string }): ScholarlyArticle => ({
-        "@id": params.doi,
-        "@type": "ScholarlyArticle",
-        headline: params.headline,
-        identifiers: [identifersUtils.makeArticleDOIIdentifier({ doi: params.doi })]
     });
 
     const daysAgo = (days: number) => new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
@@ -390,7 +372,6 @@ const seed = async () => {
         name?: LocalizedString;
         description?: LocalizedString;
         authors?: Array<SchemaOrganization | SchemaPerson>;
-        image?: string;
         url?: string;
         codeRepositoryUrl?: string;
         softwareHelp?: string;
@@ -417,7 +398,7 @@ const seed = async () => {
             name: toJson(data.name),
             description: toJson(data.description),
             isLibreSoftware: true,
-            image: data.image ?? null,
+            image: null,
             url: data.url ?? null,
             codeRepositoryUrl: data.codeRepositoryUrl ?? null,
             softwareHelp: data.softwareHelp ?? null,
@@ -499,7 +480,7 @@ const seed = async () => {
         return {
             softwareName: params.softwareName,
             sourceSlug: params.sourceSlug,
-            externalId: params.pathWithNamespace,
+            externalId: String(params.projectId),
             name: { en: params.name },
             description: { en: params.description },
             authors: params.members,
@@ -634,12 +615,35 @@ const seed = async () => {
         })
     ];
 
-    // Wikidata: the general description of the software, its editor and categories
+    // Wikidata: the general description of the software and its authors. Same shape as the
+    // Wikidata adapter: authors point to their Wikidata page, the latest version date doubles
+    // as dateCreated, and categories and publications only come from HAL.
+    const wikidataAuthor = (wikidataId: string, additionalType: "Person" | "Organization") => ({
+        url: `https://www.wikidata.org/wiki/${wikidataId}`,
+        identifiers: [identifersUtils.makeWikidataIdentifier({ wikidataId, additionalType })]
+    });
+    const wikidataPerson = (name: string, wikidataId: string): SchemaPerson => ({
+        "@type": "Person",
+        name,
+        ...wikidataAuthor(wikidataId, "Person")
+    });
+    const wikidataOrganization = (name: string, wikidataId: string): SchemaOrganization => ({
+        "@type": "Organization",
+        name,
+        ...wikidataAuthor(wikidataId, "Organization")
+    });
+
     const wikidata = (
-        params: Omit<SeedExternalData, "sourceSlug" | "identifiers"> & { externalId: string }
+        params: Omit<
+            SeedExternalData,
+            "sourceSlug" | "identifiers" | "dateCreated" | "applicationCategories" | "referencePublications"
+        >
     ): SeedExternalData => ({
         ...params,
         sourceSlug: "wikidata",
+        dateCreated: params.latestVersion?.releaseDate,
+        applicationCategories: [],
+        referencePublications: [],
         identifiers: [
             identifersUtils.makeWikidataIdentifier({ wikidataId: params.externalId, additionalType: "Software" })
         ]
@@ -651,12 +655,15 @@ const seed = async () => {
             externalId: "Q19399674",
             name: { fr: "React", en: "React" },
             description: { fr: "bibliothèque JavaScript", en: "JavaScript library for building user interfaces" },
-            authors: [organization("Meta Platforms", "https://about.meta.com")],
+            authors: [
+                wikidataOrganization("Meta Platforms", "Q380"),
+                wikidataPerson("Sebastian Markbåge", "Q108496793"),
+                wikidataPerson("Dan Abramov", "Q98363379"),
+                wikidataPerson("Andrew Clark", "Q108498206")
+            ],
             url: "https://react.dev/",
             codeRepositoryUrl: "https://github.com/facebook/react",
-            license: "MIT",
-            applicationCategories: ["Bibliothèque JavaScript", "Framework web"],
-            dateCreated: "2013-05-29"
+            license: "MIT"
         }),
         wikidata({
             softwareName: "Git",
@@ -666,55 +673,45 @@ const seed = async () => {
                 fr: "logiciel de gestion de versions décentralisé",
                 en: "distributed version control system"
             },
-            authors: [person("Linus Torvalds", "https://www.wikidata.org/wiki/Q34253"), person("Junio Hamano")],
+            authors: [
+                wikidataPerson("Linus Torvalds", "Q34253"),
+                wikidataOrganization("Software Freedom Conservancy", "Q2896872"),
+                wikidataPerson("Junio C Hamano", "Q4495220")
+            ],
             url: "https://git-scm.com/",
             codeRepositoryUrl: "https://github.com/git/git",
-            license: "GPL-2.0-only",
-            applicationCategories: ["Gestion de versions"],
-            dateCreated: "2005-04-07"
+            license: "GPL-2.0-only"
         }),
         wikidata({
             softwareName: "OpenOffice",
             externalId: "Q2858086",
             name: { fr: "Apache OpenOffice", en: "Apache OpenOffice" },
             description: { fr: "suite bureautique", en: "office suite" },
-            authors: [organization("Apache Software Foundation", "https://www.apache.org")],
+            authors: [wikidataOrganization("Apache Software Foundation", "Q489709")],
             url: "https://www.openoffice.org/",
             codeRepositoryUrl: "https://github.com/apache/openoffice",
-            license: "Apache-2.0",
-            applicationCategories: ["Suite bureautique"],
-            dateCreated: "2012-05-08"
+            license: "Apache-2.0"
         }),
         wikidata({
             softwareName: "LibreOffice",
             externalId: "Q10135",
             name: { fr: "LibreOffice", en: "LibreOffice" },
             description: { fr: "suite bureautique libre", en: "free and open-source office suite" },
-            authors: [
-                organization(
-                    "The Document Foundation",
-                    "https://www.documentfoundation.org",
-                    "Fondation de droit allemand qui porte le projet LibreOffice et représente sa communauté."
-                )
-            ],
+            authors: [wikidataOrganization("TDF", "Q313103")],
             url: "https://www.libreoffice.org/",
             codeRepositoryUrl: "https://git.libreoffice.org/core",
             license: "MPL-2.0",
-            latestVersion: { version: "25.8.2", releaseDate: "2025-10-09" },
-            applicationCategories: ["Suite bureautique", "Traitement de texte", "Tableur"],
-            dateCreated: "2011-01-25"
+            latestVersion: { version: "25.8.2", releaseDate: "2025-10-09T00:00:00.000Z" }
         }),
         wikidata({
             softwareName: "VLC media player",
             externalId: "Q171477",
             name: { fr: "VLC media player", en: "VLC media player" },
             description: { fr: "lecteur multimédia libre", en: "free and open-source media player" },
-            authors: [organization("VideoLAN", "https://www.videolan.org")],
+            authors: [wikidataOrganization("VideoLAN", "Q1282963"), wikidataPerson("Jean-Baptiste Kempf", "Q58879462")],
             url: "https://www.videolan.org/vlc/",
             codeRepositoryUrl: "https://code.videolan.org/videolan/vlc",
-            license: "GPL-2.0-or-later",
-            applicationCategories: ["Lecteur multimédia"],
-            dateCreated: "2001-02-01"
+            license: "GPL-2.0-or-later"
         }),
         wikidata({
             softwareName: "GIMP",
@@ -722,87 +719,156 @@ const seed = async () => {
             name: { fr: "GIMP", en: "GIMP" },
             description: { fr: "logiciel de retouche d'image", en: "raster graphics editor" },
             authors: [
-                person("Spencer Kimball"),
-                person("Peter Mattis"),
-                organization("The GIMP Team", "https://www.gimp.org")
+                wikidataPerson("Peter Mattis", "Q7175711"),
+                wikidataPerson("Spencer Kimball", "Q7576106"),
+                wikidataOrganization("The GNOME Project", "Q7735575")
             ],
             url: "https://www.gimp.org/",
             codeRepositoryUrl: "https://gitlab.gnome.org/GNOME/gimp",
-            license: "GPL-3.0-or-later",
-            applicationCategories: ["Éditeur d'image matricielle"],
-            dateCreated: "1996-01-01"
+            license: "GPL-3.0-or-later"
         }),
         wikidata({
             softwareName: "Inkscape",
             externalId: "Q8041",
             name: { fr: "Inkscape", en: "Inkscape" },
             description: { fr: "logiciel de dessin vectoriel", en: "vector graphics editor" },
-            authors: [organization("Inkscape Project", "https://inkscape.org")],
+            authors: [
+                wikidataPerson("Bulia Byak", "Q120122099"),
+                wikidataPerson("Johan B. C. Engelen", "Q120122120"),
+                wikidataPerson("Peter Moulder", "Q120122133")
+            ],
             url: "https://inkscape.org/",
             codeRepositoryUrl: "https://gitlab.com/inkscape/inkscape",
-            license: "GPL-2.0-or-later",
-            applicationCategories: ["Éditeur de graphisme vectoriel"],
-            dateCreated: "2003-11-02"
+            license: "GPL-2.0-or-later"
         }),
         wikidata({
             softwareName: "Onyxia",
             externalId: "Q110492908",
             name: { fr: "Onyxia", en: "Onyxia" },
             description: { fr: "plateforme de datascience", en: "data science platform" },
-            authors: [organization("INSEE", "https://www.insee.fr")],
+            authors: [wikidataOrganization("INSEE", "Q156616"), wikidataPerson("Joseph Garrone", "Q111738960")],
             url: "https://www.onyxia.sh/",
             codeRepositoryUrl: "https://github.com/InseeFrLab/onyxia",
-            license: "MIT",
-            applicationCategories: ["Plateforme de datascience"],
-            dateCreated: "2020-01-15",
-            referencePublications: [
-                article({
-                    doi: "10.5281/zenodo.0000001",
-                    headline: "Onyxia : une plateforme de datascience ouverte pour la statistique publique"
-                }),
-                article({
-                    doi: "10.5281/zenodo.0000002",
-                    headline: "Le SSP Cloud, un environnement mutualisé pour l'expérimentation en datascience"
-                })
-            ]
+            license: "MIT"
         })
     ];
 
-    // Comptoir du Libre: service providers
-    const comptoirDuLibre = (softwareName: string, providers: SchemaOrganization[]): SeedExternalData => ({
-        softwareName,
+    // Comptoir du Libre: service providers. Same shape as the Comptoir du Libre adapter, with
+    // the ids of its public export (providers trimmed to a few).
+    const cdlProvider = (name: string, cdlUserId: number, website: string): SchemaOrganization => ({
+        "@type": "Organization",
+        name,
+        url: website,
+        identifiers: [
+            identifersUtils.makeCDLIdentifier({
+                cdlId: String(cdlUserId),
+                url: `https://comptoir-du-libre.org/fr/users/${cdlUserId}`,
+                additionalType: "Organization"
+            })
+        ]
+    });
+
+    const comptoirDuLibre = (params: {
+        softwareName: string;
+        cdlId: number;
+        name: string;
+        license: string;
+        website: string;
+        repository: string;
+        cnllId?: number;
+        framaLibreSlug?: string;
+        wikidataId: string;
+        providers: SchemaOrganization[];
+    }): SeedExternalData => ({
+        softwareName: params.softwareName,
         sourceSlug: "comptoir-du-libre",
-        externalId: `seed-${getSoftwareId(softwareName)}`,
-        name: { fr: softwareName },
-        providers
+        externalId: String(params.cdlId),
+        name: { fr: params.name },
+        description: { fr: "" },
+        url: params.website,
+        codeRepositoryUrl: params.repository,
+        license: params.license,
+        keywords: [],
+        programmingLanguages: [],
+        applicationCategories: [],
+        referencePublications: [],
+        identifiers: [
+            identifersUtils.makeCDLIdentifier({
+                cdlId: String(params.cdlId),
+                url: `https://comptoir-du-libre.org/fr/softwares/${params.cdlId}`,
+                additionalType: "Software"
+            }),
+            ...(params.cnllId === undefined
+                ? []
+                : [
+                      identifersUtils.makeCNLLIdentifier({
+                          cNNLId: String(params.cnllId),
+                          url: `https://annuaire.cnll.fr/solutions/${params.cnllId}`
+                      })
+                  ]),
+            ...(params.framaLibreSlug === undefined
+                ? []
+                : [
+                      identifersUtils.makeFramaIndentifier({
+                          framaLibreId: params.framaLibreSlug,
+                          url: `https://framalibre.org/content/${params.framaLibreSlug}`,
+                          additionalType: "Software"
+                      })
+                  ]),
+            identifersUtils.makeWikidataIdentifier({
+                wikidataId: params.wikidataId,
+                url: `https://www.wikidata.org/wiki/${params.wikidataId}`,
+                additionalType: "Software"
+            })
+        ],
+        providers: params.providers
     });
 
     const comptoirDuLibreEntries: SeedExternalData[] = [
-        comptoirDuLibre("LibreOffice", [
-            organization("Arawa", "https://www.arawa.fr", "Intégration et support LibreOffice pour les collectivités."),
-            organization(
-                "Collabora Productivity",
-                "https://www.collaboraoffice.com",
-                "Support entreprise et LibreOffice en ligne."
-            ),
-            organization(
-                "Libriciel SCOP",
-                "https://www.libriciel.fr",
-                "Accompagnement des administrations dans la migration bureautique."
-            ),
-            organization("Atos", "https://atos.net", "Support logiciel libre dans le cadre du marché interministériel.")
-        ]),
-        comptoirDuLibre("GIMP", [
-            organization(
-                "Logilab",
-                "https://www.logilab.fr",
-                "Formation et support sur les logiciels libres graphiques."
-            )
-        ]),
-        comptoirDuLibre("Onyxia", [
-            organization("Inria", "https://www.inria.fr", "Contribution et accompagnement au déploiement."),
-            organization("Worteks", "https://www.worteks.com", "Hébergement et maintien en conditions opérationnelles.")
-        ])
+        comptoirDuLibre({
+            softwareName: "LibreOffice",
+            cdlId: 33,
+            name: "LibreOffice",
+            license: "LGPLv3",
+            website: "https://fr.libreoffice.org/",
+            repository: "https://github.com/LibreOffice/core.git",
+            cnllId: 284,
+            wikidataId: "Q10135",
+            providers: [
+                cdlProvider("Arawa", 55, "https://www.arawa.fr"),
+                cdlProvider("Collabora", 61, "https://www.collabora.com"),
+                cdlProvider("CIB", 63, "https://libreoffice.cib.de/"),
+                cdlProvider("Igalia", 62, "https://www.igalia.com/"),
+                cdlProvider("OpenGO", 54, "https://www.opengo.fr/")
+            ]
+        }),
+        comptoirDuLibre({
+            softwareName: "GIMP",
+            cdlId: 67,
+            name: "GIMP",
+            license: "GNU GPLv3",
+            website: "https://www.gimp.org/",
+            repository: "https://gitlab.gnome.org/GNOME/gimp",
+            cnllId: 431,
+            framaLibreSlug: "gimp",
+            wikidataId: "Q8038",
+            providers: [
+                cdlProvider("Artefacts", 226, "http://artefacts.coop"),
+                cdlProvider("Dimitri Robert", 227, "https://formation-logiciel-libre.com"),
+                cdlProvider("Microlinux", 295, "https://www.microlinux.fr")
+            ]
+        }),
+        // Listed without any provider
+        comptoirDuLibre({
+            softwareName: "Onyxia",
+            cdlId: 461,
+            name: "Onyxia",
+            license: "MIT",
+            website: "https://datalab.sspcloud.fr",
+            repository: "https://github.com/InseeFrLab/onyxia",
+            wikidataId: "Q110492908",
+            providers: []
+        })
     ];
 
     for (const data of [...repositories, ...wikidataEntries, ...comptoirDuLibreEntries]) {
@@ -844,95 +910,95 @@ const seed = async () => {
     }> = [
         {
             software: "LibreOffice",
-            email: "alice.martin@numerique.gouv.fr",
+            email: "alice.martin@example.org",
             referent: { isExpert: true },
             useCaseDescription: "Suite bureautique par défaut sur les postes de la direction.",
             os: "linux"
         },
         {
             software: "LibreOffice",
-            email: "bruno.leroy@education.gouv.fr",
+            email: "bruno.leroy@example.org",
             referent: { isExpert: false },
             useCaseDescription: "Déployé sur les postes des établissements scolaires.",
             os: "windows"
         },
         {
             software: "LibreOffice",
-            email: "emma.robert@culture.gouv.fr",
+            email: "emma.robert@example.org",
             useCaseDescription: "Rédaction des notes et des tableaux de suivi budgétaire.",
             os: "windows"
         },
         {
             software: "LibreOffice",
-            email: "gaelle.moreau@strasbourg.eu",
+            email: "gaelle.moreau@example.org",
             useCaseDescription: "Migration de 3 000 postes depuis Microsoft Office.",
             os: "windows"
         },
         {
             software: "LibreOffice",
-            email: "hugo.simon@ademe.fr",
+            email: "hugo.simon@example.org",
             useCaseDescription: "Production des rapports d'étude.",
             os: "mac"
         },
         {
             software: "Onyxia",
-            email: "david.petit@insee.fr",
+            email: "david.petit@example.org",
             referent: { isExpert: true },
             useCaseDescription: "Plateforme SSP Cloud pour les statisticiens publics.",
             serviceUrl: "https://datalab.sspcloud.fr"
         },
         {
             software: "Onyxia",
-            email: "francois.durand@cnrs.fr",
+            email: "francois.durand@example.org",
             referent: { isExpert: false },
             useCaseDescription: "Environnements de calcul pour les équipes de recherche."
         },
         {
             software: "Onyxia",
-            email: "alice.martin@numerique.gouv.fr",
+            email: "alice.martin@example.org",
             useCaseDescription: "Prototypage de traitements de données ouvertes."
         },
         {
             software: "GIMP",
-            email: "emma.robert@culture.gouv.fr",
+            email: "emma.robert@example.org",
             referent: { isExpert: true },
             useCaseDescription: "Retouche des visuels pour les expositions numériques.",
             os: "linux"
         },
         {
             software: "GIMP",
-            email: "bruno.leroy@education.gouv.fr",
+            email: "bruno.leroy@example.org",
             useCaseDescription: "Ateliers d'arts plastiques en collège.",
             os: "windows"
         },
         {
             software: "Inkscape",
-            email: "emma.robert@culture.gouv.fr",
+            email: "emma.robert@example.org",
             useCaseDescription: "Création des affiches et signalétiques.",
             os: "mac"
         },
         {
             software: "Git",
-            email: "chloe.bernard@interieur.gouv.fr",
+            email: "chloe.bernard@example.org",
             referent: { isExpert: true },
             useCaseDescription: "Gestion des sources des applications métier.",
             os: "linux"
         },
         {
             software: "Git",
-            email: "david.petit@insee.fr",
+            email: "david.petit@example.org",
             useCaseDescription: "Versionnement des programmes statistiques.",
             os: "linux"
         },
         {
             software: "VLC media player",
-            email: "hugo.simon@ademe.fr",
+            email: "hugo.simon@example.org",
             useCaseDescription: "Lecture des vidéos de formation interne.",
             os: "windows"
         },
         {
             software: "Forgejo",
-            email: "chloe.bernard@interieur.gouv.fr",
+            email: "chloe.bernard@example.org",
             useCaseDescription: "Forge interne des équipes de développement."
         }
     ];
