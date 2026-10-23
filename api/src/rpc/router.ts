@@ -43,6 +43,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "updateSoftware"
     | "unreferenceSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
+    | "resolveRepoUrl"
     | "auth"
 >;
 
@@ -146,7 +147,11 @@ export function createRouter(params: {
             uiConfig: await resolveUiConfig(),
             attributeDefinitions: await dbApi.attributeDefinition.getAll()
         })),
-        "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
+        // The configuration holds credentials (forge tokens).
+        "getMainSource": loggedProcedure.query(async () => {
+            const { configuration: _configuration, ...mainSource } = await dbApi.source.getMainSource();
+            return mainSource;
+        }),
         "getSoftwareList": loggedProcedure.query(() => {
             return dbApi.software.getFullList();
         }),
@@ -216,6 +221,9 @@ export function createRouter(params: {
                     externalId: input.externalId
                 })
             ),
+        "resolveRepoUrl": protectedProcedure
+            .input(z.object({ "url": z.string() }))
+            .query(({ input }) => useCases.resolveRepoUrl({ url: input.url })),
         "createSoftware": protectedProcedure
             .input(
                 z.object({

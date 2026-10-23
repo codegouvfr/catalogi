@@ -75,6 +75,8 @@ export interface SoftwareRepository {
     getSoftwareIdByExternalIdAndSlug: (params: {
         externalId: string;
         sourceSlug: string;
+        // GitHub repositories are case-insensitive.
+        ignoreCase?: boolean;
     }) => Promise<number | undefined>;
     getBySoftwareId: (id: number) => Promise<DatabaseDataType.SoftwareRow | undefined>;
     getByName: (params: { softwareName: string }) => Promise<DatabaseDataType.SoftwareRow | undefined>;
@@ -140,6 +142,8 @@ export interface SoftwareExternalDataRepository {
     getAll: () => Promise<DatabaseDataType.SoftwareExternalDataRow[] | undefined>;
     delete: (params: { sourceSlug: string; externalId: string }) => Promise<boolean>;
     getOtherIdentifierIdsBySourceURL: (params: { sourceURL: string }) => Promise<Record<string, number> | undefined>;
+    // Software whose external data (user input included) gives this repository, whatever its spelling.
+    getSoftwareIdByCodeRepositoryUrl: (params: { repoUrl: string }) => Promise<number | undefined>;
 }
 
 export interface InstanceRepository {
@@ -197,6 +201,8 @@ export interface SourceRepository {
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
     getMainSource: () => Promise<DatabaseDataType.SourceRow>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
+    // Lower number = higher precedence in the merge.
+    getCategoryPriorities: () => Promise<Partial<Record<DatabaseDataType.SourceRow["category"], number>>>;
     // Returns the existing source when the slug is already taken, whatever its kind or url.
     createIfMissing: (
         params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">
