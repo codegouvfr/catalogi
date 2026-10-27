@@ -18,8 +18,8 @@ const useCaseLogTitle = "[UC.refreshExternalData]";
 const useCaseLogTimer = (source: string, ids: number[]) =>
     `${useCaseLogTitle} ${source} ${ids.toString()} Finished fetching external data`;
 
-const validStatus = (status: Status | undefined) => {
-    return status && ["archived", "rejected"].includes(status.name);
+const isActiveInCatalog = (status: Status | undefined) => {
+    return !!status && !["archived", "rejected"].includes(status.name);
 };
 
 export type FetchAndSaveExternalData = (params: {
@@ -83,7 +83,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
         }
 
         const softwareByName = await dbApi.software.getByName({ softwareName: trimmedName });
-        const activeId = softwareByName && validStatus(softwareByName.status) ? softwareByName.id : undefined;
+        const activeId = softwareByName && isActiveInCatalog(softwareByName.status) ? softwareByName.id : undefined;
 
         activeSoftwareIdByNameCache[trimmedName] = activeId;
         return activeId;
@@ -95,7 +95,7 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
     }): Promise<number> => {
         const discoveredSoftware = await getSoftwareById(link.softwareId);
 
-        if (discoveredSoftware?.status && validStatus(discoveredSoftware.status)) return link.softwareId;
+        if (discoveredSoftware?.status && isActiveInCatalog(discoveredSoftware.status)) return link.softwareId;
         if (!link.softwareName) return link.softwareId;
 
         const activeSoftwareId = await getActiveSoftwareIdByName(link.softwareName);
@@ -159,7 +159,8 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                               if (!currentlyLinkedSoftware || !discoveredSoftware) return false;
 
                               return (
-                                  validStatus(currentlyLinkedSoftware.status) && !validStatus(discoveredSoftware.status)
+                                  isActiveInCatalog(currentlyLinkedSoftware.status) &&
+                                  !isActiveInCatalog(discoveredSoftware.status)
                               );
                           })();
 

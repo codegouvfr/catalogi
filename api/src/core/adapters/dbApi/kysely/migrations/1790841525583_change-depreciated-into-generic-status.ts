@@ -15,7 +15,9 @@ export async function up(db: Kysely<any>): Promise<void> {
             name: dereferencing ? "archived" : "published",
             changed: {
                 reason: dereferencing?.reason || undefined,
-                time: dereferencing?.time ?? updateTime,
+                time: dereferencing?.time
+                    ? new Date(dereferencing.time).toISOString()
+                    : new Date(updateTime).toISOString(),
                 lastRecommendedVersion: dereferencing?.lastRecommendedVersion || undefined,
                 changedByUserId: dereferencing?.dereferencedByUserId ?? addedByUserId
             }
@@ -26,7 +28,11 @@ export async function up(db: Kysely<any>): Promise<void> {
 
     await Promise.all(updatedData);
 
-    await db.schema.alterTable("softwares").dropColumn("dereferencing").execute();
+    await db.schema
+        .alterTable("softwares")
+        .dropColumn("dereferencing")
+        .alterColumn("status", ac => ac.setNotNull())
+        .execute();
 }
 
 export async function down(db: Kysely<any>): Promise<void> {

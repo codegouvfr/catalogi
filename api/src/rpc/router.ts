@@ -474,20 +474,23 @@ export function createRouter(params: {
             .input(
                 z.object({
                     "softwareId": z.number(),
-                    "reason": z.string()
+                    "reason": z.string(),
+                    "recommendedVersion": z.string().optional()
                 })
             )
             .mutation(async ({ ctx: { currentUser }, input }) => {
-                const { softwareId, reason } = input;
+                const { softwareId, reason, recommendedVersion } = input;
 
                 try {
-                    return useCases.changingCatalogueStatusSoftware({
+                    const result = await useCases.changingCatalogueStatusSoftware({
                         statusName: "archived",
                         softwareId,
                         reason,
+                        recommendedVersion,
                         userId: currentUser.id,
                         isAdmin: currentUser.role === "admin"
                     });
+                    return result;
                 } catch (e) {
                     if (e instanceof SoftwareNotFoundError) {
                         throw new TRPCError({ "code": "NOT_FOUND", "message": e.message });
