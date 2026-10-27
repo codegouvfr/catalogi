@@ -710,7 +710,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .executeTakeFirstOrThrow();
             return +count;
         },
-        changeCatalogStatus: async ({ softwareId, statusName, reason, time, changedByUserId }) => {
+        changeCatalogStatus: async ({ softwareId, statusName, reason, time, changedByUserId, recommendedVersion }) => {
             const row = await db
                 .selectFrom("softwares")
                 .select(["customAttributes", "status", "statusHistory"])
@@ -720,13 +720,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             const history = row.statusHistory ?? [];
 
             if (row.status.name !== statusName) {
-                await db
-                    .updateTable("softwares")
-                    .set({
-                        statusHistory: JSON.stringify(history.push(row.status))
-                    })
-                    .where("id", "=", softwareId)
-                    .executeTakeFirstOrThrow();
+                history.push(row.status);
             }
 
             const newStatus = {
@@ -734,7 +728,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 changed: {
                     reason,
                     time,
-                    // lastRecommendedVersion,
+                    lastRecommendedVersion: recommendedVersion,
                     changedByUserId
                 }
             };
@@ -742,7 +736,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             await db
                 .updateTable("softwares")
                 .set({
-                    status: JSON.stringify(newStatus)
+                    status: JSON.stringify(newStatus),
+                    statusHistory: JSON.stringify(history)
                 })
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();

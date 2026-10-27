@@ -11,13 +11,14 @@ export type ChangingCatalogueStatusSoftware = (
         statusName: SoftwareCatalogueStatusNames;
         softwareId: number;
         reason: string;
+        recommendedVersion?: string;
         isAdmin?: boolean;
     } & WithUserId
 ) => Promise<Status>;
 
 export const makeChangingCatalogueStatusSoftware: (dbApi: DbApiV2) => ChangingCatalogueStatusSoftware =
     (dbApi: DbApiV2) =>
-    async ({ softwareId, reason, userId, isAdmin = false, statusName }) => {
+    async ({ softwareId, reason, userId, isAdmin = false, statusName, recommendedVersion }) => {
         const existing = await dbApi.software.getBySoftwareId(softwareId);
         if (!existing) throw new SoftwareNotFoundError();
 
@@ -30,6 +31,7 @@ export const makeChangingCatalogueStatusSoftware: (dbApi: DbApiV2) => ChangingCa
             softwareId,
             reason,
             time: new Date().toISOString(),
-            changedByUserId: userId
+            changedByUserId: userId,
+            recommendedVersion
         });
     };
