@@ -103,6 +103,7 @@ export interface SoftwareRepository {
         reason: string;
         time: string;
         changedByUserId: number;
+        recommendedVersion?: string;
     }) => Promise<Status>;
 }
 
