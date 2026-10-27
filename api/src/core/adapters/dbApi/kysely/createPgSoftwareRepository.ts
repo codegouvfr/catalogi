@@ -406,6 +406,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 const extData = externalDataRecord[softwareRow.id];
                 const resolvedLatestVersion = extData?.latestVersion;
                 const externalIdentitySource = identitySourceBySoftwareId[softwareRow.id];
+                const { changedByUserId, ...casted } = softwareRow.status.changed;
 
                 return {
                     id: softwareRow.id,
@@ -422,8 +423,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         : undefined,
                     addedTime: softwareRow.addedTime,
                     updateTime: softwareRow.updateTime,
-                    status: softwareRow.status, // TODO Need to format time ?
-                    statusHistory: softwareRow.statusHistory ?? [],
+                    deferencing: casted ?? undefined,
                     applicationCategories: extData?.applicationCategories ?? [],
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     protections: toProtectionsData(softwareRow.protections),
