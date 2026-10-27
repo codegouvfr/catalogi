@@ -458,13 +458,13 @@
                 "selectAnOption": {
                     "type": "string"
                 },
-                "dereferencingProtectionLabel": {
+                "statusChangingProtectionLabel": {
                     "type": "string"
                 },
-                "dereferencingProtectionHint": {
+                "statusChangingProtectionHint": {
                     "type": "string"
                 },
-                "dereferencingProtectionReasonLabel": {
+                "statusChangingProtectionReasonLabel": {
                     "type": "string"
                 },
                 "editionProtectionLabel": {
@@ -498,9 +498,9 @@
                 "adminOnlyCustomAttributeBadge",
                 "adminOnlyCustomAttributeHint",
                 "selectAnOption",
-                "dereferencingProtectionLabel",
-                "dereferencingProtectionHint",
-                "dereferencingProtectionReasonLabel",
+                "statusChangingProtectionLabel",
+                "statusChangingProtectionHint",
+                "statusChangingProtectionReasonLabel",
                 "editionProtectionLabel",
                 "editionProtectionHint",
                 "editionProtectionReasonLabel"
