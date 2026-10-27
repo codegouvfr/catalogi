@@ -53,15 +53,19 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
         ...softwareOverrides
     } = overrides;
 
+    const timedS = new Date().toISOString();
     const { id } = await db
         .insertInto("softwares")
         .values({
             name: "Test Software",
-            addedTime: new Date().toISOString(),
-            updateTime: new Date().toISOString(),
+            addedTime: timedS,
+            updateTime: timedS,
             isStillInObservation: false,
             customAttributes: JSON.stringify({}),
-            status: { name: "published", changed: null },
+            status: {
+                name: "published",
+                changed: { changedByUSerId: addedByUserId, time: timedS, reason: "All properties fillled" }
+            },
             statusHistory: [],
             ...softwareOverrides,
             addedByUserId

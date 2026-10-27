@@ -15,16 +15,6 @@ const localizedString = z
 const timestamp = z.string().datetime({ offset: true });
 const protection = z.object({ isProtected: z.boolean(), reason: z.string().nullable() });
 
-const schemaStatus = z.object({
-    name: z.enum(["draft", "submitted", "waiting for change", "published", "rejected", "archived"]),
-    changed: z.object({
-        reason: z.string().optional(),
-        time: timestamp,
-        lastRecommendedVersion: z.string().optional(),
-        changedByUserId: z.number()
-    })
-});
-
 export const softwareV2Schema = z
     .object({
         id: z.number().int().describe("Identifiant du logiciel dans cette instance de Catalogi."),
@@ -46,13 +36,16 @@ export const softwareV2Schema = z
             .optional(),
         addedTime: timestamp.describe("Date de référencement, au format ISO 8601."),
         updateTime: timestamp.describe("Date de mise à jour de la fiche, au format ISO 8601."),
-        status: schemaStatus.describe(
-            "Status du logiciel dns le catalogue. Filtrer les entrées possédant ce champ pour ne garder que les logiciels actifs."
-        ),
-        statusHistory: z
-            .array(schemaStatus)
+        deferencing: z
+            .object({
+                reason: z.string().optional(),
+                time: timestamp,
+                lastRecommendedVersion: z.string().optional()
+            })
             .optional()
-            .describe("Liste des changements de status du logiciel dans le catalogue."),
+            .describe(
+                "Présent si le logiciel est déréférencé. Filtrer les entrées possédant ce champ pour ne garder que les logiciels actifs."
+            ),
         customAttributes: z
             .record(z.union([z.string(), z.number(), z.boolean(), z.null()]))
             .optional()
