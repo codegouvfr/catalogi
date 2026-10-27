@@ -17,7 +17,7 @@ import { useCoreState } from "../../../core";
 import type { FormData } from "../../../core/usecases/softwareForm";
 import { useLang } from "../../i18n";
 
-type SoftwareProtectionFormFieldPrefix = "dereferencing" | "edition";
+type SoftwareProtectionFormFieldPrefix = "statusChanging" | "edition";
 
 // Underscores are illegal in custom attribute names (^[a-zA-Z][a-zA-Z0-9]*$),
 // so these field names can never collide with an admin-defined attribute.
@@ -54,7 +54,7 @@ export const CustomAttributesForm = ({
     const [submitButtonElement, setSubmitButtonElement] =
         useState<HTMLButtonElement | null>(null);
     const initialCustomAttributes = initialFormData?.customAttributes;
-    const initialDereferencingProtection = initialFormData?.protections?.statusChanging;
+    const initialStatusChangingProtection = initialFormData?.protections?.statusChanging;
     const initialEditionProtection = initialFormData?.protections?.edition;
 
     useEvt(
@@ -77,9 +77,10 @@ export const CustomAttributesForm = ({
     } = useForm<CustomAttributesFormValues>({
         defaultValues: {
             ...(initialCustomAttributes ?? {}),
-            protection_dereferencing_isProtected:
-                initialDereferencingProtection?.isProtected === true ? "true" : "false",
-            protection_dereferencing_reason: initialDereferencingProtection?.reason ?? "",
+            protection_statusChanging_isProtected:
+                initialStatusChangingProtection?.isProtected === true ? "true" : "false",
+            protection_statusChanging_reason:
+                initialStatusChangingProtection?.reason ?? "",
             protection_edition_isProtected:
                 initialEditionProtection?.isProtected === true ? "true" : "false",
             protection_edition_reason: initialEditionProtection?.reason ?? ""
@@ -89,11 +90,11 @@ export const CustomAttributesForm = ({
     // Live feedback on the required-reason rule: react-hook-form only revalidates
     // after the first submit in its default mode, so revalidate the reason fields
     // ourselves whenever a protection radio flips.
-    const dereferencingIsProtected = watch("protection_dereferencing_isProtected");
+    const statusChangingIsProtected = watch("protection_statusChanging_isProtected");
     const editionIsProtected = watch("protection_edition_isProtected");
     useEffect(() => {
-        trigger(["protection_dereferencing_reason", "protection_edition_reason"]);
-    }, [trigger, dereferencingIsProtected, editionIsProtected]);
+        trigger(["protection_statusChanging_reason", "protection_edition_reason"]);
+    }, [trigger, statusChangingIsProtected, editionIsProtected]);
 
     // Wait for attributeDefinitions to load before rendering — otherwise an admin
     // could submit while the (admin-only) attributes haven't loaded and
@@ -132,10 +133,10 @@ export const CustomAttributesForm = ({
                             ? {
                                   statusChanging: {
                                       isProtected:
-                                          values.protection_dereferencing_isProtected ===
+                                          values.protection_statusChanging_isProtected ===
                                           "true",
                                       reason:
-                                          values.protection_dereferencing_reason?.trim() ||
+                                          values.protection_statusChanging_reason?.trim() ||
                                           null
                                   },
                                   edition: {
@@ -157,10 +158,12 @@ export const CustomAttributesForm = ({
             {isAdmin && (
                 <>
                     <SoftwareProtectionFormSection
-                        fieldPrefix="dereferencing"
-                        labelText={t("softwareForm.dereferencingProtectionLabel")}
-                        hintText={t("softwareForm.dereferencingProtectionHint")}
-                        reasonLabel={t("softwareForm.dereferencingProtectionReasonLabel")}
+                        fieldPrefix="statusChanging"
+                        labelText={t("softwareForm.statusChangingProtectionLabel")}
+                        hintText={t("softwareForm.statusChangingProtectionHint")}
+                        reasonLabel={t(
+                            "softwareForm.statusChangingProtectionReasonLabel"
+                        )}
                         register={register}
                         errors={errors}
                     />

@@ -36,15 +36,15 @@ export function SoftwareProtectionModal() {
 
     const params = evtParams.state;
 
-    const { type = "dereferencing", reason } = params ?? {};
+    const { type = "statusChanging", reason } = params ?? {};
 
     const title =
-        type === "dereferencing"
+        type === "statusChanging"
             ? t("softwareDetails.protectedFromUnreferencingTitle")
             : t("softwareDetails.protectedFromEditingTitle");
 
     const description =
-        type === "dereferencing"
+        type === "statusChanging"
             ? t("softwareDetails.protectedFromUnreferencingDescription")
             : t("softwareDetails.protectedFromEditingDescription");
 

@@ -428,13 +428,13 @@
                 "adminOnlyCustomAttributeHint": {
                     "type": "string"
                 },
-                "dereferencingProtectionLabel": {
+                "statusChangingProtectionLabel": {
                     "type": "string"
                 },
-                "dereferencingProtectionHint": {
+                "statusChangingProtectionHint": {
                     "type": "string"
                 },
-                "dereferencingProtectionReasonLabel": {
+                "statusChangingProtectionReasonLabel": {
                     "type": "string"
                 },
                 "editionProtectionLabel": {
@@ -467,9 +467,9 @@
                 "creationRestrictedDescription",
                 "adminOnlyCustomAttributeBadge",
                 "adminOnlyCustomAttributeHint",
-                "dereferencingProtectionLabel",
-                "dereferencingProtectionHint",
-                "dereferencingProtectionReasonLabel",
+                "statusChangingProtectionLabel",
+                "statusChangingProtectionHint",
+                "statusChangingProtectionReasonLabel",
                 "editionProtectionLabel",
                 "editionProtectionHint",
                 "editionProtectionReasonLabel"

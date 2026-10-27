@@ -106,9 +106,9 @@
         "creationRestrictedDescription": "Désolé, l’ajout de logiciels n’est possible que par les administrateurs.",
         "adminOnlyCustomAttributeBadge": "Champ administrateur",
         "adminOnlyCustomAttributeHint": "Vous modifiez ce champ avec des droits administrateur. Les contributeurs non administrateurs ne peuvent pas le modifier.",
-        "dereferencingProtectionLabel": "Protéger ce logiciel contre le déréférencement",
-        "dereferencingProtectionHint": "Seuls les administrateurs peuvent modifier cette protection.",
-        "dereferencingProtectionReasonLabel": "Raison de la protection",
+        "statusChangingProtectionLabel": "Protéger ce logiciel contre le déréférencement",
+        "statusChangingProtectionHint": "Seuls les administrateurs peuvent modifier cette protection.",
+        "statusChangingProtectionReasonLabel": "Raison de la protection",
         "editionProtectionLabel": "Protéger ce logiciel contre la modification",
         "editionProtectionHint": "Seuls les administrateurs peuvent modifier un logiciel protégé.",
         "editionProtectionReasonLabel": "Raison de la protection"
