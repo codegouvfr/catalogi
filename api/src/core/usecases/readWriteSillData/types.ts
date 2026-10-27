@@ -17,6 +17,7 @@ import {
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../types";
+import { Dereferencing } from "../../../rpc/publicApi/types";
 
 export type {
     SoftwareProtection,
@@ -72,8 +73,7 @@ export type Software = SoftwareData & {
     id: number;
     addedTime: string;
     updateTime: string;
-    status: Status;
-    statusHistory?: Status[];
+    deferencing?: Dereferencing | undefined;
     customAttributes: CustomAttributes | undefined;
     protections?: SoftwareProtectionsData | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
@@ -101,6 +101,8 @@ export type SoftwareSourceData = Partial<SoftwareData> & {
 export type SoftwareDetail = Software & {
     /** Ordered by precedence (highest first). Only sources that actually contribute a row appear. */
     dataBySource: SoftwareSourceData[];
+    status: Status;
+    statusHistory?: Status[];
 };
 
 export type Source = DatabaseDataType.SourceRow;
