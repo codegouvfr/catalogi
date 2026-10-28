@@ -320,16 +320,19 @@ export type SoftwareProtections = {
     edition?: SoftwareProtection | undefined;
 };
 
-export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published", "waiting for change"];
-export const UPDATED_STATUS: SoftwareCatalogueStatusNames[] = ["submitted", "waiting for change", "published"];
+export const softwareCatalogueStatusNames = [
+    "draft",
+    "submitted",
+    "waiting for change",
+    "published",
+    "rejected",
+    "archived"
+] as const;
 
-export type SoftwareCatalogueStatusNames =
-    | "draft"
-    | "submitted"
-    | "waiting for change"
-    | "published"
-    | "rejected"
-    | "archived";
+export type SoftwareCatalogueStatusNames = (typeof softwareCatalogueStatusNames)[number];
+
+export const SHOWN_STATUS: SoftwareCatalogueStatusNames[] = ["published", "waiting for change"];
+export const DROPPED_STATUS: SoftwareCatalogueStatusNames[] = ["rejected", "archived"];
 
 export type Status = {
     name: SoftwareCatalogueStatusNames;

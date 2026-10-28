@@ -4,7 +4,7 @@
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
-import { Status, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import { DROPPED_STATUS, Status, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 import { Source } from "../../lib/ApiTypes";
@@ -19,7 +19,7 @@ const useCaseLogTimer = (source: string, ids: number[]) =>
     `${useCaseLogTitle} ${source} ${ids.toString()} Finished fetching external data`;
 
 const isActiveInCatalog = (status: Status | undefined) => {
-    return !!status && !["archived", "rejected"].includes(status.name);
+    return !!status && !DROPPED_STATUS.includes(status.name);
 };
 
 export type FetchAndSaveExternalData = (params: {

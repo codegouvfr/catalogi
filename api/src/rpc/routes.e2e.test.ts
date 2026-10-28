@@ -46,7 +46,7 @@ describe("RPC e2e tests", () => {
                 name: params.name,
                 addedTime: now,
                 updateTime: now,
-                status: JSON.stringify({ name: "published", changed: null }),
+                status: JSON.stringify({ name: "published", changed: { time: now, changedByUserId: params.userId } }),
                 statusHistory: JSON.stringify([]),
                 isStillInObservation: false,
                 customAttributes: JSON.stringify(params.customAttributes ?? {}),
@@ -797,6 +797,7 @@ describe("RPC e2e tests", () => {
                         "isPresentInSupportContract": softwareFormData.customAttributes?.isPresentInSupportContract
                     },
                     "name": softwareFormData.name,
+                    "isStillInObservation": false,
                     "id": expect.any(Number),
                     "addedByUserId": user.id
                 });

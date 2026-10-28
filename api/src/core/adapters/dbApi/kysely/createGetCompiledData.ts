@@ -63,7 +63,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .select([
             "s.id",
             "s.addedByUserId",
-            "s.status", // TODO#594 SELECT ONLY STATUS
+            "s.status",
             "s.customAttributes",
             "s.isStillInObservation",
             "s.name",
