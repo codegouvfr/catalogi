@@ -103,6 +103,7 @@ export function createSillApi(params: { url: string }): SillApi {
             trpcClient.getSoftwareFormAutoFillDataFromExternalSoftwareAndOtherSources.query(
                 params
             ),
+        resolveRepoUrl: params => trpcClient.resolveRepoUrl.query(params),
         createSoftware: async params => {
             const out = await trpcClient.createSoftware
                 .mutate(params)

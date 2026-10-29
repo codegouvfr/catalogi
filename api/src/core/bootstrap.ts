@@ -20,6 +20,13 @@ import { makeCreateSofware } from "./usecases/createSoftware";
 import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
+import { makeResolveRepoUrl } from "./usecases/resolveRepoUrl";
+import {
+    makeDiscoverSourcesByRepository,
+    makeFetchDiscoveredSourcesData
+} from "./usecases/discoverSourcesByRepository";
+import { resolveRepository } from "./adapters/resolveRepository";
+import { makeRepositoryCheckCache } from "./usecases/repositoryCheckCache";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -71,12 +78,29 @@ export async function bootstrapCore(
     const oidcClient =
         params.oidcKind === "http" ? await HttpOidcClient.create(oidcParams) : new TestOidcClient(oidcParams);
 
+    const repositoryCheckCache = makeRepositoryCheckCache();
+    const discoverSourcesByRepository = makeDiscoverSourcesByRepository({ dbApi });
+    const fetchDiscoveredSourcesData = makeFetchDiscoveredSourcesData({ dbApi });
+
     const useCases: UseCasesUsedOnRouter = {
         getSoftwareFormAutoFillDataFromExternalAndOtherSources:
             makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources(context, {}),
         getUser: makeGetUser({ userRepository: dbApi.user }),
         fetchAndSaveExternalDataForOneSoftwarePackage: makeRefreshExternalDataForSoftware({ dbApi }),
-        createSoftware: makeCreateSofware({ dbApi, withUserInput: true }),
+        createSoftware: makeCreateSofware({
+            dbApi,
+            withUserInput: true,
+            resolveRepository,
+            discoverSourcesByRepository,
+            repositoryCheckCache
+        }),
+        resolveRepoUrl: makeResolveRepoUrl({
+            dbApi,
+            resolveRepository,
+            discoverSourcesByRepository,
+            fetchDiscoveredSourcesData,
+            repositoryCheckCache
+        }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),
         auth: {
