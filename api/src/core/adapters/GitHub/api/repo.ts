@@ -49,7 +49,7 @@ export const gitHubEndpointMaker = (params?: { auth?: string }) => {
             }
 
             const remainingRequests = parseInt(resultApi.headers["x-ratelimit-remaining"] || "0");
-            if (remainingRequests < 50) {
+            if (remainingRequests < 15) {
                 const now = new Date().valueOf();
                 const resetTime = parseInt(resultApi.headers["x-ratelimit-reset"] || "0") * 1000; // Convert to ms
                 const timeToWait = resetTime - now;
