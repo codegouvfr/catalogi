@@ -4,6 +4,7 @@
 
 import { Octokit } from "@octokit/rest";
 import { Endpoints, RequestParameters } from "@octokit/types";
+import { USER_ARGENT } from "../../../../tools/sourceConfig";
 
 export namespace GitHubAPI {
     export type Commit = Endpoints["GET /repos/{owner}/{repo}/commits/{ref}"]["response"]["data"];
@@ -35,8 +36,11 @@ const parseURL = (repoUrl: string | URL): { repo: string; owner: string } => {
     };
 };
 
-export const gitHubEndpointMaker = (params?: { auth?: string }) => {
-    const octokit = new Octokit(params?.auth ? { auth: params.auth } : {});
+export const gitHubEndpointMaker = (params?: { auth?: string; userAgent?: string }) => {
+    const octokit = new Octokit({
+        auth: params?.auth,
+        userAgent: params?.userAgent ?? USER_ARGENT
+    });
 
     const apiCall = async (url: string, options: RequestParameters) => {
         try {
@@ -73,7 +77,7 @@ export const gitHubEndpointMaker = (params?: { auth?: string }) => {
                 getLastClosedIssue: async (params: { repoUrl: string | URL }) => {
                     const { owner, repo } = parseURL(params.repoUrl);
                     const url = "GET /repos/{owner}/{repo}/issues";
-                    return apiCall(url, {
+                    const data = await apiCall(url, {
                         owner,
                         repo,
                         headers: {
@@ -82,6 +86,7 @@ export const gitHubEndpointMaker = (params?: { auth?: string }) => {
                         direction: "desc",
                         state: "closed"
                     });
+                    return data[0];
                 }
             },
             commits: {
