@@ -67,7 +67,10 @@ export const repoUrlToIdentifer = async (params: {
 
     switch (repoType) {
         case "GitHub":
-            const api = gitHubEndpointMaker(config?.configuration);
+            const api = gitHubEndpointMaker({
+                auth: config?.configuration?.auth,
+                userAgent: config?.configuration?.agent?.["User-Agent"]
+            });
             const repo = await api.repo.get({ repoUrl });
 
             if (!repo) return;

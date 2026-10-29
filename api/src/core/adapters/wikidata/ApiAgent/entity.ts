@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { type WikidataEntity, type LocalizedString } from "../../../../tools/WikidataEntity";
+import { USER_ARGENT } from "../../../../tools/sourceConfig";
 
 export class WikidataFetchError extends Error {
     constructor(public readonly status: number | undefined) {
@@ -16,7 +17,7 @@ const WIKIDATA_API_URL = "https://www.wikidata.org/w/api.php";
 const buildHeaders = (requestInit: RequestInit): Record<string, string> => ({
     ...((requestInit.headers as Record<string, string> | undefined) ?? {}),
     Accept: "application/json",
-    "User-Agent": "catalogi-sill (https://code.gouv.fr/sill)"
+    "User-Agent": USER_ARGENT
 });
 
 // `mul` is wikidata's multilingual label (used for names identical across
