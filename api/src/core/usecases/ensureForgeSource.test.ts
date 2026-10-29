@@ -105,7 +105,10 @@ describe("importFromInnerIdentifiers with forge repositories", () => {
                 name: `software ${params.id}`,
                 isStillInObservation: false,
                 addedByUserId: user.id,
-                dereferencing: null,
+                status: JSON.stringify({
+                    name: "published",
+                    changed: { changeByUserid: user.id, time: new Date().toISOString() }
+                }),
                 addedTime: new Date().toISOString(),
                 updateTime: new Date().toISOString(),
                 customAttributes: JSON.stringify({})
