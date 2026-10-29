@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
@@ -7,7 +7,7 @@ import { DatabaseDataType, PopulatedExternalData, SoftwareRepository } from "../
 import type { LocalizedString } from "../../../ports/GetSoftwareExternalData";
 import { SoftwareInList, Software, SoftwareDetail, SoftwareSourceData } from "../../../usecases/readWriteSillData";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../../types";
-import { Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import { Database, SHOWN_STATUS, Status, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 
@@ -37,10 +37,10 @@ const toProtectionsData = (
     protections: DatabaseDataType.SoftwareRow["protections"] | null
 ): SoftwareProtectionsData | undefined => {
     if (!protections) return undefined;
-    const { dereferencing, edition } = protections;
+    const { statusChanging, edition } = protections;
     return {
-        ...(dereferencing
-            ? { dereferencing: { isProtected: dereferencing.isProtected, reason: dereferencing.reason } }
+        ...(statusChanging
+            ? { statusChanging: { isProtected: statusChanging.isProtected, reason: statusChanging.reason } }
             : {}),
         ...(edition ? { edition: { isProtected: edition.isProtected, reason: edition.reason } } : {})
     };
@@ -68,7 +68,7 @@ type EnrichedSimilarRow = {
     externalId: string;
     sourceSlug: string;
     linkedSoftwareId: number | null;
-    linkedSoftwareDereferencing: unknown;
+    linkedSoftwareStatus: Status | undefined;
     name: LocalizedString;
     description: LocalizedString;
     isLibreSoftware: boolean | null;
@@ -86,7 +86,10 @@ const aggregateEnrichedSimilars = (rows: EnrichedSimilarRow[]): Record<number, S
                     name: row.name,
                     description: row.description,
                     isLibreSoftware: row.isLibreSoftware,
-                    isInCatalogi: row.linkedSoftwareId !== null && row.linkedSoftwareDereferencing === null,
+                    isInCatalogi:
+                        row.linkedSoftwareId !== null &&
+                        !!row.linkedSoftwareStatus &&
+                        SHOWN_STATUS.includes(row.linkedSoftwareStatus.name),
                     softwareId: row.linkedSoftwareId ?? undefined
                 }
             ]
@@ -193,7 +196,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     db
                         .selectFrom("softwares")
                         .selectAll()
-                        .where("dereferencing", "is", null)
+                        .where(sql`status ->> 'name'`, "in", SHOWN_STATUS)
                         .orderBy("name", "asc")
                         .execute(),
 
@@ -234,7 +237,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                             "ext.externalId",
                             "ext.sourceSlug",
                             "ext.softwareId as linkedSoftwareId",
-                            "linkedSoft.dereferencing as linkedSoftwareDereferencing",
+                            "linkedSoft.status as linkedSoftwareStatus",
                             "ext.name",
                             "ext.description",
                             "ext.isLibreSoftware"
@@ -350,7 +353,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                             "ext.externalId",
                             "ext.sourceSlug",
                             "ext.softwareId as linkedSoftwareId",
-                            "linkedSoft.dereferencing as linkedSoftwareDereferencing",
+                            "linkedSoft.status as linkedSoftwareStatus",
                             "ext.name",
                             "ext.description",
                             "ext.isLibreSoftware"
@@ -401,9 +404,9 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
 
             return softwareRows.map(softwareRow => {
                 const extData = externalDataRecord[softwareRow.id];
-                const deref = softwareRow.dereferencing;
                 const resolvedLatestVersion = extData?.latestVersion;
                 const externalIdentitySource = identitySourceBySoftwareId[softwareRow.id];
+                const { changedByUserId, ...casted } = softwareRow.status.changed;
 
                 return {
                     id: softwareRow.id,
@@ -420,15 +423,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         : undefined,
                     addedTime: softwareRow.addedTime,
                     updateTime: softwareRow.updateTime,
-                    dereferencing: deref
-                        ? {
-                              reason: deref.reason,
-                              // Legacy rows hold epoch ms; normalize to the ISO contract.
-                              time: new Date(deref.time).toISOString(),
-                              lastRecommendedVersion: deref.lastRecommendedVersion,
-                              dereferencedByUserId: deref.dereferencedByUserId
-                          }
-                        : undefined,
+                    deferencing: casted ?? undefined,
                     applicationCategories: extData?.applicationCategories ?? [],
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     protections: toProtectionsData(softwareRow.protections),
@@ -497,7 +492,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         "ext.sourceSlug",
                         "ext.softwareId as linkedSoftwareId",
                         "linkedSoft.name as linkedSoftwareName",
-                        "linkedSoft.dereferencing as linkedSoftwareDereferencing",
+                        "linkedSoft.status as linkedSoftwareStatus",
                         "ext.name",
                         "ext.description",
                         "ext.isLibreSoftware"
@@ -532,11 +527,13 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 name: row.name ?? {},
                 description: row.description ?? {},
                 isLibreSoftware: row.isLibreSoftware,
-                isInCatalogi: row.linkedSoftwareId !== null && row.linkedSoftwareDereferencing === null,
+                isInCatalogi:
+                    row.linkedSoftwareId !== null &&
+                    !!row.linkedSoftwareStatus &&
+                    SHOWN_STATUS.includes(row.linkedSoftwareStatus.name),
                 softwareId: row.linkedSoftwareId ?? undefined
             }));
 
-            const deref = softwareRow.dereferencing;
             const resolvedLatestVersion = extData?.latestVersion;
             // Identity fields (externalId/sourceSlug) must come from a real external source —
             // the UserInput row's sentinel externalId would otherwise leak into the response.
@@ -557,14 +554,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     : undefined,
                 addedTime: softwareRow.addedTime,
                 updateTime: softwareRow.updateTime,
-                dereferencing: deref
-                    ? {
-                          reason: deref.reason,
-                          time: new Date(deref.time).toISOString(),
-                          lastRecommendedVersion: deref.lastRecommendedVersion,
-                          dereferencedByUserId: deref.dereferencedByUserId
-                      }
-                    : undefined,
+                status: softwareRow.status,
+                statusHistory: softwareRow.statusHistory ?? [],
                 applicationCategories: extData?.applicationCategories ?? [],
                 customAttributes: softwareRow.customAttributes ?? undefined,
                 protections: toProtectionsData(softwareRow.protections),
@@ -607,10 +598,11 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 name,
                 addedTime,
                 isStillInObservation,
-                dereferencing,
+                status,
                 customAttributes,
                 protections,
-                addedByUserId
+                addedByUserId,
+                statusHistory
             } = software;
 
             const now = new Date().toISOString();
@@ -622,7 +614,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         name,
                         addedTime,
                         updateTime: now,
-                        dereferencing: JSON.stringify(dereferencing),
+                        status: JSON.stringify(status),
+                        statusHistory: JSON.stringify(statusHistory ?? []),
                         isStillInObservation,
                         customAttributes: JSON.stringify(customAttributes),
                         protections: JSON.stringify(protections),
@@ -653,7 +646,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
             });
         },
         update: async ({ software, softwareId }) => {
-            const { name, dereferencing, customAttributes, protections, addedByUserId } = software;
+            const { name, status, customAttributes, protections, addedByUserId } = software;
 
             const now = new Date().toISOString();
             await db.transaction().execute(async trx => {
@@ -661,7 +654,7 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     .updateTable("softwares")
                     .set({
                         name,
-                        dereferencing: JSON.stringify(dereferencing),
+                        status: JSON.stringify(status),
                         updateTime: now,
                         isStillInObservation: false,
                         customAttributes: JSON.stringify(customAttributes),
@@ -711,27 +704,39 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 .executeTakeFirstOrThrow();
             return +count;
         },
-        unreference: async ({ softwareId, reason, time, dereferencedByUserId }) => {
+        changeCatalogStatus: async ({ softwareId, statusName, reason, time, changedByUserId, recommendedVersion }) => {
             const row = await db
                 .selectFrom("softwares")
-                .select("customAttributes")
+                .select(["customAttributes", "status", "statusHistory"])
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();
 
-            const versionMin = row.customAttributes?.versionMin;
+            const history = row.statusHistory ?? [];
+
+            if (row.status.name !== statusName) {
+                history.push(row.status);
+            }
+
+            const newStatus = {
+                name: statusName,
+                changed: {
+                    reason,
+                    time,
+                    lastRecommendedVersion: recommendedVersion,
+                    changedByUserId
+                }
+            };
 
             await db
                 .updateTable("softwares")
                 .set({
-                    dereferencing: JSON.stringify({
-                        reason,
-                        time,
-                        lastRecommendedVersion: versionMin,
-                        dereferencedByUserId
-                    })
+                    status: JSON.stringify(newStatus),
+                    statusHistory: JSON.stringify(history)
                 })
                 .where("id", "=", softwareId)
                 .executeTakeFirstOrThrow();
+
+            return newStatus;
         },
         saveSimilarSoftwares: async params => {
             const dataToInsert = params.flatMap(({ softwareId, softwareExternalDataItems }) => {

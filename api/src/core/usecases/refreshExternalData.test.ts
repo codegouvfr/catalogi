@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
@@ -79,7 +79,11 @@ const insertApacheWithCorrectId = async (db: Kysely<Database>, userId: number) =
             name: "Apache HTTP Server",
             isStillInObservation: false,
             addedByUserId: userId,
-            dereferencing: null,
+            status: JSON.stringify({
+                name: "published",
+                changed: { time: new Date(1728462232094).toISOString(), changedByUserId: userId }
+            }),
+            statusHistory: JSON.stringify([]),
             addedTime: new Date(1728462232094).toISOString(),
             updateTime: new Date(1728462232094).toISOString(),
             customAttributes: JSON.stringify({
@@ -112,7 +116,11 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
             name: "Acceleo",
             isStillInObservation: false,
             addedByUserId: userId,
-            dereferencing: null,
+            status: JSON.stringify({
+                name: "published",
+                changed: { time: new Date(1514764800000).toISOString(), changedByUserId: userId }
+            }),
+            statusHistory: JSON.stringify([]),
             addedTime: new Date(1514764800000).toISOString(),
             updateTime: new Date(1514764800000).toISOString(),
             customAttributes: JSON.stringify({
@@ -136,6 +144,45 @@ const insertAcceleroWithCorrectId = async (db: Kysely<Database>, userId: number)
         .execute();
 
     return acceleroId;
+};
+
+const archivedSoftwareId = 7;
+const insertArchivedSoftwareWithCorrectId = async (db: Kysely<Database>, userId: number) => {
+    await db
+        .insertInto("softwares")
+        .values({
+            id: archivedSoftwareId,
+            name: "Archived Software",
+            isStillInObservation: false,
+            addedByUserId: userId,
+            status: JSON.stringify({
+                name: "archived",
+                changed: { time: new Date(1514764800000).toISOString(), changedByUserId: userId }
+            }),
+            statusHistory: JSON.stringify([]),
+            addedTime: new Date(1514764800000).toISOString(),
+            updateTime: new Date(1514764800000).toISOString(),
+            customAttributes: JSON.stringify({
+                isPresentInSupportContract: false,
+                isFromFrenchPublicService: false,
+                doRespectRgaa: false
+            })
+        })
+        .execute();
+
+    await db
+        .insertInto("software_external_datas")
+        .values({
+            externalId: "Q1234567",
+            sourceSlug: "wikidata",
+            softwareId: archivedSoftwareId,
+            authors: JSON.stringify([]),
+            name: JSON.stringify(""),
+            description: JSON.stringify("")
+        })
+        .execute();
+
+    return archivedSoftwareId;
 };
 
 describe("fetches software extra data (from different providers)", () => {
@@ -169,6 +216,7 @@ describe("fetches software extra data (from different providers)", () => {
 
         await insertApacheWithCorrectId(db, userId);
         await insertAcceleroWithCorrectId(db, userId);
+        await insertArchivedSoftwareWithCorrectId(db, userId);
 
         fetchAndSaveSoftwareExtraDataBySoftwareId = makeRefreshExternalDataForSoftware({
             dbApi
@@ -185,6 +233,11 @@ describe("fetches software extra data (from different providers)", () => {
             emptyExternalData({
                 "externalId": "Q11354",
                 "softwareId": 6,
+                "sourceSlug": "wikidata"
+            }),
+            emptyExternalData({
+                "externalId": "Q1234567",
+                "softwareId": 7,
                 "sourceSlug": "wikidata"
             }),
             expect.objectContaining({
@@ -231,7 +284,7 @@ describe("fetches software extra data (from different providers)", () => {
         "gets software external data and saves it, and does not save other extra data if there is nothing relevant",
         async () => {
             const softwareExternalDatas = await db.selectFrom("software_external_datas").selectAll().execute();
-            expect(softwareExternalDatas).toHaveLength(5);
+            expect(softwareExternalDatas).toHaveLength(6);
 
             const source = await db
                 .selectFrom("sources")
@@ -255,6 +308,11 @@ describe("fetches software extra data (from different providers)", () => {
                 emptyExternalDataCleaned({
                     "externalId": "Q11354",
                     "softwareId": 6,
+                    "sourceSlug": "wikidata"
+                }),
+                emptyExternalDataCleaned({
+                    "externalId": "Q1234567",
+                    "softwareId": 7,
                     "sourceSlug": "wikidata"
                 }),
                 expect.objectContaining({
@@ -419,7 +477,7 @@ describe("fetches software extra data (from different providers)", () => {
             if (!source) throw new Error("Source not found");
 
             const softwareExternalDatas = await dbApi.softwareExternalData.getAll();
-            expect(softwareExternalDatas).toHaveLength(5);
+            expect(softwareExternalDatas).toHaveLength(6);
 
             await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: apacheSoftwareId });
 
@@ -487,6 +545,11 @@ describe("fetches software extra data (from different providers)", () => {
                     },
                     runtimePlatforms: []
                 },
+                emptyExternalDataCleaned({
+                    "externalId": "Q1234567",
+                    "softwareId": 7,
+                    "sourceSlug": "wikidata"
+                }),
                 expect.objectContaining({
                     externalId: "11",
                     sourceSlug: "UserInput",
@@ -508,4 +571,24 @@ describe("fetches software extra data (from different providers)", () => {
         },
         { timeout: 20_000 }
     );
+
+    it("does not update external data for archived software", async () => {
+        const initialExternalData = await db
+            .selectFrom("software_external_datas")
+            .select("lastDataFetchAt")
+            .where("softwareId", "=", archivedSoftwareId)
+            .executeTakeFirstOrThrow();
+
+        const initialLastDataFetchAt = initialExternalData.lastDataFetchAt;
+
+        await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: archivedSoftwareId });
+
+        const updatedExternalData = await db
+            .selectFrom("software_external_datas")
+            .select("lastDataFetchAt")
+            .where("softwareId", "=", archivedSoftwareId)
+            .executeTakeFirstOrThrow();
+
+        expect(updatedExternalData.lastDataFetchAt).toEqual(initialLastDataFetchAt);
+    });
 });

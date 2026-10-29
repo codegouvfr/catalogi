@@ -1076,11 +1076,12 @@ const seed = async () => {
     }
 
     console.info("Dereferencing OpenOffice");
-    await dbApi.software.unreference({
+    await dbApi.software.changeCatalogStatus({
+        statusName: "archived",
         softwareId: getSoftwareId("OpenOffice"),
         reason: "Projet peu maintenu, LibreOffice est recommandé à la place",
         time: new Date().toISOString(),
-        dereferencedByUserId: getUserId("test@example.com")
+        changedByUserId: getUserId("test@example.com")
     });
 };
 

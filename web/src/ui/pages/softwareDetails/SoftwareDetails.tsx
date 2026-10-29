@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Fragment, useEffect, useMemo, type ReactElement } from "react";
@@ -109,8 +109,8 @@ export default function SoftwareDetails(props: Props) {
     };
 
     const canCurrentUserBypassSoftwareProtections = currentUser?.role === "admin";
-    const isDereferencingProtected =
-        software.protections?.dereferencing?.isProtected === true &&
+    const isChangingStatusProtected =
+        software.protections?.statusChanging?.isProtected === true &&
         !canCurrentUserBypassSoftwareProtections;
     const isEditionProtected =
         software.protections?.edition?.isProtected === true &&
@@ -219,7 +219,7 @@ export default function SoftwareDetails(props: Props) {
                     software={software}
                     userDeclaration={userDeclaration}
                     isUnreferencingOngoing={isUnreferencingOngoing}
-                    isDereferencingProtected={isDereferencingProtected}
+                    isDereferencingProtected={isChangingStatusProtected}
                 />
             )
         },
