@@ -15,8 +15,10 @@ export const getGitHubSoftwareFOrm: GetSoftwareFormData = memoize(
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
 
-        const configApi = source?.configuration?.auth ? { auth: source?.configuration?.auth } : {};
-        const gitHubApi = gitHubEndpointMaker(configApi);
+        const gitHubApi = gitHubEndpointMaker({
+            auth: source?.configuration?.auth,
+            userAgent: source?.configuration?.agent?.["User-Agent"]
+        });
 
         const repoData = await gitHubApi.repo.get({ repoUrl: externalId });
         if (!repoData) throw new Error(`This GitHub url (${externalId}) provided doesn't work.`);

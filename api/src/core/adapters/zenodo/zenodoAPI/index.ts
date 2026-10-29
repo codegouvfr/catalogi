@@ -14,13 +14,7 @@ const LOG = "[ZenodoWrapper]";
 export const makeZenodoApi = (source?: Source) => {
     const timeOutBreak = source?.configuration?.rateLimitRetryDuration ?? ZENODO_API_API_TIMEOUT;
     const auth = source?.configuration?.auth;
-    const config = source?.configuration
-        ? convertSourceConfigToRequestInit(source.configuration)
-        : {
-              headers: {
-                  "User-Agent": "Catalogi/1.55.8 (+https://github.com/codegouvfr/catalogi;"
-              }
-          };
+    const config = convertSourceConfigToRequestInit(source?.configuration);
 
     const apiCall = async <T>(url: string): Promise<T | undefined> => {
         console.debug(`${LOG} Zenodo call ${url}`);
