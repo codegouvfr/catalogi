@@ -112,7 +112,7 @@
         "adminOnlyCustomAttributeBadge": "Admin-only field",
         "adminOnlyCustomAttributeHint": "You are editing this field with administrator privileges. Non-admin contributors cannot change it.",
         "selectAnOption": "Select an option",
-        "statusChangingProtectionLabel": "Protect this software from dereferencing",
+        "statusChangingProtectionLabel": "Protect this software from changing its status",
         "statusChangingProtectionHint": "Only administrators can change this protection.",
         "statusChangingProtectionReasonLabel": "Protection reason",
         "editionProtectionLabel": "Protect this software from editing",
@@ -287,8 +287,8 @@
         "authors": "Authors : ",
         "you are user": "You're using it",
         "you are referent": "You are referent",
-        "software dereferenced": "From {{when}}, this software is no longer recommended",
-        "software dereferenced last version": "Last acceptable version: {{lastRecommendedVersion}}",
+        "software archived": "From {{when}}, this software is no longer recommended",
+        "software archived last version": "Last acceptable version: {{lastRecommendedVersion}}",
         "openSourceProvenance": "View data sources"
     },
     "sourceProvenance": {
