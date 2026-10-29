@@ -28,7 +28,7 @@ type Props = {
         | "url"
         | "softwareHelp"
         | "codeRepositoryUrl"
-        | "dereferencing"
+        | "status"
     >;
     logoUrl: string | undefined;
     userDeclaration: SoftwareDetailsState.Ready["userDeclaration"];
@@ -40,15 +40,8 @@ type Props = {
 
 export const SoftwareDetailsHero = (props: Props) => {
     const { software, logoUrl, userDeclaration, editButton, onShowSourcesClick } = props;
-    const {
-        name,
-        description,
-        authors,
-        url,
-        softwareHelp,
-        codeRepositoryUrl,
-        dereferencing
-    } = software;
+    const { name, description, authors, url, softwareHelp, codeRepositoryUrl, status } =
+        software;
 
     const { t } = useTranslation();
     const { lang } = useLang();
@@ -167,29 +160,26 @@ export const SoftwareDetailsHero = (props: Props) => {
                             {description}
                         </p>
                         {authors.length > 0 && <Authors authors={authors} />}
-                        {dereferencing !== undefined && (
+                        {status.name === "archived" && (
                             <Alert
                                 className={fr.cx("fr-mb-8v")}
                                 severity="warning"
                                 small
                                 description={
-                                    t("headerDetailCard.software dereferenced", {
+                                    t("headerDetailCard.software archived", {
                                         when: getFormattedDate({
-                                            time: dereferencing.time,
+                                            time: status.changed.time,
                                             lang,
                                             doAlwaysShowYear: true
                                         })
                                     }) +
-                                    (dereferencing.reason === undefined
+                                    (status.changed.reason === undefined
                                         ? ""
-                                        : `, ${dereferencing.reason}`) +
-                                    t(
-                                        "headerDetailCard.software dereferenced last version",
-                                        {
-                                            lastRecommendedVersion:
-                                                dereferencing.lastRecommendedVersion
-                                        }
-                                    )
+                                        : `, ${status.changed.reason}`) +
+                                    t("headerDetailCard.software archived last version", {
+                                        lastRecommendedVersion:
+                                            status.changed.lastRecommendedVersion
+                                    })
                                 }
                             />
                         )}

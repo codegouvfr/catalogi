@@ -219,7 +219,7 @@ export default function SoftwareDetails(props: Props) {
                     software={software}
                     userDeclaration={userDeclaration}
                     isUnreferencingOngoing={isUnreferencingOngoing}
-                    isDereferencingProtected={isDereferencingProtected}
+                    isDereferencingProtected={isChangingStatusProtected}
                 />
             )
         },

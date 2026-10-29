@@ -268,8 +268,8 @@
         "authors": "Auteurs : ",
         "you are user": "Vous l'utilisez",
         "you are referent": "Vous êtes référent",
-        "software dereferenced": "Depuis {{when}}, ce logiciel n'est plus recommandé",
-        "software dereferenced last version": "Dernière version recommandée : {{lastRecommendedVersion}}",
+        "software archived": "Depuis {{when}}, ce logiciel n'est plus recommandé",
+        "software archived last version": "Dernière version recommandée : {{lastRecommendedVersion}}",
         "openSourceProvenance": "Voir les sources de données"
     },
     "sourceProvenance": {

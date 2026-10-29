@@ -1104,10 +1104,10 @@
                 "you are referent": {
                     "type": "string"
                 },
-                "software dereferenced": {
+                "software archived": {
                     "type": "string"
                 },
-                "software dereferenced last version": {
+                "software archived last version": {
                     "type": "string"
                 },
                 "openSourceProvenance": {
@@ -1119,8 +1119,8 @@
                 "authors",
                 "you are user",
                 "you are referent",
-                "software dereferenced",
-                "software dereferenced last version",
+                "software archived",
+                "software archived last version",
                 "openSourceProvenance"
             ]
         },
