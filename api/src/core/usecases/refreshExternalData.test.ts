@@ -19,7 +19,7 @@ import { createKyselyPgDbApi } from "../adapters/dbApi/kysely/createPgDbApi";
 import type { Database } from "../adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../adapters/dbApi/kysely/kysely.dialect";
 import { makeCreateSofware } from "./createSoftware";
-import { makeRefreshExternalDataForSoftware } from "./refreshExternalData";
+import { makeRefreshExternalDataForSoftware, makeRefreshExternalData } from "./refreshExternalData";
 import { SoftwareExternalDataOption } from "../ports/GetSoftwareExternalDataOptions";
 
 const viteOption: SoftwareExternalDataOption = {
@@ -600,4 +600,211 @@ describe("fetches software extra data (from different providers)", () => {
 
         expect(updatedExternalData.lastDataFetchAt).toEqual(initialLastDataFetchAt);
     });
+
+    it("does not update external data for rejected software", async () => {
+        const userId = (await dbApi.user.getAll())[0].id;
+
+        const rejectedSoftwareId = 8;
+        await db
+            .insertInto("softwares")
+            .values({
+                id: rejectedSoftwareId,
+                name: "Rejected Software",
+                isStillInObservation: false,
+                addedByUserId: userId,
+                status: JSON.stringify({
+                    name: "rejected",
+                    changed: { time: new Date(1514764800000).toISOString(), changedByUserId: userId }
+                }),
+                statusHistory: JSON.stringify([]),
+                addedTime: new Date(1514764800000).toISOString(),
+                updateTime: new Date(1514764800000).toISOString(),
+                customAttributes: JSON.stringify({
+                    isPresentInSupportContract: false,
+                    isFromFrenchPublicService: false,
+                    doRespectRgaa: false
+                })
+            })
+            .execute();
+
+        await db
+            .insertInto("software_external_datas")
+            .values({
+                externalId: "Q00000000",
+                sourceSlug: "wikidata",
+                softwareId: rejectedSoftwareId,
+                authors: JSON.stringify([]),
+                name: JSON.stringify(""),
+                description: JSON.stringify("")
+            })
+            .execute();
+
+        const initialExternalData = await db
+            .selectFrom("software_external_datas")
+            .select("lastDataFetchAt")
+            .where("softwareId", "=", rejectedSoftwareId)
+            .executeTakeFirstOrThrow();
+
+        const initialLastDataFetchAt = initialExternalData.lastDataFetchAt;
+
+        await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: rejectedSoftwareId });
+
+        const updatedExternalData = await db
+            .selectFrom("software_external_datas")
+            .select("lastDataFetchAt")
+            .where("softwareId", "=", rejectedSoftwareId)
+            .executeTakeFirstOrThrow();
+
+        expect(updatedExternalData.lastDataFetchAt).toEqual(initialLastDataFetchAt);
+    });
+
+    it(
+        "updates external data for published software with catalogStatus filter",
+        async () => {
+            const fetchAndSaveExternalData = makeRefreshExternalData({ dbApi });
+
+            const source = await db
+                .selectFrom("sources")
+                .selectAll()
+                .where("kind", "=", "wikidata")
+                .executeTakeFirstOrThrow();
+
+            if (!source) throw new Error("Source not found");
+
+            const initialExternalData = await db
+                .selectFrom("software_external_datas")
+                .select("lastDataFetchAt")
+                .where("softwareId", "=", apacheSoftwareId)
+                .executeTakeFirstOrThrow();
+
+            const initialLastDataFetchAt = initialExternalData.lastDataFetchAt;
+
+            await fetchAndSaveExternalData({
+                sourceSlugs: [source.slug],
+                catalogStatus: ["published"]
+            });
+
+            const updatedExternalData = await db
+                .selectFrom("software_external_datas")
+                .select("lastDataFetchAt")
+                .where("softwareId", "=", apacheSoftwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(updatedExternalData.lastDataFetchAt).not.toEqual(initialLastDataFetchAt);
+            expect(updatedExternalData.lastDataFetchAt).toBeTruthy();
+        },
+        { timeout: 30_000 }
+    );
+
+    it(
+        "does not update external data for archived software with catalogStatus filter",
+        async () => {
+            const fetchAndSaveExternalData = makeRefreshExternalData({ dbApi });
+
+            const source = await db
+                .selectFrom("sources")
+                .selectAll()
+                .where("kind", "=", "wikidata")
+                .executeTakeFirstOrThrow();
+
+            if (!source) throw new Error("Source not found");
+
+            const initialExternalData = await db
+                .selectFrom("software_external_datas")
+                .select("lastDataFetchAt")
+                .where("softwareId", "=", archivedSoftwareId)
+                .executeTakeFirstOrThrow();
+
+            const initialLastDataFetchAt = initialExternalData.lastDataFetchAt;
+
+            await fetchAndSaveExternalData({
+                sourceSlugs: [source.slug],
+                catalogStatus: ["published"]
+            });
+
+            const updatedExternalData = await db
+                .selectFrom("software_external_datas")
+                .select("lastDataFetchAt")
+                .where("softwareId", "=", archivedSoftwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(updatedExternalData.lastDataFetchAt).toEqual(initialLastDataFetchAt);
+        },
+        { timeout: 30_000 }
+    );
+
+    it(
+        "updates external data for submitted software with catalogStatus filter",
+        async () => {
+            const userId = (await dbApi.user.getAll())[0].id;
+
+            const submittedSoftwareId = 9;
+            await db
+                .insertInto("softwares")
+                .values({
+                    id: submittedSoftwareId,
+                    name: "Submitted Software",
+                    isStillInObservation: false,
+                    addedByUserId: userId,
+                    status: JSON.stringify({
+                        name: "submitted",
+                        changed: { time: new Date(1514764800000).toISOString(), changedByUserId: userId }
+                    }),
+                    statusHistory: JSON.stringify([]),
+                    addedTime: new Date(1514764800000).toISOString(),
+                    updateTime: new Date(1514764800000).toISOString(),
+                    customAttributes: JSON.stringify({
+                        isPresentInSupportContract: false,
+                        isFromFrenchPublicService: false,
+                        doRespectRgaa: false
+                    })
+                })
+                .execute();
+
+            await db
+                .insertInto("software_external_datas")
+                .values({
+                    externalId: "Q8888888",
+                    sourceSlug: "wikidata",
+                    softwareId: submittedSoftwareId,
+                    authors: JSON.stringify([]),
+                    name: JSON.stringify(""),
+                    description: JSON.stringify("")
+                })
+                .execute();
+
+            const fetchAndSaveExternalData = makeRefreshExternalData({ dbApi });
+
+            const source = await db
+                .selectFrom("sources")
+                .selectAll()
+                .where("kind", "=", "wikidata")
+                .executeTakeFirstOrThrow();
+
+            if (!source) throw new Error("Source not found");
+
+            const initialExternalData = await db
+                .selectFrom("software_external_datas")
+                .select("lastDataFetchAt")
+                .where("softwareId", "=", submittedSoftwareId)
+                .executeTakeFirstOrThrow();
+
+            const initialLastDataFetchAt = initialExternalData.lastDataFetchAt;
+
+            await fetchAndSaveExternalData({
+                sourceSlugs: [source.slug],
+                catalogStatus: ["submitted", "published"]
+            });
+
+            const updatedExternalData = await db
+                .selectFrom("software_external_datas")
+                .select("lastDataFetchAt")
+                .where("softwareId", "=", submittedSoftwareId)
+                .executeTakeFirstOrThrow();
+
+            expect(updatedExternalData.lastDataFetchAt).not.toEqual(initialLastDataFetchAt);
+            expect(updatedExternalData.lastDataFetchAt).toBeTruthy();
+        },
+        { timeout: 30_000 }
+    );
 });

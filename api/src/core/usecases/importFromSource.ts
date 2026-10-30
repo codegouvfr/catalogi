@@ -61,7 +61,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
                 );
                 result.push(newId);
             }
-        } else if (["Zenodo"].includes(source.kind)) {
+        } else if (["Zenodo", "ComptoirDuLibre", "wikidata", "GitHub", "GitLab"].includes(source.kind)) {
             // Direct import
             result = await directImportFromSource({ dbApi, source, userId, catalogStatusTarget });
         }
