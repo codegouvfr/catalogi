@@ -4,7 +4,12 @@
 
 import { DatabaseDataType, DbApiV2 } from "../ports/DbApiV2";
 import { filterSourceByFeature, resolveAdapterFromSource } from "../adapters/resolveAdapter";
-import { SoftwareCatalogueStatusNames, DROPPED_STATUS, Status, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import {
+    SoftwareCatalogueStatusNames,
+    DROPPED_STATUS,
+    Status,
+    USER_INPUT_SOURCE_SLUG
+} from "../adapters/dbApi/kysely/kysely.database";
 import { repoUrlToIdentifer } from "../../tools/repoAnalyser";
 import { mergeDepuplicateIdentifierArray } from "../../tools/identifiersTools";
 import { Source } from "../../lib/ApiTypes";
