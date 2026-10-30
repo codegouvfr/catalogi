@@ -5,7 +5,11 @@
 import { Kysely } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
-import { Database, SoftwareCatalogueStatusNames, STATUS_LIST } from "../core/adapters/dbApi/kysely/kysely.database";
+import {
+    Database,
+    softwareCatalogueStatusNames,
+    SoftwareCatalogueStatusNames
+} from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalData } from "../core/usecases/refreshExternalData";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
@@ -62,7 +66,10 @@ export async function startUpdateService(params: {
 
     assert<Equals<typeof rest, {}>>();
 
-    if (catalogStatus && !catalogStatus.every(value => (STATUS_LIST as string[]).includes(value)))
+    if (
+        catalogStatus &&
+        !catalogStatus.every(value => (softwareCatalogueStatusNames as readonly string[]).includes(value))
+    )
         throw new RangeError(`${catalogStatus} is not a recognize software catalogue status`);
     const catalogStatusValid = catalogStatus as SoftwareCatalogueStatusNames[] | undefined;
 

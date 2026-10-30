@@ -8,8 +8,8 @@ import { assert } from "tsafe/assert";
 import {
     Database,
     DEFAULT_APP_STATUS,
-    SoftwareCatalogueStatusNames,
-    STATUS_LIST
+    softwareCatalogueStatusNames,
+    SoftwareCatalogueStatusNames
 } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { importTool } from "../core/importTool";
@@ -35,7 +35,7 @@ export async function startImportService(params: {
 
     console.log({ isDevEnvironnement });
 
-    if (catalogStatus && (STATUS_LIST as string[]).includes(catalogStatus))
+    if (catalogStatus && (softwareCatalogueStatusNames as readonly string[]).includes(catalogStatus))
         throw new RangeError(`${catalogStatus} is not a recognize software catalogue status`);
 
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
