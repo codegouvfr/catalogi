@@ -147,7 +147,11 @@ export function createRouter(params: {
             uiConfig: await resolveUiConfig(),
             attributeDefinitions: await dbApi.attributeDefinition.getAll()
         })),
-        "getMainSource": loggedProcedure.query(() => dbApi.source.getMainSource()),
+        // The configuration holds credentials (forge tokens).
+        "getMainSource": loggedProcedure.query(async () => {
+            const { configuration: _configuration, ...mainSource } = await dbApi.source.getMainSource();
+            return mainSource;
+        }),
         "getSoftwareList": loggedProcedure.query(() => {
             return dbApi.software.getFullList();
         }),
