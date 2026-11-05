@@ -7,6 +7,7 @@ import { useCoreState, useCore } from "core";
 import { tss } from "tss-react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { useTranslation } from "react-i18next";
+import { useLang } from "ui/i18n";
 import { Alert } from "@codegouvfr/react-dsfr/Alert";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { PreviewTab } from "ui/pages/softwareDetails/PreviewTab";
@@ -22,6 +23,7 @@ import {
 } from "./SectionNav";
 import { DetailSection, DetailSubsection } from "./DetailSection";
 import { ParticipationSection } from "./ParticipationSection";
+import { getNameComparator } from "./compareNames";
 import { UsefulLinks, getUsefulLinks } from "./UsefulLinks";
 import {
     SourceProvenanceModal,
@@ -68,6 +70,7 @@ export default function SoftwareDetails(props: Props) {
     );
 
     const { t } = useTranslation();
+    const { lang } = useLang();
 
     const { classes, cx } = useStyles();
 
@@ -131,6 +134,8 @@ export default function SoftwareDetails(props: Props) {
             (uiConfig.softwareDetails.repoMetadata.enabled &&
                 software.repoMetadata !== undefined &&
                 Object.keys(software.repoMetadata).length > 0));
+
+    const compareNames = getNameComparator(lang);
 
     const usefulLinks =
         uiConfig?.softwareDetails.links.enabled === true
@@ -204,11 +209,7 @@ export default function SoftwareDetails(props: Props) {
                     <DetailSubsection title={t("softwareDetails.subsection providers")}>
                         <ul>
                             {[...software.providers]
-                                .sort((a, b) =>
-                                    a.name.localeCompare(b.name, undefined, {
-                                        sensitivity: "base"
-                                    })
-                                )
+                                .sort((a, b) => compareNames(a.name, b.name))
                                 .map(serviceProvider => (
                                     <ServiceProviderRow
                                         key={serviceProvider.name}
