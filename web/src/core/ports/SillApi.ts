@@ -66,6 +66,9 @@ export type SillApi = {
     ) => Promise<
         TrpcRouterOutput["getSoftwareFormAutoFillDataFromExternalSoftwareAndOtherSources"]
     >;
+    resolveRepoUrl: (
+        params: TrpcRouterInput["resolveRepoUrl"]
+    ) => Promise<TrpcRouterOutput["resolveRepoUrl"]>;
     createSoftware: (
         params: TrpcRouterInput["createSoftware"]
     ) => Promise<TrpcRouterOutput["createSoftware"]>;
