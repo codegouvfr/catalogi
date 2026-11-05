@@ -248,6 +248,7 @@
         },
         "nav burger button": "On this page",
         "section summary": "Summary",
+        "section summary description": "What software is this, and what is the interministerial position on it?",
         "section usages": "Usage",
         "section deployment": "Deployment",
         "section participation": "Participation",
@@ -292,10 +293,10 @@
         "about": "About",
         "customAttributesTitle": "Prerogatives",
         "supportedPlatforms": "Supported platforms",
-        "last version": "Last version : ",
-        "register": "In catalog since : ",
+        "last version": "Last version",
+        "register": "In catalog since",
         "metadata": "Software Metadata",
-        "license": "License : ",
+        "license": "License",
         "hasDesktopApp": "Installable on agent computer",
         "isAvailableAsMobileApp": "Mobile app available",
         "comptoire du libre sheet": "Open Comptoir du libre sheet",
@@ -312,7 +313,8 @@
         "repoMetadata": "Metadata from repository",
         "repoLastCommit": "Last commit",
         "repoLastClosedIssuePullRequest": "Last merged request",
-        "repoLastClosedIssue": "Last closed issue"
+        "repoLastClosedIssue": "Last closed issue",
+        "presentation": "Overview"
     },
     "referencedInstancesTab": {
         "publicInstanceCount": "{{instanceCount}} maintained public $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) by {{organizationCount}} public $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} })",

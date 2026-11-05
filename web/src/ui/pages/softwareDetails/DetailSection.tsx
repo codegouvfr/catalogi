@@ -5,17 +5,20 @@
 import type { ReactNode } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
+import { cx } from "@codegouvfr/react-dsfr/tools/cx";
 import { getSectionTitleId, sectionNavStickyTop } from "./SectionNav";
 
 type DetailSectionProps = {
     id: string;
     title: ReactNode;
+    /** Tagline displayed under the title */
+    description?: ReactNode;
     children: ReactNode;
 };
 
 /** Top-level block of the software details page, target of the side navigation. */
 export const DetailSection = (props: DetailSectionProps) => {
-    const { id, title, children } = props;
+    const { id, title, description, children } = props;
     const { classes } = useStyles();
 
     return (
@@ -25,9 +28,21 @@ export const DetailSection = (props: DetailSectionProps) => {
             className={classes.section}
         >
             {/* Focusable from script only, see SectionNav */}
-            <h2 id={getSectionTitleId(id)} tabIndex={-1} className={classes.sectionTitle}>
+            <h2
+                id={getSectionTitleId(id)}
+                tabIndex={-1}
+                className={cx(
+                    classes.sectionTitle,
+                    description !== undefined && classes.sectionTitleWithDescription
+                )}
+            >
                 {title}
             </h2>
+            {description !== undefined && (
+                <p className={cx(fr.cx("fr-text--lead"), classes.sectionDescription)}>
+                    {description}
+                </p>
+            )}
             {children}
         </section>
     );
@@ -60,6 +75,13 @@ const useStyles = tss.withName({ DetailSection }).create({
     },
     sectionTitle: {
         marginBottom: fr.spacing("6v")
+    },
+    sectionTitleWithDescription: {
+        marginBottom: fr.spacing("2v")
+    },
+    sectionDescription: {
+        color: fr.colors.decisions.text.mention.grey.default,
+        marginBottom: fr.spacing("12v")
     },
     subsection: {
         "& + &": {
