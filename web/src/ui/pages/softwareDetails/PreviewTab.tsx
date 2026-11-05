@@ -2,20 +2,25 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { Fragment, type ReactNode } from "react";
 import { id } from "tsafe/id";
 import { useLang } from "ui/i18n";
 import { useTranslation } from "react-i18next";
 import { fr } from "@codegouvfr/react-dsfr";
+import { Tag } from "@codegouvfr/react-dsfr/Tag";
 import { tss } from "tss-react";
-import { shortEndMonthDate, monthDate, useFormattedDate } from "ui/datetimeUtils";
-import { capitalize } from "tsafe/capitalize";
+import { getFormattedDate, monthDate } from "ui/datetimeUtils";
 import { useCoreState } from "../../../core";
 import { SupportedPlatforms } from "../../../core/usecases/softwareCatalog";
 import { CnllServiceProviderModal } from "./CnllServiceProviderModal";
-import { OperatingSystemsTable } from "ui/shared/OperatingSystemsTable";
-import { ApiTypes } from "api";
-import { CustomAttributeDetails } from "./CustomAttributeDetails";
-import { Chip } from "@mui/material";
+import { osLabels } from "ui/shared/osLabels";
+import { osValues, type ApiTypes } from "api";
+import {
+    CustomAttributeLabel,
+    CustomAttributeValue,
+    getDisplayedCustomAttributes
+} from "./CustomAttributeDetails";
+import { DetailSubsection } from "./DetailSection";
 
 //TODO: Do not use optional props (?) use ( | undefined ) instead
 // so we are sure that we don't forget to provide some props
@@ -60,283 +65,229 @@ export const PreviewTab = (props: Props) => {
     const { t } = useTranslation();
     const { lang } = useLang();
 
+    const {
+        details,
+        metadata,
+        repoMetadata: repoMetadataConfig
+    } = uiConfig.softwareDetails;
+
+    const rows: Row[] = [];
+
+    if (
+        metadata.enabled &&
+        metadata.fields.applicationCategories &&
+        applicationCategories.length > 0
+    ) {
+        rows.push({
+            key: "applicationCategories",
+            label: t("previewTab.application categories"),
+            value: (
+                <ul className={cx(fr.cx("fr-tags-group"), classes.tags)}>
+                    {applicationCategories.map(category => (
+                        <li key={category}>
+                            <Tag small>{category}</Tag>
+                        </li>
+                    ))}
+                </ul>
+            )
+        });
+    }
+
+    if (details.enabled) {
+        const version = details.fields.softwareCurrentVersion
+            ? softwareCurrentVersion
+            : undefined;
+        const versionDate = details.fields.softwareCurrentVersionDate
+            ? softwareDateCurrentVersion
+            : undefined;
+
+        if (version || versionDate) {
+            rows.push({
+                key: "latestVersion",
+                label: t("previewTab.last version"),
+                value: (
+                    <span className={classes.latestVersion}>
+                        {version && (
+                            <span
+                                className={cx(
+                                    fr.cx("fr-badge", "fr-badge--sm"),
+                                    classes.versionBadge
+                                )}
+                            >
+                                {version}
+                            </span>
+                        )}
+                        {versionDate && monthDate({ time: versionDate, lang })}
+                    </span>
+                )
+            });
+        }
+
+        if (details.fields.registerDate && registerDate) {
+            rows.push({
+                key: "registerDate",
+                label: t("previewTab.register"),
+                value: monthDate({ time: registerDate, lang })
+            });
+        }
+
+        if (details.fields.license && license) {
+            rows.push({
+                key: "license",
+                label: t("previewTab.license"),
+                value: license
+            });
+        }
+    }
+
+    if (metadata.enabled) {
+        if (metadata.fields.keywords && keywords && keywords.length > 0) {
+            rows.push({
+                key: "keywords",
+                label: t("previewTab.keywords"),
+                value: keywords.join(", ")
+            });
+        }
+
+        if (metadata.fields.programmingLanguages && programmingLanguages.length > 0) {
+            rows.push({
+                key: "programmingLanguages",
+                label: t("previewTab.programming languages"),
+                value: programmingLanguages.join(", ")
+            });
+        }
+
+        if (
+            metadata.fields.runtimePlatforms &&
+            (runtimePlatforms.length > 0 || Object.keys(operatingSystems).length > 0)
+        ) {
+            rows.push({
+                key: "softwareType",
+                label: t("previewTab.softwareType"),
+                value: runtimePlatforms.includes("cloud")
+                    ? t("previewTab.softwareType-cloud")
+                    : runtimePlatforms.includes("desktop")
+                      ? t("previewTab.softwareType-desktop/mobile")
+                      : t("previewTab.softwareType-stack")
+            });
+
+            // Same rule as the former table: every OS is listed once at least one is known
+            if (Object.values(operatingSystems).some(Boolean)) {
+                rows.push({
+                    key: "operatingSystems",
+                    label: t("previewTab.supportedOS"),
+                    value: (
+                        <ul className={classes.operatingSystems}>
+                            {osValues.map(os => {
+                                const isSupported = operatingSystems[os] === true;
+                                return (
+                                    <li key={os} className={classes.operatingSystem}>
+                                        <i
+                                            aria-hidden="true"
+                                            className={cx(
+                                                fr.cx(
+                                                    isSupported
+                                                        ? "fr-icon-check-line"
+                                                        : "fr-icon-close-line",
+                                                    "fr-icon--sm"
+                                                ),
+                                                isSupported
+                                                    ? classes.success
+                                                    : classes.error
+                                            )}
+                                        />
+                                        {osLabels[os]}
+                                        <span className={fr.cx("fr-sr-only")}>
+                                            {isSupported ? t("app.yes") : t("app.no")}
+                                        </span>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )
+                });
+            }
+        }
+    }
+
+    if (uiConfig.softwareDetails.customAttributes.enabled) {
+        const displayedCustomAttributes = [
+            ...getDisplayedCustomAttributes({
+                customAttributes: supportedPlatforms,
+                attributeDefinitions: [
+                    {
+                        name: id<keyof SupportedPlatforms>("hasDesktopApp"),
+                        label: t("previewTab.hasDesktopApp"),
+                        kind: "boolean",
+                        displayInDetails: true
+                    },
+                    {
+                        name: id<keyof SupportedPlatforms>("isAvailableAsMobileApp"),
+                        label: t("previewTab.isAvailableAsMobileApp"),
+                        kind: "boolean",
+                        displayInDetails: true
+                    }
+                ]
+            }),
+            ...getDisplayedCustomAttributes({ customAttributes, attributeDefinitions })
+        ];
+
+        displayedCustomAttributes.forEach(displayedCustomAttribute =>
+            rows.push({
+                key: `customAttribute-${displayedCustomAttribute.attributeDefinition.name}`,
+                label: (
+                    <CustomAttributeLabel
+                        attributeDefinition={displayedCustomAttribute.attributeDefinition}
+                    />
+                ),
+                value: <CustomAttributeValue {...displayedCustomAttribute} />
+            })
+        );
+    }
+
+    if (repoMetadataConfig.enabled && repoMetadata?.healthCheck !== undefined) {
+        const { lastClosedIssue, lastClosedIssuePullRequest, lastCommit } =
+            repoMetadata.healthCheck;
+        const formatRepoDate = (time: string) =>
+            getFormattedDate({ time, lang, showTime: false, doAlwaysShowYear: true });
+
+        if (lastClosedIssue) {
+            rows.push({
+                key: "repoLastClosedIssue",
+                label: t("previewTab.repoLastClosedIssue"),
+                value: formatRepoDate(lastClosedIssue.dateModified)
+            });
+        }
+        if (lastClosedIssuePullRequest) {
+            rows.push({
+                key: "repoLastClosedIssuePullRequest",
+                label: t("previewTab.repoLastClosedIssuePullRequest"),
+                value: formatRepoDate(lastClosedIssuePullRequest.dateModified)
+            });
+        }
+        if (lastCommit) {
+            rows.push({
+                key: "repoLastCommit",
+                label: t("previewTab.repoLastCommit"),
+                value: formatRepoDate(lastCommit.dateCreated)
+            });
+        }
+    }
+
     return (
         <>
-            <section className={classes.tabContainer}>
-                {uiConfig.softwareDetails.details.enabled && (
-                    <div className="section">
-                        <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                            {t("previewTab.about")}
-                        </p>
-                        {(uiConfig.softwareDetails.details.fields
-                            .softwareCurrentVersion ||
-                            uiConfig.softwareDetails.details.fields
-                                .softwareCurrentVersionDate) &&
-                            (softwareCurrentVersion || softwareDateCurrentVersion) && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.last version")}
-                                    </span>
-                                    {uiConfig.softwareDetails.details.fields
-                                        .softwareCurrentVersion &&
-                                        softwareCurrentVersion && (
-                                            <span
-                                                className={cx(
-                                                    fr.cx(
-                                                        "fr-badge",
-                                                        "fr-badge--yellow-tournesol",
-                                                        "fr-badge--sm"
-                                                    ),
-                                                    classes.badgeVersion
-                                                )}
-                                            >
-                                                {softwareCurrentVersion}
-                                            </span>
-                                        )}
-
-                                    {uiConfig.softwareDetails.details.fields
-                                        .softwareCurrentVersionDate &&
-                                        softwareDateCurrentVersion &&
-                                        capitalize(
-                                            shortEndMonthDate({
-                                                time: softwareDateCurrentVersion,
-                                                lang
-                                            })
-                                        )}
-                                </p>
-                            )}
-                        {uiConfig.softwareDetails.details.fields.registerDate &&
-                            registerDate && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.register")}
-                                    </span>
-                                    {capitalize(monthDate({ time: registerDate, lang }))}
-                                </p>
-                            )}
-
-                        {uiConfig.softwareDetails.details.fields.license && license && (
-                            <p className={cx(fr.cx("fr-text--regular"), classes.item)}>
-                                <span className={classes.labelDetail}>
-                                    {t("previewTab.license")}
-                                </span>
-                                <span>{license}</span>
-                            </p>
-                        )}
-                    </div>
-                )}
-
-                {uiConfig.softwareDetails.metadata.enabled && (
-                    <div className={classes.section}>
-                        <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                            {t("previewTab.metadata")}
-                        </p>
-                        {uiConfig.softwareDetails.metadata.fields.keywords &&
-                            keywords &&
-                            keywords.length > 0 && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.keywords")} :{" "}
-                                    </span>
-                                    <span>{keywords.join(", ")}</span>
-                                </p>
-                            )}
-
-                        {uiConfig.softwareDetails.metadata.fields.programmingLanguages &&
-                            programmingLanguages &&
-                            programmingLanguages.length > 0 && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.programming languages")} :{" "}
-                                    </span>
-                                    <span>{programmingLanguages.join(", ")}</span>
-                                </p>
-                            )}
-
-                        {uiConfig.softwareDetails.metadata.fields.applicationCategories &&
-                            applicationCategories &&
-                            applicationCategories.length > 0 && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.application categories")} :{" "}
-                                    </span>
-                                    <span>{applicationCategories.join(", ")}</span>
-                                </p>
-                            )}
-
-                        {uiConfig.softwareDetails.metadata.fields.runtimePlatforms &&
-                            (runtimePlatforms.length > 0 ||
-                                Object.keys(operatingSystems).length > 0) && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.softwareType")} :{" "}
-                                    </span>
-                                    <span>
-                                        {runtimePlatforms.includes("cloud")
-                                            ? t("previewTab.softwareType-cloud")
-                                            : runtimePlatforms.includes("desktop")
-                                              ? t(
-                                                    "previewTab.softwareType-desktop/mobile"
-                                                )
-                                              : t("previewTab.softwareType-stack")}
-                                    </span>
-                                    {Object.values(operatingSystems).some(Boolean) && (
-                                        <OperatingSystemsTable
-                                            title="Test"
-                                            operatingSystems={operatingSystems}
-                                        />
-                                    )}
-                                </p>
-                            )}
-                    </div>
-                )}
-
-                {uiConfig.softwareDetails.customAttributes.enabled && (
-                    <div className={cx(classes.section, fr.cx("fr-mb-4v"))}>
-                        {Object.keys(supportedPlatforms).length > 0 && (
-                            <>
-                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                                    {t("previewTab.supportedPlatforms")}
-                                </p>
-                                <CustomAttributeDetails
-                                    customAttributes={supportedPlatforms}
-                                    attributeDefinitions={[
-                                        {
-                                            name: id<keyof SupportedPlatforms>(
-                                                "hasDesktopApp"
-                                            ),
-                                            label: t("previewTab.hasDesktopApp"),
-                                            kind: "boolean",
-                                            displayInDetails: true
-                                        },
-                                        {
-                                            name: id<keyof SupportedPlatforms>(
-                                                "isAvailableAsMobileApp"
-                                            ),
-                                            label: t("previewTab.isAvailableAsMobileApp"),
-                                            kind: "boolean",
-                                            displayInDetails: true
-                                        }
-                                    ]}
-                                />
-                            </>
-                        )}
-
-                        {customAttributes && Object.keys(customAttributes).length > 0 && (
-                            <>
-                                <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                                    {t("previewTab.customAttributesTitle")}
-                                </p>
-                                <CustomAttributeDetails
-                                    customAttributes={customAttributes}
-                                    attributeDefinitions={attributeDefinitions}
-                                />
-                            </>
-                        )}
-                    </div>
-                )}
-
-                {uiConfig?.softwareDetails.repoMetadata.enabled &&
-                    repoMetadata &&
-                    Object.keys(repoMetadata).length > 0 && (
-                        <div className={classes.section}>
-                            <p className={cx(fr.cx("fr-text--bold"), classes.item)}>
-                                {t("previewTab.repoMetadata")}
-                            </p>
-                            {repoMetadata?.healthCheck?.lastClosedIssue && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.repoLastClosedIssue")} :{" "}
-                                    </span>
-                                    <span>
-                                        {useFormattedDate({
-                                            time: repoMetadata.healthCheck.lastClosedIssue
-                                                .dateModified,
-                                            showTime: false,
-                                            doAlwaysShowYear: true
-                                        })}
-                                    </span>
-                                </p>
-                            )}
-                            {repoMetadata?.healthCheck?.lastClosedIssuePullRequest && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.repoLastClosedIssuePullRequest")}{" "}
-                                        :{" "}
-                                    </span>
-                                    <span>
-                                        {useFormattedDate({
-                                            time: repoMetadata.healthCheck
-                                                .lastClosedIssuePullRequest.dateModified,
-                                            showTime: false,
-                                            doAlwaysShowYear: true
-                                        })}
-                                    </span>
-                                </p>
-                            )}
-                            {repoMetadata?.healthCheck?.lastCommit && (
-                                <p
-                                    className={cx(
-                                        fr.cx("fr-text--regular"),
-                                        classes.item
-                                    )}
-                                >
-                                    <span className={classes.labelDetail}>
-                                        {t("previewTab.repoLastCommit")} :{" "}
-                                    </span>
-                                    <span>
-                                        {useFormattedDate({
-                                            time: repoMetadata.healthCheck.lastCommit
-                                                .dateCreated,
-                                            showTime: false,
-                                            doAlwaysShowYear: true
-                                        })}
-                                    </span>
-                                </p>
-                            )}
-                        </div>
-                    )}
-            </section>
+            {rows.length > 0 && (
+                <DetailSubsection title={t("previewTab.presentation")}>
+                    <dl className={classes.list}>
+                        {rows.map(({ key, label, value }) => (
+                            <Fragment key={key}>
+                                <dt className={classes.label}>{label}</dt>
+                                <dd className={classes.value}>{value}</dd>
+                            </Fragment>
+                        ))}
+                    </dl>
+                </DetailSubsection>
+            )}
             <CnllServiceProviderModal
                 name={softwareName}
                 annuaireCnllServiceProviders={providers.filter(provider => {
@@ -349,29 +300,67 @@ export const PreviewTab = (props: Props) => {
     );
 };
 
+type Row = {
+    key: string;
+    label: ReactNode;
+    value: ReactNode;
+};
+
 const useStyles = tss.withName({ PreviewTab }).create({
-    tabContainer: {
-        display: "flex",
-        flexDirection: "column",
-        rowGap: fr.spacing("3v")
-    },
-    section: {
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-start"
-    },
-    item: {
-        "&:not(:last-of-type)": {
-            marginBottom: fr.spacing("4v")
+    list: {
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 3fr) minmax(0, 5fr)",
+        columnGap: fr.spacing("6v"),
+        rowGap: fr.spacing("4v"),
+        alignItems: "baseline",
+        margin: 0,
+        [fr.breakpoints.down("md")]: {
+            gridTemplateColumns: "minmax(0, 1fr)",
+            rowGap: fr.spacing("1v")
         }
     },
-    labelDetail: {
+    label: {
+        margin: 0,
         color: fr.colors.decisions.text.mention.grey.default
     },
-    badgeVersion: {
-        ...fr.spacing("margin", { rightLeft: "2v" })
+    value: {
+        margin: 0,
+        [fr.breakpoints.down("md")]: {
+            marginBottom: fr.spacing("3v")
+        }
     },
-    externalLink: {
-        color: fr.colors.decisions.text.actionHigh.blueFrance.default
+    tags: {
+        // Cancels the bottom margin DSFR puts on each tag row
+        marginBottom: `-${fr.spacing("2v")}`
+    },
+    latestVersion: {
+        display: "inline-flex",
+        flexWrap: "wrap",
+        alignItems: "center",
+        gap: fr.spacing("3v")
+    },
+    versionBadge: {
+        textTransform: "none"
+    },
+    operatingSystems: {
+        display: "flex",
+        flexWrap: "wrap",
+        columnGap: fr.spacing("4v"),
+        rowGap: fr.spacing("1v"),
+        listStyle: "none",
+        margin: 0,
+        padding: 0
+    },
+    operatingSystem: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: fr.spacing("1v"),
+        padding: 0
+    },
+    success: {
+        color: fr.colors.decisions.text.default.success.default
+    },
+    error: {
+        color: fr.colors.decisions.text.default.error.default
     }
 });

@@ -44,6 +44,7 @@ type Props = {
 };
 
 type Section = NavSection & {
+    description?: string;
     /** Null when there is nothing to show: the section is left out of the page and the navigation */
     content: ReactElement | null;
 };
@@ -143,6 +144,7 @@ export default function SoftwareDetails(props: Props) {
         {
             id: "summary",
             label: t("softwareDetails.section summary"),
+            description: t("softwareDetails.section summary description"),
             content: !isSummaryEnabled ? null : (
                 <PreviewTab
                     name={software.name}
@@ -201,12 +203,18 @@ export default function SoftwareDetails(props: Props) {
                 software.providers.length === 0 ? null : (
                     <DetailSubsection title={t("softwareDetails.subsection providers")}>
                         <ul>
-                            {software.providers.map(serviceProvider => (
-                                <ServiceProviderRow
-                                    key={serviceProvider.name}
-                                    serviceProvider={serviceProvider}
-                                />
-                            ))}
+                            {[...software.providers]
+                                .sort((a, b) =>
+                                    a.name.localeCompare(b.name, undefined, {
+                                        sensitivity: "base"
+                                    })
+                                )
+                                .map(serviceProvider => (
+                                    <ServiceProviderRow
+                                        key={serviceProvider.name}
+                                        serviceProvider={serviceProvider}
+                                    />
+                                ))}
                         </ul>
                     </DetailSubsection>
                 )
@@ -326,11 +334,18 @@ export default function SoftwareDetails(props: Props) {
                                 classes.contentColumn
                             )}
                         >
-                            {visibleSections.map(({ id, label, content }) => (
-                                <DetailSection key={id} id={id} title={label}>
-                                    {content}
-                                </DetailSection>
-                            ))}
+                            {visibleSections.map(
+                                ({ id, label, description, content }) => (
+                                    <DetailSection
+                                        key={id}
+                                        id={id}
+                                        title={label}
+                                        description={description}
+                                    >
+                                        {content}
+                                    </DetailSection>
+                                )
+                            )}
                         </div>
                     </div>
                 </div>

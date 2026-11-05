@@ -251,6 +251,7 @@
         },
         "nav burger button": "Dans cette page",
         "section summary": "Résumé",
+        "section summary description": "De quel logiciel s'agit-il, et quelle est la position interministérielle à son sujet ?",
         "section usages": "Usages",
         "section deployment": "Déploiement",
         "section participation": "Participation",
@@ -295,10 +296,10 @@
         "about": "À propos",
         "customAttributesTitle": "Prérogatives",
         "supportedPlatforms": "Plateformes supportées",
-        "last version": "Dernière version : ",
-        "register": "Date de l'ajout : ",
+        "last version": "Dernière version",
+        "register": "Date de l'ajout",
         "metadata": "Métadonnées du logiciel",
-        "license": "Licence : ",
+        "license": "Licence",
         "hasDesktopApp": "Installable sur poste agent",
         "isAvailableAsMobileApp": "Application mobile disponible",
         "comptoire du libre sheet": "Consulter la fiche du Comptoir du Libre",
@@ -315,7 +316,8 @@
         "repoMetadata": "Metadonnées de la forge logicielle",
         "repoLastCommit": "Dernier commit",
         "repoLastClosedIssuePullRequest": "Dernière demande de merge",
-        "repoLastClosedIssue": "Dernier ticket fermé"
+        "repoLastClosedIssue": "Dernier ticket fermé",
+        "presentation": "Présentation"
     },
     "referencedInstancesTab": {
         "publicInstanceCount": "{{instanceCount}} $t(referencedInstancesTab.instance, {\"count\": {{instanceCount}} }) web $t(referencedInstancesTab.maintain, {\"count\": {{instanceCount}} }) par {{organizationCount}} $t(referencedInstancesTab.organization, {\"count\": {{organizationCount}} }) $t(referencedInstancesTab.public, {\"count\": {{organizationCount}} })",

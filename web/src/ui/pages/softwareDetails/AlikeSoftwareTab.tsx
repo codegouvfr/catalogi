@@ -63,6 +63,7 @@ export const SimilarSoftwareTab = (props: Props) => {
                     similarSoftware.isInCatalogi ? similarSoftware.software : undefined
                 )
                 .filter(exclude(undefined))
+                .sort((a, b) => compareNames(a.name, b.name))
                 .map(software => {
                     const {
                         name: softwareName,
@@ -105,19 +106,11 @@ export const SimilarSoftwareTab = (props: Props) => {
                     </p>
                     <ul>
                         {similarSoftwaresNotInCatalogi
-                            .sort(
-                                (
-                                    { isLibreSoftware: isLibreSoftwareA },
-                                    { isLibreSoftware: isLibreSoftwareB }
-                                ) => {
-                                    if (isLibreSoftwareA && !isLibreSoftwareB) {
-                                        return -1;
-                                    }
-                                    if (!isLibreSoftwareA && isLibreSoftwareB) {
-                                        return 1;
-                                    }
-                                    return 0;
-                                }
+                            .sort((a, b) =>
+                                compareNames(
+                                    resolveLocalizedString(a.name),
+                                    resolveLocalizedString(b.name)
+                                )
                             )
                             .map(({ externalId, name, description, isLibreSoftware }) => {
                                 return (
@@ -159,3 +152,6 @@ export const SimilarSoftwareTab = (props: Props) => {
         </section>
     );
 };
+
+const compareNames = (a: string, b: string) =>
+    a.localeCompare(b, undefined, { sensitivity: "base" });

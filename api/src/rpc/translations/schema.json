@@ -1010,6 +1010,10 @@
                 "section summary": {
                     "type": "string"
                 },
+                "section summary description": {
+                    "type": "string",
+                    "description": "Tagline displayed under the summary section title"
+                },
                 "section usages": {
                     "type": "string"
                 },
@@ -1078,6 +1082,7 @@
                 "error",
                 "nav burger button",
                 "section summary",
+                "section summary description",
                 "section usages",
                 "section deployment",
                 "section participation",
@@ -1274,6 +1279,10 @@
                 },
                 "repoLastClosedIssue": {
                     "type": "string"
+                },
+                "presentation": {
+                    "type": "string",
+                    "description": "Title of the software details overview, a label/value list"
                 }
             },
             "additionalProperties": false,
@@ -1301,7 +1310,8 @@
                 "repoMetadata",
                 "repoLastCommit",
                 "repoLastClosedIssuePullRequest",
-                "repoLastClosedIssue"
+                "repoLastClosedIssue",
+                "presentation"
             ]
         },
         "referencedInstancesTab": {
