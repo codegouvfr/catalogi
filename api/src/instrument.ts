@@ -6,13 +6,21 @@ import * as Sentry from "@sentry/node";
 import { projectVersion } from "./tools/projectVersion";
 import { env } from "./env";
 
+// The body of updateSource carries source credentials.
+const dropCredentialBodies = <E extends Sentry.Event>(event: E): E => {
+    if (event.request?.url?.includes("updateSource")) delete event.request.data;
+    return event;
+};
+
 if (env.sentryDsnApi) {
     Sentry.init({
         dsn: env.sentryDsnApi,
         environment: env.environment,
         release: projectVersion,
         tracesSampleRate: 1.0,
-        sendDefaultPii: true
+        sendDefaultPii: true,
+        beforeSend: dropCredentialBodies,
+        beforeSendTransaction: dropCredentialBodies
     });
     console.info(`Sentry initialized (environment: ${env.environment}, release: ${projectVersion})`);
 } else {

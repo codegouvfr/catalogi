@@ -35,7 +35,7 @@ const seed = async () => {
 
     // Forge sources use the slug `ensureForgeSource` derives from the host, so the update job
     // reuses them instead of creating duplicates.
-    const sources: Array<Omit<Source, "configuration" | "lastImport" | "description">> = [
+    const sources: Array<Omit<Source, "configuration" | "lastImport" | "description" | "isLookupSource">> = [
         { slug: "UserInput", url: "", kind: "UserInput", category: "UserInput" },
         { slug: "github-com", url: "https://github.com/", kind: "GitHub", category: "repository" },
         { slug: "gitlab-com", url: "https://gitlab.com", kind: "GitLab", category: "repository" },
@@ -78,6 +78,7 @@ const seed = async () => {
                     return {
                         ...source,
                         description: null,
+                        isLookupSource: source.slug === "wikidata",
                         configuration: configuration ? JSON.stringify(configuration) : null
                     };
                 })

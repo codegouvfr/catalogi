@@ -12,10 +12,10 @@ export type SillApi = {
         ): Promise<TrpcRouterOutput["getCurrentUser"]>;
         clear: () => void;
     };
-    getMainSource: {
+    getLookupSource: {
         (
-            params: TrpcRouterInput["getMainSource"]
-        ): Promise<TrpcRouterOutput["getMainSource"]>;
+            params: TrpcRouterInput["getLookupSource"]
+        ): Promise<TrpcRouterOutput["getLookupSource"]>;
         clear: () => void;
     };
     getExternalSoftwareDataOrigin: {
@@ -138,6 +138,21 @@ export type SillApi = {
     updateUiConfig: (
         params: TrpcRouterInput["updateUiConfig"]
     ) => Promise<TrpcRouterOutput["updateUiConfig"]>;
+    getAdminSources: (
+        params: TrpcRouterInput["getAdminSources"]
+    ) => Promise<TrpcRouterOutput["getAdminSources"]>;
+    updateSource: (
+        params: TrpcRouterInput["updateSource"]
+    ) => Promise<TrpcRouterOutput["updateSource"]>;
+    setLookupSource: (
+        params: TrpcRouterInput["setLookupSource"]
+    ) => Promise<TrpcRouterOutput["setLookupSource"]>;
+    reorderSourceCategories: (
+        params: TrpcRouterInput["reorderSourceCategories"]
+    ) => Promise<TrpcRouterOutput["reorderSourceCategories"]>;
+    checkSourceConnection: (
+        params: TrpcRouterInput["checkSourceConnection"]
+    ) => Promise<TrpcRouterOutput["checkSourceConnection"]>;
 };
 
 //NOTE: We make sure we don't forget queries

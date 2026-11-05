@@ -20,6 +20,7 @@ import {
     UserWithId
 } from "../core/usecases/readWriteSillData";
 import type { Os, RuntimePlatform } from "../core/types";
+import type { SourceCategory } from "../core/adapters/dbApi/kysely/kysely.database";
 import { projectVersion } from "../tools/projectVersion";
 import type { OptionalIfCanBeUndefined } from "../tools/OptionalIfCanBeUndefined";
 import type { Context } from "./context";
@@ -34,6 +35,13 @@ import {
     SoftwareEditionProtectedError,
     SoftwareNotFoundError
 } from "../core/usecases/softwareErrors";
+import {
+    InvalidCategoryOrderError,
+    InvalidSourceConfigurationError,
+    NotALookupSourceCandidateError,
+    SourceNotEditableError,
+    SourceNotFoundError
+} from "../core/usecases/sourceErrors";
 
 export type UseCasesUsedOnRouter = Pick<
     UseCases,
@@ -44,6 +52,7 @@ export type UseCasesUsedOnRouter = Pick<
     | "unreferenceSoftware"
     | "fetchAndSaveExternalDataForOneSoftwarePackage"
     | "resolveRepoUrl"
+    | "adminSources"
     | "auth"
 >;
 
@@ -84,7 +93,8 @@ export function createRouter(params: {
                     trpc: {
                         path: opts.path,
                         type: opts.type,
-                        input: opts.rawInput
+                        // updateSource carries source credentials.
+                        input: opts.path === "updateSource" ? "[redacted]" : opts.rawInput
                     }
                 }
             });
@@ -140,7 +150,7 @@ export function createRouter(params: {
     const router = t.router({
         // PUBLIC PROCEDURES
         "getRedirectUrl": loggedProcedure.query(() => redirectUrl),
-        "getExternalSoftwareDataOrigin": loggedProcedure.query(async () => (await dbApi.source.getMainSource()).kind),
+        "getExternalSoftwareDataOrigin": loggedProcedure.query(async () => (await dbApi.source.getLookupSource()).kind),
         "getApiVersion": loggedProcedure.query(() => projectVersion),
         "getOidcManageProfileUrl": loggedProcedure.query(() => oidcParams.manageProfileUrl),
         "getUiConfig": loggedProcedure.query(async () => ({
@@ -148,9 +158,9 @@ export function createRouter(params: {
             attributeDefinitions: await dbApi.attributeDefinition.getAll()
         })),
         // The configuration holds credentials (forge tokens).
-        "getMainSource": loggedProcedure.query(async () => {
-            const { configuration: _configuration, ...mainSource } = await dbApi.source.getMainSource();
-            return mainSource;
+        "getLookupSource": loggedProcedure.query(async () => {
+            const { configuration: _configuration, ...lookupSource } = await dbApi.source.getLookupSource();
+            return lookupSource;
         }),
         "getSoftwareList": loggedProcedure.query(() => {
             return dbApi.software.getFullList();
@@ -190,15 +200,15 @@ export function createRouter(params: {
             )
             .query(async ({ input }) => {
                 const { queryString, language } = input;
-                const mainSource = await dbApi.source.getMainSource();
-                const sourceGateway = resolveAdapterFromSource(mainSource);
+                const lookupSource = await dbApi.source.getLookupSource();
+                const sourceGateway = resolveAdapterFromSource(lookupSource);
 
                 if (!sourceGateway.software?.getSoftwareOptions)
                     throw new Error("Getting option is not possible from a secondary source");
 
                 const [queryResults, softwareExternalDataIds] = await Promise.all([
-                    sourceGateway.software.getSoftwareOptions({ queryString, language, source: mainSource }),
-                    dbApi.software.getAllSillSoftwareExternalIds(mainSource.slug)
+                    sourceGateway.software.getSoftwareOptions({ queryString, language, source: lookupSource }),
+                    dbApi.software.getAllSillSoftwareExternalIds(lookupSource.slug)
                 ]);
 
                 return queryResults.map(({ externalId, description, name, isLibreSoftware, sourceSlug }) => ({
@@ -571,7 +581,21 @@ export function createRouter(params: {
         "updateUiConfig": adminProcedure.input(uiConfigSchema).mutation(async ({ input }) => {
             await dbApi.uiConfig.save(input);
             return input;
-        })
+        }),
+
+        "getAdminSources": adminProcedure.query(() => useCases.adminSources.getAll()),
+        "updateSource": adminProcedure
+            .input(zUpdateSource)
+            .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.update(input))),
+        "setLookupSource": adminProcedure
+            .input(z.object({ "slug": z.string() }))
+            .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.setLookupSource(input))),
+        "reorderSourceCategories": adminProcedure
+            .input(z.object({ "categories": z.array(zSourceCategory) }))
+            .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.reorderCategories(input))),
+        "checkSourceConnection": adminProcedure
+            .input(z.object({ "slug": z.string() }))
+            .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.checkConnection(input)))
     });
 
     return { router };
@@ -734,6 +758,63 @@ const zAttributeDefinitionUpdate = z.object({
     "enableFiltering": z.boolean().optional(),
     "required": z.boolean().optional(),
     "displayOrder": z.number().int().optional()
+});
+
+const withSourceErrors = async <T>(run: () => Promise<T>): Promise<T> => {
+    try {
+        return await run();
+    } catch (e) {
+        if (e instanceof SourceNotFoundError) throw new TRPCError({ "code": "NOT_FOUND", "message": e.message });
+        if (
+            e instanceof SourceNotEditableError ||
+            e instanceof InvalidSourceConfigurationError ||
+            e instanceof InvalidCategoryOrderError ||
+            e instanceof NotALookupSourceCandidateError
+        ) {
+            throw new TRPCError({ "code": "BAD_REQUEST", "message": e.message });
+        }
+        throw e;
+    }
+};
+
+const zSourceCategory = z.enum([
+    "UserInput",
+    "repository",
+    "wikidata",
+    "HAL",
+    "Zenodo",
+    "ComptoirDuLibre",
+    "CNLL",
+    "ROR",
+    "RNSR"
+]);
+
+{
+    type Got = ReturnType<(typeof zSourceCategory)["parse"]>;
+    type Expected = SourceCategory;
+
+    assert<Equals<Got, Expected>>();
+}
+
+const zSourceSettingValue = z.number().int().positive().nullable().optional();
+
+const zUpdateSource = z.object({
+    "slug": z.string(),
+    "url": z.string().optional(),
+    "configuration": z
+        .object({
+            "settings": z
+                .object({ "queryTimeout": zSourceSettingValue, "rateLimitRetryDuration": zSourceSettingValue })
+                .strict()
+                .optional(),
+            "credential": z
+                .discriminatedUnion("action", [
+                    z.object({ "action": z.literal("replace"), "value": z.string().min(1) }),
+                    z.object({ "action": z.literal("clear") })
+                ])
+                .optional()
+        })
+        .optional()
 });
 
 const zLanguage = z.union([z.literal("fr"), z.literal("en")]);

@@ -140,7 +140,8 @@ describe.skip("zenodoSourceGateway", () => {
         category: "Zenodo",
         description: undefined,
         configuration: undefined,
-        lastImport: undefined
+        lastImport: undefined,
+        isLookupSource: false
     };
 
     beforeAll(() => {});

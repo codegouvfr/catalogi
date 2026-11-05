@@ -7,7 +7,8 @@ import { getCDLSoftwareExternalData } from "./getCDLExternalData";
 import { getCDLFormData } from "./getCDLFormData";
 import { findCDLByRepositoryUrl } from "./findByRepositoryUrl";
 import { SourceGateway } from "../../ports/SourceGateway";
-import { comptoirDuLibreApi } from "../comptoirDuLibreApi";
+import { checkHttpConnection } from "../checkHttpConnection";
+import { comptoirDuLibreApi, comptoirDuLibreExportUrl } from "../comptoirDuLibreApi";
 
 export type CDLGateway = SourceGateway & {
     softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
@@ -16,6 +17,8 @@ export type CDLGateway = SourceGateway & {
 
 export const comptoirDuLibreSourceGateway: CDLGateway = {
     sourceType: "ComptoirDuLibre",
+    // The adapter reads a full export: only check it is served.
+    checkConnection: ({ signal }) => checkHttpConnection({ url: comptoirDuLibreExportUrl, method: "HEAD", signal }),
     software: {
         getSoftwareForm: getCDLFormData,
         getSoftwareOptions: getCDLSoftwareOptions

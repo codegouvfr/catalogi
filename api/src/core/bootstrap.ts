@@ -21,6 +21,7 @@ import { makeUpdateSoftware } from "./usecases/updateSoftware";
 import { makeUnreferenceSoftware } from "./usecases/unreferenceSoftware";
 import { makeRefreshExternalDataForSoftware } from "./usecases/refreshExternalData";
 import { makeResolveRepoUrl } from "./usecases/resolveRepoUrl";
+import { makeAdminSources } from "./usecases/adminSources";
 import {
     makeDiscoverSourcesByRepository,
     makeFetchDiscoveredSourcesData
@@ -103,6 +104,7 @@ export async function bootstrapCore(
         }),
         updateSoftware: makeUpdateSoftware(dbApi),
         unreferenceSoftware: makeUnreferenceSoftware(dbApi),
+        adminSources: makeAdminSources({ dbApi }),
         auth: {
             initiateAuth: makeInitiateAuth({ sessionRepository: dbApi.session, oidcClient }),
             handleAuthCallback: makeHandleAuthCallback({

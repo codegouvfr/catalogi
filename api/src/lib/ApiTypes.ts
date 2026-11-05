@@ -13,8 +13,21 @@ export type {
     SchemaOrganization as Organization,
     ScholarlyArticle,
     RepoMetadata,
+    SourceCategory,
     UserRole
 } from "../core/adapters/dbApi/kysely/kysely.database";
+
+export type {
+    AdminSource,
+    AdminSourceCategory,
+    SourceConnectionCheckResult,
+    UpdateSourceParams
+} from "../core/usecases/adminSources";
+export type {
+    SourceCredentialKind,
+    SourceSettingKey,
+    SourceConfigurationPatch
+} from "../core/usecases/sourceConfiguration";
 
 export type {
     CreateUserParams,

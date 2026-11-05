@@ -22,6 +22,8 @@ import {
     openAttributeDefinitionFormModal
 } from "./AttributeDefinitionFormModal";
 import { UiConfigEditor } from "./UiConfigEditor";
+import { SourcesTab } from "./SourcesTab";
+import { SourceFormModal } from "./SourceFormModal";
 
 type Props = {
     className?: string;
@@ -146,6 +148,10 @@ export default function Admin(props: Props) {
                         )
                     },
                     {
+                        label: t("admin.sourcesTab"),
+                        content: <SourcesTab />
+                    },
+                    {
                         label: t("admin.uiConfig.tab"),
                         content: <UiConfigEditor />
                     }
@@ -153,6 +159,7 @@ export default function Admin(props: Props) {
             />
 
             <AttributeDefinitionFormModal />
+            <SourceFormModal />
         </div>
     );
 }

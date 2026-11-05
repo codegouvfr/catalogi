@@ -230,6 +230,18 @@ export const categoryByKind = {
     ROR: "ROR",
     RNSR: "RNSR"
 } as const satisfies Record<ExternalDataOriginKind, SourceCategory>;
+
+// Kinds whose adapter can search softwares by name: the only candidates for the lookup source
+// (enforced in DB by `sources_lookup_source_kind_check`).
+export const lookupSourceKinds = [
+    "wikidata",
+    "HAL",
+    "ComptoirDuLibre",
+    "Zenodo"
+] as const satisfies readonly ExternalDataOriginKind[];
+export type LookupSourceKind = (typeof lookupSourceKinds)[number];
+export const isLookupSourceKind = (kind: ExternalDataOriginKind): kind is LookupSourceKind =>
+    (lookupSourceKinds as readonly ExternalDataOriginKind[]).includes(kind);
 type LocalizedString = Partial<Record<string, string>>;
 export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
 
@@ -259,6 +271,8 @@ type SourcesTable = {
     description: JSONColumnType<LocalizedString> | null;
     configuration: JSONColumnType<SourceConfig> | null;
     lastImport: Date | null;
+    // Exactly one source is queried by name to identify a software (enforced in DB: at most one).
+    isLookupSource: Generated<boolean>;
 };
 
 type SoftwareAttributeDefinitionsTable = {

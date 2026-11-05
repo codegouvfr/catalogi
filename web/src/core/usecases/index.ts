@@ -19,6 +19,7 @@ import * as externalDataOrigin from "./externalDataOrigin";
 import * as source from "./source.slice";
 import * as uiConfig from "./uiConfig.slice";
 import * as adminAttributes from "./adminAttributes.slice";
+import * as adminSources from "./adminSources.slice";
 
 export const usecases = {
     source,
@@ -37,5 +38,6 @@ export const usecases = {
     redirect,
     declarationRemoval,
     userProfile,
-    adminAttributes
+    adminAttributes,
+    adminSources
 };
