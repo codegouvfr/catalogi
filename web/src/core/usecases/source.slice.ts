@@ -19,7 +19,7 @@ export namespace State {
 
     export type Ready = {
         stateDescription: "initialized";
-        mainSource: Omit<ApiTypes.Source, "configuration">;
+        lookupSource: Omit<ApiTypes.Source, "configuration">;
     };
 }
 
@@ -27,11 +27,14 @@ export const { reducer, actions } = createUsecaseActions({
     name,
     initialState: id<State>({ stateDescription: "not initialized" }),
     reducers: {
-        fetchMainSourceStarted: state => state,
-        fetchMainSourceSucceeded: (
+        fetchLookupSourceStarted: state => state,
+        fetchLookupSourceSucceeded: (
             _,
-            action: { payload: { mainSource: Omit<ApiTypes.Source, "configuration"> } }
-        ) => ({ stateDescription: "initialized", mainSource: action.payload.mainSource })
+            action: { payload: { lookupSource: Omit<ApiTypes.Source, "configuration"> } }
+        ) => ({
+            stateDescription: "initialized",
+            lookupSource: action.payload.lookupSource
+        })
     }
 });
 
@@ -42,7 +45,7 @@ const readyState = (rootState: RootState) => {
 };
 
 export const selectors = {
-    main: createSelector(readyState, state => state?.mainSource)
+    main: createSelector(readyState, state => state?.lookupSource)
 };
 
 export const thunks = {};
@@ -51,7 +54,7 @@ export const protectedThunks = {
     initialize:
         () =>
         async (dispatch, _, { sillApi }) => {
-            const mainSource = await sillApi.getMainSource();
-            dispatch(actions.fetchMainSourceSucceeded({ mainSource }));
+            const lookupSource = await sillApi.getLookupSource();
+            dispatch(actions.fetchLookupSourceSucceeded({ lookupSource }));
         }
 } satisfies Thunks;

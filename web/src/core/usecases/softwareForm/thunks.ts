@@ -211,8 +211,8 @@ export const thunks = {
 
             assert(state.stateDescription === "ready");
 
-            const mainSource = sourceSelectors.main(rootState);
-            assert(mainSource !== undefined);
+            const lookupSource = sourceSelectors.main(rootState);
+            assert(lookupSource !== undefined);
 
             const { step1, step2, step3 } = state.formData;
 
@@ -228,7 +228,7 @@ export const thunks = {
                 operatingSystems: step1.operatingSystems,
                 runtimePlatforms: step1.runtimePlatforms,
                 externalIdForSource: step2.externalId,
-                sourceSlug: mainSource.slug,
+                sourceSlug: lookupSource.slug,
                 name: step2.name,
                 nameOverride: step2.userInputOverrides.name ? step2.name : null,
                 description: step2.userInputOverrides.description
@@ -240,7 +240,7 @@ export const thunks = {
                 similarSoftwareExternalDataItems: formDataStep4.similarSoftwares.map(
                     ({ externalId, sourceSlug, name, description, isLibreSoftware }) => ({
                         externalId,
-                        sourceSlug: sourceSlug ?? mainSource.slug,
+                        sourceSlug: sourceSlug ?? lookupSource.slug,
                         name,
                         description,
                         isLibreSoftware
