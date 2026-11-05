@@ -40,7 +40,8 @@ export type RepoUrlResolution =
           keywords: string[];
       } & ResolvedRepoUrl);
 
-export type ResolveRepoUrl = (params: { url: string }) => Promise<RepoUrlResolution>;
+// Only admins may make the API probe a host that is not a registered forge instance.
+export type ResolveRepoUrl = (params: { url: string; isAdmin?: boolean }) => Promise<RepoUrlResolution>;
 
 type RepositoryKey = Pick<ResolvedRepository, "forgeKind" | "url" | "externalId">;
 
@@ -134,7 +135,7 @@ export const makeResolveRepoUrl =
         fetchDiscoveredSourcesData: FetchDiscoveredSourcesData;
         repositoryCheckCache: RepositoryCheckCache;
     }): ResolveRepoUrl =>
-    async ({ url }) => {
+    async ({ url, isAdmin = false }) => {
         const { dbApi, resolveRepository, discoverSourcesByRepository, fetchDiscoveredSourcesData } = deps;
 
         const normalizedUrl = normalizeRepoUrl(url);
@@ -145,7 +146,7 @@ export const makeResolveRepoUrl =
         const cachedRepository = deps.repositoryCheckCache.get(normalizedUrl)?.repository;
         const resolution: RepositoryResolution = cachedRepository
             ? { status: "found", repository: cachedRepository }
-            : await resolveRepository({ url: normalizedUrl, sources });
+            : await resolveRepository({ url: normalizedUrl, sources, canDetectForge: isAdmin });
         const repository = resolution.status === "found" ? resolution.repository : undefined;
         const repoUrl = (resolution.status === "unsupported" ? resolution.url : undefined) ?? normalizedUrl;
         const repoUrls = getRepoUrlSpellings({ input: repoUrl, repository });

@@ -5,10 +5,12 @@
 import { Gitlab } from "@gitbeaker/rest";
 import type { RepositoryResolution, ResolveRepository } from "../ports/ResolveRepository";
 import type { Source } from "../usecases/readWriteSillData";
-import { repoAnalyser } from "../../tools/repoAnalyser";
+import { repoAnalyser, type RepoType } from "../../tools/repoAnalyser";
 import { Octokit } from "@octokit/rest";
 
 const gitHubOrigin = "https://github.com";
+const gitLabComOrigin = "https://gitlab.com";
+const defaultQueryTimeoutMs = 15_000;
 
 // Accepts what people usually paste: clone urls (`git+`, `.git`, ssh) and links to a
 // sub-page of the repository. Returns the repository url without trailing slash.
@@ -110,7 +112,15 @@ const resolveGitHubRepository = async (url: string, sources: Source[]): Promise<
 
     let repo;
     try {
-        repo = (await octokit.request("GET /repos/{owner}/{repo}", { owner, repo: repoName })).data;
+        repo = (
+            await octokit.request("GET /repos/{owner}/{repo}", {
+                owner,
+                repo: repoName,
+                request: {
+                    signal: AbortSignal.timeout(source?.configuration?.queryTimeout ?? defaultQueryTimeoutMs)
+                }
+            })
+        ).data;
     } catch (error) {
         console.info(`[resolveRepository] GitHub repository ${url} not readable: ${String(error)}`);
         return { status: getErrorStatus(error) === 404 ? "notFound" : "unreachable", forgeKind: "GitHub" };
@@ -139,7 +149,7 @@ const resolveGitLabRepository = async (url: string, sources: Source[]): Promise<
 
     const gitLabApi = new Gitlab({
         host: origin,
-        queryTimeout: source?.configuration?.queryTimeout ?? 15_000,
+        queryTimeout: source?.configuration?.queryTimeout ?? defaultQueryTimeoutMs,
         ...(source?.configuration?.auth ? { token: source.configuration.auth } : {})
     });
 
@@ -191,26 +201,41 @@ const resolveGitLabRepository = async (url: string, sources: Source[]): Promise<
     }
 };
 
-export const resolveRepository: ResolveRepository = async ({ url, sources }) => {
-    const normalizedUrl = normalizeRepoUrl(url);
-    if (!normalizedUrl) return { status: "unsupported", url: undefined };
+const isKnownGitLabOrigin = (sources: Source[], origin: string) =>
+    origin === gitLabComOrigin || findSourceByOrigin(sources, "GitLab", origin) !== undefined;
 
-    const { origin } = new URL(normalizedUrl);
+export const makeResolveRepository =
+    (deps: { detectForge?: (url: string) => Promise<RepoType | undefined> } = {}): ResolveRepository =>
+    async ({ url, sources, canDetectForge }) => {
+        const { detectForge = repoAnalyser } = deps;
 
-    // Registered instances skip the forge detection request.
-    const forgeKind =
-        origin === gitHubOrigin
-            ? "GitHub"
-            : findSourceByOrigin(sources, "GitLab", origin)
-              ? "GitLab"
-              : await repoAnalyser(normalizedUrl);
+        const normalizedUrl = normalizeRepoUrl(url);
+        if (!normalizedUrl) return { status: "unsupported", url: undefined };
 
-    switch (forgeKind) {
-        case "GitHub":
-            return resolveGitHubRepository(normalizedUrl, sources);
-        case "GitLab":
-            return resolveGitLabRepository(normalizedUrl, sources);
-        default:
-            return { status: "unsupported", url: stripForgeSubPage(normalizedUrl) };
-    }
-};
+        const { origin, protocol } = new URL(normalizedUrl);
+
+        // Only https forges are called: a plain http url stays as typed, without autofill.
+        if (protocol !== "https:") return { status: "unsupported", url: stripForgeSubPage(normalizedUrl) };
+
+        // Known instances skip the forge detection request. Probing any other host makes
+        // the API call it, so only admins may (the instance is then registered as a source).
+        const forgeKind =
+            origin === gitHubOrigin
+                ? "GitHub"
+                : isKnownGitLabOrigin(sources, origin)
+                  ? "GitLab"
+                  : canDetectForge
+                    ? await detectForge(normalizedUrl)
+                    : undefined;
+
+        switch (forgeKind) {
+            case "GitHub":
+                return resolveGitHubRepository(normalizedUrl, sources);
+            case "GitLab":
+                return resolveGitLabRepository(normalizedUrl, sources);
+            default:
+                return { status: "unsupported", url: stripForgeSubPage(normalizedUrl) };
+        }
+    };
+
+export const resolveRepository = makeResolveRepository();

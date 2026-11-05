@@ -66,12 +66,14 @@ const wikidataEntry = (existingSoftwareId: number | undefined): DiscoveredSource
 const makeUseCase = (params: { resolution: RepositoryResolution; discoveredSources?: DiscoveredSource[] }) => {
     const fetchedFor: DiscoveredSource[][] = [];
     const resolvedUrls: string[] = [];
+    const forgeDetectionAllowed: boolean[] = [];
     const repositoryCheckCache = makeRepositoryCheckCache();
     const resolveRepoUrl = makeResolveRepoUrl({
         dbApi: makeDbApi(),
         repositoryCheckCache,
-        resolveRepository: async ({ url }) => {
+        resolveRepository: async ({ url, canDetectForge }) => {
             resolvedUrls.push(url);
+            forgeDetectionAllowed.push(canDetectForge);
             return params.resolution;
         },
         discoverSourcesByRepository: async () => params.discoveredSources ?? [],
@@ -80,10 +82,21 @@ const makeUseCase = (params: { resolution: RepositoryResolution; discoveredSourc
             return discoveredSources.map(({ sourceSlug }) => ({ sourceSlug }) as SoftwareSourceData);
         }
     });
-    return { resolveRepoUrl, fetchedFor, resolvedUrls, repositoryCheckCache };
+    return { resolveRepoUrl, fetchedFor, resolvedUrls, forgeDetectionAllowed, repositoryCheckCache };
 };
 
 describe("resolveRepoUrl", () => {
+    it("lets only admins probe an unknown forge host", async () => {
+        const { resolveRepoUrl, forgeDetectionAllowed } = makeUseCase({
+            resolution: { status: "unsupported", url: undefined }
+        });
+
+        await resolveRepoUrl({ url: "https://forge.example.org/a/b" });
+        await resolveRepoUrl({ url: "https://forge.example.org/c/d", isAdmin: true });
+
+        expect(forgeDetectionAllowed).toEqual([false, true]);
+    });
+
     it("rejects what is not a repository url", async () => {
         const { resolveRepoUrl } = makeUseCase({ resolution: { status: "unsupported", url: undefined } });
 

@@ -24,9 +24,15 @@ export type RepositoryResolution =
     | { status: "notFound"; forgeKind: ForgeKind }
     // Known forge not answering (rate limit, timeout...): the repository may exist.
     | { status: "unreachable"; forgeKind: ForgeKind }
-    // Forge we have no adapter for (Forgejo, SourceHut...).
+    // Forge we have no adapter for (Forgejo, SourceHut...), plain http url, or unknown host
+    // not probed.
     // `url` is the repository url without the forge sub-page, when it could be told apart.
     | { status: "unsupported"; url: string | undefined };
 
-// `sources` provides the auth of already registered forge instances.
-export type ResolveRepository = (params: { url: string; sources: Source[] }) => Promise<RepositoryResolution>;
+export type ResolveRepository = (params: {
+    url: string;
+    // Provides the already registered forge instances and their auth.
+    sources: Source[];
+    // Whether a host that is not a registered instance may be probed to detect its forge.
+    canDetectForge: boolean;
+}) => Promise<RepositoryResolution>;

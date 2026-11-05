@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { describe, expect, it } from "vitest";
-import { normalizeRepoUrl, stripForgeSubPage, toComparableRepoUrl } from "./resolveRepository";
+import { makeResolveRepository, normalizeRepoUrl, stripForgeSubPage, toComparableRepoUrl } from "./resolveRepository";
 
 describe("normalizeRepoUrl", () => {
     it.each([
@@ -52,5 +52,57 @@ describe("toComparableRepoUrl", () => {
             "git@codeberg.org:org/repo.git"
         ];
         expect(new Set(spellings.map(toComparableRepoUrl))).toEqual(new Set(["https://codeberg.org/org/repo"]));
+    });
+});
+
+describe("resolveRepository", () => {
+    const makeResolve = () => {
+        const probedUrls: string[] = [];
+        const resolve = makeResolveRepository({
+            detectForge: async url => {
+                probedUrls.push(url);
+                return undefined;
+            }
+        });
+        return { resolve, probedUrls };
+    };
+
+    it("doesn't probe an unknown host for a user", async () => {
+        const { resolve, probedUrls } = makeResolve();
+
+        const resolution = await resolve({
+            url: "https://forge.example.org/group/project",
+            sources: [],
+            canDetectForge: false
+        });
+
+        expect(resolution).toEqual({ status: "unsupported", url: "https://forge.example.org/group/project" });
+        expect(probedUrls).toEqual([]);
+    });
+
+    it("probes an unknown host for an admin", async () => {
+        const { resolve, probedUrls } = makeResolve();
+
+        const resolution = await resolve({
+            url: "https://forge.example.org/group/project/-/tree/main",
+            sources: [],
+            canDetectForge: true
+        });
+
+        expect(resolution).toEqual({ status: "unsupported", url: "https://forge.example.org/group/project" });
+        expect(probedUrls).toEqual(["https://forge.example.org/group/project"]);
+    });
+
+    it("never calls a plain http host, even for an admin", async () => {
+        const { resolve, probedUrls } = makeResolve();
+
+        const resolution = await resolve({
+            url: "http://10.0.0.5/group/project",
+            sources: [],
+            canDetectForge: true
+        });
+
+        expect(resolution).toEqual({ status: "unsupported", url: "http://10.0.0.5/group/project" });
+        expect(probedUrls).toEqual([]);
     });
 });
