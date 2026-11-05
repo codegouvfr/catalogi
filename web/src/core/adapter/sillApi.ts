@@ -7,12 +7,19 @@ import {
     createTRPCProxyClient,
     httpBatchLink,
     loggerLink,
-    TRPCClientError
+    TRPCClientError,
+    type TRPCLink
 } from "@trpc/client";
 import type { TrpcRouter } from "api";
 import superjson from "superjson";
 import memoize from "memoizee";
 import * as Sentry from "@sentry/react";
+
+// updateSource carries source credentials: its calls are not logged.
+const loggerLinkWithoutCredentials: TRPCLink<TrpcRouter> = runtime => {
+    const log = loggerLink<TrpcRouter>()(runtime);
+    return opts => (opts.op.path === "updateSource" ? opts.next(opts.op) : log(opts));
+};
 
 export function createSillApi(params: { url: string }): SillApi {
     const { url } = params;
@@ -20,7 +27,7 @@ export function createSillApi(params: { url: string }): SillApi {
     const trpcClient = createTRPCProxyClient<TrpcRouter>({
         transformer: superjson,
         links: [
-            loggerLink(),
+            loggerLinkWithoutCredentials,
             httpBatchLink({
                 url,
                 fetch(url, options) {
@@ -66,7 +73,7 @@ export function createSillApi(params: { url: string }): SillApi {
     };
 
     const sillApi: SillApi = {
-        getMainSource: memoize(() => trpcClient.getMainSource.query(), {
+        getLookupSource: memoize(() => trpcClient.getLookupSource.query(), {
             promise: true
         }),
         getCurrentUser: memoize(() => trpcClient.getCurrentUser.query(), {
@@ -223,7 +230,28 @@ export function createSillApi(params: { url: string }): SillApi {
             sillApi.getUiConfig.clear();
 
             return out;
-        }
+        },
+        getAdminSources: () => trpcClient.getAdminSources.query(),
+        updateSource: params =>
+            trpcClient.updateSource.mutate(params).catch(errorHandler),
+        setLookupSource: async params => {
+            await trpcClient.setLookupSource.mutate(params).catch(errorHandler);
+
+            sillApi.getLookupSource.clear();
+            sillApi.getExternalSoftwareDataOrigin.clear();
+        },
+        reorderSourceCategories: async params => {
+            await trpcClient.reorderSourceCategories.mutate(params).catch(errorHandler);
+
+            // The merge of external data follows the new order.
+            sillApi.getSoftwareList.clear();
+        },
+        // Not alerted: its outcome is only shown in the source form.
+        checkSourceConnection: params =>
+            trpcClient.checkSourceConnection.mutate(params).catch(error => {
+                captureError(error);
+                throw error;
+            })
     };
 
     return sillApi;
