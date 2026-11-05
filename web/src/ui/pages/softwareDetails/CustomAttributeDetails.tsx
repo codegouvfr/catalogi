@@ -38,7 +38,7 @@ export const CustomAttributeLabel = (props: {
     attributeDefinition: AttributeDefinitionForDetailDisplay;
 }) => {
     const { attributeDefinition } = props;
-    const { classes, cx } = useStyles();
+    const { classes } = useStyles();
     const { lang } = useLang();
 
     const label =
@@ -56,13 +56,14 @@ export const CustomAttributeLabel = (props: {
         <>
             {label}
             {description && (
+                // A button so the description is reachable by keyboard; Tooltip names it
                 <Tooltip title={description} arrow>
-                    <i
-                        className={cx(
-                            fr.cx("fr-icon-information-line", "fr-icon--sm"),
-                            classes.descriptionIcon
-                        )}
-                    />
+                    <button type="button" className={classes.descriptionButton}>
+                        <i
+                            aria-hidden="true"
+                            className={fr.cx("fr-icon-information-line", "fr-icon--sm")}
+                        />
+                    </button>
                 </Tooltip>
             )}
         </>
@@ -99,6 +100,8 @@ export const CustomAttributeValue = (props: DisplayedCustomAttribute) => {
                 timeStyle: "short"
             }).format(new Date(attributeValue as Date));
         case "url":
+            // Only web links: the value is free text, a `javascript:` URL would run on click
+            if (!isHttpUrl(attributeValue as string)) return attributeValue as string;
             return (
                 <a
                     href={attributeValue as string}
@@ -114,10 +117,24 @@ export const CustomAttributeValue = (props: DisplayedCustomAttribute) => {
     }
 };
 
+const isHttpUrl = (value: string): boolean => {
+    try {
+        const { protocol } = new URL(value);
+        return protocol === "http:" || protocol === "https:";
+    } catch {
+        return false;
+    }
+};
+
 const useStyles = tss.withName("CustomAttributeDetails").create({
-    descriptionIcon: {
+    descriptionButton: {
         ...fr.spacing("margin", { left: "1v" }),
-        cursor: "help"
+        padding: 0,
+        border: "none",
+        background: "none",
+        color: "inherit",
+        cursor: "help",
+        verticalAlign: "middle"
     },
     booleanValue: {
         display: "inline-flex",

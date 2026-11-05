@@ -12,7 +12,8 @@ import type { Link } from "type-route";
 import { capitalize } from "tsafe/capitalize";
 import { useStyles } from "tss-react";
 import { exclude } from "tsafe/exclude";
-import { useResolveLocalizedString } from "ui/i18n";
+import { useLang, useResolveLocalizedString } from "ui/i18n";
+import { getNameComparator } from "./compareNames";
 import { Tag } from "@codegouvfr/react-dsfr/Tag";
 
 export type Props = {
@@ -44,6 +45,8 @@ export const SimilarSoftwareTab = (props: Props) => {
     const { css } = useStyles();
 
     const { resolveLocalizedString } = useResolveLocalizedString();
+    const { lang } = useLang();
+    const compareNames = getNameComparator(lang);
 
     const similarSoftwaresNotInCatalogi = similarSoftwares.filter(
         (
@@ -152,6 +155,3 @@ export const SimilarSoftwareTab = (props: Props) => {
         </section>
     );
 };
-
-const compareNames = (a: string, b: string) =>
-    a.localeCompare(b, undefined, { sensitivity: "base" });
