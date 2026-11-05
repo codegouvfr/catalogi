@@ -14,7 +14,8 @@ test("view desktop software details: name, license, keywords, platforms", async 
     const summary = page.getByRole("region", { name: "Résumé" });
     await expect(summary.getByText("GPL-2.0")).toBeVisible();
     await expect(summary.getByText("vcs")).toBeVisible();
-    await expect(page.getByText(/plateformes supportées/i)).toBeVisible();
+    await expect(summary.getByText("Système d'exploitation supporté")).toBeVisible();
+    await expect(summary.getByText("GNU/Linux")).toBeVisible();
 
     // Back navigation returns to catalog
     await page.goBack();
