@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { SourceGateway } from "../../ports/SourceGateway";
+import { checkHttpConnection, userAgentHeaders } from "../checkHttpConnection";
 import { getGitHubSoftwareExternalData } from "./getExternalData";
 import { getGitHubSoftwareFOrm } from "./getSofrwareFormData";
 import { getGitHubSoftwareOptions } from "./getSoftwareOptions";
@@ -14,6 +15,18 @@ export type GitHubGateway = SourceGateway & {
 
 export const gitHubSourceGateway: GitHubGateway = {
     sourceType: "GitHub",
+    // Not counted against the rate limit; answers 401 when the token is rejected.
+    checkConnection: ({ source, signal }) =>
+        checkHttpConnection({
+            url: "https://api.github.com/rate_limit",
+            headers: {
+                ...userAgentHeaders,
+                Accept: "application/vnd.github+json",
+                ...(source.configuration?.auth ? { Authorization: `Bearer ${source.configuration.auth}` } : {})
+            },
+            isCredentialVerified: true,
+            signal
+        }),
     software: {
         getSoftwareForm: getGitHubSoftwareFOrm,
         getSoftwareOptions: getGitHubSoftwareOptions

@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: MIT
 
 import { SourceGateway } from "../../ports/SourceGateway";
+import { checkHttpConnection } from "../checkHttpConnection";
 import { getCNLLSoftwareExternalData } from "./getExternalData";
-import { getCnllPrestatairesSill } from "../getCnllPrestatairesSill";
+import { cnllPrestatairesSillUrl, getCnllPrestatairesSill } from "../getCnllPrestatairesSill";
 
 export type CNLLGateway = SourceGateway & {
     softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
@@ -12,6 +13,7 @@ export type CNLLGateway = SourceGateway & {
 
 export const cnllSourceGateway: CNLLGateway = {
     sourceType: "CNLL",
+    checkConnection: ({ signal }) => checkHttpConnection({ url: cnllPrestatairesSillUrl, method: "HEAD", signal }),
     softwareExtra: {
         getSoftwareExternal: getCNLLSoftwareExternalData,
         getDiscoverSoftwareLinks: async () => {

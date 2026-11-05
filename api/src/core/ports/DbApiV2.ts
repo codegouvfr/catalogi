@@ -18,7 +18,7 @@ import type { OmitFromExisting } from "../utils";
 import type { CompiledData } from "./CompileData";
 
 import type { SoftwareExternal } from "../types/SoftwareTypes";
-import type { UserRole } from "../adapters/dbApi/kysely/kysely.database";
+import type { SourceConfig, UserRole } from "../adapters/dbApi/kysely/kysely.database";
 import type { AttributeDefinition } from "../usecases/readWriteSillData/attributeTypes";
 import type { UiConfig } from "../uiConfigSchema";
 import { SoftwareExternalDataOption } from "./GetSoftwareExternalDataOptions";
@@ -199,10 +199,16 @@ export interface SoftwareUserRepository {
 export interface SourceRepository {
     getAll: (params?: { all: boolean }) => Promise<DatabaseDataType.SourceRow[]>;
     getByName: (params: { name: string }) => Promise<DatabaseDataType.SourceRow | undefined>;
-    getMainSource: () => Promise<DatabaseDataType.SourceRow>;
+    // Throws when no source is flagged as the lookup source.
+    getLookupSource: () => Promise<DatabaseDataType.SourceRow>;
+    setLookupSource: (params: { slug: string }) => Promise<void>;
     getWikidataSource: () => Promise<DatabaseDataType.SourceRow | undefined>;
     // Lower number = higher precedence in the merge.
     getCategoryPriorities: () => Promise<Partial<Record<DatabaseDataType.SourceRow["category"], number>>>;
+    // `categories` must be a permutation of all the categories, the first one getting priority 0.
+    reorderCategories: (params: { categories: DatabaseDataType.SourceRow["category"][] }) => Promise<void>;
+    countSoftwaresBySlug: () => Promise<Partial<Record<string, number>>>;
+    update: (params: { slug: string; url?: string; configuration?: SourceConfig }) => Promise<void>;
     // Returns the existing source when the slug is already taken, whatever its kind or url.
     createIfMissing: (
         params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">

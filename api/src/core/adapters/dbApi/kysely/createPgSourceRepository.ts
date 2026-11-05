@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { SourceRepository } from "../../../ports/DbApiV2";
 import { categoryByKind, Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues } from "./kysely.utils";
@@ -25,27 +25,57 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .where("slug", "=", params.name)
             .executeTakeFirst()
             .then(row => (row ? stripNullOrUndefinedValues(row) : row)),
-    // UserInput is a synthetic source that participates in the merge pipeline but is not
-    // fetchable. Exclude it here so callers (e.g. getExternalSoftwareOptions) get a real
-    // gateway-backed source. Repositories can't be searched by name, so they can't be
-    // the main source either.
-    getMainSource: async () =>
+    getLookupSource: async () =>
         db
             .selectFrom("sources")
-            .innerJoin("source_categories", "source_categories.category", "sources.category")
-            .selectAll("sources")
-            .where("slug", "!=", USER_INPUT_SOURCE_SLUG)
-            .where("sources.category", "!=", "repository")
-            .orderBy("source_categories.priority", "asc")
-            .orderBy("sources.slug", "asc")
-            .executeTakeFirstOrThrow()
+            .selectAll()
+            .where("isLookupSource", "=", true)
+            .executeTakeFirstOrThrow(() => new Error("No lookup source is configured"))
             .then(row => stripNullOrUndefinedValues(row)),
+    setLookupSource: async ({ slug }) =>
+        db.transaction().execute(async trx => {
+            await trx
+                .updateTable("sources")
+                .set({ isLookupSource: false })
+                .where("isLookupSource", "=", true)
+                .execute();
+            const { numUpdatedRows } = await trx
+                .updateTable("sources")
+                .set({ isLookupSource: true })
+                .where("slug", "=", slug)
+                .executeTakeFirst();
+            if (numUpdatedRows === BigInt(0)) throw new Error(`No source "${slug}"`);
+        }),
     getCategoryPriorities: async () =>
         db
             .selectFrom("source_categories")
             .select(["category", "priority"])
             .execute()
             .then(rows => Object.fromEntries(rows.map(({ category, priority }) => [category, priority]))),
+    reorderCategories: async ({ categories }) =>
+        db.transaction().execute(async trx => {
+            // `priority` is UNIQUE and not deferrable: move every row out of the way first.
+            await trx
+                .updateTable("source_categories")
+                .set({ priority: sql<number>`-1 - priority` })
+                .execute();
+            for (const [priority, category] of categories.entries()) {
+                const { numUpdatedRows } = await trx
+                    .updateTable("source_categories")
+                    .set({ priority })
+                    .where("category", "=", category)
+                    .executeTakeFirst();
+                if (numUpdatedRows === BigInt(0)) throw new Error(`No source category "${category}"`);
+            }
+        }),
+    countSoftwaresBySlug: async () =>
+        db
+            .selectFrom("software_external_datas")
+            .where("softwareId", "is not", null)
+            .select(({ fn }) => ["sourceSlug", fn.count<string>("softwareId").distinct().as("count")])
+            .groupBy("sourceSlug")
+            .execute()
+            .then(rows => Object.fromEntries(rows.map(({ sourceSlug, count }) => [sourceSlug, Number(count)]))),
     getWikidataSource: async () =>
         db
             .selectFrom("sources")
@@ -67,6 +97,20 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .where("slug", "=", slug)
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row));
+    },
+    update: async ({ slug, url, configuration }) => {
+        const changes = {
+            ...(url !== undefined && { url }),
+            ...(configuration !== undefined && { configuration: JSON.stringify(configuration) })
+        };
+        if (Object.keys(changes).length === 0) return;
+
+        const { numUpdatedRows } = await db
+            .updateTable("sources")
+            .set(changes)
+            .where("slug", "=", slug)
+            .executeTakeFirst();
+        if (numUpdatedRows === BigInt(0)) throw new Error(`No source "${slug}"`);
     },
     updateLastImport: async (params: { name: string; date: Date }) =>
         db

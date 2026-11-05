@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { SourceGateway } from "../../ports/SourceGateway";
+import { bearerAuthHeaders, checkHttpConnection } from "../checkHttpConnection";
 import { getZenodoExternalData } from "./getZenodoExternalData";
 import { getZenodoSoftwareFormData } from "./getZenodoSoftwareForm";
 import { getZenodoSoftwareOptions } from "./getZenodoSoftwareOptions";
@@ -14,6 +15,12 @@ export type ZenodoGateway = SourceGateway & {
 
 export const zenodoSourceGateway: ZenodoGateway = {
     sourceType: "Zenodo",
+    checkConnection: ({ source, signal }) =>
+        checkHttpConnection({
+            url: "https://zenodo.org/api/records?size=1",
+            headers: bearerAuthHeaders(source),
+            signal
+        }),
     software: {
         getSoftwareForm: getZenodoSoftwareFormData,
         getSoftwareOptions: getZenodoSoftwareOptions

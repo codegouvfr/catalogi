@@ -29,8 +29,19 @@ export type FindSoftwareByRepositoryUrl = (params: {
     signal: AbortSignal;
 }) => Promise<RepositoryMatch | undefined>;
 
+export type SourceConnectionCheck =
+    // Public endpoints answer whatever the credential: only some checks prove it is accepted.
+    | { status: "ok"; isCredentialVerified: boolean }
+    | { status: "httpError"; httpStatus: number }
+    | { status: "unreachable" };
+
+// Sends one cheap request with the source configuration (credential included) to tell an admin
+// whether the source answers and accepts it.
+export type CheckSourceConnection = (params: { source: Source; signal: AbortSignal }) => Promise<SourceConnectionCheck>;
+
 export interface SourceGateway {
     sourceType: ExternalDataOriginKind;
+    checkConnection?: CheckSourceConnection;
     software?: {
         getSoftwareOptions: GetSoftwareExternalDataOptions;
         getSoftwareForm: GetSoftwareFormData;
