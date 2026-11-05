@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import type { LocalizedString } from "../../ports/GetSoftwareExternalData";
@@ -11,11 +11,13 @@ import {
     SchemaOrganization,
     SchemaPerson,
     ScholarlyArticle,
+    Status,
     UserRole
 } from "../../adapters/dbApi/kysely/kysely.database";
 import { CustomAttributes } from "./attributeTypes";
 import type { SoftwareExternalDataOption } from "../../ports/GetSoftwareExternalDataOptions";
 import type { Os, RuntimePlatform, SimilarSoftware, SoftwareProtectionsData } from "../../types";
+import { Dereferencing } from "../../../rpc/publicApi/types";
 
 export type {
     SoftwareProtection,
@@ -71,14 +73,7 @@ export type Software = SoftwareData & {
     id: number;
     addedTime: string;
     updateTime: string;
-    dereferencing:
-        | {
-              reason: string | undefined;
-              time: string;
-              lastRecommendedVersion: string | undefined;
-              dereferencedByUserId: number;
-          }
-        | undefined;
+    deferencing?: Dereferencing | undefined;
     customAttributes: CustomAttributes | undefined;
     protections?: SoftwareProtectionsData | undefined;
     userAndReferentCountByOrganization: Record<string, { userCount: number; referentCount: number }>;
@@ -106,6 +101,8 @@ export type SoftwareSourceData = Partial<SoftwareData> & {
 export type SoftwareDetail = Software & {
     /** Ordered by precedence (highest first). Only sources that actually contribute a row appear. */
     dataBySource: SoftwareSourceData[];
+    status: Status;
+    statusHistory?: Status[];
 };
 
 export type Source = DatabaseDataType.SourceRow;

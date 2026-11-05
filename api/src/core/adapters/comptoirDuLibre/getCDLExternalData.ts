@@ -110,7 +110,6 @@ const formatCDLSoftwareToExternalData = (
         ],
         providers: cdlSoftwareItem.providers.map(cdlProviderToCMProdivers),
         similarSoftwares: [],
-        dereferencing: undefined,
         customAttributes: undefined,
         userAndReferentCountByOrganization: undefined,
         hasExpertReferent: undefined,

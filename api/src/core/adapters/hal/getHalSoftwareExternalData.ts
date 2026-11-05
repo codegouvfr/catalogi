@@ -287,7 +287,6 @@ export const getHalSoftwareExternal: GetSoftwareExternal = memoize(
             identifiers: [...(await populateFromDOIIdentifiers(identifiers))],
             providers: [],
             similarSoftwares: [],
-            dereferencing: undefined,
             customAttributes: undefined,
             userAndReferentCountByOrganization: undefined,
             hasExpertReferent: undefined,

@@ -48,8 +48,8 @@ export const ParticipationSection = (props: Props) => {
 
         if (isDereferencingProtected) {
             openSoftwareProtectionModal({
-                type: "dereferencing",
-                reason: software.protections?.dereferencing?.reason
+                type: "statusChanging",
+                reason: software.protections?.statusChanging?.reason
             });
             return;
         }
@@ -112,7 +112,7 @@ export const ParticipationSection = (props: Props) => {
                         </Button>
                     </>
                 )}
-                {software.dereferencing === undefined && (
+                {software.status.name !== "archived" && (
                     <Button
                         priority="tertiary"
                         disabled={isUnreferencingOngoing}

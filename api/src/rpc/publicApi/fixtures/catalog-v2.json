@@ -99,11 +99,6 @@
         },
         "addedTime": "2025-08-19T13:34:28.432Z",
         "updateTime": "2025-08-19T13:39:05.379Z",
-        "dereferencing": {
-            "reason": "Plateforme gratuite mais code source indisponible",
-            "time": "2025-09-04T09:50:48.708Z",
-            "lastRecommendedVersion": "43.35"
-        },
         "applicationCategories": [],
         "customAttributes": {
             "versionMin": "43.35",

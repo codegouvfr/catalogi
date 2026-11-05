@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
@@ -53,15 +53,20 @@ const insertSoftware = async (db: Kysely<Database>, overrides: any = {}) => {
         ...softwareOverrides
     } = overrides;
 
+    const timedS = new Date().toISOString();
     const { id } = await db
         .insertInto("softwares")
         .values({
             name: "Test Software",
-            addedTime: new Date().toISOString(),
-            updateTime: new Date().toISOString(),
+            addedTime: timedS,
+            updateTime: timedS,
             isStillInObservation: false,
             customAttributes: JSON.stringify({}),
-            dereferencing: null,
+            status: {
+                name: "published",
+                changed: { changedByUSerId: addedByUserId, time: timedS, reason: "All properties fillled" }
+            },
+            statusHistory: [],
             ...softwareOverrides,
             addedByUserId
         })
@@ -126,7 +131,8 @@ const makeSoftwareUpdate = (
     codeRepositoryUrl: null,
     softwareHelp: null,
     latestVersion: null,
-    dereferencing: undefined,
+    status: { name: "published", changed: { time: new Date().toISOString(), changedByUserId: addedByUserId } },
+    statusHistory: [],
     isStillInObservation: false,
     customAttributes: {},
     addedByUserId,
@@ -222,11 +228,14 @@ describe("createPgSoftwareRepository", () => {
             await insertSoftware(db, { name: "Active" });
             await insertSoftware(db, {
                 name: "Dereferenced",
-                dereferencing: JSON.stringify({
-                    reason: "deprecated",
-                    time: new Date().toISOString(),
-                    dereferencedByUserId: null
-                })
+                status: {
+                    name: "archived",
+                    changed: JSON.stringify({
+                        reason: "deprecated",
+                        time: new Date().toISOString(),
+                        changedByUserId: null
+                    })
+                }
             });
 
             const list = await repository.getFullList();

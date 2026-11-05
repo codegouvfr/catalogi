@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import type { LocalizedString } from "../ports/GetSoftwareExternalData";
@@ -10,7 +10,8 @@ import type {
     ScholarlyArticle,
     RepoMetadata,
     SoftwareProtection,
-    SoftwareProtections
+    SoftwareProtections,
+    Status
 } from "../adapters/dbApi/kysely/kysely.database";
 
 export type { SoftwareProtection, SoftwareProtections };
@@ -25,18 +26,11 @@ export type RuntimePlatform = "cloud" | "mobile" | "desktop";
 
 export type SoftwareVariant = "internal" | "external" | "public";
 
-export type Dereferencing = {
-    reason: string | undefined;
-    time: string;
-    lastRecommendedVersion: string | undefined;
-    dereferencedByUserId: number;
-};
-
 /** What clients may see/submit about a protection — audit fields stay server-side. */
 export type SoftwareProtectionData = Pick<SoftwareProtection, "isProtected" | "reason">;
 
 export type SoftwareProtectionsData = {
-    dereferencing?: SoftwareProtectionData | undefined;
+    statusChanging?: SoftwareProtectionData | undefined;
     edition?: SoftwareProtectionData | undefined;
 };
 
@@ -88,7 +82,8 @@ export type Software = SoftwareData & {
     id: number | undefined;
     externalId: string | undefined;
     sourceSlug: string | undefined;
-    dereferencing: Dereferencing | undefined;
+    status: Status;
+    statusHistory?: Status[];
     protections?: SoftwareProtectionsData | undefined;
     customAttributes: CustomAttributes | undefined;
     userAndReferentCountByOrganization:
@@ -111,12 +106,11 @@ export type SoftwareInternal = Software & {
     sourceSlug: undefined;
 };
 
-export type SoftwareExternal = Software & {
+export type SoftwareExternal = Omit<Software, "status" | "statusHistory"> & {
     variant: "external";
     externalId: string;
     sourceSlug: string;
     id: number | undefined;
-    dereferencing: undefined;
     protections?: undefined;
     customAttributes: undefined;
     userAndReferentCountByOrganization: undefined;
