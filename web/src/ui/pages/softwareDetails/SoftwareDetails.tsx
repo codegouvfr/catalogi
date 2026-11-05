@@ -173,8 +173,20 @@ export default function SoftwareDetails(props: Props) {
             id: "usages",
             label: t("softwareDetails.section usages"),
             content:
-                software.instances === undefined && !hasReferencePublications ? null : (
+                !isUserActionsEnabled &&
+                software.instances === undefined &&
+                !hasReferencePublications ? null : (
                     <>
+                        {isUserActionsEnabled && (
+                            <div className={classes.participation}>
+                                <ParticipationSection
+                                    software={software}
+                                    userDeclaration={userDeclaration}
+                                    isUnreferencingOngoing={isUnreferencingOngoing}
+                                    isDereferencingProtected={isDereferencingProtected}
+                                />
+                            </div>
+                        )}
                         {software.instances !== undefined && (
                             <DetailSubsection
                                 title={t("softwareDetails.subsection instances")}
@@ -219,18 +231,6 @@ export default function SoftwareDetails(props: Props) {
                         </ul>
                     </DetailSubsection>
                 )
-        },
-        {
-            id: "participation",
-            label: t("softwareDetails.section participation"),
-            content: !isUserActionsEnabled ? null : (
-                <ParticipationSection
-                    software={software}
-                    userDeclaration={userDeclaration}
-                    isUnreferencingOngoing={isUnreferencingOngoing}
-                    isDereferencingProtected={isDereferencingProtected}
-                />
-            )
         },
         {
             id: "similar-software",
@@ -452,6 +452,12 @@ const useStyles = tss.withName({ SoftwareDetails }).create({
         paddingBottom: fr.spacing("20v"),
         [fr.breakpoints.down("md")]: {
             paddingTop: fr.spacing("8v")
+        }
+    },
+    participation: {
+        // Same gap as between two subsections
+        "&:not(:last-child)": {
+            marginBottom: fr.spacing("12v")
         }
     }
 });
