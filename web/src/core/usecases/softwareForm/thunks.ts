@@ -103,6 +103,8 @@ export const thunks = {
                                             software.runtimePlatforms
                                     },
                                     step2: {
+                                        codeRepositoryUrl:
+                                            userInputSource?.codeRepositoryUrl,
                                         externalId: software.externalId,
                                         description:
                                             userInputSource?.description === undefined
@@ -248,7 +250,7 @@ export const thunks = {
                 keywords: step2.keywords,
                 isLibreSoftware: userInputSource?.isLibreSoftware ?? null,
                 url: userInputSource?.url ?? null,
-                codeRepositoryUrl: userInputSource?.codeRepositoryUrl ?? null,
+                codeRepositoryUrl: step2.codeRepositoryUrl || null,
                 softwareHelp: userInputSource?.softwareHelp ?? null,
                 latestVersion: userInputSource?.latestVersion
                     ? {
@@ -291,6 +293,15 @@ export const thunks = {
             const [, , { sillApi }] = args;
 
             return await sillApi.getExternalSoftwareOptions({ queryString, language });
+        },
+    resolveRepoUrl:
+        (props: { url: string }) =>
+        (...args) => {
+            const { url } = props;
+
+            const [, , extraArg] = args;
+
+            return extraArg.sillApi.resolveRepoUrl({ url });
         },
     getAutofillData:
         (props: { externalId: string }) =>
