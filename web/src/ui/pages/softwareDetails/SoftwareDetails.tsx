@@ -178,14 +178,16 @@ export default function SoftwareDetails(props: Props) {
                 !hasReferencePublications ? null : (
                     <>
                         {isUserActionsEnabled && (
-                            <div className={classes.participation}>
+                            <DetailSubsection
+                                title={t("softwareDetails.section participation")}
+                            >
                                 <ParticipationSection
                                     software={software}
                                     userDeclaration={userDeclaration}
                                     isUnreferencingOngoing={isUnreferencingOngoing}
                                     isDereferencingProtected={isDereferencingProtected}
                                 />
-                            </div>
+                            </DetailSubsection>
                         )}
                         {software.instances !== undefined && (
                             <DetailSubsection
@@ -452,12 +454,6 @@ const useStyles = tss.withName({ SoftwareDetails }).create({
         paddingBottom: fr.spacing("20v"),
         [fr.breakpoints.down("md")]: {
             paddingTop: fr.spacing("8v")
-        }
-    },
-    participation: {
-        // Same gap as between two subsections
-        "&:not(:last-child)": {
-            marginBottom: fr.spacing("12v")
         }
     }
 });
