@@ -4,6 +4,7 @@
 
 import { findWikidataByRepositoryUrl } from "./findByRepositoryUrl";
 import { SourceGateway } from "../../ports/SourceGateway";
+import { bearerAuthHeaders, checkHttpConnection, joinSourceUrl, userAgentHeaders } from "../checkHttpConnection";
 import { getOrganisation } from "./ApiAgent/getOrganisation";
 import { searchOrganizationOnWikidata } from "./getOrganization";
 import { getWikidataForm } from "./getSoftwareForm";
@@ -18,6 +19,12 @@ export type WikidataGateway = SourceGateway & {
 
 export const wikidataSourceGateway: WikidataGateway = {
     sourceType: "wikidata",
+    checkConnection: ({ source, signal }) =>
+        checkHttpConnection({
+            url: joinSourceUrl(source.url, "/w/api.php?action=query&meta=siteinfo&format=json"),
+            headers: { ...userAgentHeaders, ...bearerAuthHeaders(source) },
+            signal
+        }),
     software: {
         getSoftwareOptions: getWikidataSoftwareOptions,
         getSoftwareForm: getWikidataForm

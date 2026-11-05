@@ -6,17 +6,17 @@ import { type ComptoirDuLibreApi, zComptoirDuLibre } from "../ports/ComptoirDuLi
 import cheerio, { type CheerioAPI, type Cheerio, type Element } from "cheerio";
 import memoize from "memoizee";
 
-const url = "https://comptoir-du-libre.org/public/export/comptoir-du-libre_export_v1.json";
+export const comptoirDuLibreExportUrl = "https://comptoir-du-libre.org/public/export/comptoir-du-libre_export_v1.json";
 
 export const comptoirDuLibreApi: ComptoirDuLibreApi = {
     "getComptoirDuLibre": memoize(
         async () => {
             try {
                 console.info("Fetching comptoir du libre");
-                const res = await fetch(url);
+                const res = await fetch(comptoirDuLibreExportUrl);
 
                 if (res.status !== 200) {
-                    throw new Error(`Failed to fetch ${url}`);
+                    throw new Error(`Failed to fetch ${comptoirDuLibreExportUrl}`);
                 }
                 const text = await res.text();
 
@@ -24,7 +24,7 @@ export const comptoirDuLibreApi: ComptoirDuLibreApi = {
 
                 return zComptoirDuLibre.parse(json);
             } catch (error) {
-                console.error(`Failed to fetch or parse ${url}: ${String(error)}`);
+                console.error(`Failed to fetch or parse ${comptoirDuLibreExportUrl}: ${String(error)}`);
                 return {
                     "date_of_export": Date.now().toString(),
                     "number_of_software": 0,

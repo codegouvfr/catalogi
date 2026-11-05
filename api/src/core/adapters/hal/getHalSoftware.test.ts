@@ -16,7 +16,8 @@ describe("HAL", () => {
         category: "HAL",
         description: undefined,
         configuration: undefined,
-        lastImport: undefined
+        lastImport: undefined,
+        isLookupSource: false
     };
     describe("getHalSoftwareExternal", () => {
         it("gets data from Hal and converts it to ExternalSoftware", async () => {

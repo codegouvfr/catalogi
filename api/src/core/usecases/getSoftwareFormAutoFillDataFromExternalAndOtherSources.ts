@@ -29,13 +29,13 @@ export const makeGetSoftwareFormAutoFillDataFromExternalAndOtherSources =
 
         const { comptoirDuLibreApi } = context;
 
-        const mainSource = await context.dbApi.source.getMainSource();
-        const mainSourceGateway = resolveAdapterFromSource(mainSource);
-        if (!mainSourceGateway.softwareExtra?.getSoftwareExternal)
-            throw new Error(`[UC.refreshExternalData] getSoftwareExternal not implemented on ${mainSource.kind}`);
+        const lookupSource = await context.dbApi.source.getLookupSource();
+        const lookupSourceGateway = resolveAdapterFromSource(lookupSource);
+        if (!lookupSourceGateway.softwareExtra?.getSoftwareExternal)
+            throw new Error(`[UC.refreshExternalData] getSoftwareExternal not implemented on ${lookupSource.kind}`);
 
         const [softwareExternal, comptoirDuLibre] = await Promise.all([
-            mainSourceGateway.softwareExtra.getSoftwareExternal({ externalId, source: mainSource }),
+            lookupSourceGateway.softwareExtra.getSoftwareExternal({ externalId, source: lookupSource }),
             comptoirDuLibreApi.getComptoirDuLibre()
         ]);
 
