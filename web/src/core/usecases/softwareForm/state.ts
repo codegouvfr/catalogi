@@ -38,6 +38,7 @@ export type FormData = {
         runtimePlatforms: ApiTypes.RuntimePlatform[];
     };
     step2: {
+        codeRepositoryUrl: string | undefined;
         externalId: string | undefined;
         name: string;
         description: string;
@@ -105,6 +106,7 @@ export const { reducer, actions } = createUsecaseActions({
                 stateDescription: "ready",
                 formData: {
                     step2: {
+                        codeRepositoryUrl: undefined,
                         externalId,
                         name,
                         description,

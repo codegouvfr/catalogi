@@ -2,20 +2,19 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { useEffect, useMemo, useState, useId } from "react";
-import { SearchInput } from "ui/shared/SearchInput";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
 import { useForm, Controller } from "react-hook-form";
 import { Input } from "@codegouvfr/react-dsfr/Input";
-import { CircularProgressWrapper } from "ui/shared/CircularProgressWrapper";
-import { assert } from "tsafe/assert";
+import { SearchInput } from "ui/shared/SearchInput";
 import type { NonPostableEvt } from "evt";
 import { useEvt } from "evt/hooks";
 import { useCore } from "core";
 import type { FormData } from "core/usecases/softwareForm";
 import type { ReturnType } from "tsafe";
 import { useResolveLocalizedString } from "ui/i18n";
+import { routes } from "ui/routes";
 import { Trans, useTranslation } from "react-i18next";
 import { useStyles } from "tss-react";
 import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
@@ -33,9 +32,11 @@ export type Step2Props = {
     dataBySource: ApiTypes.SoftwareSourceData[];
     onSubmit: (formData: FormData["step2"]) => void;
     evtActionSubmit: NonPostableEvt<void>;
-    getAutofillDataFromWikidata: ReturnType<
+    resolveRepoUrl: ReturnType<
         typeof useCore
-    >["functions"]["softwareForm"]["getAutofillData"];
+    >["functions"]["softwareForm"]["resolveRepoUrl"];
+    // Only in the update form: on creation, the entries citing the repository are
+    // found by the API.
     getLibreSoftwareWikidataOptions: (
         queryString: string
     ) => Promise<
@@ -48,6 +49,11 @@ export type Step2Props = {
 };
 
 type ScalarOverridableField = keyof FormData["step2"]["userInputOverrides"];
+
+type RepoResolutionState =
+    | { status: "idle" }
+    | { status: "resolving" }
+    | ReturnType<Step2Props["resolveRepoUrl"]>;
 
 const fieldRowStyle = { display: "flex", alignItems: "flex-end" } as const;
 
@@ -66,8 +72,8 @@ export function SoftwareFormStep2(props: Step2Props) {
         dataBySource,
         onSubmit,
         evtActionSubmit,
-        getLibreSoftwareWikidataOptions,
-        getAutofillDataFromWikidata
+        resolveRepoUrl,
+        getLibreSoftwareWikidataOptions
     } = props;
 
     const { t } = useTranslation();
@@ -83,16 +89,19 @@ export function SoftwareFormStep2(props: Step2Props) {
         register,
         watch,
         formState: { errors },
-        setValue
+        setValue,
+        getValues,
+        clearErrors
     } = useForm<{
-        wikidataEntry:
-            | ReturnType<typeof getLibreSoftwareWikidataOptions>[number]
-            | undefined;
+        codeRepositoryUrl: string;
         name: string;
         description: string;
         license: string;
         image: string;
         keywordsInputValue: string;
+        wikidataEntry:
+            | ReturnType<typeof getLibreSoftwareWikidataOptions>[number]
+            | undefined;
     }>({
         defaultValues: (() => {
             if (initialFormData === undefined) {
@@ -100,6 +109,7 @@ export function SoftwareFormStep2(props: Step2Props) {
             }
 
             const {
+                codeRepositoryUrl,
                 externalId,
                 keywords,
                 userInputOverrides: _o,
@@ -108,6 +118,7 @@ export function SoftwareFormStep2(props: Step2Props) {
 
             return {
                 ...rest,
+                codeRepositoryUrl: codeRepositoryUrl ?? "",
                 wikidataEntry:
                     externalId === undefined
                         ? undefined
@@ -129,10 +140,9 @@ export function SoftwareFormStep2(props: Step2Props) {
     // Without a stand-in, every field would land in state 1 and any user
     // interaction would silently force an override. virtualSource feeds the
     // same code path as a real persisted source so create and update behave
-    // identically.
-    const [virtualSource, setVirtualSource] = useState<
-        ApiTypes.SoftwareSourceData | undefined
-    >(() => {
+    // identically. Only set when the form is opened on a preselected Wikidata
+    // entry.
+    const [virtualSource] = useState<ApiTypes.SoftwareSourceData | undefined>(() => {
         if (isUpdateForm || initialFormData?.externalId === undefined) return undefined;
 
         return {
@@ -151,9 +161,57 @@ export function SoftwareFormStep2(props: Step2Props) {
         };
     });
 
+    // Stand-in for the repository, like `virtualSource` for Wikidata. The
+    // repository category comes first in source precedence.
+    const [repoResolution, setRepoResolution] = useState<RepoResolutionState>({
+        status: "idle"
+    });
+
+    const repoVirtualSource = useMemo((): ApiTypes.SoftwareSourceData | undefined => {
+        if (repoResolution.status !== "found") return undefined;
+        if (repoResolution.existingSoftwareId !== undefined) return undefined;
+
+        return {
+            sourceSlug: new URL(repoResolution.codeRepositoryUrl).host,
+            priority: 1,
+            kind: repoResolution.forgeKind,
+            sourceUrl: repoResolution.codeRepositoryUrl,
+            externalId: repoResolution.externalId,
+            lastDataFetchAt: undefined,
+            name: { en: repoResolution.name },
+            description: repoResolution.description
+                ? { en: repoResolution.description }
+                : undefined,
+            license: repoResolution.license,
+            image: repoResolution.image,
+            keywords: repoResolution.keywords
+        };
+    }, [repoResolution]);
+
+    // Entries citing the repository (Wikidata, HAL...), ordered by precedence.
+    // They are bound on creation, so they feed the form like persisted sources.
+    const discoveredDataBySource = useMemo(
+        () =>
+            "discoveredDataBySource" in repoResolution &&
+            repoResolution.existingSoftwareId === undefined
+                ? repoResolution.discoveredDataBySource.filter(
+                      source => source.sourceSlug !== virtualSource?.sourceSlug
+                  )
+                : [],
+        [repoResolution, virtualSource]
+    );
+
     const effectiveDataBySource = useMemo(
-        () => (virtualSource ? [virtualSource, ...dataBySource] : dataBySource),
-        [virtualSource, dataBySource]
+        () =>
+            [
+                repoVirtualSource,
+                ...discoveredDataBySource,
+                virtualSource,
+                ...dataBySource
+            ].filter(
+                (source): source is ApiTypes.SoftwareSourceData => source !== undefined
+            ),
+        [repoVirtualSource, discoveredDataBySource, virtualSource, dataBySource]
     );
 
     type FieldUiState = {
@@ -256,78 +314,163 @@ export function SoftwareFormStep2(props: Step2Props) {
         [evtActionSubmit, submitButtonElement]
     );
 
-    const wikidataInputId = useId();
+    const codeRepositoryUrl = watch("codeRepositoryUrl");
 
-    const { isAutocompleteInProgress } = (function useClosure() {
-        const [isAutocompleteInProgress, setIsAutocompleteInProgress] = useState(false);
+    // A url is not a search: it is checked once pasted, on blur, on Enter or with
+    // the check button, not while being typed.
+    const checkedRepoUrlRef = useRef<string | undefined>(undefined);
+    const repoCheckIdRef = useRef(0);
 
-        const wikidataExternalId = watch("wikidataEntry")?.externalId;
+    const checkRepoUrl = async (params: { force?: boolean } = {}) => {
+        if (isUpdateForm) return;
 
-        useEffect(() => {
-            if (isUpdateForm) return;
-            if (wikidataExternalId === undefined) {
-                setIsAutocompleteInProgress(false);
-                setVirtualSource(undefined);
-                return;
+        const url = getValues("codeRepositoryUrl").trim();
+        if (url === "" || (url === checkedRepoUrlRef.current && !params.force)) return;
+
+        checkedRepoUrlRef.current = url;
+        const checkId = ++repoCheckIdRef.current;
+        setRepoResolution({ status: "resolving" });
+        clearErrors("codeRepositoryUrl");
+
+        const resolution = await resolveRepoUrl({ url }).catch(
+            (error): RepoResolutionState => {
+                console.error("Failed to resolve repository url", { url, error });
+                // The url is kept as user input, the form just isn't prefilled.
+                return {
+                    status: "unsupported",
+                    codeRepositoryUrl: url,
+                    discoveredSources: [],
+                    discoveredDataBySource: [],
+                    existingSoftwareId: undefined
+                };
             }
+        );
 
-            let isActive = true;
+        if (checkId === repoCheckIdRef.current) setRepoResolution(resolution);
+    };
 
-            (async () => {
-                setIsAutocompleteInProgress(true);
-                setUserInputOverrides({});
-                for (const field of SCALAR_FIELDS) {
-                    setValue(field, "", { shouldValidate: true });
-                }
-                setVirtualSource(undefined);
+    // Editing the url invalidates the previous check.
+    useEffect(() => {
+        if (isUpdateForm) return;
+        if ((codeRepositoryUrl?.trim() ?? "") === checkedRepoUrlRef.current) return;
 
-                try {
-                    const autofill = await getAutofillDataFromWikidata({
-                        externalId: wikidataExternalId
-                    });
+        checkedRepoUrlRef.current = undefined;
+        repoCheckIdRef.current++;
+        setRepoResolution({ status: "idle" });
+    }, [codeRepositoryUrl, isUpdateForm]);
 
-                    if (!isActive) return;
+    // The fields below the url stay locked until a usable repository url is checked.
+    const isRepoLocked =
+        !isUpdateForm &&
+        !(
+            (repoResolution.status === "found" ||
+                repoResolution.status === "notFound" ||
+                repoResolution.status === "unreachable" ||
+                repoResolution.status === "unsupported") &&
+            repoResolution.existingSoftwareId === undefined
+        );
 
-                    const [wikidataInputElement] =
-                        document.getElementsByClassName(wikidataInputId);
-                    assert(wikidataInputElement !== null);
-                    wikidataInputElement.scrollIntoView({ behavior: "smooth" });
+    const codeRepositoryUrlRegistration = register("codeRepositoryUrl", {
+        required: !isUpdateForm,
+        // Block the step on an unchecked or unusable url, or on a duplicate.
+        validate: () => !isRepoLocked
+    });
 
-                    setValue("name", autofill.name ?? "", { shouldValidate: true });
-
-                    setVirtualSource({
-                        sourceSlug: "wikidata",
-                        priority: 1,
-                        kind: "wikidata",
-                        sourceUrl: `https://www.wikidata.org/wiki/${wikidataExternalId}`,
-                        externalId: wikidataExternalId,
-                        lastDataFetchAt: undefined,
-                        name: autofill.name ? { fr: autofill.name } : undefined,
-                        description: autofill.description
-                            ? { fr: autofill.description }
-                            : undefined,
-                        license: autofill.license,
-                        image: autofill.image
-                    });
-                } catch (error) {
-                    if (isActive) {
-                        console.error("Failed to autofill software form from Wikidata", {
-                            wikidataExternalId,
-                            error
-                        });
-                    }
-                } finally {
-                    if (isActive) setIsAutocompleteInProgress(false);
-                }
-            })();
-
-            return () => {
-                isActive = false;
+    const repoUrlFeedback = (():
+        | {
+              state: "error" | "success" | "info";
+              message: React.ReactNode;
+          }
+        | undefined => {
+        if (errors.codeRepositoryUrl?.type === "required")
+            return {
+                state: "error",
+                message: t("softwareFormStep2.repository url required")
             };
-        }, [wikidataExternalId, isUpdateForm, setValue]);
 
-        return { isAutocompleteInProgress };
+        if (
+            errors.codeRepositoryUrl?.type === "validate" &&
+            repoResolution.status === "idle"
+        )
+            return {
+                state: "error",
+                message: t("softwareFormStep2.repository url not checked")
+            };
+
+        if (
+            repoResolution.status !== "idle" &&
+            repoResolution.status !== "resolving" &&
+            repoResolution.status !== "invalid" &&
+            repoResolution.existingSoftwareId !== undefined
+        ) {
+            return {
+                state: "error",
+                message: (
+                    <Trans
+                        i18nKey="softwareFormStep2.repository already referenced"
+                        components={{
+                            softwareLink: (
+                                /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                <a
+                                    href={
+                                        routes.softwareDetails({
+                                            id: repoResolution.existingSoftwareId
+                                        }).href
+                                    }
+                                    target="_blank"
+                                    rel="noreferrer"
+                                />
+                            )
+                        }}
+                    />
+                )
+            };
+        }
+
+        switch (repoResolution.status) {
+            case "idle":
+                return undefined;
+            case "resolving":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository resolving")
+                };
+            case "invalid":
+                return {
+                    state: "error",
+                    message: t("softwareFormStep2.repository url invalid")
+                };
+            case "unsupported":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository unsupported")
+                };
+            case "notFound":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository not found", {
+                        forgeKind: repoResolution.forgeKind
+                    })
+                };
+            case "unreachable":
+                return {
+                    state: "info",
+                    message: t("softwareFormStep2.repository unreachable", {
+                        forgeKind: repoResolution.forgeKind
+                    })
+                };
+            case "found":
+                return {
+                    state: "success",
+                    message: t("softwareFormStep2.repository found", {
+                        forgeKind: repoResolution.forgeKind
+                    })
+                };
+        }
     })();
+
+    const discoveredSources =
+        "discoveredSources" in repoResolution ? repoResolution.discoveredSources : [];
 
     const { css } = useStyles();
 
@@ -378,37 +521,31 @@ export function SoftwareFormStep2(props: Step2Props) {
 
         return (
             <div className={css(fieldRowStyle)}>
-                <CircularProgressWrapper
+                <Input
                     className={css({ flex: 1 })}
-                    isInProgress={isAutocompleteInProgress}
-                    renderChildren={({ style }) => (
-                        <Input
-                            disabled={isAutocompleteInProgress || !ui.isEditable}
-                            style={{ ...style, marginTop: fr.spacing("4v") }}
-                            label={fieldLabel}
-                            hintText={ui.hintText ?? opts.hintText}
-                            nativeInputProps={{
-                                // Skip `required` when an external source already
-                                // provides a value: an empty input then means
-                                // "fall back to the source", not an error.
-                                ...register(field, {
-                                    required:
-                                        opts.isRequired &&
-                                        ui.isEditable &&
-                                        !ui.hasExternal,
-                                    pattern: opts.pattern
-                                }),
-                                value: ui.isEditable ? watch(field) : ui.externalValue
-                            }}
-                            state={showError ? "error" : undefined}
-                            stateRelatedMessage={
-                                showError ? opts.errorMessage : undefined
-                            }
-                        />
-                    )}
+                    disabled={isRepoLocked || !ui.isEditable}
+                    style={{ marginTop: fr.spacing("4v") }}
+                    label={fieldLabel}
+                    hintText={ui.hintText ?? opts.hintText}
+                    nativeInputProps={{
+                        // Skip `required` when an external source already
+                        // provides a value: an empty input then means
+                        // "fall back to the source", not an error.
+                        ...register(field, {
+                            required: opts.isRequired && ui.isEditable && !ui.hasExternal,
+                            pattern: opts.pattern
+                        }),
+                        value: ui.isEditable ? watch(field) : ui.externalValue
+                    }}
+                    state={showError ? "error" : undefined}
+                    stateRelatedMessage={showError ? opts.errorMessage : undefined}
                 />
-                {ui.showPencil && renderToggleButton("override", field, fieldLabel, ui)}
-                {ui.showCross && renderToggleButton("cancel", field, fieldLabel, ui)}
+                {!isRepoLocked &&
+                    ui.showPencil &&
+                    renderToggleButton("override", field, fieldLabel, ui)}
+                {!isRepoLocked &&
+                    ui.showCross &&
+                    renderToggleButton("cancel", field, fieldLabel, ui)}
                 <FieldSourcePopover dataBySource={effectiveDataBySource} field={field} />
             </div>
         );
@@ -423,6 +560,7 @@ export function SoftwareFormStep2(props: Step2Props) {
             className={className}
             onSubmit={handleSubmit(
                 ({
+                    codeRepositoryUrl,
                     wikidataEntry,
                     image,
                     keywordsInputValue,
@@ -452,8 +590,22 @@ export function SoftwareFormStep2(props: Step2Props) {
                         image: resolveField("image", image)
                     };
 
+                    const trimmedRepoUrl = codeRepositoryUrl.trim();
+
                     onSubmit({
-                        externalId: wikidataEntry?.externalId,
+                        codeRepositoryUrl:
+                            repoResolution.status === "found" ||
+                            repoResolution.status === "notFound" ||
+                            repoResolution.status === "unreachable" ||
+                            repoResolution.status === "unsupported"
+                                ? repoResolution.codeRepositoryUrl
+                                : trimmedRepoUrl === ""
+                                  ? undefined
+                                  : trimmedRepoUrl,
+                        // On creation, entries citing the repository are bound by the API.
+                        externalId: isUpdateForm
+                            ? wikidataEntry?.externalId
+                            : initialFormData?.externalId,
                         name: resolved.name.value ?? "",
                         description: resolved.description.value ?? "",
                         license: resolved.license.value ?? "",
@@ -476,84 +628,140 @@ export function SoftwareFormStep2(props: Step2Props) {
                 }
             )}
         >
-            <Controller
-                name="wikidataEntry"
-                control={control}
-                rules={{ required: false }}
-                render={({ field }) => (
-                    <SearchInput
-                        className={wikidataInputId}
-                        debounceDelay={500}
-                        getOptions={getLibreSoftwareWikidataOptions}
-                        value={field.value}
-                        onValueChange={field.onChange}
-                        getOptionLabel={wikidataEntry =>
-                            resolveLocalizedString(wikidataEntry.name)
-                        }
-                        renderOption={(liProps, wikidataEntity) => (
-                            <li {...liProps} key={wikidataEntity.externalId}>
-                                <div>
-                                    <span>
-                                        {resolveLocalizedString(wikidataEntity.name)}
-                                    </span>
-                                    <br />
-                                    <span className={fr.cx("fr-text--xs")}>
-                                        {resolveLocalizedString(
-                                            wikidataEntity.description
-                                        )}
-                                    </span>
-                                </div>
-                            </li>
-                        )}
-                        noOptionText={t("app.no result")}
-                        loadingText={t("app.loading")}
-                        dsfrInputProps={{
-                            label: t("softwareFormStep2.external id"),
-                            hintText: (
-                                <Trans
-                                    i18nKey={"softwareFormStep2.external id hint_fill"}
-                                    components={{
-                                        code: <code />,
-                                        br: <br />,
-                                        space: <span> </span>,
-                                        dataSource: (
-                                            /* eslint-disable-next-line jsx-a11y/anchor-has-content */
-                                            <a
-                                                href="https://www.wikidata.org/wiki"
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            />
-                                        ),
-                                        dataSourceEntry: (
-                                            /* eslint-disable-next-line jsx-a11y/anchor-has-content */
-                                            <a
-                                                href="https://www.wikidata.org/wiki/Q107693197"
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            />
-                                        ),
-                                        exampleUrl: (
-                                            <a
-                                                href="https://code.gouv.fr/sill/detail?id=243"
-                                                target="_blank"
-                                                rel="noreferrer"
-                                            >
-                                                Keycloakify
-                                            </a>
-                                        )
-                                    }}
-                                />
-                            ),
-                            nativeInputProps: {
-                                ref: field.ref,
-                                onBlur: field.onBlur,
-                                name: field.name
-                            }
-                        }}
-                    />
-                )}
+            <Input
+                label={t("softwareFormStep2.repository url")}
+                hintText={t("softwareFormStep2.repository url hint")}
+                nativeInputProps={{
+                    ...codeRepositoryUrlRegistration,
+                    onBlur: event => {
+                        void codeRepositoryUrlRegistration.onBlur(event);
+                        void checkRepoUrl();
+                    },
+                    // Let the pasted value reach the form state first.
+                    onPaste: () => setTimeout(() => void checkRepoUrl()),
+                    onKeyDown: event => {
+                        if (event.key !== "Enter") return;
+                        // Enter would submit the step.
+                        event.preventDefault();
+                        void checkRepoUrl();
+                    },
+                    inputMode: "url",
+                    placeholder: "https://github.com/organisation/logiciel"
+                }}
+                addon={
+                    isUpdateForm ? undefined : (
+                        <Button
+                            type="button"
+                            disabled={repoResolution.status === "resolving"}
+                            onClick={() => void checkRepoUrl({ force: true })}
+                        >
+                            {t("softwareFormStep2.repository check")}
+                        </Button>
+                    )
+                }
+                state={repoUrlFeedback?.state}
+                stateRelatedMessage={repoUrlFeedback?.message}
             />
-            <p className="fr-info-text">{t("softwareFormStep2.autofill notice")}</p>
+            {discoveredSources.length > 0 && (
+                <p className={fr.cx("fr-text--sm")}>
+                    {t("softwareFormStep2.repository discovered sources")}{" "}
+                    {discoveredSources.map(
+                        ({ sourceSlug, name, externalId, url }, index) => (
+                            <Fragment key={sourceSlug}>
+                                {index > 0 && ", "}
+                                <a href={url} target="_blank" rel="noopener noreferrer">
+                                    {`${sourceSlug} : ${name ?? externalId} (${externalId})`}
+                                </a>
+                            </Fragment>
+                        )
+                    )}
+                </p>
+            )}
+            {isUpdateForm && (
+                <Controller
+                    name="wikidataEntry"
+                    control={control}
+                    rules={{ required: false }}
+                    render={({ field }) => (
+                        <SearchInput
+                            debounceDelay={500}
+                            getOptions={getLibreSoftwareWikidataOptions}
+                            value={field.value}
+                            onValueChange={field.onChange}
+                            getOptionLabel={wikidataEntry =>
+                                resolveLocalizedString(wikidataEntry.name)
+                            }
+                            renderOption={(liProps, wikidataEntity) => (
+                                <li {...liProps} key={wikidataEntity.externalId}>
+                                    <div>
+                                        <span>
+                                            {resolveLocalizedString(wikidataEntity.name)}
+                                        </span>
+                                        <br />
+                                        <span className={fr.cx("fr-text--xs")}>
+                                            {resolveLocalizedString(
+                                                wikidataEntity.description
+                                            )}
+                                        </span>
+                                    </div>
+                                </li>
+                            )}
+                            noOptionText={t("app.no result")}
+                            loadingText={t("app.loading")}
+                            dsfrInputProps={{
+                                label: t("softwareFormStep2.external id"),
+                                hintText: (
+                                    <Trans
+                                        i18nKey={
+                                            "softwareFormStep2.external id hint_fill"
+                                        }
+                                        components={{
+                                            code: <code />,
+                                            br: <br />,
+                                            space: <span> </span>,
+                                            dataSource: (
+                                                /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                                <a
+                                                    href="https://www.wikidata.org/wiki"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                />
+                                            ),
+                                            dataSourceEntry: (
+                                                /* eslint-disable-next-line jsx-a11y/anchor-has-content */
+                                                <a
+                                                    href="https://www.wikidata.org/wiki/Q107693197"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                />
+                                            ),
+                                            exampleUrl: (
+                                                <a
+                                                    href="https://code.gouv.fr/sill/detail?id=243"
+                                                    target="_blank"
+                                                    rel="noreferrer"
+                                                >
+                                                    Keycloakify
+                                                </a>
+                                            )
+                                        }}
+                                    />
+                                ),
+                                nativeInputProps: {
+                                    ref: field.ref,
+                                    onBlur: field.onBlur,
+                                    name: field.name
+                                }
+                            }}
+                        />
+                    )}
+                />
+            )}
+            {isRepoLocked && (
+                <p className={fr.cx("fr-info-text")}>
+                    {t("softwareFormStep2.repository fields locked")}
+                </p>
+            )}
             <div
                 style={{
                     display: "flex",
@@ -597,7 +805,7 @@ export function SoftwareFormStep2(props: Step2Props) {
             })}
 
             <Input
-                disabled={isAutocompleteInProgress}
+                disabled={isRepoLocked}
                 style={{
                     marginTop: fr.spacing("4v")
                 }}

@@ -519,6 +519,48 @@
                     "type": "string",
                     "description": "Helper text explaining the field"
                 },
+                "repository url": {
+                    "type": "string"
+                },
+                "repository url hint": {
+                    "type": "string"
+                },
+                "repository url required": {
+                    "type": "string"
+                },
+                "repository url invalid": {
+                    "type": "string"
+                },
+                "repository resolving": {
+                    "type": "string"
+                },
+                "repository found": {
+                    "type": "string"
+                },
+                "repository not found": {
+                    "type": "string"
+                },
+                "repository unreachable": {
+                    "type": "string"
+                },
+                "repository unsupported": {
+                    "type": "string"
+                },
+                "repository already referenced": {
+                    "type": "string"
+                },
+                "repository discovered sources": {
+                    "type": "string"
+                },
+                "repository check": {
+                    "type": "string"
+                },
+                "repository url not checked": {
+                    "type": "string"
+                },
+                "repository fields locked": {
+                    "type": "string"
+                },
                 "software name": {
                     "type": "string"
                 },
@@ -537,9 +579,6 @@
                     "description": "Helper text explaining the field"
                 },
                 "url or numeric id": {
-                    "type": "string"
-                },
-                "autofill notice": {
                     "type": "string"
                 },
                 "logo url": {
@@ -584,13 +623,26 @@
             "required": [
                 "external id",
                 "external id hint_fill",
+                "repository url",
+                "repository url hint",
+                "repository url required",
+                "repository url invalid",
+                "repository resolving",
+                "repository found",
+                "repository not found",
+                "repository unreachable",
+                "repository unsupported",
+                "repository already referenced",
+                "repository discovered sources",
+                "repository check",
+                "repository url not checked",
+                "repository fields locked",
                 "software name",
                 "software feature",
                 "software feature hint",
                 "license",
                 "license hint",
                 "url or numeric id",
-                "autofill notice",
                 "logo url",
                 "logo url hint",
                 "must be an url",
