@@ -686,12 +686,18 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     .execute();
             });
         },
-        getSoftwareIdByExternalIdAndSlug: async ({ externalId, sourceSlug }) => {
+        getSoftwareIdByExternalIdAndSlug: async ({ externalId, sourceSlug, ignoreCase = false }) => {
             const result = await db
                 .selectFrom("software_external_datas")
                 .select("softwareId")
                 .where("sourceSlug", "=", sourceSlug)
-                .where("externalId", "=", externalId)
+                .where(eb =>
+                    ignoreCase
+                        ? eb(sql<string>`lower(${eb.ref("externalId")})`, "=", externalId.toLowerCase())
+                        : eb("externalId", "=", externalId)
+                )
+                .where("softwareId", "is not", null)
+                .orderBy("softwareId")
                 .executeTakeFirst();
             return result?.softwareId ?? undefined;
         },

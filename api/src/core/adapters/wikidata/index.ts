@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { findWikidataByRepositoryUrl } from "./findByRepositoryUrl";
 import { SourceGateway } from "../../ports/SourceGateway";
 import { getOrganisation } from "./ApiAgent/getOrganisation";
 import { searchOrganizationOnWikidata } from "./getOrganization";
@@ -22,7 +23,8 @@ export const wikidataSourceGateway: WikidataGateway = {
         getSoftwareForm: getWikidataForm
     },
     softwareExtra: {
-        getSoftwareExternal: getWikidataSoftware
+        getSoftwareExternal: getWikidataSoftware,
+        findByRepositoryUrl: findWikidataByRepositoryUrl
     },
     organization: {
         getOrganization: getOrganisation,

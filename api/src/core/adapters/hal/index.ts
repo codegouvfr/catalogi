@@ -5,6 +5,7 @@
 import { getHalSoftwareOptions } from "./getHalSoftwareOptions";
 import { getHalSoftwareExternal } from "./getHalSoftwareExternalData";
 import { getHalSoftwareForm } from "./getSoftwareForm";
+import { findHalByRepositoryUrl } from "./findByRepositoryUrl";
 import { SourceGateway } from "../../ports/SourceGateway";
 
 export type HALGateway = SourceGateway & {
@@ -19,6 +20,7 @@ export const halSourceGateway: HALGateway = {
         getSoftwareOptions: getHalSoftwareOptions
     },
     softwareExtra: {
-        getSoftwareExternal: getHalSoftwareExternal
+        getSoftwareExternal: getHalSoftwareExternal,
+        findByRepositoryUrl: findHalByRepositoryUrl
     }
 };

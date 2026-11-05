@@ -2,11 +2,12 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { DatabaseDataType, SoftwareExternalDataRepository } from "../../../ports/DbApiV2";
 import { Database, DatabaseRowOutput, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues, transformNullToUndefined } from "./kysely.utils";
 import type { SoftwareExternal } from "../../../types/SoftwareTypes";
+import { toComparableRepoUrl } from "../../resolveRepository";
 
 const cleanDataForExternalData = (row: DatabaseRowOutput.SoftwareExternalData) => transformNullToUndefined(row);
 
@@ -157,7 +158,8 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .selectFrom("software_external_datas")
             .leftJoin("sources", "sources.slug", "software_external_datas.sourceSlug")
             .select(["softwareId", "identifiers"])
-            .where("sources.url", "!=", sourceURL);
+            .where("sources.url", "!=", sourceURL)
+            .where("softwareId", "is not", null);
 
         const externalData = await request.execute();
 
@@ -187,6 +189,31 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
                 return acc;
             },
             {} as Record<string, number>
+        );
+    },
+    getSoftwareIdByCodeRepositoryUrl: async ({ repoUrl }) => {
+        const comparableUrl = toComparableRepoUrl(repoUrl);
+        if (comparableUrl === undefined) return undefined;
+
+        // Narrowed down in SQL on host and path, compared exactly once normalized.
+        const { host, pathname } = new URL(comparableUrl);
+        const escapeLike = (value: string) => value.replace(/[\\%_]/g, "\\$&");
+        const pattern = `%${escapeLike(host.replace(/^www\./, "") + pathname)}%`;
+
+        const candidates = await db
+            .selectFrom("software_external_datas")
+            .select(["softwareId", "codeRepositoryUrl"])
+            .where("softwareId", "is not", null)
+            .where(sql<string>`lower("codeRepositoryUrl")`, "like", pattern)
+            .orderBy("softwareId")
+            .execute();
+
+        return (
+            candidates.find(
+                candidate =>
+                    candidate.codeRepositoryUrl !== null &&
+                    toComparableRepoUrl(candidate.codeRepositoryUrl) === comparableUrl
+            )?.softwareId ?? undefined
         );
     }
 });
