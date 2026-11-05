@@ -9,6 +9,7 @@ import type { CreateSoftware } from "./createSoftware";
 import type { UpdateSoftware } from "./updateSoftware";
 import type { UnreferenceSoftware } from "./unreferenceSoftware";
 import type { ResolveRepoUrl } from "./resolveRepoUrl";
+import type { AdminSourcesUseCases } from "./adminSources";
 import { ImportFromSource } from "./importFromSource";
 import { InitiateAuth } from "./auth/initiateAuth";
 import { HandleAuthCallback } from "./auth/handleAuthCallback";
@@ -31,4 +32,5 @@ export type UseCases = {
     updateSoftware: UpdateSoftware;
     unreferenceSoftware: UnreferenceSoftware;
     resolveRepoUrl: ResolveRepoUrl;
+    adminSources: AdminSourcesUseCases;
 };

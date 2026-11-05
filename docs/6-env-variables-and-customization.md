@@ -182,9 +182,13 @@ The address is normalized to lowercase and is used only while no administrator e
 
 ## Forge credentials
 
-Each forge instance (GitHub, every GitLab instance) is a row of the `sources` table, created automatically the first time one of its repositories is referenced. Its `configuration` column (JSON) can hold an access token in `auth`, sent with every call (GitLab instances use it as a private token). The configuration is never sent to the browser.
+Each forge instance (GitHub, every GitLab instance) is a row of the `sources` table, created automatically the first time one of its repositories is referenced. Its `configuration` column (JSON) can hold an access token in `auth`, sent with every call (GitLab instances use it as a private token). The token is never sent to the browser.
+
+Admins set it from the « Sources » tab of the admin page: « Modifier » on the forge, then type the new token, or « Effacer » to remove it. The tab only tells whether a token is set, never its value, and checks the connection after each save. The same tab edits the credential and timeouts of the other sources, the merge order of the categories, and the lookup source the software form searches by name.
 
 Anonymous calls to github.com are limited to 60 per hour, authenticated ones to 5000. Use the token of a dedicated account owned by the organization (a [machine user](https://docs.github.com/en/get-started/learning-about-github/types-of-github-accounts#personal-accounts)) rather than a personal one: a fine-grained token with read-only access to public repositories and no permission is enough.
+
+Without the admin page, the same can be done in SQL:
 
 ```sql
 UPDATE sources

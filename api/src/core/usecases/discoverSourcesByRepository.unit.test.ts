@@ -21,7 +21,8 @@ const makeSource = (slug: string, kind: Source["kind"], category: Source["catego
     url: `https://${slug}.example.org`,
     description: undefined,
     configuration: undefined,
-    lastImport: undefined
+    lastImport: undefined,
+    isLookupSource: false
 });
 
 const wikidata = makeSource("wikidata", "wikidata", "wikidata");

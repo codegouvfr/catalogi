@@ -17,7 +17,8 @@ const github: Source = {
     url: "https://github.com/",
     description: undefined,
     configuration: undefined,
-    lastImport: undefined
+    lastImport: undefined,
+    isLookupSource: false
 };
 
 // Software #3 is bound to the GitHub repository `Org/Repo`; software #8 gives

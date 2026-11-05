@@ -67,10 +67,10 @@ describe("ensureForgeSource", () => {
         expect(source).toMatchObject({ slug: "github-com", url: "https://github.com/" });
     });
 
-    it("never makes a repository source the main source", async () => {
+    it("never makes a forge the lookup source", async () => {
         await ensureForgeSource({ kind: "GitHub", url: "https://github.com/owner/repo" });
 
-        expect((await dbApi.source.getMainSource()).category).not.toBe("repository");
+        expect((await dbApi.source.getLookupSource()).category).not.toBe("repository");
     });
 
     it("refuses a GitHub kind outside github.com", async () => {

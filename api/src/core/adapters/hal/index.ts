@@ -7,6 +7,7 @@ import { getHalSoftwareExternal } from "./getHalSoftwareExternalData";
 import { getHalSoftwareForm } from "./getSoftwareForm";
 import { findHalByRepositoryUrl } from "./findByRepositoryUrl";
 import { SourceGateway } from "../../ports/SourceGateway";
+import { bearerAuthHeaders, checkHttpConnection } from "../checkHttpConnection";
 
 export type HALGateway = SourceGateway & {
     softwareExtra: NonNullable<SourceGateway["softwareExtra"]>;
@@ -15,6 +16,12 @@ export type HALGateway = SourceGateway & {
 
 export const halSourceGateway: HALGateway = {
     sourceType: "HAL",
+    checkConnection: ({ source, signal }) =>
+        checkHttpConnection({
+            url: "https://api.archives-ouvertes.fr/search/?q=*:*&rows=0&wt=json",
+            headers: bearerAuthHeaders(source),
+            signal
+        }),
     software: {
         getSoftwareForm: getHalSoftwareForm,
         getSoftwareOptions: getHalSoftwareOptions
