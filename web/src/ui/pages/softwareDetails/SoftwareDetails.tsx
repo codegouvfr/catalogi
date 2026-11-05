@@ -179,6 +179,8 @@ export default function SoftwareDetails(props: Props) {
                     <>
                         {isUserActionsEnabled && (
                             <DetailSubsection
+                                // Keeps `#participation` links from the former section working
+                                id="participation"
                                 title={t("softwareDetails.section participation")}
                             >
                                 <ParticipationSection

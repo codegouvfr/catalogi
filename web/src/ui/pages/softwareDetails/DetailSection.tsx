@@ -49,16 +49,18 @@ export const DetailSection = (props: DetailSectionProps) => {
 };
 
 type DetailSubsectionProps = {
+    /** Anchor for `#id` links */
+    id?: string;
     title: ReactNode;
     children: ReactNode;
 };
 
 export const DetailSubsection = (props: DetailSubsectionProps) => {
-    const { title, children } = props;
+    const { id, title, children } = props;
     const { classes } = useStyles();
 
     return (
-        <div className={classes.subsection}>
+        <div id={id} className={classes.subsection}>
             <h3 className={classes.subsectionTitle}>{title}</h3>
             {children}
         </div>
@@ -84,6 +86,7 @@ const useStyles = tss.withName({ DetailSection }).create({
         marginBottom: fr.spacing("12v")
     },
     subsection: {
+        scrollMarginTop: sectionNavStickyTop,
         "& + &": {
             marginTop: fr.spacing("12v")
         }
