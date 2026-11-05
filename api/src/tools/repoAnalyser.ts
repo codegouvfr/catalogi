@@ -35,6 +35,9 @@ export const repoAnalyser = async (url: string | URL | undefined): Promise<RepoT
         return "GitHub";
     }
 
+    // Only https hosts are probed.
+    if (urlObj.protocol !== "https:") return undefined;
+
     const urlToGitLab = `${urlObj.origin}/api/v4/metadata`;
     const res = await fetch(urlToGitLab, {
         signal: AbortSignal.timeout(10000)

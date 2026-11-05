@@ -142,12 +142,13 @@ export const makeCreateSofware: (params: {
     // `key` identifies the repository even when the forge doesn't answer, for the duplicate check.
     const resolveFormRepository = async (
         normalizedUrl: string,
+        isAdmin: boolean,
         logTitle: string
     ): Promise<{ repository?: ResolvedRepository; key?: ReturnType<typeof getRepositoryKey> }> => {
         if (!resolveRepository) return {};
         try {
             const sources = await dbApi.source.getAll();
-            const resolution = await resolveRepository({ url: normalizedUrl, sources });
+            const resolution = await resolveRepository({ url: normalizedUrl, sources, canDetectForge: isAdmin });
             return {
                 repository: resolution.status === "found" ? resolution.repository : undefined,
                 key: getRepositoryKey({ resolution, normalizedUrl })
@@ -168,14 +169,14 @@ export const makeCreateSofware: (params: {
         }
     };
 
-    const getFormRepository = async (formData: SoftwareFormData, logTitle: string) => {
+    const getFormRepository = async (formData: SoftwareFormData, isAdmin: boolean, logTitle: string) => {
         const normalizedUrl = formData.codeRepositoryUrl && normalizeRepoUrl(formData.codeRepositoryUrl);
         if (!resolveRepository || !normalizedUrl) return undefined;
 
         const check = repositoryCheckCache?.get(normalizedUrl);
         const { repository, key } = check?.repository
             ? { repository: check.repository, key: check.repository }
-            : await resolveFormRepository(normalizedUrl, logTitle);
+            : await resolveFormRepository(normalizedUrl, isAdmin, logTitle);
         const repoUrls = getRepoUrlSpellings({ input: normalizedUrl, repository });
 
         return {
@@ -227,7 +228,7 @@ export const makeCreateSofware: (params: {
 
         console.time(`${logTitle} 💾 Saved`);
 
-        const formRepository = await getFormRepository(formData, logTitle);
+        const formRepository = await getFormRepository(formData, isAdmin, logTitle);
         const repository = formRepository?.repository;
         const discoveredSources = formRepository?.discoveredSources ?? [];
 

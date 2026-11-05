@@ -223,7 +223,9 @@ export function createRouter(params: {
             ),
         "resolveRepoUrl": protectedProcedure
             .input(z.object({ "url": z.string() }))
-            .query(({ input }) => useCases.resolveRepoUrl({ url: input.url })),
+            .query(({ ctx: { currentUser }, input }) =>
+                useCases.resolveRepoUrl({ url: input.url, isAdmin: currentUser.role === "admin" })
+            ),
         "createSoftware": protectedProcedure
             .input(
                 z.object({
