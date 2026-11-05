@@ -162,7 +162,9 @@ export const protectedThunks = {
                     (action.usecaseName === "declarationRemoval" &&
                         action.actionName === "userOrReferentRemoved") ||
                     (action.usecaseName === "softwareDetails" &&
-                        action.actionName === "unreferencingCompleted"),
+                        action.actionName === "unreferencingCompleted") ||
+                    (action.usecaseName === "adminSources" &&
+                        action.actionName === "categoriesReordered"),
                 () => initialize()
             );
         }

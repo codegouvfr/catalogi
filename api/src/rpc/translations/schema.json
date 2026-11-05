@@ -1805,6 +1805,329 @@
                 "catalogTab": {
                     "type": "string"
                 },
+                "sourcesTab": {
+                    "type": "string"
+                },
+                "sources": {
+                    "type": "object",
+                    "properties": {
+                        "intro": {
+                            "type": "string"
+                        },
+                        "loadFailed": {
+                            "type": "string"
+                        },
+                        "lookupTitle": {
+                            "type": "string"
+                        },
+                        "lookupDescription": {
+                            "type": "string"
+                        },
+                        "lookupSelectLabel": {
+                            "type": "string"
+                        },
+                        "noLookupSource": {
+                            "type": "string"
+                        },
+                        "lookupChange": {
+                            "type": "string"
+                        },
+                        "lookupConfirmTitle": {
+                            "type": "string"
+                        },
+                        "lookupConfirmBody": {
+                            "type": "string"
+                        },
+                        "lookupConfirm": {
+                            "type": "string"
+                        },
+                        "cancel": {
+                            "type": "string"
+                        },
+                        "orderTitle": {
+                            "type": "string"
+                        },
+                        "orderDescription": {
+                            "type": "string"
+                        },
+                        "orderAppliesImmediately": {
+                            "type": "string"
+                        },
+                        "saveOrder": {
+                            "type": "string"
+                        },
+                        "cancelOrder": {
+                            "type": "string"
+                        },
+                        "moveUp": {
+                            "type": "string"
+                        },
+                        "moveDown": {
+                            "type": "string"
+                        },
+                        "locked": {
+                            "type": "string"
+                        },
+                        "lookupBadge": {
+                            "type": "string"
+                        },
+                        "columnSlug": {
+                            "type": "string"
+                        },
+                        "columnKind": {
+                            "type": "string"
+                        },
+                        "columnUrl": {
+                            "type": "string"
+                        },
+                        "columnCredential": {
+                            "type": "string"
+                        },
+                        "credentialSet": {
+                            "type": "string"
+                        },
+                        "credentialNotSet": {
+                            "type": "string"
+                        },
+                        "columnLastImport": {
+                            "type": "string"
+                        },
+                        "never": {
+                            "type": "string"
+                        },
+                        "columnSoftwareCount": {
+                            "type": "string"
+                        },
+                        "filterLabel": {
+                            "type": "string"
+                        },
+                        "shownCount": {
+                            "type": "string"
+                        },
+                        "showMore": {
+                            "type": "string"
+                        },
+                        "showLess": {
+                            "type": "string"
+                        },
+                        "noMatch": {
+                            "type": "string"
+                        },
+                        "columnActions": {
+                            "type": "string"
+                        },
+                        "edit": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "intro",
+                        "loadFailed",
+                        "lookupTitle",
+                        "lookupDescription",
+                        "lookupSelectLabel",
+                        "noLookupSource",
+                        "lookupChange",
+                        "lookupConfirmTitle",
+                        "lookupConfirmBody",
+                        "lookupConfirm",
+                        "cancel",
+                        "orderTitle",
+                        "orderDescription",
+                        "orderAppliesImmediately",
+                        "saveOrder",
+                        "cancelOrder",
+                        "moveUp",
+                        "moveDown",
+                        "locked",
+                        "lookupBadge",
+                        "columnSlug",
+                        "columnKind",
+                        "columnUrl",
+                        "columnCredential",
+                        "credentialSet",
+                        "credentialNotSet",
+                        "columnLastImport",
+                        "never",
+                        "columnSoftwareCount",
+                        "filterLabel",
+                        "shownCount",
+                        "showMore",
+                        "showLess",
+                        "noMatch",
+                        "columnActions",
+                        "edit"
+                    ]
+                },
+                "sourceForm": {
+                    "type": "object",
+                    "properties": {
+                        "title": {
+                            "type": "string"
+                        },
+                        "sectionIdentity": {
+                            "type": "string"
+                        },
+                        "slug": {
+                            "type": "string"
+                        },
+                        "kind": {
+                            "type": "string"
+                        },
+                        "category": {
+                            "type": "string"
+                        },
+                        "readOnlyHint": {
+                            "type": "string"
+                        },
+                        "url": {
+                            "type": "string"
+                        },
+                        "forgeUrlHint": {
+                            "type": "string"
+                        },
+                        "invalidUrl": {
+                            "type": "string"
+                        },
+                        "urlChangeNeedsCredential": {
+                            "type": "string"
+                        },
+                        "sectionConfiguration": {
+                            "type": "string"
+                        },
+                        "noConfiguration": {
+                            "type": "string"
+                        },
+                        "credentialToken": {
+                            "type": "string"
+                        },
+                        "credentialBearerToken": {
+                            "type": "string"
+                        },
+                        "credentialClientId": {
+                            "type": "string"
+                        },
+                        "credentialStatusSet": {
+                            "type": "string"
+                        },
+                        "credentialStatusNotSet": {
+                            "type": "string"
+                        },
+                        "credentialClear": {
+                            "type": "string"
+                        },
+                        "credentialUndoClear": {
+                            "type": "string"
+                        },
+                        "credentialRevert": {
+                            "type": "string"
+                        },
+                        "credentialNewValue": {
+                            "type": "string"
+                        },
+                        "credentialWillBeCleared": {
+                            "type": "string"
+                        },
+                        "queryTimeout": {
+                            "type": "string"
+                        },
+                        "rateLimitRetryDuration": {
+                            "type": "string"
+                        },
+                        "settingHint": {
+                            "type": "string"
+                        },
+                        "invalidDuration": {
+                            "type": "string"
+                        },
+                        "otherKeys": {
+                            "type": "string"
+                        },
+                        "save": {
+                            "type": "string"
+                        },
+                        "cancel": {
+                            "type": "string"
+                        },
+                        "close": {
+                            "type": "string"
+                        },
+                        "saved": {
+                            "type": "string"
+                        },
+                        "checking": {
+                            "type": "string"
+                        },
+                        "checkOk": {
+                            "type": "string"
+                        },
+                        "checkOkWithCredential": {
+                            "type": "string"
+                        },
+                        "checkAuthRejected": {
+                            "type": "string"
+                        },
+                        "checkAuthRequired": {
+                            "type": "string"
+                        },
+                        "checkRateLimited": {
+                            "type": "string"
+                        },
+                        "checkHttpError": {
+                            "type": "string"
+                        },
+                        "checkUnreachable": {
+                            "type": "string"
+                        },
+                        "checkFailed": {
+                            "type": "string"
+                        }
+                    },
+                    "additionalProperties": false,
+                    "required": [
+                        "title",
+                        "sectionIdentity",
+                        "slug",
+                        "kind",
+                        "category",
+                        "readOnlyHint",
+                        "url",
+                        "forgeUrlHint",
+                        "invalidUrl",
+                        "urlChangeNeedsCredential",
+                        "sectionConfiguration",
+                        "noConfiguration",
+                        "credentialToken",
+                        "credentialBearerToken",
+                        "credentialClientId",
+                        "credentialStatusSet",
+                        "credentialStatusNotSet",
+                        "credentialClear",
+                        "credentialUndoClear",
+                        "credentialRevert",
+                        "credentialNewValue",
+                        "credentialWillBeCleared",
+                        "queryTimeout",
+                        "rateLimitRetryDuration",
+                        "settingHint",
+                        "invalidDuration",
+                        "otherKeys",
+                        "save",
+                        "cancel",
+                        "close",
+                        "saved",
+                        "checking",
+                        "checkOk",
+                        "checkOkWithCredential",
+                        "checkAuthRejected",
+                        "checkAuthRequired",
+                        "checkRateLimited",
+                        "checkHttpError",
+                        "checkUnreachable",
+                        "checkFailed"
+                    ]
+                },
                 "uiConfig": {
                     "type": "object",
                     "properties": {
@@ -2092,7 +2415,17 @@
                 }
             },
             "additionalProperties": false,
-            "required": ["title", "catalogTab", "uiConfig", "softwareEntries", "customAttributes", "form"]
+            "required": [
+                "title",
+                "catalogTab",
+                "sourcesTab",
+                "sources",
+                "sourceForm",
+                "uiConfig",
+                "softwareEntries",
+                "customAttributes",
+                "form"
+            ]
         },
         "authorCard": {
             "type": "object",
