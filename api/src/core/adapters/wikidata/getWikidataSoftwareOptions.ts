@@ -33,8 +33,7 @@ const memoizedFetchOptions = memoize(
             ...baseRequestInit,
             headers: {
                 ...(baseRequestInit.headers as Record<string, string> | undefined),
-                Accept: "application/json",
-                "User-Agent": "catalogi-sill (https://code.gouv.fr/sill)"
+                Accept: "application/json"
             }
         };
 
