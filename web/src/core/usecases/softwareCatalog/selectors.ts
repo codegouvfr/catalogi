@@ -646,7 +646,7 @@ const attributeNameFilterOptions = createSelector(
             }
         });
 
-        const getLabels = (filterKey: string) => {
+        const describeFilterKey = (filterKey: string) => {
             const [attributeName, value] = filterKey.split(":");
             const rank = definitions.findIndex(({ name }) => name === attributeName);
             const definition = definitions[rank];
@@ -663,13 +663,13 @@ const attributeNameFilterOptions = createSelector(
 
         return Array.from(softwareCountInCurrentFilterByAttributeName.entries())
             .flatMap(([attributeName, softwareCount]) => {
-                const labels = getLabels(attributeName);
-                return labels === undefined
+                const description = describeFilterKey(attributeName);
+                return description === undefined
                     ? []
-                    : [{ attributeName, ...labels, softwareCount }];
+                    : [{ attributeName, ...description, softwareCount }];
             })
             .sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1])
-            .map(({ rank: _rank, ...option }) => option);
+            .map(({ rank: _rank, ...filterOption }) => filterOption);
     }
 );
 
