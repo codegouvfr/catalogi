@@ -2,9 +2,10 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { ButtonsGroup } from "@codegouvfr/react-dsfr/ButtonsGroup";
 import { Tabs } from "@codegouvfr/react-dsfr/Tabs";
 import { tss } from "tss-react";
 import { assert } from "tsafe/assert";
@@ -14,7 +15,6 @@ import { useCore, useCoreState } from "core";
 import { routes } from "ui/routes";
 import { LoadingFallback } from "ui/shared/LoadingFallback";
 import { useResolveLocalizedString } from "ui/i18n";
-import { iconClassByValue } from "ui/shared/attributeIcons";
 import type { ApiTypes } from "api";
 import type { PageRoute } from "./route";
 import {
@@ -170,8 +170,37 @@ function AttributeDefinitionsTable(props: {
     const { definitions } = props;
     const { t } = useTranslation();
     const { classes } = useStyles();
+    const { adminAttributes } = useCore().functions;
+    const { isSaving } = useCoreState("adminAttributes", "main");
+
+    const savedOrder = useMemo(() => definitions.map(def => def.name), [definitions]);
+    const [draftOrder, setDraftOrder] = useState(savedOrder);
+    useEffect(() => {
+        setDraftOrder(savedOrder);
+    }, [savedOrder]);
+
+    const isDirty = draftOrder.some((name, index) => name !== savedOrder[index]);
+    const orderedDefinitions = draftOrder
+        .map(name => definitions.find(def => def.name === name))
+        .filter((def): def is ApiTypes.AttributeDefinition => def !== undefined);
+
+    const move = (index: number, offset: -1 | 1) =>
+        setDraftOrder(order => {
+            const next = [...order];
+            [next[index], next[index + offset]] = [next[index + offset], next[index]];
+            return next;
+        });
+
+    const saveOrder = async () => {
+        try {
+            await adminAttributes.reorder({ names: draftOrder });
+        } catch {
+            /* sillApi.errorHandler already alerted the user */
+        }
+    };
 
     const headers: { label: string; centered?: boolean }[] = [
+        { label: t("admin.customAttributes.columnDisplayOrder") },
         { label: t("admin.customAttributes.columnKind") },
         { label: t("admin.customAttributes.columnLabel") },
         { label: t("admin.customAttributes.columnDisplayInForm"), centered: true },
@@ -179,49 +208,85 @@ function AttributeDefinitionsTable(props: {
         { label: t("admin.customAttributes.columnDisplayInDetails"), centered: true },
         { label: t("admin.customAttributes.columnEnableFiltering"), centered: true },
         { label: t("admin.customAttributes.columnRequired"), centered: true },
-        { label: t("admin.customAttributes.columnDisplayInCardIcon") },
-        { label: t("admin.customAttributes.columnDisplayOrder"), centered: true },
         { label: t("admin.customAttributes.columnActions"), centered: true }
     ];
 
     return (
-        <div className="fr-table fr-table--bordered">
-            <div className="fr-table__wrapper">
-                <div className="fr-table__container">
-                    <div className="fr-table__content">
-                        <table>
-                            <thead>
-                                <tr>
-                                    {headers.map(({ label, centered }) => (
-                                        <th
-                                            key={label}
-                                            scope="col"
-                                            className={
-                                                centered
-                                                    ? classes.cellCentered
-                                                    : undefined
+        <>
+            <div className="fr-table fr-table--bordered">
+                <div className="fr-table__wrapper">
+                    <div className="fr-table__container">
+                        <div className="fr-table__content">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        {headers.map(({ label, centered }) => (
+                                            <th
+                                                key={label}
+                                                scope="col"
+                                                className={
+                                                    centered
+                                                        ? classes.cellCentered
+                                                        : undefined
+                                                }
+                                            >
+                                                {label}
+                                            </th>
+                                        ))}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {orderedDefinitions.map((def, index) => (
+                                        <AttributeDefinitionRow
+                                            key={def.name}
+                                            def={def}
+                                            rank={index + 1}
+                                            canMoveUp={!isSaving && index > 0}
+                                            canMoveDown={
+                                                !isSaving &&
+                                                index < orderedDefinitions.length - 1
                                             }
-                                        >
-                                            {label}
-                                        </th>
+                                            onMove={offset => move(index, offset)}
+                                        />
                                     ))}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {definitions.map(def => (
-                                    <AttributeDefinitionRow key={def.name} def={def} />
-                                ))}
-                            </tbody>
-                        </table>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+            {isDirty && (
+                <ButtonsGroup
+                    inlineLayoutWhen="always"
+                    buttonsSize="small"
+                    buttons={[
+                        {
+                            priority: "primary",
+                            disabled: isSaving,
+                            onClick: saveOrder,
+                            children: t("admin.customAttributes.saveOrder")
+                        },
+                        {
+                            priority: "secondary",
+                            disabled: isSaving,
+                            onClick: () => setDraftOrder(savedOrder),
+                            children: t("admin.customAttributes.cancelOrder")
+                        }
+                    ]}
+                />
+            )}
+        </>
     );
 }
 
-function AttributeDefinitionRow(props: { def: ApiTypes.AttributeDefinition }) {
-    const { def } = props;
+function AttributeDefinitionRow(props: {
+    def: ApiTypes.AttributeDefinition;
+    rank: number;
+    canMoveUp: boolean;
+    canMoveDown: boolean;
+    onMove: (offset: -1 | 1) => void;
+}) {
+    const { def, rank, canMoveUp, canMoveDown, onMove } = props;
     const { t } = useTranslation();
     const { classes, cx } = useStyles();
     const { resolveLocalizedString } = useResolveLocalizedString();
@@ -230,11 +295,34 @@ function AttributeDefinitionRow(props: { def: ApiTypes.AttributeDefinition }) {
 
     return (
         <tr>
+            <td>
+                <span className={classes.moveButtons}>
+                    <span className={classes.rank}>{rank}</span>
+                    <Button
+                        priority="tertiary no outline"
+                        size="small"
+                        iconId="fr-icon-arrow-up-line"
+                        title={t("admin.customAttributes.moveUp", {
+                            label: displayLabel
+                        })}
+                        disabled={!canMoveUp}
+                        onClick={() => onMove(-1)}
+                    />
+                    <Button
+                        priority="tertiary no outline"
+                        size="small"
+                        iconId="fr-icon-arrow-down-line"
+                        title={t("admin.customAttributes.moveDown", {
+                            label: displayLabel
+                        })}
+                        disabled={!canMoveDown}
+                        onClick={() => onMove(1)}
+                    />
+                </span>
+            </td>
             <td>{def.kind}</td>
-            <td className={classes.labelCell}>
-                <div className={classes.labelText} title={displayLabel}>
-                    {displayLabel}
-                </div>
+            <td className={cx(fr.cx("fr-cell--multiline"), classes.labelCell)}>
+                <div>{displayLabel}</div>
                 <code className={cx(fr.cx("fr-text--xs"), classes.identifier)}>
                     {def.name}
                 </code>
@@ -248,18 +336,6 @@ function AttributeDefinitionRow(props: { def: ApiTypes.AttributeDefinition }) {
             <td className={classes.cellCentered}>{def.displayInDetails ? "✅" : "❌"}</td>
             <td className={classes.cellCentered}>{def.enableFiltering ? "✅" : "❌"}</td>
             <td className={classes.cellCentered}>{def.required ? "✅" : "❌"}</td>
-            <td className={classes.cellCentered}>
-                {def.displayInCardIcon ? (
-                    <i
-                        className={fr.cx(iconClassByValue[def.displayInCardIcon])}
-                        title={def.displayInCardIcon}
-                        aria-label={def.displayInCardIcon}
-                    />
-                ) : (
-                    "—"
-                )}
-            </td>
-            <td className={classes.cellCentered}>{def.displayOrder}</td>
             <td className={classes.cellCentered}>
                 <Button
                     priority="tertiary no outline"
@@ -296,13 +372,17 @@ const useStyles = tss.withName({ Admin }).create(() => ({
     cellCentered: {
         textAlign: "center"
     },
-    labelCell: {
-        maxWidth: "32rem"
+    moveButtons: {
+        display: "inline-flex",
+        alignItems: "center",
+        gap: fr.spacing("1v")
     },
-    labelText: {
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap"
+    rank: {
+        minWidth: "1.5rem",
+        fontWeight: "bold"
+    },
+    labelCell: {
+        minWidth: "14rem"
     },
     identifier: {
         opacity: 0.6,

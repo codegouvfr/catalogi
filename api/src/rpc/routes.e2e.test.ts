@@ -217,8 +217,7 @@ describe("RPC e2e tests", () => {
                 editableByAdminOnly: true,
                 displayInDetails: true,
                 enableFiltering: false,
-                required: false,
-                displayOrder: 701
+                required: false
             });
 
             expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
@@ -402,6 +401,141 @@ describe("RPC e2e tests", () => {
                 .executeTakeFirstOrThrow();
 
             expect(software.customAttributes).toEqual({ adminOnlyAdminFlag: true });
+        });
+    });
+
+    describe("enum and text custom attributes", () => {
+        const statusOptions = [
+            { value: "recommended", label: { en: "Recommended", fr: "Recommandé" }, severity: "success" as const },
+            { value: "notRecommended", label: { en: "Not recommended", fr: "Non recommandé" } }
+        ];
+
+        const createStatusAttributes = async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            await kyselyDb
+                .deleteFrom("software_attribute_definitions")
+                .where("name", "in", ["statusEnum", "statusText"])
+                .execute();
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: adminUser }));
+
+            const shared = {
+                displayInForm: true,
+                displayInDetails: true,
+                enableFiltering: false,
+                required: false
+            };
+            await apiCaller.createAttributeDefinition({
+                ...shared,
+                name: "statusEnum",
+                kind: "enum",
+                label: { en: "Status", fr: "Statut" },
+                options: statusOptions
+            });
+            await apiCaller.createAttributeDefinition({
+                ...shared,
+                name: "statusText",
+                kind: "text",
+                label: { en: "Description", fr: "Description" }
+            });
+        };
+
+        const createSoftwareWith = (name: string, customAttributes: Record<string, unknown>) =>
+            apiCaller.createSoftware({
+                formData: createSoftwareFormData({
+                    sourceSlug: testSource.slug,
+                    name,
+                    similarSoftwareExternalDataItems: [],
+                    customAttributes: customAttributes as never
+                })
+            });
+
+        it("requires options for enum attributes only", async () => {
+            await createStatusAttributes();
+
+            await expect(
+                apiCaller.createAttributeDefinition({
+                    name: "enumWithoutOptions",
+                    kind: "enum",
+                    label: { en: "x", fr: "x" },
+                    displayInForm: true,
+                    displayInDetails: true,
+                    enableFiltering: false,
+                    required: false
+                })
+            ).rejects.toThrow("options are required for enum attributes");
+
+            expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
+                expect.objectContaining({ name: "statusEnum", kind: "enum", options: statusOptions })
+            );
+        });
+
+        it("saves valid enum and text values, rejects unknown enum values", async () => {
+            await createStatusAttributes();
+
+            await createSoftwareWith("Enum valid test", {
+                statusEnum: "recommended",
+                statusText: "Line one\nLine two"
+            });
+            const software = await kyselyDb
+                .selectFrom("softwares")
+                .selectAll()
+                .where("name", "=", "Enum valid test")
+                .executeTakeFirstOrThrow();
+            expect(software.customAttributes).toEqual({
+                statusEnum: "recommended",
+                statusText: "Line one\nLine two"
+            });
+
+            await expect(createSoftwareWith("Enum invalid test", { statusEnum: "underStudy" })).rejects.toThrow(
+                "Invalid value for custom attributes: statusEnum"
+            );
+            await expect(createSoftwareWith("Text invalid test", { statusText: 42 })).rejects.toThrow(
+                "Invalid value for custom attributes: statusText"
+            );
+        });
+
+        it("refuses to remove an option still used by a software", async () => {
+            await createStatusAttributes();
+            await insertSoftwareRow({
+                name: "Enum used option test",
+                customAttributes: { statusEnum: "recommended" },
+                userId: adminUser.id
+            });
+
+            await expect(
+                apiCaller.updateAttributeDefinition({ name: "statusEnum", options: [statusOptions[1]] })
+            ).rejects.toThrow("Options still used by softwares cannot be removed: recommended");
+
+            await apiCaller.updateAttributeDefinition({
+                name: "statusEnum",
+                options: [
+                    statusOptions[0],
+                    { value: "underStudy", label: { en: "Under study", fr: "En cours d'étude" } }
+                ]
+            });
+            expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
+                expect.objectContaining({
+                    name: "statusEnum",
+                    options: [statusOptions[0], expect.objectContaining({ value: "underStudy" })]
+                })
+            );
+        });
+
+        it("appends new attributes and reorders them all at once", async () => {
+            await createStatusAttributes();
+            const names = (await apiCaller.getAttributeDefinitions()).map(def => def.name);
+            expect(names.slice(-2)).toEqual(["statusEnum", "statusText"]);
+
+            await expect(apiCaller.reorderAttributeDefinitions({ names: ["statusText"] })).rejects.toThrow(
+                "names must list every attribute exactly once"
+            );
+
+            const reversed = [...names].reverse();
+            await apiCaller.reorderAttributeDefinitions({ names: reversed });
+            expect((await apiCaller.getAttributeDefinitions()).map(def => [def.name, def.displayOrder])).toEqual(
+                reversed.map((name, index) => [name, index])
+            );
         });
     });
 

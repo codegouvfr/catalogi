@@ -221,6 +221,16 @@ export function createSillApi(params: { url: string }): SillApi {
 
             return out;
         },
+        reorderAttributeDefinitions: async params => {
+            const out = await trpcClient.reorderAttributeDefinitions
+                .mutate(params)
+                .catch(errorHandler);
+
+            sillApi.getAttributeDefinitions.clear();
+            sillApi.getUiConfig.clear();
+
+            return out;
+        },
         updateUiConfig: async params => {
             const out = await trpcClient.updateUiConfig.mutate(params).catch(error => {
                 captureError(error);

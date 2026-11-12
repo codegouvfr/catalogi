@@ -245,6 +245,8 @@ export interface AttributeDefinitionRepository {
     getByName: (name: string) => Promise<AttributeDefinition | undefined>;
     add: (def: AttributeDefinition) => Promise<void>;
     update: (name: string, patch: Partial<Omit<AttributeDefinition, "name" | "kind" | "createdAt">>) => Promise<void>;
+    getUsedValues: (name: string) => Promise<string[]>;
+    reorder: (names: string[]) => Promise<void>;
 }
 
 export interface UiConfigRepository {

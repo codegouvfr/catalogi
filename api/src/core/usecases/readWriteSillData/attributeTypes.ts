@@ -4,13 +4,22 @@
 
 import type { LocalizedString } from "../../ports/GetSoftwareExternalData";
 
-export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
+export type AttributeKind = "boolean" | "string" | "number" | "date" | "url" | "enum" | "text";
+
+export type AttributeOptionSeverity = "success" | "warning" | "error" | "info" | "new";
+
+export type AttributeOption = {
+    value: string;
+    label: LocalizedString;
+    severity?: AttributeOptionSeverity;
+};
 
 export type AttributeDefinition = {
     name: string;
     kind: AttributeKind;
     label: LocalizedString;
     description?: LocalizedString;
+    options?: AttributeOption[];
     displayInForm: boolean;
     editableByAdminOnly: boolean;
     displayInDetails: boolean;

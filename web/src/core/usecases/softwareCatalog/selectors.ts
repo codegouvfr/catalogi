@@ -640,7 +640,10 @@ const attributeNameFilterOptions = createSelector(
         });
 
         const getLabel = (attributeName: string) =>
-            ui?.attributeDefinitions.find(({ name }) => attributeName === name)?.label;
+            ui?.attributeDefinitions.find(
+                ({ name, kind }) =>
+                    attributeName === name && kind !== "enum" && kind !== "text"
+            )?.label;
 
         /** prettier-ignore */
         return Array.from(softwareCountInCurrentFilterByAttributeName.entries())
