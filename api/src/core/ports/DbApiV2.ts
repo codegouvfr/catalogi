@@ -214,6 +214,8 @@ export interface SourceRepository {
         params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">
     ) => Promise<DatabaseDataType.SourceRow>;
     updateLastImport: (params: { name: string; date: Date }) => Promise<boolean>;
+    // Throws when a stored credential cannot be decrypted, so a missing or wrong key fails fast.
+    encryptPlainCredentials: () => Promise<void>;
 }
 
 export type Session = {

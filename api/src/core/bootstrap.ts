@@ -28,6 +28,7 @@ import {
 } from "./usecases/discoverSourcesByRepository";
 import { resolveRepository } from "./adapters/resolveRepository";
 import { makeRepositoryCheckCache } from "./usecases/repositoryCheckCache";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -38,6 +39,7 @@ type ParamsOfBootstrapCore = {
     oidcKind: "http" | "test";
     oidcParams: OidcParams;
     initialAdminEmail?: string;
+    sourceCredentialsKey: SourceCredentialsKey | undefined;
 };
 
 export type Context = {
@@ -46,10 +48,13 @@ export type Context = {
     comptoirDuLibreApi: ComptoirDuLibreApi;
 };
 
-const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
+const getDbApiAndInitializeCache = (
+    dbConfig: DbConfig,
+    sourceCredentialsKey: SourceCredentialsKey | undefined
+): { dbApi: DbApiV2 } => {
     if (dbConfig.dbKind === "kysely") {
         return {
-            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb)
+            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb, { sourceCredentialsKey })
         };
     }
 
@@ -60,12 +65,14 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 export async function bootstrapCore(
     params: ParamsOfBootstrapCore
 ): Promise<{ dbApi: DbApiV2; context: Context; useCases: UseCasesUsedOnRouter }> {
-    const { dbConfig, oidcParams } = params;
+    const { dbConfig, oidcParams, sourceCredentialsKey } = params;
 
-    const { dbApi } = getDbApiAndInitializeCache(dbConfig);
+    const { dbApi } = getDbApiAndInitializeCache(dbConfig, sourceCredentialsKey);
 
     // Migrations own initialization. Startup only verifies database integrity.
     await dbApi.uiConfig.get();
+
+    await dbApi.source.encryptPlainCredentials();
 
     // clean up old sessions, where no user ended connecting (we do this on app start to avoid handling a cron job)
     await dbApi.session.deleteSessionsNotCompletedByUser();

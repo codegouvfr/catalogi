@@ -7,6 +7,7 @@ import { createKyselyPgDbApi } from "./adapters/dbApi/kysely/createPgDbApi";
 import { Database } from "./adapters/dbApi/kysely/kysely.database";
 import { DbApiV2 } from "./ports/DbApiV2";
 import { importFromSource } from "./usecases/importFromSource";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
@@ -17,12 +18,16 @@ type ParamsOfImportTool = {
     botUserEmail: string | undefined;
     sourceSlug: string;
     listToImport?: string[];
+    sourceCredentialsKey: SourceCredentialsKey | undefined;
 };
 
-const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
+const getDbApiAndInitializeCache = (
+    dbConfig: DbConfig,
+    sourceCredentialsKey: SourceCredentialsKey | undefined
+): { dbApi: DbApiV2 } => {
     if (dbConfig.dbKind === "kysely") {
         return {
-            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb)
+            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb, { sourceCredentialsKey })
         };
     }
 
@@ -31,9 +36,9 @@ const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
 };
 
 export async function importTool(params: ParamsOfImportTool): Promise<boolean> {
-    const { dbConfig, botUserEmail, listToImport, sourceSlug } = params;
+    const { dbConfig, botUserEmail, listToImport, sourceSlug, sourceCredentialsKey } = params;
 
-    const { dbApi } = getDbApiAndInitializeCache(dbConfig);
+    const { dbApi } = getDbApiAndInitializeCache(dbConfig, sourceCredentialsKey);
 
     if (!botUserEmail) throw new Error("[Loader:Import] No bot agent email provided");
 
