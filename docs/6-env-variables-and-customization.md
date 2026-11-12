@@ -26,6 +26,7 @@ The API validates its variables at startup and refuses to start if a required on
 | ENVIRONMENT                  | API, web      | ❌       | `local`       | `local`, `dev`, `staging`, `pre-production`, or `production` |
 | SENTRY_DSN_API               | API           | ❌       | -             | `https://key@sentry.example.com/1`                           |
 | SENTRY_DSN_WEB               | web           | ❌       | -             | `https://key@sentry.example.com/2`                           |
+| SOURCE_CREDENTIALS_KEY       | API, jobs     | ❌       | -             | output of `openssl rand -base64 32`                          |
 | REDIRECT_URL                 | API           | ❌       | -             | `https://catalogi.example.com`                               |
 | IMPORT_DATA_SOURCE_ORIGIN    | import job    | ❌       | `wikidata`    | `wikidata`                                                   |
 | IMPORT_DATA_IDS              | import job    | ❌       | -             | `Q123,Q456,Q789`                                             |
@@ -38,6 +39,7 @@ The API validates its variables at startup and refuses to start if a required on
 - `OIDC_*`, `APP_URL` and `CATALOGI_INITIAL_ADMIN_EMAIL` are described in [Authentication](3.1-authentication.md).
 - `REDIRECT_URL` completely disables the instance and redirects it to another URL.
 - `IMPORT_DATA_SOURCE_ORIGIN` is the slug of the source used by the import job, `IMPORT_DATA_IDS` the comma-separated identifiers to import from it, and `BOT_USER_EMAIL` the user the imported software is attributed to.
+- `SOURCE_CREDENTIALS_KEY` encrypts the source credentials at rest, see [Encryption of the credentials](#encryption-of-the-credentials).
 - `UPDATE_SKIP_TIMING` (in minutes) makes the update job skip external data refreshed more recently than that, and `UPDATE_SOFTWARE_IDS` restricts the update job to these software ids.
 
 ### ENVIRONMENT
@@ -199,6 +201,37 @@ WHERE slug = 'github-com';
 Any signed-in user can check a repository url in the software form, and the check uses the token of the forge instance. Give a GitLab instance the token of an account that sees only public projects (`read_api` scope): otherwise the name and description of every project the token can read are shown to whoever types their url.
 
 Only `https` repositories are checked. GitHub, gitlab.com and the GitLab instances already in `sources` are recognized for every user; any other host is probed (`/api/v4/metadata`) only when an administrator checks it, and is then registered as a source on creation. For other users, the url is kept as typed, without autofill.
+
+### Encryption of the credentials
+
+Without `SOURCE_CREDENTIALS_KEY`, the credentials of every source (`configuration.auth`) are stored in clear. With it, they are encrypted in the database and decrypted only in memory, by the API and the jobs. The other configuration keys stay in clear.
+
+To enable it:
+
+1. Generate a key: `openssl rand -base64 32`, and store it with your other secrets.
+2. Set the same `SOURCE_CREDENTIALS_KEY` on the API and on the jobs (update and imports).
+3. Restart the API. At startup, it encrypts the credentials still stored in clear; the credentials entered afterwards, from the admin page, are encrypted when saved. A credential set in SQL is encrypted at the next restart.
+
+To check it, every credential should start with `enc:v1:`:
+
+```sql
+SELECT slug, left(configuration->>'auth', 7) AS prefix
+FROM sources
+WHERE configuration->>'auth' IS NOT NULL;
+```
+
+Once a credential is encrypted:
+
+- The API refuses to start, and the jobs fail, without the key or with another one. The error message never contains the credential.
+- A copy of the database (to a pre-production for instance) needs the same key, or its credentials removed.
+- A version of Catalogi older than this feature would send the encrypted values to the forges as tokens, and the calls would fail: before going back to such a version, remove the credentials and enter them again afterwards.
+- If the key is lost, the credentials cannot be recovered. To change the key, or if it is lost, remove them, then enter them again from the admin page:
+
+```sql
+UPDATE sources SET configuration = configuration - 'auth' WHERE configuration ? 'auth';
+```
+
+An encrypted value is `enc:v1:` followed by the base64 of the 12-byte IV, the 16-byte authentication tag and the AES-256-GCM ciphertext, so it can be decrypted by hand with the key if needed.
 
 ## Translations
 
