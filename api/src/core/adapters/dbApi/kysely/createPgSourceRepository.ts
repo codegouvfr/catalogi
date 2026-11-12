@@ -4,10 +4,34 @@
 
 import { Kysely, sql } from "kysely";
 import { SourceRepository } from "../../../ports/DbApiV2";
-import { categoryByKind, Database, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
+import {
+    decryptSourceCredential,
+    encryptSourceCredential,
+    isEncryptedSourceCredential,
+    type SourceCredentialsKey
+} from "../../../../tools/sourceCredentialCipher";
+import { categoryByKind, Database, SourceConfig, USER_INPUT_SOURCE_SLUG } from "./kysely.database";
 import { stripNullOrUndefinedValues } from "./kysely.utils";
 
-export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository => ({
+const mapAuth = <Row extends { configuration?: SourceConfig }>(row: Row, map: (auth: string) => string): Row =>
+    row.configuration?.auth === undefined
+        ? row
+        : { ...row, configuration: { ...row.configuration, auth: map(row.configuration.auth) } };
+
+const decryptAuth = <Row extends { configuration?: SourceConfig }>(
+    key: SourceCredentialsKey | undefined,
+    row: Row
+): Row => mapAuth(row, auth => decryptSourceCredential(key, auth));
+
+const encryptAuth = (key: SourceCredentialsKey | undefined, configuration: SourceConfig): SourceConfig =>
+    key === undefined
+        ? configuration
+        : mapAuth({ configuration }, auth => encryptSourceCredential(key, auth)).configuration;
+
+export const createPgSourceRepository = (
+    db: Kysely<Database>,
+    { sourceCredentialsKey }: { sourceCredentialsKey: SourceCredentialsKey | undefined }
+): SourceRepository => ({
     getAll: async (params = { all: false }) => {
         const { all = false } = params;
         let req = db.selectFrom("sources").selectAll();
@@ -16,7 +40,9 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             req = req.where("slug", "!=", USER_INPUT_SOURCE_SLUG);
         }
 
-        return req.execute().then(rows => rows.map(row => stripNullOrUndefinedValues(row)));
+        return req
+            .execute()
+            .then(rows => rows.map(row => decryptAuth(sourceCredentialsKey, stripNullOrUndefinedValues(row))));
     },
     getByName: async (params: { name: string }) =>
         db
@@ -24,14 +50,14 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .selectAll()
             .where("slug", "=", params.name)
             .executeTakeFirst()
-            .then(row => (row ? stripNullOrUndefinedValues(row) : row)),
+            .then(row => (row ? decryptAuth(sourceCredentialsKey, stripNullOrUndefinedValues(row)) : row)),
     getLookupSource: async () =>
         db
             .selectFrom("sources")
             .selectAll()
             .where("isLookupSource", "=", true)
             .executeTakeFirstOrThrow(() => new Error("No lookup source is configured"))
-            .then(row => stripNullOrUndefinedValues(row)),
+            .then(row => decryptAuth(sourceCredentialsKey, stripNullOrUndefinedValues(row))),
     setLookupSource: async ({ slug }) =>
         db.transaction().execute(async trx => {
             await trx
@@ -83,7 +109,7 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .where("kind", "=", "wikidata")
             .orderBy("slug", "asc")
             .executeTakeFirstOrThrow()
-            .then(row => stripNullOrUndefinedValues(row)),
+            .then(row => decryptAuth(sourceCredentialsKey, stripNullOrUndefinedValues(row))),
     createIfMissing: async ({ slug, kind, url }) => {
         await db
             .insertInto("sources")
@@ -96,12 +122,14 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .selectAll()
             .where("slug", "=", slug)
             .executeTakeFirstOrThrow()
-            .then(row => stripNullOrUndefinedValues(row));
+            .then(row => decryptAuth(sourceCredentialsKey, stripNullOrUndefinedValues(row)));
     },
     update: async ({ slug, url, configuration }) => {
         const changes = {
             ...(url !== undefined && { url }),
-            ...(configuration !== undefined && { configuration: JSON.stringify(configuration) })
+            ...(configuration !== undefined && {
+                configuration: JSON.stringify(encryptAuth(sourceCredentialsKey, configuration))
+            })
         };
         if (Object.keys(changes).length === 0) return;
 
@@ -118,5 +146,25 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .where("slug", "=", params.name)
             .set({ "lastImport": params.date })
             .executeTakeFirst()
-            .then(res => !!res)
+            .then(res => !!res),
+    encryptPlainCredentials: async () => {
+        const rows = await db
+            .selectFrom("sources")
+            .select(["slug", sql<string>`configuration->>'auth'`.as("auth")])
+            .where(sql`configuration->>'auth'`, "is not", null)
+            .execute();
+
+        for (const { slug, auth } of rows) {
+            decryptSourceCredential(sourceCredentialsKey, auth);
+            if (sourceCredentialsKey === undefined || isEncryptedSourceCredential(auth)) continue;
+
+            const encrypted = encryptSourceCredential(sourceCredentialsKey, auth);
+            await db
+                .updateTable("sources")
+                .set({ configuration: sql`jsonb_set(configuration, '{auth}', to_jsonb(${encrypted}::text))` })
+                .where("slug", "=", slug)
+                .where(sql`configuration->>'auth'`, "=", auth)
+                .execute();
+        }
+    }
 });

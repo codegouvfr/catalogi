@@ -27,7 +27,7 @@ describe("ensureForgeSource", () => {
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { sourceCredentialsKey: undefined });
         ensureForgeSource = makeEnsureForgeSource({ dbApi });
     });
 
@@ -127,7 +127,7 @@ describe("importFromInnerIdentifiers with forge repositories", () => {
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { sourceCredentialsKey: undefined });
     });
 
     it("creates the forge source and binds the repository to the software", async () => {

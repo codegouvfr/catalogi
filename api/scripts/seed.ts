@@ -31,7 +31,7 @@ const seed = async () => {
 
     const db = new Kysely<Database>({ dialect: createPgDialect(dbUrl) });
 
-    const dbApi: DbApiV2 = createKyselyPgDbApi(db);
+    const dbApi: DbApiV2 = createKyselyPgDbApi(db, { sourceCredentialsKey: undefined });
 
     // Forge sources use the slug `ensureForgeSource` derives from the host, so the update job
     // reuses them instead of creating duplicates.

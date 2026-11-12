@@ -2,11 +2,14 @@
 // SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import { randomBytes } from "node:crypto";
 import { Kysely } from "kysely";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import type { Database, SourceCategory } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import type { DbApiV2 } from "../core/ports/DbApiV2";
+import { parseSourceCredentialsKey } from "../tools/sourceCredentialCipher";
 import { createSoftwareFormData, resetDB, testPgUrl } from "../tools/test.helpers";
 import { ApiCaller, createTestCaller, defaultUser } from "./createTestCaller";
 
@@ -201,5 +204,94 @@ describe("Admin sources RPC", () => {
         const lookupSource = await apiCaller.getLookupSource();
         expect(lookupSource.slug).toBe("wikidata");
         expect(lookupSource).not.toHaveProperty("configuration");
+    });
+});
+
+describe("Admin sources RPC with SOURCE_CREDENTIALS_KEY", () => {
+    const generateKey = () => parseSourceCredentialsKey(randomBytes(32).toString("base64"));
+    const sourceCredentialsKey = generateKey();
+    const adminUser: typeof defaultUser = { ...defaultUser, email: "sources.admin@example.com", role: "admin" };
+    let apiCaller: ApiCaller;
+    let dbApi: DbApiV2;
+    let kyselyDb: Kysely<Database>;
+
+    const getStoredConfiguration = async (slug: string) =>
+        (
+            await kyselyDb
+                .selectFrom("sources")
+                .select("configuration")
+                .where("slug", "=", slug)
+                .executeTakeFirstOrThrow()
+        ).configuration;
+
+    beforeAll(() => {
+        kyselyDb = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
+    });
+
+    afterAll(async () => {
+        await kyselyDb.destroy();
+    });
+
+    beforeEach(async () => {
+        await resetDB(kyselyDb);
+        await kyselyDb
+            .insertInto("sources")
+            .values([
+                {
+                    slug: "github-com",
+                    kind: "GitHub",
+                    category: "repository",
+                    url: "https://github.com/",
+                    configuration: JSON.stringify({ auth: "gh-secret", customHeader: "keep-me" })
+                },
+                { slug: "hal", kind: "HAL", category: "HAL", url: "https://hal.science" }
+            ])
+            .execute();
+        ({ apiCaller, dbApi } = await createTestCaller({
+            db: kyselyDb,
+            currentUser: adminUser,
+            sourceCredentialsKey
+        }));
+    });
+
+    afterEach(async () => {
+        await resetDB(kyselyDb);
+    });
+
+    it("encrypts the credentials stored in clear at startup, once, and reads them back in clear", async () => {
+        const stored = await getStoredConfiguration("github-com");
+
+        expect(stored).toEqual({ auth: expect.stringMatching(/^enc:v1:/), customHeader: "keep-me" });
+        expect(JSON.stringify(stored)).not.toContain("gh-secret");
+        expect((await dbApi.source.getByName({ name: "github-com" }))?.configuration).toEqual({
+            auth: "gh-secret",
+            customHeader: "keep-me"
+        });
+
+        await dbApi.source.encryptPlainCredentials();
+        expect(await getStoredConfiguration("github-com")).toEqual(stored);
+    });
+
+    it("encrypts a credential entered by an admin and never sends it back", async () => {
+        await apiCaller.updateSource({
+            slug: "hal",
+            configuration: { credential: { action: "replace", value: "hal-token" } }
+        });
+
+        expect((await getStoredConfiguration("hal"))?.auth).toMatch(/^enc:v1:/);
+        expect((await dbApi.source.getByName({ name: "hal" }))?.configuration).toEqual({ auth: "hal-token" });
+        expect(JSON.stringify(await apiCaller.getAdminSources())).not.toContain("hal-token");
+    });
+
+    it("refuses to start, or a job to read the sources, without the key or with another one", async () => {
+        await expect(createTestCaller({ db: kyselyDb, currentUser: undefined })).rejects.toThrow(
+            "SOURCE_CREDENTIALS_KEY is not set"
+        );
+        await expect(
+            createTestCaller({ db: kyselyDb, currentUser: undefined, sourceCredentialsKey: generateKey() })
+        ).rejects.toThrow("cannot be decrypted");
+        await expect(
+            createKyselyPgDbApi(kyselyDb, { sourceCredentialsKey: undefined }).source.getAll()
+        ).rejects.toThrow("SOURCE_CREDENTIALS_KEY is not set");
     });
 });
