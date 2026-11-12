@@ -1,0 +1,100 @@
+{
+    "/repos/codegouvfr/catalogi": {
+        "id": 612979682,
+        "full_name": "codegouvfr/catalogi",
+        "html_url": "https://github.com/codegouvfr/catalogi",
+        "description": "A Software Catalog application",
+        "homepage": "https://codegouvfr.github.io/catalogi/",
+        "license": null,
+        "topics": ["freesoftware", "opensource"]
+    },
+    "/repos/codegouvfr/catalogi/contributors": [
+        {
+            "login": "alice-example",
+            "id": 1001,
+            "type": "User"
+        },
+        {
+            "login": "bob-example",
+            "id": 1002,
+            "type": "User"
+        },
+        {
+            "login": "renovate[bot]",
+            "id": 29139614,
+            "type": "Bot"
+        },
+        {
+            "login": "carol-example",
+            "id": 1003,
+            "type": "User"
+        }
+    ],
+    "/repos/codegouvfr/catalogi/tags": [
+        {
+            "name": "v1.55.21",
+            "commit": {
+                "sha": "550c03adf78430e49979011bbcaea7a96846cbd2"
+            }
+        }
+    ],
+    "/repos/codegouvfr/catalogi/languages": {
+        "TypeScript": 1737602,
+        "JavaScript": 12944,
+        "Shell": 4795,
+        "Go Template": 4339,
+        "HTML": 1725
+    },
+    "/repos/codegouvfr/catalogi/commits": [
+        {
+            "commit": {
+                "author": {
+                    "date": "2026-11-12T09:25:58Z"
+                }
+            }
+        }
+    ],
+    "/repos/codegouvfr/catalogi/issues": [
+        {
+            "closed_at": "2026-11-05T11:51:08Z"
+        }
+    ],
+    "/repos/codegouvfr/catalogi/pulls": [
+        {
+            "closed_at": "2026-11-05T11:51:08Z"
+        }
+    ],
+    "/user/1001": {
+        "login": "alice-example",
+        "id": 1001,
+        "name": "Alice Example",
+        "html_url": "https://github.com/alice-example",
+        "twitter_username": "alice_example",
+        "gravatar_id": "",
+        "email": null,
+        "blog": "",
+        "company": "@ExampleOrg"
+    },
+    "/user/1002": {
+        "login": "bob-example",
+        "id": 1002,
+        "name": "Bob",
+        "html_url": "https://github.com/bob-example",
+        "twitter_username": null,
+        "gravatar_id": "",
+        "email": null,
+        "blog": "https://bob.example.org",
+        "company": "@OtherOrg"
+    },
+    "/user/1003": {
+        "login": "carol-example",
+        "id": 1003,
+        "name": null,
+        "html_url": "https://github.com/carol-example",
+        "twitter_username": null,
+        "gravatar_id": "",
+        "email": null,
+        "blog": "",
+        "company": null
+    }
+}
