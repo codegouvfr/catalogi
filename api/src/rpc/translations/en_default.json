@@ -594,6 +594,7 @@
             "options": "Allowed values",
             "optionsHint": "A saved value's identifier can no longer be changed. A value used by softwares cannot be removed.",
             "optionValue": "Identifier",
+            "optionLegend": "Value {{index}}",
             "optionSeverity": "Badge color",
             "severityNone": "Neutral",
             "severities": {

@@ -12,7 +12,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
 import { useCoreState } from "../../../core";
 import type { FormData } from "../../../core/usecases/softwareForm";
-import { useLang } from "../../i18n";
+import { useLang, useResolveLocalizedString } from "../../i18n";
 
 type SoftwareProtectionFormFieldPrefix = "dereferencing" | "edition";
 
@@ -331,6 +331,7 @@ const CustomAttributeFormField = ({
     errors: FieldErrors<ApiTypes.CustomAttributes>;
 }) => {
     const { lang } = useLang();
+    const { resolveLocalizedString } = useResolveLocalizedString();
     const { t } = useTranslation();
 
     const localizedLabel =
@@ -431,9 +432,7 @@ const CustomAttributeFormField = ({
                     </option>
                     {attributeDefinition.options?.map(option => (
                         <option key={option.value} value={option.value}>
-                            {typeof option.label === "string"
-                                ? option.label
-                                : (option.label[lang] ?? option.value)}
+                            {resolveLocalizedString(option.label)}
                         </option>
                     ))}
                 </Select>

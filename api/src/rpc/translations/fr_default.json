@@ -601,6 +601,7 @@
             "options": "Valeurs possibles",
             "optionsHint": "L'identifiant d'une valeur enregistrée n'est plus modifiable. Une valeur utilisée par des fiches ne peut pas être supprimée.",
             "optionValue": "Identifiant",
+            "optionLegend": "Valeur {{index}}",
             "optionSeverity": "Couleur du badge",
             "severityNone": "Neutre",
             "severities": {

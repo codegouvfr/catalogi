@@ -98,8 +98,8 @@ export const thunks = {
             dispatch(actions.saveStarted());
             try {
                 await sillApi.reorderAttributeDefinitions(params);
-                await refetch(dispatch, sillApi);
             } finally {
+                await refetch(dispatch, sillApi);
                 dispatch(actions.saveSettled());
             }
         }

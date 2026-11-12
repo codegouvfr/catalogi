@@ -244,7 +244,10 @@ export interface AttributeDefinitionRepository {
     getAll: () => Promise<AttributeDefinition[]>;
     getByName: (name: string) => Promise<AttributeDefinition | undefined>;
     add: (def: AttributeDefinition) => Promise<void>;
-    update: (name: string, patch: Partial<Omit<AttributeDefinition, "name" | "kind" | "createdAt">>) => Promise<void>;
+    update: (
+        name: string,
+        patch: Partial<Omit<AttributeDefinition, "name" | "kind" | "createdAt" | "displayOrder">>
+    ) => Promise<void>;
     getUsedValues: (name: string) => Promise<string[]>;
     reorder: (names: string[]) => Promise<void>;
 }
