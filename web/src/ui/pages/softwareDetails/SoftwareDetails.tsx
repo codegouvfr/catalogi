@@ -22,6 +22,10 @@ import {
     type NavSection
 } from "./SectionNav";
 import { DetailSection, DetailSubsection } from "./DetailSection";
+import {
+    CustomAttributeSubsections,
+    getCustomAttributeSubsections
+} from "./CustomAttributeDetails";
 import { ParticipationSection } from "./ParticipationSection";
 import { getNameComparator } from "./compareNames";
 import { UsefulLinks, getUsefulLinks } from "./UsefulLinks";
@@ -61,7 +65,7 @@ export default function SoftwareDetails(props: Props) {
 
     const { softwareDetails } = useCore().functions;
     const { currentUser } = useCoreState("userAuthentication", "currentUser");
-    const uiConfig = useCoreState("uiConfig", "main")?.uiConfig;
+    const { uiConfig, attributeDefinitions } = useCoreState("uiConfig", "main") ?? {};
     const { allSoftwares } = useCoreState("softwareCatalog", "main");
 
     const softwareIdByName = useMemo(
@@ -285,7 +289,27 @@ export default function SoftwareDetails(props: Props) {
         }
     ];
 
-    const visibleSections = sections.filter(({ content }) => content !== null);
+    const visibleSections = sections
+        .map(section => {
+            const subsections = !uiConfig?.softwareDetails.customAttributes.enabled
+                ? []
+                : getCustomAttributeSubsections({
+                      section: section.id,
+                      attributeDefinitions,
+                      customAttributes: software.customAttributes
+                  });
+            if (subsections.length === 0) return section;
+            return {
+                ...section,
+                content: (
+                    <>
+                        {section.content}
+                        <CustomAttributeSubsections subsections={subsections} />
+                    </>
+                )
+            };
+        })
+        .filter(({ content }) => content !== null);
 
     return (
         <>

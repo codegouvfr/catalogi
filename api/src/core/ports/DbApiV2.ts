@@ -246,7 +246,15 @@ export interface AttributeDefinitionRepository {
     add: (def: AttributeDefinition) => Promise<void>;
     update: (
         name: string,
-        patch: Partial<Omit<AttributeDefinition, "name" | "kind" | "createdAt" | "displayOrder">>
+        patch: Partial<
+            Omit<
+                AttributeDefinition,
+                "name" | "kind" | "createdAt" | "displayOrder" | "description" | "detailsSubsection"
+            > & {
+                description: LocalizedString | null;
+                detailsSubsection: LocalizedString | null;
+            }
+        >
     ) => Promise<void>;
     getUsedValues: (name: string) => Promise<string[]>;
     reorder: (names: string[]) => Promise<void>;

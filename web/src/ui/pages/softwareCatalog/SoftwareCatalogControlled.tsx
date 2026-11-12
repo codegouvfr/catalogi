@@ -68,6 +68,7 @@ export type Props = {
         attributeName: SoftwareCatalogState.AttributeName;
         attributeLabel: LocalizedString;
         option?: ApiTypes.AttributeOption;
+        subsection?: LocalizedString;
         softwareCount: number;
     }[];
     attributeNames: SoftwareCatalogState.AttributeName[];

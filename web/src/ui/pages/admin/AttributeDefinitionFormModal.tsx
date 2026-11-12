@@ -16,8 +16,8 @@ import { useRerenderOnStateChange } from "evt/hooks";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
 import { useCore, useCoreState } from "core";
-import { useLang } from "ui/i18n";
-import type { ApiTypes, LocalizedString } from "api";
+import { useLang, useResolveLocalizedString } from "ui/i18n";
+import { attributeDetailsSections, type ApiTypes, type LocalizedString } from "api";
 import {
     attributeCardIconValues,
     iconClassByValue,
@@ -78,8 +78,46 @@ type FormErrors = {
     name?: string;
     kind?: string;
     label?: string;
+    subsection?: string;
     options?: OptionErrors[];
 };
+
+export const sectionLabelKeys = {
+    summary: "softwareDetails.section summary",
+    usages: "softwareDetails.section usages",
+    deployment: "softwareDetails.section deployment",
+    "similar-software": "softwareDetails.section similar software",
+    sources: "softwareDetails.section sources"
+} as const satisfies Record<ApiTypes.AttributeDetailsSection, string>;
+
+type Subsection = {
+    section: ApiTypes.AttributeDetailsSection;
+    title: { fr: string; en: string };
+};
+
+const toSubsection = (
+    section: ApiTypes.AttributeDetailsSection,
+    title: LocalizedString
+): Subsection => ({
+    section,
+    title: { fr: pickLang(title, "fr"), en: pickLang(title, "en") }
+});
+
+const subsectionKey = ({ section, title }: Subsection) =>
+    JSON.stringify([section, title]);
+
+/** Subsections already used by an attribute, in attribute order */
+const getSubsections = (definitions: ApiTypes.AttributeDefinition[]): Subsection[] => [
+    ...new Map(
+        [...definitions]
+            .sort((a, b) => a.displayOrder - b.displayOrder)
+            .flatMap(({ detailsSection, detailsSubsection }) => {
+                if (detailsSubsection === undefined) return [];
+                const subsection = toSubsection(detailsSection, detailsSubsection);
+                return [[subsectionKey(subsection), subsection] as const];
+            })
+    ).values()
+];
 
 type FormState = {
     name: string;
@@ -91,6 +129,10 @@ type FormState = {
     displayInForm: boolean;
     editableByAdminOnly: boolean;
     displayInDetails: boolean;
+    /** "presentation", an existing subsection key, or `new:<section>` */
+    detailsPlacement: string;
+    subsectionFr: string;
+    subsectionEn: string;
     enableFiltering: boolean;
     required: boolean;
     displayInCardIcon: "" | AttributeCardIcon;
@@ -116,6 +158,14 @@ function makeInitialState(params: Mode | undefined): FormState {
             displayInForm: def.displayInForm,
             editableByAdminOnly: def.editableByAdminOnly,
             displayInDetails: def.displayInDetails,
+            detailsPlacement:
+                def.detailsSubsection === undefined
+                    ? "presentation"
+                    : subsectionKey(
+                          toSubsection(def.detailsSection, def.detailsSubsection)
+                      ),
+            subsectionFr: "",
+            subsectionEn: "",
             enableFiltering: def.enableFiltering,
             required: def.required,
             displayInCardIcon: def.displayInCardIcon ?? "",
@@ -138,6 +188,9 @@ function makeInitialState(params: Mode | undefined): FormState {
         displayInForm: true,
         editableByAdminOnly: false,
         displayInDetails: true,
+        detailsPlacement: "presentation",
+        subsectionFr: "",
+        subsectionEn: "",
         enableFiltering: false,
         required: false,
         displayInCardIcon: "",
@@ -149,7 +202,20 @@ export function AttributeDefinitionFormModal() {
     const { t } = useTranslation();
     const { classes, cx } = useStyles();
     const { adminAttributes } = useCore().functions;
-    const { isSaving } = useCoreState("adminAttributes", "main");
+    const { isSaving, definitions } = useCoreState("adminAttributes", "main");
+    const subsections = getSubsections(definitions);
+    const { resolveLocalizedString } = useResolveLocalizedString();
+    // Shows both titles when two subsections share one in the current language
+    const subsectionLabel = (subsection: Subsection) => {
+        const label = resolveLocalizedString(subsection.title);
+        const isAmbiguous = subsections.some(
+            other =>
+                other !== subsection &&
+                other.section === subsection.section &&
+                resolveLocalizedString(other.title) === label
+        );
+        return isAmbiguous ? `${subsection.title.fr} / ${subsection.title.en}` : label;
+    };
     const { lang } = useLang();
     const previewLabel = (option: OptionFormState) =>
         lang === "fr" ? option.labelFr : option.labelEn;
@@ -195,6 +261,27 @@ export function AttributeDefinitionFormModal() {
         if (!form.labelFr.trim() || !form.labelEn.trim()) {
             newErrors.label = t("admin.form.errors.labelRequired");
         }
+        const newSubsectionSection = attributeDetailsSections.find(
+            section => form.detailsPlacement === `new:${section}`
+        );
+        const subsection: Subsection | undefined =
+            newSubsectionSection !== undefined
+                ? {
+                      section: newSubsectionSection,
+                      title: {
+                          fr: form.subsectionFr.trim(),
+                          en: form.subsectionEn.trim()
+                      }
+                  }
+                : subsections.find(
+                      subsection => subsectionKey(subsection) === form.detailsPlacement
+                  );
+        if (
+            newSubsectionSection !== undefined &&
+            (!form.subsectionFr.trim() || !form.subsectionEn.trim())
+        ) {
+            newErrors.subsection = t("admin.form.errors.subsectionRequired");
+        }
         if (isEnum) {
             const optionErrors = form.options.map(
                 (option, index): OptionErrors => ({
@@ -232,6 +319,7 @@ export function AttributeDefinitionFormModal() {
             displayInForm: form.displayInForm,
             editableByAdminOnly: form.editableByAdminOnly,
             displayInDetails: form.displayInDetails,
+            detailsSection: subsection?.section ?? "summary",
             enableFiltering: form.enableFiltering,
             required: form.required,
             displayInCardIcon:
@@ -244,15 +332,22 @@ export function AttributeDefinitionFormModal() {
                   }))
                 : undefined
         };
+        const detailsSubsection = subsection?.title;
 
         try {
             if (isEdit) {
-                await adminAttributes.update({ name: form.name, ...shared });
+                await adminAttributes.update({
+                    name: form.name,
+                    ...shared,
+                    description: description ?? null,
+                    detailsSubsection: detailsSubsection ?? null
+                });
             } else {
                 await adminAttributes.create({
                     name: form.name,
                     kind: form.kind,
-                    ...shared
+                    ...shared,
+                    detailsSubsection
                 });
             }
             modal.close();
@@ -477,6 +572,56 @@ export function AttributeDefinitionFormModal() {
                     onChange: e => update("descriptionEn", e.target.value)
                 }}
             />
+            <Select
+                label={t("admin.form.detailsPlacement")}
+                nativeSelectProps={{
+                    value: form.detailsPlacement,
+                    onChange: e => update("detailsPlacement", e.target.value)
+                }}
+            >
+                {attributeDetailsSections.map(section => (
+                    <optgroup key={section} label={t(sectionLabelKeys[section])}>
+                        {section === "summary" && (
+                            <option value="presentation">
+                                {`${t(sectionLabelKeys.summary)} › ${t("previewTab.presentation")}`}
+                            </option>
+                        )}
+                        {subsections
+                            .filter(subsection => subsection.section === section)
+                            .map(subsection => (
+                                <option
+                                    key={subsectionKey(subsection)}
+                                    value={subsectionKey(subsection)}
+                                >
+                                    {`${t(sectionLabelKeys[section])} › ${subsectionLabel(subsection)}`}
+                                </option>
+                            ))}
+                        <option value={`new:${section}`}>
+                            {`${t(sectionLabelKeys[section])} › ${t("admin.form.newSubsection")}`}
+                        </option>
+                    </optgroup>
+                ))}
+            </Select>
+            {form.detailsPlacement.startsWith("new:") && (
+                <>
+                    <Input
+                        label={t("admin.form.detailsSubsectionFr")}
+                        state={errors.subsection ? "error" : "default"}
+                        stateRelatedMessage={errors.subsection}
+                        nativeInputProps={{
+                            value: form.subsectionFr,
+                            onChange: e => update("subsectionFr", e.target.value)
+                        }}
+                    />
+                    <Input
+                        label={t("admin.form.detailsSubsectionEn")}
+                        nativeInputProps={{
+                            value: form.subsectionEn,
+                            onChange: e => update("subsectionEn", e.target.value)
+                        }}
+                    />
+                </>
+            )}
             <fieldset className={fr.cx("fr-fieldset")}>
                 <legend className={fr.cx("fr-fieldset__legend")}>
                     {t("admin.form.displayInCardIcon")}

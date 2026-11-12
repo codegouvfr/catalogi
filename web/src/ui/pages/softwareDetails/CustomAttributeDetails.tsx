@@ -5,7 +5,8 @@ import Tooltip from "@mui/material/Tooltip";
 import type { ApiTypes } from "api";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
-import { useLang, useResolveLocalizedString } from "../../i18n";
+import { useLang, useResolveLocalizedString, type LocalizedString } from "../../i18n";
+import { DetailList, DetailSubsection } from "./DetailSection";
 
 export type AttributeDefinitionForDetailDisplay = Pick<
     ApiTypes.AttributeDefinition,
@@ -34,6 +35,69 @@ export const getDisplayedCustomAttributes = (params: {
 
         return [{ attributeDefinition, attributeValue }];
     });
+};
+
+type CustomAttributeSubsection = {
+    key: string;
+    title: LocalizedString;
+    displayedCustomAttributes: DisplayedCustomAttribute[];
+};
+
+/** Dedicated subsections of a details page section, left out when none of their attributes is filled in */
+export const getCustomAttributeSubsections = (params: {
+    section: string;
+    attributeDefinitions: ApiTypes.AttributeDefinition[] | undefined;
+    customAttributes: ApiTypes.CustomAttributes | undefined;
+}): CustomAttributeSubsection[] => {
+    const { section, attributeDefinitions = [], customAttributes } = params;
+
+    const definitionsByTitle = new Map<string, ApiTypes.AttributeDefinition[]>();
+    attributeDefinitions.forEach(attributeDefinition => {
+        const { detailsSection, detailsSubsection } = attributeDefinition;
+        if (detailsSection !== section || detailsSubsection === undefined) return;
+        const key = JSON.stringify(detailsSubsection);
+        definitionsByTitle.set(key, [
+            ...(definitionsByTitle.get(key) ?? []),
+            attributeDefinition
+        ]);
+    });
+
+    return [...definitionsByTitle].flatMap(([key, definitions]) => {
+        const displayedCustomAttributes = getDisplayedCustomAttributes({
+            attributeDefinitions: definitions,
+            customAttributes
+        });
+        if (displayedCustomAttributes.length === 0) return [];
+        return [
+            { key, title: definitions[0].detailsSubsection!, displayedCustomAttributes }
+        ];
+    });
+};
+
+export const CustomAttributeSubsections = (props: {
+    subsections: CustomAttributeSubsection[];
+}) => {
+    const { subsections } = props;
+    const { resolveLocalizedString } = useResolveLocalizedString();
+
+    return subsections.map(({ key, title, displayedCustomAttributes }) => (
+        <DetailSubsection key={key} title={resolveLocalizedString(title)}>
+            <DetailList
+                rows={displayedCustomAttributes.map(displayedCustomAttribute => ({
+                    key: displayedCustomAttribute.attributeDefinition.name,
+                    label: (
+                        <CustomAttributeLabel
+                            attributeDefinition={
+                                displayedCustomAttribute.attributeDefinition
+                            }
+                        />
+                    ),
+                    value: <CustomAttributeValue {...displayedCustomAttribute} />,
+                    isWide: displayedCustomAttribute.attributeDefinition.kind === "text"
+                }))}
+            />
+        </DetailSubsection>
+    ));
 };
 
 export const CustomAttributeLabel = (props: {

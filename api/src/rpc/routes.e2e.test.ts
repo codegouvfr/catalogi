@@ -548,6 +548,51 @@ describe("RPC e2e tests", () => {
             );
         });
 
+        it("clears an attribute description", async () => {
+            await createStatusAttributes();
+            await apiCaller.updateAttributeDefinition({ name: "statusEnum", description: { en: "x", fr: "x" } });
+            await apiCaller.updateAttributeDefinition({ name: "statusEnum", description: null });
+
+            const statusEnum = (await apiCaller.getAttributeDefinitions()).find(def => def.name === "statusEnum");
+            expect(statusEnum?.description).toBeUndefined();
+        });
+
+        it("places attributes in a dedicated subsection outside of the summary", async () => {
+            await createStatusAttributes();
+            const opinion = { en: "Interministerial opinion", fr: "Avis interministériel" };
+
+            expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
+                expect.objectContaining({ name: "statusEnum", detailsSection: "summary" })
+            );
+            await expect(
+                apiCaller.updateAttributeDefinition({ name: "statusEnum", detailsSection: "usages" })
+            ).rejects.toThrow("a subsection title is required outside of the summary section");
+            await expect(
+                apiCaller.updateAttributeDefinition({ name: "statusEnum", detailsSubsection: { en: " ", fr: "" } })
+            ).rejects.toThrow("subsection title must not be empty");
+
+            await apiCaller.updateAttributeDefinition({
+                name: "statusEnum",
+                detailsSection: "usages",
+                detailsSubsection: opinion
+            });
+            expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
+                expect.objectContaining({ name: "statusEnum", detailsSection: "usages", detailsSubsection: opinion })
+            );
+            await expect(
+                apiCaller.updateAttributeDefinition({ name: "statusEnum", detailsSubsection: null })
+            ).rejects.toThrow("a subsection title is required outside of the summary section");
+
+            await apiCaller.updateAttributeDefinition({
+                name: "statusEnum",
+                detailsSection: "summary",
+                detailsSubsection: null
+            });
+            const statusEnum = (await apiCaller.getAttributeDefinitions()).find(def => def.name === "statusEnum");
+            expect(statusEnum).toMatchObject({ detailsSection: "summary" });
+            expect(statusEnum?.detailsSubsection).toBeUndefined();
+        });
+
         it("only lets admins reorder attributes", async () => {
             ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
             await resetDB(kyselyDb);

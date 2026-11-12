@@ -19,7 +19,8 @@ import type { ApiTypes } from "api";
 import type { PageRoute } from "./route";
 import {
     AttributeDefinitionFormModal,
-    openAttributeDefinitionFormModal
+    openAttributeDefinitionFormModal,
+    sectionLabelKeys
 } from "./AttributeDefinitionFormModal";
 import { UiConfigEditor } from "./UiConfigEditor";
 import { SourcesTab } from "./SourcesTab";
@@ -330,6 +331,13 @@ function AttributeDefinitionRow(props: {
                 <code className={cx(fr.cx("fr-text--xs"), classes.identifier)}>
                     {def.name}
                 </code>
+                {def.detailsSubsection !== undefined && (
+                    <div
+                        className={cx(fr.cx("fr-text--xs", "fr-mb-0"), classes.placement)}
+                    >
+                        {`${t(sectionLabelKeys[def.detailsSection])} › ${resolveLocalizedString(def.detailsSubsection)}`}
+                    </div>
+                )}
             </td>
             <td className={classes.cellCentered}>{def.displayInForm ? "✅" : "❌"}</td>
             <td className={classes.cellCentered}>
@@ -390,6 +398,9 @@ const useStyles = tss.withName({ Admin }).create(() => ({
     },
     labelCell: {
         minWidth: "14rem"
+    },
+    placement: {
+        color: fr.colors.decisions.text.mention.grey.default
     },
     identifier: {
         opacity: 0.6,
