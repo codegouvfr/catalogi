@@ -5,7 +5,11 @@
 import { Generated, JSONColumnType } from "kysely";
 import { TransformRepoToRowOutput } from "./kysely.utils";
 import type { UiConfig } from "../../../uiConfigSchema";
-import type { AttributeDetailsSection, AttributeOption } from "../../../usecases/readWriteSillData/attributeTypes";
+import type {
+    AttributeCardIcon,
+    AttributeDetailsSection,
+    AttributeOption
+} from "../../../usecases/readWriteSillData/attributeTypes";
 
 // from https://schema.org/ScholarlyArticle
 export type ScholarlyArticle = {
@@ -287,7 +291,7 @@ type SoftwareAttributeDefinitionsTable = {
     displayInDetails: boolean;
     detailsSection: Generated<AttributeDetailsSection>;
     detailsSubsection: JSONColumnType<LocalizedString> | null;
-    displayInCardIcon: "computer" | "france" | "question" | "thumbs-up" | "chat" | "star" | null;
+    displayInCardIcon: AttributeCardIcon | null;
     enableFiltering: boolean;
     required: boolean;
     displayOrder: number;

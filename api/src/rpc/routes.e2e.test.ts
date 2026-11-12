@@ -406,7 +406,12 @@ describe("RPC e2e tests", () => {
 
     describe("enum and text custom attributes", () => {
         const statusOptions = [
-            { value: "recommended", label: { en: "Recommended", fr: "Recommandé" }, severity: "success" as const },
+            {
+                value: "recommended",
+                label: { en: "Recommended", fr: "Recommandé" },
+                severity: "success" as const,
+                icon: "check" as const
+            },
             { value: "notRecommended", label: { en: "Not recommended", fr: "Non recommandé" } }
         ];
 

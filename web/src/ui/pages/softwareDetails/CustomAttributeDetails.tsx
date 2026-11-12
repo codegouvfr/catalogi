@@ -1,11 +1,11 @@
 import { fr } from "@codegouvfr/react-dsfr";
-import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { CallOut } from "@codegouvfr/react-dsfr/CallOut";
 import Tooltip from "@mui/material/Tooltip";
-import type { ApiTypes } from "api";
+import { getDetailsSubsectionKey, type ApiTypes } from "api";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
 import { useLang, useResolveLocalizedString, type LocalizedString } from "../../i18n";
+import { AttributeOptionBadge } from "ui/shared/AttributeOptionBadge";
 import { DetailList, DetailSubsection } from "./DetailSection";
 
 export type AttributeDefinitionForDetailDisplay = Pick<
@@ -55,7 +55,7 @@ export const getCustomAttributeSubsections = (params: {
     attributeDefinitions.forEach(attributeDefinition => {
         const { detailsSection, detailsSubsection } = attributeDefinition;
         if (detailsSection !== section || detailsSubsection === undefined) return;
-        const key = JSON.stringify(detailsSubsection);
+        const key = getDetailsSubsectionKey(detailsSection, detailsSubsection);
         definitionsByTitle.set(key, [
             ...(definitionsByTitle.get(key) ?? []),
             attributeDefinition
@@ -184,9 +184,11 @@ export const CustomAttributeValue = (props: DisplayedCustomAttribute) => {
             );
             if (option === undefined) return String(attributeValue);
             return (
-                <Badge severity={option.severity} noIcon small as="span">
-                    {resolveLocalizedString(option.label)}
-                </Badge>
+                <AttributeOptionBadge
+                    label={resolveLocalizedString(option.label)}
+                    severity={option.severity}
+                    icon={option.icon}
+                />
             );
         }
         case "text":

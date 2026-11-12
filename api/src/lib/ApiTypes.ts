@@ -50,6 +50,7 @@ export type {
     AttributeKind,
     AttributeOption,
     AttributeOptionSeverity,
+    AttributeOptionIcon,
     AttributeDefinition,
     AttributeDetailsSection
 } from "../core/usecases/readWriteSillData/attributeTypes";

@@ -601,7 +601,7 @@
             "enableFiltering": "Activer le filtrage dans le catalogue",
             "required": "Champ obligatoire",
             "displayInCardIcon": "Icône dans la liste des résultats",
-            "iconNone": "aucune",
+            "iconNone": "Aucune",
             "options": "Valeurs possibles",
             "optionsHint": "L'identifiant d'une valeur enregistrée n'est plus modifiable. Une valeur utilisée par des fiches ne peut pas être supprimée.",
             "optionValue": "Identifiant",
@@ -615,6 +615,18 @@
                 "error": "Rouge",
                 "info": "Bleu",
                 "new": "Jaune"
+            },
+            "optionIcon": "Icône",
+            "optionIcons": {
+                "check": "Coche",
+                "eye": "Œil",
+                "warning": "Alerte",
+                "computer": "Ordinateur",
+                "france": "France",
+                "question": "Question",
+                "thumbs-up": "Pouce levé",
+                "chat": "Bulle",
+                "star": "Étoile"
             },
             "addOption": "Ajouter une valeur",
             "removeOption": "Supprimer",

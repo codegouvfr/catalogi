@@ -594,7 +594,7 @@
             "enableFiltering": "Enable filtering in catalog",
             "required": "Required field",
             "displayInCardIcon": "Icon in the results list",
-            "iconNone": "none",
+            "iconNone": "None",
             "options": "Allowed values",
             "optionsHint": "A saved value's identifier can no longer be changed. A value used by softwares cannot be removed.",
             "optionValue": "Identifier",
@@ -608,6 +608,18 @@
                 "error": "Red",
                 "info": "Blue",
                 "new": "Yellow"
+            },
+            "optionIcon": "Icon",
+            "optionIcons": {
+                "check": "Check",
+                "eye": "Eye",
+                "warning": "Warning",
+                "computer": "Computer",
+                "france": "France",
+                "question": "Question",
+                "thumbs-up": "Thumbs up",
+                "chat": "Chat",
+                "star": "Star"
             },
             "addOption": "Add a value",
             "removeOption": "Remove",

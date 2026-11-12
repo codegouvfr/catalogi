@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { createModal } from "@codegouvfr/react-dsfr/Modal";
@@ -10,14 +9,20 @@ import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import { Button } from "@codegouvfr/react-dsfr/Button";
-import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { Evt } from "evt";
 import { useRerenderOnStateChange } from "evt/hooks";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
 import { useCore, useCoreState } from "core";
 import { useLang, useResolveLocalizedString } from "ui/i18n";
-import { attributeDetailsSections, type ApiTypes, type LocalizedString } from "api";
+import {
+    attributeDetailsSections,
+    getDetailsSubsectionKey,
+    type ApiTypes,
+    type LocalizedString
+} from "api";
+import { AttributeOptionBadge } from "ui/shared/AttributeOptionBadge";
+import { IconChoice, OptionIconSelect } from "./OptionIconSelect";
 import {
     attributeCardIconValues,
     iconClassByValue,
@@ -61,6 +66,7 @@ type OptionFormState = {
     labelFr: string;
     labelEn: string;
     severity: "" | ApiTypes.AttributeOptionSeverity;
+    icon: "" | ApiTypes.AttributeOptionIcon;
     isSaved: boolean;
 };
 
@@ -69,6 +75,7 @@ const makeEmptyOption = (): OptionFormState => ({
     labelFr: "",
     labelEn: "",
     severity: "",
+    icon: "",
     isSaved: false
 });
 
@@ -104,7 +111,7 @@ const toSubsection = (
 });
 
 const subsectionKey = ({ section, title }: Subsection) =>
-    JSON.stringify([section, title]);
+    getDetailsSubsectionKey(section, title);
 
 /** Subsections already used by an attribute, in attribute order */
 const getSubsections = (definitions: ApiTypes.AttributeDefinition[]): Subsection[] => [
@@ -174,6 +181,7 @@ function makeInitialState(params: Mode | undefined): FormState {
                 labelFr: pickLang(option.label, "fr"),
                 labelEn: pickLang(option.label, "en"),
                 severity: option.severity ?? "",
+                icon: option.icon ?? "",
                 isSaved: true
             }))
         };
@@ -326,7 +334,8 @@ export function AttributeDefinitionFormModal() {
                 ? form.options.map(option => ({
                       value: option.value,
                       label: { fr: option.labelFr.trim(), en: option.labelEn.trim() },
-                      severity: option.severity === "" ? undefined : option.severity
+                      severity: option.severity === "" ? undefined : option.severity,
+                      icon: option.icon === "" ? undefined : option.icon
                   }))
                 : undefined
         };
@@ -462,6 +471,26 @@ export function AttributeDefinitionFormModal() {
                                             updateOption(index, "labelEn", e.target.value)
                                     }}
                                 />
+                                <Button
+                                    type="button"
+                                    className={classes.removeOption}
+                                    priority="tertiary no outline"
+                                    iconId="fr-icon-delete-line"
+                                    title={`${t("admin.form.removeOption")} ${option.value || index + 1}`}
+                                    disabled={form.options.length === 1}
+                                    onClick={() => {
+                                        update(
+                                            "options",
+                                            form.options.filter((_, i) => i !== index)
+                                        );
+                                        setErrors(prev => ({
+                                            ...prev,
+                                            options: prev.options?.filter(
+                                                (_, i) => i !== index
+                                            )
+                                        }));
+                                    }}
+                                />
                                 <Select
                                     label={t("admin.form.optionSeverity")}
                                     nativeSelectProps={{
@@ -484,25 +513,9 @@ export function AttributeDefinitionFormModal() {
                                         </option>
                                     ))}
                                 </Select>
-                                <Button
-                                    type="button"
-                                    className={classes.removeOption}
-                                    priority="tertiary no outline"
-                                    iconId="fr-icon-delete-line"
-                                    title={`${t("admin.form.removeOption")} ${option.value || index + 1}`}
-                                    disabled={form.options.length === 1}
-                                    onClick={() => {
-                                        update(
-                                            "options",
-                                            form.options.filter((_, i) => i !== index)
-                                        );
-                                        setErrors(prev => ({
-                                            ...prev,
-                                            options: prev.options?.filter(
-                                                (_, i) => i !== index
-                                            )
-                                        }));
-                                    }}
+                                <OptionIconSelect
+                                    value={option.icon}
+                                    onChange={icon => updateOption(index, "icon", icon)}
                                 />
                                 {previewLabel(option).trim() !== "" && (
                                     <p
@@ -512,14 +525,11 @@ export function AttributeDefinitionFormModal() {
                                         )}
                                     >
                                         {t("admin.form.optionPreview")}
-                                        <Badge
+                                        <AttributeOptionBadge
+                                            label={previewLabel(option)}
                                             severity={option.severity || undefined}
-                                            noIcon
-                                            small
-                                            as="span"
-                                        >
-                                            {previewLabel(option)}
-                                        </Badge>
+                                            icon={option.icon || undefined}
+                                        />
                                     </p>
                                 )}
                             </fieldset>
@@ -651,7 +661,7 @@ export function AttributeDefinitionFormModal() {
                         <IconChoice
                             key={v}
                             selected={form.displayInCardIcon === v}
-                            label={v}
+                            label={t(`admin.form.optionIcons.${v}`)}
                             onClick={() => update("displayInCardIcon", v)}
                         >
                             <i
@@ -709,36 +719,12 @@ export function AttributeDefinitionFormModal() {
     );
 }
 
-function IconChoice(props: {
-    selected: boolean;
-    label: string;
-    onClick: () => void;
-    children: ReactNode;
-}) {
-    const { selected, label, onClick, children } = props;
-    const { classes, cx } = useStyles();
-    return (
-        <button
-            type="button"
-            title={label}
-            aria-pressed={selected}
-            onClick={onClick}
-            className={cx(
-                fr.cx("fr-btn", "fr-btn--sm", !selected && "fr-btn--tertiary"),
-                classes.iconButton
-            )}
-        >
-            {children}
-        </button>
-    );
-}
-
 const useStyles = tss.withName({ AttributeDefinitionFormModal }).create(() => ({
     option: {
         border: 0,
         minWidth: 0,
         display: "grid",
-        gridTemplateColumns: "repeat(4, minmax(0, 1fr)) auto",
+        gridTemplateColumns: "repeat(3, minmax(0, 1fr)) auto",
         alignItems: "start",
         columnGap: fr.spacing("4v"),
         [fr.breakpoints.down("md")]: {
@@ -749,21 +735,19 @@ const useStyles = tss.withName({ AttributeDefinitionFormModal }).create(() => ({
         marginTop: fr.spacing("8v")
     },
     optionPreview: {
-        gridColumn: "1 / -1",
+        gridColumn: "3 / -1",
+        alignSelf: "end",
+        minHeight: "2.5rem",
         display: "flex",
         alignItems: "center",
         gap: fr.spacing("2v"),
-        marginTop: `-${fr.spacing("2v")}`
+        [fr.breakpoints.down("md")]: {
+            gridColumn: "1 / -1"
+        }
     },
     iconRow: {
         display: "flex",
         flexWrap: "wrap",
         gap: fr.spacing("2v")
-    },
-    iconButton: {
-        width: 40,
-        height: 40,
-        padding: 0,
-        justifyContent: "center"
     }
 }));

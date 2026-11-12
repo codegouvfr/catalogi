@@ -11,7 +11,7 @@ import memoize from "memoizee";
 import { id } from "tsafe/id";
 import { assert } from "tsafe/assert";
 import type { Equals } from "tsafe";
-import type { ApiTypes } from "api";
+import { getDetailsSubsectionKey, type ApiTypes } from "api";
 import { LocalizedString } from "../../../ui/i18n";
 import { name, type State, type Software } from "./state";
 import { selectors as uiConfigSelectors } from "../uiConfig.slice";
@@ -648,7 +648,7 @@ const attributeNameFilterOptions = createSelector(
         const subsectionKeys = definitions.map(({ detailsSection, detailsSubsection }) =>
             detailsSubsection === undefined
                 ? undefined
-                : JSON.stringify([detailsSection, detailsSubsection])
+                : getDetailsSubsectionKey(detailsSection, detailsSubsection)
         );
 
         const describeFilterKey = (filterKey: string) => {

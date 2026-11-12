@@ -12,7 +12,9 @@ import { isHttpUrl } from "../tools/isHttpUrl";
 import type { DbApiV2 } from "../core/ports/DbApiV2";
 import { Language, type LocalizedString } from "../core/ports/GetSoftwareExternalData";
 import {
+    attributeCardIcons,
     attributeDetailsSections,
+    attributeOptionIcons,
     type AttributeDetailsSection
 } from "../core/usecases/readWriteSillData/attributeTypes";
 import { UiConfig, uiConfigSchema } from "../core/uiConfigSchema";
@@ -782,7 +784,7 @@ const zInstanceFormData = (() => {
 })();
 
 const zAttributeKind = z.enum(["boolean", "string", "number", "date", "url", "enum", "text"]);
-const zDisplayInCardIcon = z.enum(["computer", "france", "question", "thumbs-up", "chat", "star"]);
+const zDisplayInCardIcon = z.enum(attributeCardIcons);
 const zLocalizedString = z.record(z.string(), z.string());
 
 const zAttributeDetailsSection = z.enum(attributeDetailsSections);
@@ -808,7 +810,8 @@ const zAttributeOptions = z
                     "value must start with a letter and contain only letters, digits and hyphens"
                 ),
             "label": zLocalizedString,
-            "severity": z.enum(["success", "warning", "error", "info", "new"]).optional()
+            "severity": z.enum(["success", "warning", "error", "info", "new"]).optional(),
+            "icon": z.enum(attributeOptionIcons).optional()
         })
     )
     .min(1)
