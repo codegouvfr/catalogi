@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { expect } from "vitest";
+import { expect, vi } from "vitest";
 import { DeclarationFormData, InstanceFormData, SoftwareFormData, Source } from "../core/usecases/readWriteSillData";
 import { Kysely } from "kysely";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
@@ -10,6 +10,21 @@ import { ExternalDataOriginKind, SoftwareExternalDataOption } from "../lib/ApiTy
 import { testUiConfig } from "./fixtures/testUiConfig";
 
 export const testPgUrl = process.env.TEST_DATABASE_URL ?? "postgresql://catalogi:pg_password@localhost:5432/db";
+
+// Octokit sends its requests through the global fetch: GitHub API paths are answered with the
+// given recorded responses (404 when missing), other hosts still reach the network.
+export const stubGitHubApi = (responseByPath: Record<string, unknown>) => {
+    const networkFetch = globalThis.fetch;
+
+    vi.stubGlobal("fetch", async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = new URL(input instanceof Request ? input.url : input);
+        if (url.origin !== "https://api.github.com") return networkFetch(input, init);
+
+        return url.pathname in responseByPath
+            ? Response.json(responseByPath[url.pathname])
+            : Response.json({ message: "Not Found" }, { status: 404 });
+    });
+};
 
 export const expectPromiseToFailWith = (promise: Promise<any>, errorMessage: string) => {
     return expect(promise).rejects.toThrow(errorMessage);

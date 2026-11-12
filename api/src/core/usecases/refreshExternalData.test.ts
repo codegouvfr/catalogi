@@ -3,13 +3,14 @@
 // SPDX-License-Identifier: MIT
 
 import { Kysely, sql } from "kysely";
-import { describe, it, beforeEach, expect } from "vitest";
+import { describe, it, beforeAll, beforeEach, expect } from "vitest";
 import {
     emptyExternalData,
     emptyExternalDataCleaned,
     expectToEqual,
     expectToMatchObject,
     resetDB,
+    stubGitHubApi,
     testPgUrl
 } from "../../tools/test.helpers";
 import type { DbApiV2 } from "../ports/DbApiV2";
@@ -143,6 +144,14 @@ describe("fetches software extra data (from different providers)", () => {
     let dbApi: DbApiV2;
     let db: Kysely<Database>;
     let craSoftwareId: number;
+
+    beforeAll(() =>
+        stubGitHubApi({
+            "/repos/facebook/create-react-app": { id: 63537249 },
+            "/repos/vitejs/vite": { id: 257485422 },
+            "/repos/apache/httpd": { id: 205423 }
+        })
+    );
 
     beforeEach(async () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
