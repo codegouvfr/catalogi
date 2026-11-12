@@ -27,7 +27,7 @@ import { SelectNext } from "ui/shared/SelectNext";
 import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
 import ListSubheader from "@mui/material/ListSubheader";
-import { Badge } from "@codegouvfr/react-dsfr/Badge";
+import { AttributeOptionBadge } from "ui/shared/AttributeOptionBadge";
 import { useEffectOnValueChange } from "powerhooks/useEffectOnValueChange";
 import { useCoreState } from "../../../core";
 
@@ -371,17 +371,15 @@ export function SoftwareCatalogSearch(props: Props) {
                                                         `${label} (${softwareCount})`
                                                     ) : (
                                                         <>
-                                                            {label} :{" "}
-                                                            <Badge
-                                                                severity={option.severity}
-                                                                noIcon
-                                                                small
-                                                                as="span"
-                                                            >
-                                                                {resolveLocalizedString(
+                                                            {label}
+                                                            {lang === "fr" ? " : " : ": "}
+                                                            <AttributeOptionBadge
+                                                                label={resolveLocalizedString(
                                                                     option.label
                                                                 )}
-                                                            </Badge>{" "}
+                                                                severity={option.severity}
+                                                                icon={option.icon}
+                                                            />{" "}
                                                             ({softwareCount})
                                                         </>
                                                     )

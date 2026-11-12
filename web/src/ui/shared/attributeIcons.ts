@@ -21,3 +21,13 @@ export const iconClassByValue: Record<AttributeCardIcon, FrIconClassName> = {
 export const attributeCardIconValues = Object.keys(
     iconClassByValue
 ) as AttributeCardIcon[];
+
+export const optionIconClassByValue: Record<
+    ApiTypes.AttributeOptionIcon,
+    FrIconClassName
+> = {
+    check: "fr-icon-checkbox-circle-fill",
+    eye: "fr-icon-eye-fill",
+    warning: "fr-icon-warning-fill",
+    ...iconClassByValue
+};

@@ -2434,6 +2434,53 @@
                             "additionalProperties": false,
                             "required": ["success", "warning", "error", "info", "new"]
                         },
+                        "optionIcon": {
+                            "type": "string"
+                        },
+                        "optionIcons": {
+                            "type": "object",
+                            "properties": {
+                                "check": {
+                                    "type": "string"
+                                },
+                                "eye": {
+                                    "type": "string"
+                                },
+                                "warning": {
+                                    "type": "string"
+                                },
+                                "computer": {
+                                    "type": "string"
+                                },
+                                "france": {
+                                    "type": "string"
+                                },
+                                "question": {
+                                    "type": "string"
+                                },
+                                "thumbs-up": {
+                                    "type": "string"
+                                },
+                                "chat": {
+                                    "type": "string"
+                                },
+                                "star": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": [
+                                "check",
+                                "eye",
+                                "warning",
+                                "computer",
+                                "france",
+                                "question",
+                                "thumbs-up",
+                                "chat",
+                                "star"
+                            ]
+                        },
                         "addOption": {
                             "type": "string"
                         },
@@ -2517,6 +2564,8 @@
                         "optionPreview",
                         "severityNone",
                         "severities",
+                        "optionIcon",
+                        "optionIcons",
                         "addOption",
                         "removeOption",
                         "save",
