@@ -28,6 +28,7 @@ import type { OidcParams } from "../core/usecases/auth/oidcClient";
 import { resolveAdapterFromSource } from "../core/adapters/resolveAdapter";
 import { softwareExternalDataOptionSchema } from "../core/ports/GetSoftwareExternalDataOptions";
 import { sanitizeSoftwareFormDataCustomAttributes } from "../core/usecases/sanitizeSoftwareFormDataCustomAttributes";
+import { getInvalidCustomAttributeNames } from "../core/usecases/getInvalidCustomAttributeNames";
 import {
     ProtectionReasonRequiredError,
     SoftwareAlreadyExistsError,
@@ -68,6 +69,19 @@ export function createRouter(params: {
 
     const resolveUiConfig = async (): Promise<UiConfig> => {
         return dbApi.uiConfig.get();
+    };
+
+    const assertValidCustomAttributes = async (customAttributes: SoftwareFormData["customAttributes"]) => {
+        const invalidNames = getInvalidCustomAttributeNames({
+            attributeDefinitions: await dbApi.attributeDefinition.getAll(),
+            customAttributes: customAttributes ?? {}
+        });
+        if (invalidNames.length > 0) {
+            throw new TRPCError({
+                "code": "BAD_REQUEST",
+                "message": `Invalid value for custom attributes: ${invalidNames.join(", ")}.`
+            });
+        }
     };
 
     const t = initTRPC.context<Context>().create({
@@ -261,6 +275,7 @@ export function createRouter(params: {
                         formData,
                         isAdmin: currentUser.role === "admin"
                     });
+                    await assertValidCustomAttributes(sanitizedFormData.customAttributes);
 
                     const createdSoftwareId = await useCases.createSoftware({
                         formData: sanitizedFormData,
@@ -270,6 +285,7 @@ export function createRouter(params: {
 
                     await useCases.fetchAndSaveExternalDataForOneSoftwarePackage({ softwareId: createdSoftwareId });
                 } catch (e) {
+                    if (e instanceof TRPCError) throw e;
                     if (e instanceof SoftwareAlreadyExistsError) {
                         throw new TRPCError({ "code": "CONFLICT", "message": e.message });
                     }
@@ -298,6 +314,7 @@ export function createRouter(params: {
                     isAdmin: currentUser.role === "admin",
                     softwareId: softwareSillId
                 });
+                await assertValidCustomAttributes(sanitizedFormData.customAttributes);
 
                 try {
                     await useCases.updateSoftware({
@@ -531,28 +548,28 @@ export function createRouter(params: {
                 });
             }
 
-            const all = await dbApi.attributeDefinition.getAll();
-            const orderClash = all.find(a => a.displayOrder === input.displayOrder);
-            if (orderClash) {
+            if ((input.kind === "enum") !== (input.options !== undefined)) {
                 throw new TRPCError({
-                    "code": "CONFLICT",
-                    "message": `Display order ${input.displayOrder} is already used by "${orderClash.name}".`
+                    "code": "BAD_REQUEST",
+                    "message": "options are required for enum attributes and only allowed for them"
                 });
             }
 
+            const all = await dbApi.attributeDefinition.getAll();
             const now = new Date();
             await dbApi.attributeDefinition.add({
                 name: input.name,
                 kind: input.kind,
                 label: input.label,
                 description: input.description,
+                options: input.options,
                 displayInForm: input.displayInForm,
                 editableByAdminOnly: input.editableByAdminOnly,
                 displayInDetails: input.displayInDetails,
                 displayInCardIcon: input.displayInCardIcon,
                 enableFiltering: input.enableFiltering,
                 required: input.required,
-                displayOrder: input.displayOrder,
+                displayOrder: Math.max(-1, ...all.map(def => def.displayOrder)) + 1,
                 createdAt: now,
                 updatedAt: now
             });
@@ -567,18 +584,40 @@ export function createRouter(params: {
                     "message": `No attribute with name "${name}".`
                 });
             }
-            if (patch.displayOrder !== undefined && patch.displayOrder !== existing.displayOrder) {
-                const all = await dbApi.attributeDefinition.getAll();
-                const orderClash = all.find(a => a.name !== name && a.displayOrder === patch.displayOrder);
-                if (orderClash) {
+            if (patch.options !== undefined) {
+                if (existing.kind !== "enum") {
+                    throw new TRPCError({
+                        "code": "BAD_REQUEST",
+                        "message": `Only enum attributes have options, "${name}" is ${existing.kind}.`
+                    });
+                }
+                const keptValues = new Set(patch.options.map(option => option.value));
+                const removedUsedValues = (await dbApi.attributeDefinition.getUsedValues(name)).filter(
+                    value => !keptValues.has(value)
+                );
+                if (removedUsedValues.length > 0) {
                     throw new TRPCError({
                         "code": "CONFLICT",
-                        "message": `Display order ${patch.displayOrder} is already used by "${orderClash.name}".`
+                        "message": `Options still used by softwares cannot be removed: ${removedUsedValues.join(", ")}.`
                     });
                 }
             }
             await dbApi.attributeDefinition.update(name, patch);
         }),
+
+        "reorderAttributeDefinitions": adminProcedure
+            .input(z.object({ "names": z.array(z.string()) }))
+            .mutation(async ({ input }) => {
+                const existingNames = (await dbApi.attributeDefinition.getAll()).map(def => def.name);
+                const names = new Set(input.names);
+                if (names.size !== input.names.length || existingNames.sort().join() !== [...names].sort().join()) {
+                    throw new TRPCError({
+                        "code": "BAD_REQUEST",
+                        "message": "names must list every attribute exactly once"
+                    });
+                }
+                await dbApi.attributeDefinition.reorder(input.names);
+            }),
 
         "updateUiConfig": adminProcedure.input(uiConfigSchema).mutation(async ({ input }) => {
             await dbApi.uiConfig.save(input);
@@ -728,9 +767,27 @@ const zInstanceFormData = (() => {
     return zOut as z.ZodType<InstanceFormData>;
 })();
 
-const zAttributeKind = z.enum(["boolean", "string", "number", "date", "url"]);
+const zAttributeKind = z.enum(["boolean", "string", "number", "date", "url", "enum", "text"]);
 const zDisplayInCardIcon = z.enum(["computer", "france", "question", "thumbs-up", "chat", "star"]);
 const zLocalizedString = z.record(z.string(), z.string());
+
+const zAttributeOptions = z
+    .array(
+        z.object({
+            "value": z
+                .string()
+                .regex(
+                    /^[a-zA-Z][a-zA-Z0-9-]*$/,
+                    "value must start with a letter and contain only letters, digits and hyphens"
+                ),
+            "label": zLocalizedString,
+            "severity": z.enum(["success", "warning", "error", "info", "new"]).optional()
+        })
+    )
+    .min(1)
+    .refine(options => new Set(options.map(option => option.value)).size === options.length, {
+        "message": "option values must be unique"
+    });
 
 const zAttributeDefinitionCreate = z.object({
     "name": z
@@ -740,26 +797,26 @@ const zAttributeDefinitionCreate = z.object({
     "kind": zAttributeKind,
     "label": zLocalizedString,
     "description": zLocalizedString.optional(),
+    "options": zAttributeOptions.optional(),
     "displayInForm": z.boolean(),
     "editableByAdminOnly": z.boolean().default(false),
     "displayInDetails": z.boolean(),
     "displayInCardIcon": zDisplayInCardIcon.optional(),
     "enableFiltering": z.boolean(),
-    "required": z.boolean(),
-    "displayOrder": z.number().int()
+    "required": z.boolean()
 });
 
 const zAttributeDefinitionUpdate = z.object({
     "name": z.string().min(1),
     "label": zLocalizedString.optional(),
     "description": zLocalizedString.optional(),
+    "options": zAttributeOptions.optional(),
     "displayInForm": z.boolean().optional(),
     "editableByAdminOnly": z.boolean().optional(),
     "displayInDetails": z.boolean().optional(),
     "displayInCardIcon": zDisplayInCardIcon.optional(),
     "enableFiltering": z.boolean().optional(),
-    "required": z.boolean().optional(),
-    "displayOrder": z.number().int().optional()
+    "required": z.boolean().optional()
 });
 
 const withSourceErrors = async <T>(run: () => Promise<T>): Promise<T> => {

@@ -1,6 +1,7 @@
 import { fr } from "@codegouvfr/react-dsfr";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { RadioButtons } from "@codegouvfr/react-dsfr/RadioButtons";
+import { Select } from "@codegouvfr/react-dsfr/Select";
 import type { ApiTypes } from "api";
 import type { NonPostableEvt } from "evt";
 import { useEvt } from "evt/hooks";
@@ -387,6 +388,57 @@ const CustomAttributeFormField = ({
                 />
             );
 
+        case "text":
+            return (
+                <Input
+                    label={label}
+                    hintText={hintText}
+                    textArea
+                    state={
+                        isRequired && errors[attributeName] !== undefined
+                            ? "error"
+                            : undefined
+                    }
+                    stateRelatedMessage={t("app.required")}
+                    nativeTextAreaProps={{
+                        ...register(attributeName, { required: isRequired }),
+                        required: isRequired,
+                        rows: 6
+                    }}
+                />
+            );
+
+        case "enum":
+            return (
+                <Select
+                    label={label}
+                    hint={hintText}
+                    state={
+                        isRequired && errors[attributeName] !== undefined
+                            ? "error"
+                            : undefined
+                    }
+                    stateRelatedMessage={t("app.required")}
+                    nativeSelectProps={{
+                        ...register(attributeName, { required: isRequired }),
+                        required: isRequired
+                    }}
+                >
+                    <option value="">
+                        {isRequired
+                            ? t("softwareForm.selectAnOption")
+                            : t("app.not applicable")}
+                    </option>
+                    {attributeDefinition.options?.map(option => (
+                        <option key={option.value} value={option.value}>
+                            {typeof option.label === "string"
+                                ? option.label
+                                : (option.label[lang] ?? option.value)}
+                        </option>
+                    ))}
+                </Select>
+            );
+
         case "boolean":
             return (
                 <RadioButtons
@@ -447,6 +499,8 @@ const convertRawAttributeValueToCorrectType = ({
         case "string":
         case "date":
         case "url":
+        case "enum":
+        case "text":
             return rawValue ? rawValue : undefined;
         case "number":
             return rawValue !== null ? +rawValue : undefined;

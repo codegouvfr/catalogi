@@ -240,7 +240,8 @@ export const PreviewTab = (props: Props) => {
                         attributeDefinition={displayedCustomAttribute.attributeDefinition}
                     />
                 ),
-                value: <CustomAttributeValue {...displayedCustomAttribute} />
+                value: <CustomAttributeValue {...displayedCustomAttribute} />,
+                isWide: displayedCustomAttribute.attributeDefinition.kind === "text"
             })
         );
     }
@@ -279,10 +280,17 @@ export const PreviewTab = (props: Props) => {
             {rows.length > 0 && (
                 <DetailSubsection title={t("previewTab.presentation")}>
                     <dl className={classes.list}>
-                        {rows.map(({ key, label, value }) => (
+                        {rows.map(({ key, label, value, isWide }) => (
                             <Fragment key={key}>
                                 <dt className={classes.label}>{label}</dt>
-                                <dd className={classes.value}>{value}</dd>
+                                <dd
+                                    className={cx(
+                                        classes.value,
+                                        isWide && classes.wideValue
+                                    )}
+                                >
+                                    {value}
+                                </dd>
                             </Fragment>
                         ))}
                     </dl>
@@ -304,6 +312,7 @@ type Row = {
     key: string;
     label: ReactNode;
     value: ReactNode;
+    isWide?: boolean;
 };
 
 const useStyles = tss.withName({ PreviewTab }).create({
@@ -328,6 +337,9 @@ const useStyles = tss.withName({ PreviewTab }).create({
         [fr.breakpoints.down("md")]: {
             marginBottom: fr.spacing("3v")
         }
+    },
+    wideValue: {
+        gridColumn: "1 / -1"
     },
     tags: {
         // Cancels the bottom margin DSFR puts on each tag row

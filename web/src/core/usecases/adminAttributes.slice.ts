@@ -91,5 +91,16 @@ export const thunks = {
             } finally {
                 dispatch(actions.saveSettled());
             }
+        },
+    reorder:
+        (params: TrpcRouterInput["reorderAttributeDefinitions"]) =>
+        async (dispatch, _, { sillApi }) => {
+            dispatch(actions.saveStarted());
+            try {
+                await sillApi.reorderAttributeDefinitions(params);
+                await refetch(dispatch, sillApi);
+            } finally {
+                dispatch(actions.saveSettled());
+            }
         }
 } satisfies Thunks;

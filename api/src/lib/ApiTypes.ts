@@ -48,6 +48,8 @@ export type {
     CustomAttributes,
     AttributeValue,
     AttributeKind,
+    AttributeOption,
+    AttributeOptionSeverity,
     AttributeDefinition
 } from "../core/usecases/readWriteSillData/attributeTypes";
 

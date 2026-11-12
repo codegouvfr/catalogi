@@ -9,6 +9,7 @@ import { createModal } from "@codegouvfr/react-dsfr/Modal";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
+import { Button } from "@codegouvfr/react-dsfr/Button";
 import { Evt } from "evt";
 import { useRerenderOnStateChange } from "evt/hooks";
 import { useTranslation } from "react-i18next";
@@ -39,12 +40,48 @@ export function openAttributeDefinitionFormModal(params: Mode) {
 }
 
 const NAME_REGEX = /^[a-zA-Z][a-zA-Z0-9]*$/;
+const OPTION_VALUE_REGEX = /^[a-zA-Z][a-zA-Z0-9-]*$/;
 
-const KIND_VALUES = ["boolean", "string", "number", "date", "url"] as const;
+const KIND_VALUES = [
+    "boolean",
+    "string",
+    "number",
+    "date",
+    "url",
+    "enum",
+    "text"
+] as const;
+
+const SEVERITY_VALUES = ["success", "warning", "error", "info", "new"] as const;
+
+type OptionFormState = {
+    value: string;
+    labelFr: string;
+    labelEn: string;
+    severity: "" | ApiTypes.AttributeOptionSeverity;
+    isSaved: boolean;
+};
+
+const makeEmptyOption = (): OptionFormState => ({
+    value: "",
+    labelFr: "",
+    labelEn: "",
+    severity: "",
+    isSaved: false
+});
+
+type OptionErrors = { value?: string; labelFr?: boolean; labelEn?: boolean };
+
+type FormErrors = {
+    name?: string;
+    kind?: string;
+    label?: string;
+    options?: OptionErrors[];
+};
 
 type FormState = {
     name: string;
-    kind: ApiTypes.AttributeKind;
+    kind: "" | ApiTypes.AttributeKind;
     labelFr: string;
     labelEn: string;
     descriptionFr: string;
@@ -55,7 +92,7 @@ type FormState = {
     enableFiltering: boolean;
     required: boolean;
     displayInCardIcon: "" | AttributeCardIcon;
-    displayOrder: number;
+    options: OptionFormState[];
 };
 
 function pickLang(value: LocalizedString | undefined, lang: "fr" | "en"): string {
@@ -80,12 +117,18 @@ function makeInitialState(params: Mode | undefined): FormState {
             enableFiltering: def.enableFiltering,
             required: def.required,
             displayInCardIcon: def.displayInCardIcon ?? "",
-            displayOrder: def.displayOrder
+            options: (def.options ?? []).map(option => ({
+                value: option.value,
+                labelFr: pickLang(option.label, "fr"),
+                labelEn: pickLang(option.label, "en"),
+                severity: option.severity ?? "",
+                isSaved: true
+            }))
         };
     }
     return {
         name: "",
-        kind: "boolean",
+        kind: "",
         labelFr: "",
         labelEn: "",
         descriptionFr: "",
@@ -96,13 +139,13 @@ function makeInitialState(params: Mode | undefined): FormState {
         enableFiltering: false,
         required: false,
         displayInCardIcon: "",
-        displayOrder: 0
+        options: [makeEmptyOption()]
     };
 }
 
 export function AttributeDefinitionFormModal() {
     const { t } = useTranslation();
-    const { classes } = useStyles();
+    const { classes, cx } = useStyles();
     const { adminAttributes } = useCore().functions;
     const { isSaving } = useCoreState("adminAttributes", "main");
 
@@ -112,7 +155,7 @@ export function AttributeDefinitionFormModal() {
     const isEdit = params?.mode === "edit";
 
     const [form, setForm] = useState<FormState>(() => makeInitialState(params));
-    const [errors, setErrors] = useState<{ name?: string; label?: string }>({});
+    const [errors, setErrors] = useState<FormErrors>({});
 
     useEffect(() => {
         setForm(makeInitialState(params));
@@ -122,16 +165,51 @@ export function AttributeDefinitionFormModal() {
     const update = <K extends keyof FormState>(key: K, value: FormState[K]) =>
         setForm(prev => ({ ...prev, [key]: value }));
 
+    const updateOption = <K extends keyof OptionFormState>(
+        index: number,
+        key: K,
+        value: OptionFormState[K]
+    ) =>
+        setForm(prev => ({
+            ...prev,
+            options: prev.options.map((option, i) =>
+                i === index ? { ...option, [key]: value } : option
+            )
+        }));
+
+    const isEnum = form.kind === "enum";
+
     const submit = async () => {
-        const newErrors: { name?: string; label?: string } = {};
+        const newErrors: FormErrors = {};
         if (!isEdit && !NAME_REGEX.test(form.name)) {
             newErrors.name = t("admin.form.errors.invalidName");
+        }
+        if (form.kind === "") {
+            newErrors.kind = t("admin.form.errors.kindRequired");
         }
         if (!form.labelFr.trim() || !form.labelEn.trim()) {
             newErrors.label = t("admin.form.errors.labelRequired");
         }
+        if (isEnum) {
+            const optionErrors = form.options.map(
+                (option, index): OptionErrors => ({
+                    value: !OPTION_VALUE_REGEX.test(option.value)
+                        ? t("admin.form.errors.invalidOptionValue")
+                        : form.options.findIndex(
+                                ({ value }) => value === option.value
+                            ) !== index
+                          ? t("admin.form.errors.duplicateOptionValue")
+                          : undefined,
+                    labelFr: !option.labelFr.trim(),
+                    labelEn: !option.labelEn.trim()
+                })
+            );
+            if (optionErrors.some(e => e.value || e.labelFr || e.labelEn)) {
+                newErrors.options = optionErrors;
+            }
+        }
         setErrors(newErrors);
-        if (Object.keys(newErrors).length > 0) return;
+        if (Object.keys(newErrors).length > 0 || form.kind === "") return;
 
         const trimDescFr = form.descriptionFr.trim();
         const trimDescEn = form.descriptionEn.trim();
@@ -153,7 +231,13 @@ export function AttributeDefinitionFormModal() {
             required: form.required,
             displayInCardIcon:
                 form.displayInCardIcon === "" ? undefined : form.displayInCardIcon,
-            displayOrder: form.displayOrder
+            options: isEnum
+                ? form.options.map(option => ({
+                      value: option.value,
+                      label: { fr: option.labelFr.trim(), en: option.labelEn.trim() },
+                      severity: option.severity === "" ? undefined : option.severity
+                  }))
+                : undefined
         };
 
         try {
@@ -174,6 +258,7 @@ export function AttributeDefinitionFormModal() {
 
     return (
         <modal.Component
+            size="large"
             title={isEdit ? t("admin.form.editTitle") : t("admin.form.createTitle")}
             buttons={[
                 {
@@ -209,18 +294,126 @@ export function AttributeDefinitionFormModal() {
                 label={t("admin.form.kind")}
                 hint={isEdit ? undefined : t("admin.form.lockedAfterCreate")}
                 disabled={isEdit}
+                state={errors.kind ? "error" : "default"}
+                stateRelatedMessage={errors.kind}
                 nativeSelectProps={{
                     value: form.kind,
                     onChange: e =>
                         update("kind", e.target.value as ApiTypes.AttributeKind)
                 }}
             >
+                <option value="" disabled>
+                    {t("admin.form.kindPlaceholder")}
+                </option>
                 {KIND_VALUES.map(k => (
                     <option key={k} value={k}>
                         {k}
                     </option>
                 ))}
             </Select>
+            {isEnum && (
+                <fieldset className={fr.cx("fr-fieldset")}>
+                    <legend className={fr.cx("fr-fieldset__legend")}>
+                        {t("admin.form.options")}
+                        <span className={fr.cx("fr-hint-text")}>
+                            {t("admin.form.optionsHint")}
+                        </span>
+                    </legend>
+                    {form.options.map((option, index) => {
+                        const optionErrors = errors.options?.[index];
+                        return (
+                            <div
+                                key={index}
+                                className={cx(
+                                    fr.cx("fr-fieldset__element"),
+                                    classes.option
+                                )}
+                            >
+                                <Input
+                                    label={t("admin.form.optionValue")}
+                                    disabled={option.isSaved}
+                                    state={optionErrors?.value ? "error" : "default"}
+                                    stateRelatedMessage={optionErrors?.value}
+                                    nativeInputProps={{
+                                        value: option.value,
+                                        onChange: e =>
+                                            updateOption(index, "value", e.target.value)
+                                    }}
+                                />
+                                <Input
+                                    label={t("admin.form.labelFr")}
+                                    state={optionErrors?.labelFr ? "error" : "default"}
+                                    stateRelatedMessage={t("app.required")}
+                                    nativeInputProps={{
+                                        value: option.labelFr,
+                                        onChange: e =>
+                                            updateOption(index, "labelFr", e.target.value)
+                                    }}
+                                />
+                                <Input
+                                    label={t("admin.form.labelEn")}
+                                    state={optionErrors?.labelEn ? "error" : "default"}
+                                    stateRelatedMessage={t("app.required")}
+                                    nativeInputProps={{
+                                        value: option.labelEn,
+                                        onChange: e =>
+                                            updateOption(index, "labelEn", e.target.value)
+                                    }}
+                                />
+                                <Select
+                                    label={t("admin.form.optionSeverity")}
+                                    nativeSelectProps={{
+                                        value: option.severity,
+                                        onChange: e =>
+                                            updateOption(
+                                                index,
+                                                "severity",
+                                                e.target
+                                                    .value as OptionFormState["severity"]
+                                            )
+                                    }}
+                                >
+                                    <option value="">
+                                        {t("admin.form.severityNone")}
+                                    </option>
+                                    {SEVERITY_VALUES.map(severity => (
+                                        <option key={severity} value={severity}>
+                                            {t(`admin.form.severities.${severity}`)}
+                                        </option>
+                                    ))}
+                                </Select>
+                                <Button
+                                    type="button"
+                                    className={classes.removeOption}
+                                    priority="tertiary no outline"
+                                    iconId="fr-icon-delete-line"
+                                    title={`${t("admin.form.removeOption")} ${option.value || index + 1}`}
+                                    disabled={form.options.length === 1}
+                                    onClick={() =>
+                                        update(
+                                            "options",
+                                            form.options.filter((_, i) => i !== index)
+                                        )
+                                    }
+                                />
+                            </div>
+                        );
+                    })}
+                    <div className={fr.cx("fr-fieldset__element")}>
+                        <Button
+                            type="button"
+                            priority="secondary"
+                            size="small"
+                            iconId="fr-icon-add-line"
+                            onClick={() =>
+                                update("options", [...form.options, makeEmptyOption()])
+                            }
+                        >
+                            {t("admin.form.addOption")}
+                        </Button>
+                    </div>
+                </fieldset>
+            )}
 
             <h3 className={fr.cx("fr-h6", "fr-mt-4w")}>
                 {t("admin.form.sectionDisplay")}
@@ -284,15 +477,6 @@ export function AttributeDefinitionFormModal() {
                     ))}
                 </div>
             </fieldset>
-            <Input
-                label={t("admin.form.displayOrder")}
-                nativeInputProps={{
-                    type: "number",
-                    value: form.displayOrder,
-                    onChange: e =>
-                        update("displayOrder", Number.parseInt(e.target.value, 10) || 0)
-                }}
-            />
 
             <h3 className={fr.cx("fr-h6", "fr-mt-4w")}>
                 {t("admin.form.sectionBehavior")}
@@ -365,6 +549,18 @@ function IconChoice(props: {
 }
 
 const useStyles = tss.withName({ AttributeDefinitionFormModal }).create(() => ({
+    option: {
+        display: "grid",
+        gridTemplateColumns: "repeat(4, minmax(0, 1fr)) auto",
+        alignItems: "start",
+        columnGap: fr.spacing("4v"),
+        [fr.breakpoints.down("md")]: {
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))"
+        }
+    },
+    removeOption: {
+        marginTop: fr.spacing("8v")
+    },
     iconRow: {
         display: "flex",
         flexWrap: "wrap",

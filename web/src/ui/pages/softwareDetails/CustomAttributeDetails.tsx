@@ -1,4 +1,6 @@
 import { fr } from "@codegouvfr/react-dsfr";
+import { Badge } from "@codegouvfr/react-dsfr/Badge";
+import { CallOut } from "@codegouvfr/react-dsfr/CallOut";
 import Tooltip from "@mui/material/Tooltip";
 import type { ApiTypes } from "api";
 import { useTranslation } from "react-i18next";
@@ -7,7 +9,7 @@ import { useLang } from "../../i18n";
 
 export type AttributeDefinitionForDetailDisplay = Pick<
     ApiTypes.AttributeDefinition,
-    "name" | "kind" | "displayInDetails" | "label" | "description"
+    "name" | "kind" | "displayInDetails" | "label" | "description" | "options"
 >;
 
 type DisplayedCustomAttribute = {
@@ -111,6 +113,25 @@ export const CustomAttributeValue = (props: DisplayedCustomAttribute) => {
                     {attributeValue as string}
                 </a>
             );
+        case "enum": {
+            const option = attributeDefinition.options?.find(
+                ({ value }) => value === attributeValue
+            );
+            if (option === undefined) return String(attributeValue);
+            return (
+                <Badge severity={option.severity} noIcon small as="span">
+                    {typeof option.label === "string"
+                        ? option.label
+                        : (option.label[lang] ?? option.value)}
+                </Badge>
+            );
+        }
+        case "text":
+            return (
+                <CallOut classes={{ text: classes.longText }}>
+                    {String(attributeValue)}
+                </CallOut>
+            );
         case "number":
         case "string":
             return String(attributeValue);
@@ -135,6 +156,9 @@ const useStyles = tss.withName("CustomAttributeDetails").create({
         color: "inherit",
         cursor: "help",
         verticalAlign: "middle"
+    },
+    longText: {
+        whiteSpace: "pre-line"
     },
     booleanValue: {
         display: "inline-flex",

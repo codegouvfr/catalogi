@@ -428,6 +428,9 @@
                 "adminOnlyCustomAttributeHint": {
                     "type": "string"
                 },
+                "selectAnOption": {
+                    "type": "string"
+                },
                 "dereferencingProtectionLabel": {
                     "type": "string"
                 },
@@ -467,6 +470,7 @@
                 "creationRestrictedDescription",
                 "adminOnlyCustomAttributeBadge",
                 "adminOnlyCustomAttributeHint",
+                "selectAnOption",
                 "dereferencingProtectionLabel",
                 "dereferencingProtectionHint",
                 "dereferencingProtectionReasonLabel",
@@ -2254,9 +2258,6 @@
                         "columnRequired": {
                             "type": "string"
                         },
-                        "columnDisplayInCardIcon": {
-                            "type": "string"
-                        },
                         "columnDisplayOrder": {
                             "type": "string"
                         },
@@ -2267,6 +2268,18 @@
                             "type": "string"
                         },
                         "empty": {
+                            "type": "string"
+                        },
+                        "moveUp": {
+                            "type": "string"
+                        },
+                        "moveDown": {
+                            "type": "string"
+                        },
+                        "saveOrder": {
+                            "type": "string"
+                        },
+                        "cancelOrder": {
                             "type": "string"
                         }
                     },
@@ -2285,11 +2298,14 @@
                         "columnDisplayInDetails",
                         "columnEnableFiltering",
                         "columnRequired",
-                        "columnDisplayInCardIcon",
                         "columnDisplayOrder",
                         "columnActions",
                         "edit",
-                        "empty"
+                        "empty",
+                        "moveUp",
+                        "moveDown",
+                        "saveOrder",
+                        "cancelOrder"
                     ]
                 },
                 "form": {
@@ -2323,6 +2339,9 @@
                             "type": "string"
                         },
                         "kind": {
+                            "type": "string"
+                        },
+                        "kindPlaceholder": {
                             "type": "string"
                         },
                         "labelFr": {
@@ -2360,7 +2379,47 @@
                         "iconNone": {
                             "type": "string"
                         },
-                        "displayOrder": {
+                        "options": {
+                            "type": "string"
+                        },
+                        "optionsHint": {
+                            "type": "string"
+                        },
+                        "optionValue": {
+                            "type": "string"
+                        },
+                        "optionSeverity": {
+                            "type": "string"
+                        },
+                        "severityNone": {
+                            "type": "string"
+                        },
+                        "severities": {
+                            "type": "object",
+                            "properties": {
+                                "success": {
+                                    "type": "string"
+                                },
+                                "warning": {
+                                    "type": "string"
+                                },
+                                "error": {
+                                    "type": "string"
+                                },
+                                "info": {
+                                    "type": "string"
+                                },
+                                "new": {
+                                    "type": "string"
+                                }
+                            },
+                            "additionalProperties": false,
+                            "required": ["success", "warning", "error", "info", "new"]
+                        },
+                        "addOption": {
+                            "type": "string"
+                        },
+                        "removeOption": {
                             "type": "string"
                         },
                         "save": {
@@ -2378,10 +2437,25 @@
                                 "labelRequired": {
                                     "type": "string",
                                     "description": "Label for a form field or button"
+                                },
+                                "kindRequired": {
+                                    "type": "string"
+                                },
+                                "invalidOptionValue": {
+                                    "type": "string"
+                                },
+                                "duplicateOptionValue": {
+                                    "type": "string"
                                 }
                             },
                             "additionalProperties": false,
-                            "required": ["invalidName", "labelRequired"]
+                            "required": [
+                                "invalidName",
+                                "labelRequired",
+                                "kindRequired",
+                                "invalidOptionValue",
+                                "duplicateOptionValue"
+                            ]
                         }
                     },
                     "additionalProperties": false,
@@ -2396,6 +2470,7 @@
                         "lockedAfterCreate",
                         "namePlaceholder",
                         "kind",
+                        "kindPlaceholder",
                         "labelFr",
                         "labelEn",
                         "descriptionFr",
@@ -2407,7 +2482,14 @@
                         "required",
                         "displayInCardIcon",
                         "iconNone",
-                        "displayOrder",
+                        "options",
+                        "optionsHint",
+                        "optionValue",
+                        "optionSeverity",
+                        "severityNone",
+                        "severities",
+                        "addOption",
+                        "removeOption",
                         "save",
                         "cancel",
                         "errors"

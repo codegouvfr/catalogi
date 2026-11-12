@@ -5,6 +5,7 @@
 import { Generated, JSONColumnType } from "kysely";
 import { TransformRepoToRowOutput } from "./kysely.utils";
 import type { UiConfig } from "../../../uiConfigSchema";
+import type { AttributeOption } from "../../../usecases/readWriteSillData/attributeTypes";
 
 // from https://schema.org/ScholarlyArticle
 export type ScholarlyArticle = {
@@ -243,7 +244,7 @@ export type LookupSourceKind = (typeof lookupSourceKinds)[number];
 export const isLookupSourceKind = (kind: ExternalDataOriginKind): kind is LookupSourceKind =>
     (lookupSourceKinds as readonly ExternalDataOriginKind[]).includes(kind);
 type LocalizedString = Partial<Record<string, string>>;
-export type AttributeKind = "boolean" | "string" | "number" | "date" | "url";
+export type AttributeKind = "boolean" | "string" | "number" | "date" | "url" | "enum" | "text";
 
 type SimilarExternalSoftwareExternalDataTable = {
     softwareId: number;
@@ -280,6 +281,7 @@ type SoftwareAttributeDefinitionsTable = {
     kind: AttributeKind;
     label: JSONColumnType<LocalizedString>;
     description: JSONColumnType<LocalizedString> | null;
+    options: JSONColumnType<AttributeOption[]> | null;
     displayInForm: boolean;
     editableByAdminOnly: boolean;
     displayInDetails: boolean;

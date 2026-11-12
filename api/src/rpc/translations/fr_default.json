@@ -106,6 +106,7 @@
         "creationRestrictedDescription": "Désolé, l’ajout de logiciels n’est possible que par les administrateurs.",
         "adminOnlyCustomAttributeBadge": "Champ administrateur",
         "adminOnlyCustomAttributeHint": "Vous modifiez ce champ avec des droits administrateur. Les contributeurs non administrateurs ne peuvent pas le modifier.",
+        "selectAnOption": "Sélectionner une option",
         "dereferencingProtectionLabel": "Protéger ce logiciel contre le déréférencement",
         "dereferencingProtectionHint": "Seuls les administrateurs peuvent modifier cette protection.",
         "dereferencingProtectionReasonLabel": "Raison de la protection",
@@ -565,11 +566,14 @@
             "columnDisplayInDetails": "Détail",
             "columnEnableFiltering": "Filtre",
             "columnRequired": "Requis",
-            "columnDisplayInCardIcon": "Icône",
             "columnDisplayOrder": "Ordre",
             "columnActions": "Actions",
             "edit": "Modifier",
-            "empty": "Aucun attribut personnalisé défini."
+            "empty": "Aucun attribut personnalisé défini.",
+            "moveUp": "Monter {{label}}",
+            "moveDown": "Descendre {{label}}",
+            "saveOrder": "Enregistrer l'ordre",
+            "cancelOrder": "Annuler"
         },
         "form": {
             "createTitle": "Ajouter un attribut personnalisé",
@@ -582,6 +586,7 @@
             "lockedAfterCreate": "Ne sera plus modifiable après création.",
             "namePlaceholder": "isFromFrenchPublicService",
             "kind": "Type",
+            "kindPlaceholder": "Sélectionner un type",
             "labelFr": "Libellé (FR)",
             "labelEn": "Libellé (EN)",
             "descriptionFr": "Description (FR)",
@@ -593,12 +598,28 @@
             "required": "Champ obligatoire",
             "displayInCardIcon": "Icône dans la liste des résultats",
             "iconNone": "aucune",
-            "displayOrder": "Ordre d'affichage",
+            "options": "Valeurs possibles",
+            "optionsHint": "L'identifiant d'une valeur enregistrée n'est plus modifiable. Une valeur utilisée par des fiches ne peut pas être supprimée.",
+            "optionValue": "Identifiant",
+            "optionSeverity": "Couleur du badge",
+            "severityNone": "Neutre",
+            "severities": {
+                "success": "Vert",
+                "warning": "Orange",
+                "error": "Rouge",
+                "info": "Bleu",
+                "new": "Jaune"
+            },
+            "addOption": "Ajouter une valeur",
+            "removeOption": "Supprimer",
             "save": "Enregistrer",
             "cancel": "Annuler",
             "errors": {
                 "invalidName": "L'identifiant doit commencer par une lettre et ne contenir que des lettres et chiffres.",
-                "labelRequired": "Les libellés FR et EN sont obligatoires."
+                "labelRequired": "Les libellés FR et EN sont obligatoires.",
+                "kindRequired": "Choisissez un type.",
+                "invalidOptionValue": "Lettres, chiffres et tirets uniquement, en commençant par une lettre.",
+                "duplicateOptionValue": "Cet identifiant est déjà utilisé par une autre valeur."
             }
         }
     },

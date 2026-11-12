@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Kysely } from "kysely";
+import { Kysely, sql } from "kysely";
 import { AttributeDefinitionRepository } from "../../../ports/DbApiV2";
 import { Database } from "./kysely.database";
 import { stripNullOrUndefinedValues } from "./kysely.utils";
@@ -30,6 +30,7 @@ export const createPgAttributeDefinitionRepository = (db: Kysely<Database>): Att
                 kind: def.kind,
                 label: JSON.stringify(def.label),
                 description: def.description ? JSON.stringify(def.description) : null,
+                options: def.options ? JSON.stringify(def.options) : null,
                 displayInForm: def.displayInForm,
                 editableByAdminOnly: def.editableByAdminOnly,
                 displayInDetails: def.displayInDetails,
@@ -48,6 +49,7 @@ export const createPgAttributeDefinitionRepository = (db: Kysely<Database>): Att
         if (patch.label !== undefined) set.label = JSON.stringify(patch.label);
         if (patch.description !== undefined)
             set.description = patch.description ? JSON.stringify(patch.description) : null;
+        if (patch.options !== undefined) set.options = patch.options ? JSON.stringify(patch.options) : null;
         if (patch.displayInForm !== undefined) set.displayInForm = patch.displayInForm;
         if (patch.editableByAdminOnly !== undefined) set.editableByAdminOnly = patch.editableByAdminOnly;
         if (patch.displayInDetails !== undefined) set.displayInDetails = patch.displayInDetails;
@@ -56,5 +58,25 @@ export const createPgAttributeDefinitionRepository = (db: Kysely<Database>): Att
         if (patch.required !== undefined) set.required = patch.required;
         if (patch.displayOrder !== undefined) set.displayOrder = patch.displayOrder;
         await db.updateTable("software_attribute_definitions").set(set).where("name", "=", name).execute();
-    }
+    },
+    getUsedValues: async name => {
+        const value = sql<string>`"customAttributes" ->> ${name}`;
+        const rows = await db
+            .selectFrom("softwares")
+            .select(value.as("value"))
+            .distinct()
+            .where(value, "is not", null)
+            .execute();
+        return rows.map(row => row.value);
+    },
+    reorder: async names =>
+        db.transaction().execute(async trx => {
+            for (const [displayOrder, name] of names.entries()) {
+                await trx
+                    .updateTable("software_attribute_definitions")
+                    .set({ displayOrder })
+                    .where("name", "=", name)
+                    .execute();
+            }
+        })
 });

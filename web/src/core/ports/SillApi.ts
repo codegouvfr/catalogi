@@ -135,6 +135,9 @@ export type SillApi = {
     updateAttributeDefinition: (
         params: TrpcRouterInput["updateAttributeDefinition"]
     ) => Promise<TrpcRouterOutput["updateAttributeDefinition"]>;
+    reorderAttributeDefinitions: (
+        params: TrpcRouterInput["reorderAttributeDefinitions"]
+    ) => Promise<TrpcRouterOutput["reorderAttributeDefinitions"]>;
     updateUiConfig: (
         params: TrpcRouterInput["updateUiConfig"]
     ) => Promise<TrpcRouterOutput["updateUiConfig"]>;
