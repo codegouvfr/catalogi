@@ -655,7 +655,13 @@ const attributeNameFilterOptions = createSelector(
             const [attributeName, value] = filterKey.split(":");
             const rank = definitions.findIndex(({ name }) => name === attributeName);
             const definition = definitions[rank];
-            if (definition === undefined || definition.kind === "text") return undefined;
+            if (
+                definition === undefined ||
+                !definition.enableFiltering ||
+                definition.kind === "text"
+            ) {
+                return undefined;
+            }
             // Attributes without subsection first, then subsections in order of their first attribute
             const subsectionRank =
                 subsectionKeys[rank] === undefined
