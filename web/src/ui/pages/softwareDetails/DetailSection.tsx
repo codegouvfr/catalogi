@@ -128,6 +128,8 @@ const useStyles = tss.withName({ DetailSection }).create({
         rowGap: fr.spacing("4v"),
         alignItems: "baseline",
         margin: 0,
+        // DSFR indents `dl` and `dd`, the list stays aligned with the titles
+        paddingInlineStart: 0,
         [fr.breakpoints.down("md")]: {
             gridTemplateColumns: "minmax(0, 1fr)",
             rowGap: fr.spacing("1v")
@@ -139,12 +141,12 @@ const useStyles = tss.withName({ DetailSection }).create({
     },
     value: {
         margin: 0,
+        paddingInlineStart: 0,
         [fr.breakpoints.down("md")]: {
             marginBottom: fr.spacing("3v")
         }
     },
     wideValue: {
-        gridColumn: "1 / -1",
-        paddingInlineStart: 0
+        gridColumn: "1 / -1"
     }
 });
