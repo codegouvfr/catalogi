@@ -85,8 +85,8 @@ export const resolveDOIIdentifier = async (doiIdentifier: SchemaIdentifier): Pro
 
             if (record) {
                 return identifersUtils.makeZenodoIdentifer({
-                    zenodoId: record.id.toString(),
-                    url: urlValue.data.value
+                    zenodoId: record.conceptrecid.toString(),
+                    url: record.links.parent
                 });
             }
         }

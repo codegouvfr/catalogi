@@ -5,14 +5,14 @@
 import { DbApiV2 } from "../ports/DbApiV2";
 import { makeHalAPIGateway } from "../adapters/hal/HalAPI";
 import { makeCreateSofware } from "./createSoftware";
-import { Source } from "./readWriteSillData";
-import { GetSoftwareFormData } from "../ports/GetSoftwareFormData";
+import { SoftwareFormData, Source } from "./readWriteSillData";
 import { resolveAdapterFromSource } from "../adapters/resolveAdapter";
 import { makeZenodoApi } from "../adapters/zenodo/zenodoAPI";
-import { USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
-import { formatRecordToSoftwareFormData } from "../adapters/zenodo/getZenodoSoftwareForm";
+import { ExternalDataOriginKind, USER_INPUT_SOURCE_SLUG } from "../adapters/dbApi/kysely/kysely.database";
+import { formatExternalDataToFormData, formatRecordToSoftwareFormData } from "../adapters/zenodo/getZenodoSoftwareForm";
 import { saveExternalData } from "./refreshExternalData";
 import { formatRecordToExternalData } from "../adapters/zenodo/getZenodoExternalData";
+import { SoftwareExternal } from "../types/SoftwareTypes";
 
 export type ImportFromSource = (params: {
     userEmail: string;
@@ -50,13 +50,7 @@ export const importFromSource: (dbApi: DbApiV2) => ImportFromSource = (dbApi: Db
             console.info(`[UC:Import] Importing  ${softwareIds.length} software packages from ${source.slug}`);
 
             for (const externalId of softwareIds) {
-                const newId = await checkSoftware(
-                    dbApi,
-                    source,
-                    externalId,
-                    sourceGateway.software.getSoftwareForm,
-                    userId
-                );
+                const newId = await checkSoftware(dbApi, source, externalId, userId);
                 result.push(newId);
             }
         } else if (["Zenodo"].includes(source.kind)) {
@@ -92,24 +86,59 @@ const resolveAllIdsAccordingToSource = async (source: Source): Promise<string[]>
     }
 };
 
-const checkSoftware = async (
-    dbApi: DbApiV2,
-    source: Source,
-    externalId: string,
-    getSoftwareForm: GetSoftwareFormData,
-    userId: number
-) => {
-    // Get software form from source
-    const softwareForm = await getSoftwareForm({ externalId, source });
-    if (!softwareForm || !softwareForm.name) {
+const SOURCE_EXDATA_TO_FORM: ExternalDataOriginKind[] = ["Zenodo"];
+
+const checkSoftware = async (dbApi: DbApiV2, source: Source, externalId: string, userId: number) => {
+    const sourceGateway = resolveAdapterFromSource(source);
+    if (!sourceGateway?.software?.getSoftwareForm)
+        throw new Error("[UC:Import] Import if not possible from a secondary source");
+
+    const sources = await dbApi.source.getAll();
+
+    const exData = await dbApi.softwareExternalData.get({ sourceSlug: source.slug, externalId });
+
+    if (exData?.softwareId !== undefined) {
+        console.info(`[UC:Import] Importing (${externalId}) from ${source.slug} : Already existing`);
+        return exData.softwareId;
+    }
+
+    let formFromSource: SoftwareFormData | undefined = undefined;
+    let dataFromSource: SoftwareExternal | undefined = undefined;
+    if (SOURCE_EXDATA_TO_FORM.includes(source.kind) && sourceGateway.softwareExtra !== undefined) {
+        dataFromSource = await sourceGateway.softwareExtra.getSoftwareExternal({ externalId, source });
+
+        if (dataFromSource) {
+            if (source.kind === "Zenodo") formFromSource = formatExternalDataToFormData(dataFromSource);
+        }
+    }
+
+    if (!formFromSource) {
+        // Get software form from source
+        formFromSource = await sourceGateway.software.getSoftwareForm({ externalId, source });
+    }
+
+    if (!formFromSource || !formFromSource.name) {
         return undefined;
     }
 
     console.info(
-        `[UC:Import] Importing ${softwareForm.name}(${externalId}) from ${source.slug} : Adding software and externalData `
+        `[UC:Import] Importing ${formFromSource.name}(${formFromSource.externalIdForSource}) from ${formFromSource.sourceSlug} : Adding software and externalData `
     );
+
     const createSoftware = makeCreateSofware({ dbApi, withUserInput: false });
-    return createSoftware({ formData: softwareForm, userId });
+    const createdId = await createSoftware({ formData: formFromSource, userId });
+
+    if (dataFromSource && createdId) {
+        await saveExternalData({
+            dbApi,
+            sourceSlug: source.slug,
+            sources,
+            externalData: dataFromSource,
+            externalId: dataFromSource.externalId
+        });
+    }
+
+    return createdId;
 };
 
 const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; userId: number }) => {
@@ -134,7 +163,7 @@ const directImportFromSource = async (params: { dbApi: DbApiV2; source: Source; 
                     date: source.lastImport ?? new Date("1968")
                 });
 
-                if (softwareRecords.hits.hits.length === 0) {
+                if (!softwareRecords || softwareRecords?.hits?.hits.length === 0) {
                     end = false;
                     continue;
                 }
