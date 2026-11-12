@@ -5,7 +5,7 @@ import Tooltip from "@mui/material/Tooltip";
 import type { ApiTypes } from "api";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
-import { useLang } from "../../i18n";
+import { useLang, useResolveLocalizedString } from "../../i18n";
 
 export type AttributeDefinitionForDetailDisplay = Pick<
     ApiTypes.AttributeDefinition,
@@ -76,6 +76,7 @@ export const CustomAttributeValue = (props: DisplayedCustomAttribute) => {
     const { attributeDefinition, attributeValue } = props;
     const { classes, cx } = useStyles();
     const { lang } = useLang();
+    const { resolveLocalizedString } = useResolveLocalizedString();
     const { t } = useTranslation();
 
     switch (attributeDefinition.kind) {
@@ -120,9 +121,7 @@ export const CustomAttributeValue = (props: DisplayedCustomAttribute) => {
             if (option === undefined) return String(attributeValue);
             return (
                 <Badge severity={option.severity} noIcon small as="span">
-                    {typeof option.label === "string"
-                        ? option.label
-                        : (option.label[lang] ?? option.value)}
+                    {resolveLocalizedString(option.label)}
                 </Badge>
             );
         }

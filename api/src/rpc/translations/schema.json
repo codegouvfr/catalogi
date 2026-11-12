@@ -2388,6 +2388,9 @@
                         "optionValue": {
                             "type": "string"
                         },
+                        "optionLegend": {
+                            "type": "string"
+                        },
                         "optionSeverity": {
                             "type": "string"
                         },
@@ -2485,6 +2488,7 @@
                         "options",
                         "optionsHint",
                         "optionValue",
+                        "optionLegend",
                         "optionSeverity",
                         "severityNone",
                         "severities",

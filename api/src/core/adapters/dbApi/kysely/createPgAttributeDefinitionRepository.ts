@@ -56,7 +56,6 @@ export const createPgAttributeDefinitionRepository = (db: Kysely<Database>): Att
         if (patch.displayInCardIcon !== undefined) set.displayInCardIcon = patch.displayInCardIcon ?? null;
         if (patch.enableFiltering !== undefined) set.enableFiltering = patch.enableFiltering;
         if (patch.required !== undefined) set.required = patch.required;
-        if (patch.displayOrder !== undefined) set.displayOrder = patch.displayOrder;
         await db.updateTable("software_attribute_definitions").set(set).where("name", "=", name).execute();
     },
     getUsedValues: async name => {

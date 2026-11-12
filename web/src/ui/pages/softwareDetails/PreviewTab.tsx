@@ -339,7 +339,8 @@ const useStyles = tss.withName({ PreviewTab }).create({
         }
     },
     wideValue: {
-        gridColumn: "1 / -1"
+        gridColumn: "1 / -1",
+        paddingInlineStart: 0
     },
     tags: {
         // Cancels the bottom margin DSFR puts on each tag row

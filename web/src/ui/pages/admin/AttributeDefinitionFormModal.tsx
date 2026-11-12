@@ -10,11 +10,13 @@ import { Input } from "@codegouvfr/react-dsfr/Input";
 import { Select } from "@codegouvfr/react-dsfr/Select";
 import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { Evt } from "evt";
 import { useRerenderOnStateChange } from "evt/hooks";
 import { useTranslation } from "react-i18next";
 import { tss } from "tss-react";
 import { useCore, useCoreState } from "core";
+import { useLang } from "ui/i18n";
 import type { ApiTypes, LocalizedString } from "api";
 import {
     attributeCardIconValues,
@@ -148,6 +150,9 @@ export function AttributeDefinitionFormModal() {
     const { classes, cx } = useStyles();
     const { adminAttributes } = useCore().functions;
     const { isSaving } = useCoreState("adminAttributes", "main");
+    const { lang } = useLang();
+    const previewLabel = (option: OptionFormState) =>
+        lang === "fr" ? option.labelFr : option.labelEn;
 
     useRerenderOnStateChange(evtParams);
     const params = evtParams.state;
@@ -322,13 +327,16 @@ export function AttributeDefinitionFormModal() {
                     {form.options.map((option, index) => {
                         const optionErrors = errors.options?.[index];
                         return (
-                            <div
+                            <fieldset
                                 key={index}
                                 className={cx(
                                     fr.cx("fr-fieldset__element"),
                                     classes.option
                                 )}
                             >
+                                <legend className={fr.cx("fr-sr-only")}>
+                                    {t("admin.form.optionLegend", { index: index + 1 })}
+                                </legend>
                                 <Input
                                     label={t("admin.form.optionValue")}
                                     disabled={option.isSaved}
@@ -360,28 +368,41 @@ export function AttributeDefinitionFormModal() {
                                             updateOption(index, "labelEn", e.target.value)
                                     }}
                                 />
-                                <Select
-                                    label={t("admin.form.optionSeverity")}
-                                    nativeSelectProps={{
-                                        value: option.severity,
-                                        onChange: e =>
-                                            updateOption(
-                                                index,
-                                                "severity",
-                                                e.target
-                                                    .value as OptionFormState["severity"]
-                                            )
-                                    }}
-                                >
-                                    <option value="">
-                                        {t("admin.form.severityNone")}
-                                    </option>
-                                    {SEVERITY_VALUES.map(severity => (
-                                        <option key={severity} value={severity}>
-                                            {t(`admin.form.severities.${severity}`)}
+                                <div>
+                                    <Select
+                                        label={t("admin.form.optionSeverity")}
+                                        nativeSelectProps={{
+                                            value: option.severity,
+                                            onChange: e =>
+                                                updateOption(
+                                                    index,
+                                                    "severity",
+                                                    e.target
+                                                        .value as OptionFormState["severity"]
+                                                )
+                                        }}
+                                    >
+                                        <option value="">
+                                            {t("admin.form.severityNone")}
                                         </option>
-                                    ))}
-                                </Select>
+                                        {SEVERITY_VALUES.map(severity => (
+                                            <option key={severity} value={severity}>
+                                                {t(`admin.form.severities.${severity}`)}
+                                            </option>
+                                        ))}
+                                    </Select>
+                                    {previewLabel(option).trim() !== "" && (
+                                        <Badge
+                                            severity={option.severity || undefined}
+                                            noIcon
+                                            small
+                                            as="span"
+                                            className={classes.severityPreview}
+                                        >
+                                            {previewLabel(option)}
+                                        </Badge>
+                                    )}
+                                </div>
                                 <Button
                                     type="button"
                                     className={classes.removeOption}
@@ -389,14 +410,20 @@ export function AttributeDefinitionFormModal() {
                                     iconId="fr-icon-delete-line"
                                     title={`${t("admin.form.removeOption")} ${option.value || index + 1}`}
                                     disabled={form.options.length === 1}
-                                    onClick={() =>
+                                    onClick={() => {
                                         update(
                                             "options",
                                             form.options.filter((_, i) => i !== index)
-                                        )
-                                    }
+                                        );
+                                        setErrors(prev => ({
+                                            ...prev,
+                                            options: prev.options?.filter(
+                                                (_, i) => i !== index
+                                            )
+                                        }));
+                                    }}
                                 />
-                            </div>
+                            </fieldset>
                         );
                     })}
                     <div className={fr.cx("fr-fieldset__element")}>
@@ -550,6 +577,8 @@ function IconChoice(props: {
 
 const useStyles = tss.withName({ AttributeDefinitionFormModal }).create(() => ({
     option: {
+        border: 0,
+        minWidth: 0,
         display: "grid",
         gridTemplateColumns: "repeat(4, minmax(0, 1fr)) auto",
         alignItems: "start",
@@ -560,6 +589,9 @@ const useStyles = tss.withName({ AttributeDefinitionFormModal }).create(() => ({
     },
     removeOption: {
         marginTop: fr.spacing("8v")
+    },
+    severityPreview: {
+        marginTop: `-${fr.spacing("4v")}`
     },
     iconRow: {
         display: "flex",

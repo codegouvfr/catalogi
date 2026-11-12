@@ -173,27 +173,32 @@ function AttributeDefinitionsTable(props: {
     const { adminAttributes } = useCore().functions;
     const { isSaving } = useCoreState("adminAttributes", "main");
 
-    const savedOrder = useMemo(() => definitions.map(def => def.name), [definitions]);
-    const [draftOrder, setDraftOrder] = useState(savedOrder);
-    useEffect(() => {
-        setDraftOrder(savedOrder);
-    }, [savedOrder]);
+    // Unsaved order, kept across refetches; attributes created meanwhile go last.
+    const [draftOrder, setDraftOrder] = useState<string[] | undefined>(undefined);
+    const draftRank = ({ name }: ApiTypes.AttributeDefinition) => {
+        const rank = draftOrder?.indexOf(name) ?? -1;
+        return rank === -1 ? definitions.length : rank;
+    };
+    const orderedDefinitions =
+        draftOrder === undefined
+            ? definitions
+            : [...definitions].sort((a, b) => draftRank(a) - draftRank(b));
+    const isDirty = orderedDefinitions.some(
+        (def, index) => def.name !== definitions[index].name
+    );
 
-    const isDirty = draftOrder.some((name, index) => name !== savedOrder[index]);
-    const orderedDefinitions = draftOrder
-        .map(name => definitions.find(def => def.name === name))
-        .filter((def): def is ApiTypes.AttributeDefinition => def !== undefined);
-
-    const move = (index: number, offset: -1 | 1) =>
-        setDraftOrder(order => {
-            const next = [...order];
-            [next[index], next[index + offset]] = [next[index + offset], next[index]];
-            return next;
-        });
+    const move = (index: number, offset: -1 | 1) => {
+        const next = orderedDefinitions.map(def => def.name);
+        [next[index], next[index + offset]] = [next[index + offset], next[index]];
+        setDraftOrder(next);
+    };
 
     const saveOrder = async () => {
         try {
-            await adminAttributes.reorder({ names: draftOrder });
+            await adminAttributes.reorder({
+                names: orderedDefinitions.map(def => def.name)
+            });
+            setDraftOrder(undefined);
         } catch {
             /* sillApi.errorHandler already alerted the user */
         }
@@ -212,51 +217,50 @@ function AttributeDefinitionsTable(props: {
     ];
 
     return (
-        <>
-            <div className="fr-table fr-table--bordered">
-                <div className="fr-table__wrapper">
-                    <div className="fr-table__container">
-                        <div className="fr-table__content">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        {headers.map(({ label, centered }) => (
-                                            <th
-                                                key={label}
-                                                scope="col"
-                                                className={
-                                                    centered
-                                                        ? classes.cellCentered
-                                                        : undefined
-                                                }
-                                            >
-                                                {label}
-                                            </th>
-                                        ))}
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {orderedDefinitions.map((def, index) => (
-                                        <AttributeDefinitionRow
-                                            key={def.name}
-                                            def={def}
-                                            rank={index + 1}
-                                            canMoveUp={!isSaving && index > 0}
-                                            canMoveDown={
-                                                !isSaving &&
-                                                index < orderedDefinitions.length - 1
+        <div className="fr-table fr-table--bordered">
+            <div className="fr-table__wrapper">
+                <div className="fr-table__container">
+                    <div className="fr-table__content">
+                        <table>
+                            <thead>
+                                <tr>
+                                    {headers.map(({ label, centered }) => (
+                                        <th
+                                            key={label}
+                                            scope="col"
+                                            className={
+                                                centered
+                                                    ? classes.cellCentered
+                                                    : undefined
                                             }
-                                            onMove={offset => move(index, offset)}
-                                        />
+                                        >
+                                            {label}
+                                        </th>
                                     ))}
-                                </tbody>
-                            </table>
-                        </div>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {orderedDefinitions.map((def, index) => (
+                                    <AttributeDefinitionRow
+                                        key={def.name}
+                                        def={def}
+                                        rank={index + 1}
+                                        canMoveUp={!isSaving && index > 0}
+                                        canMoveDown={
+                                            !isSaving &&
+                                            index < orderedDefinitions.length - 1
+                                        }
+                                        onMove={offset => move(index, offset)}
+                                    />
+                                ))}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
             {isDirty && (
                 <ButtonsGroup
+                    className={classes.orderButtons}
                     inlineLayoutWhen="always"
                     buttonsSize="small"
                     buttons={[
@@ -269,13 +273,13 @@ function AttributeDefinitionsTable(props: {
                         {
                             priority: "secondary",
                             disabled: isSaving,
-                            onClick: () => setDraftOrder(savedOrder),
+                            onClick: () => setDraftOrder(undefined),
                             children: t("admin.customAttributes.cancelOrder")
                         }
                     ]}
                 />
             )}
-        </>
+        </div>
     );
 }
 
@@ -371,6 +375,9 @@ const useStyles = tss.withName({ Admin }).create(() => ({
     },
     cellCentered: {
         textAlign: "center"
+    },
+    orderButtons: {
+        marginTop: fr.spacing("4v")
     },
     moveButtons: {
         display: "inline-flex",

@@ -464,6 +464,21 @@ describe("RPC e2e tests", () => {
                     required: false
                 })
             ).rejects.toThrow("options are required for enum attributes");
+            await expect(
+                apiCaller.createAttributeDefinition({
+                    name: "textWithOptions",
+                    kind: "text",
+                    label: { en: "x", fr: "x" },
+                    options: statusOptions,
+                    displayInForm: true,
+                    displayInDetails: true,
+                    enableFiltering: false,
+                    required: false
+                })
+            ).rejects.toThrow("options are required for enum attributes");
+            await expect(
+                apiCaller.updateAttributeDefinition({ name: "statusText", options: statusOptions })
+            ).rejects.toThrow('Only enum attributes have options, "statusText" is text.');
 
             expect(await apiCaller.getAttributeDefinitions()).toContainEqual(
                 expect.objectContaining({ name: "statusEnum", kind: "enum", options: statusOptions })
@@ -493,6 +508,17 @@ describe("RPC e2e tests", () => {
             await expect(createSoftwareWith("Text invalid test", { statusText: 42 })).rejects.toThrow(
                 "Invalid value for custom attributes: statusText"
             );
+            await expect(
+                apiCaller.updateSoftware({
+                    softwareSillId: software.id,
+                    formData: createSoftwareFormData({
+                        sourceSlug: testSource.slug,
+                        name: "Enum valid test",
+                        similarSoftwareExternalDataItems: [],
+                        customAttributes: { statusEnum: "underStudy" } as never
+                    })
+                })
+            ).rejects.toThrow("Invalid value for custom attributes: statusEnum");
         });
 
         it("refuses to remove an option still used by a software", async () => {
@@ -522,6 +548,14 @@ describe("RPC e2e tests", () => {
             );
         });
 
+        it("only lets admins reorder attributes", async () => {
+            ({ kyselyDb } = await createTestCaller({ currentUser: undefined }));
+            await resetDB(kyselyDb);
+            ({ apiCaller, kyselyDb } = await createTestCaller({ db: kyselyDb, currentUser: defaultUser }));
+
+            await expect(apiCaller.reorderAttributeDefinitions({ names: [] })).rejects.toThrow("FORBIDDEN");
+        });
+
         it("appends new attributes and reorders them all at once", async () => {
             await createStatusAttributes();
             const names = (await apiCaller.getAttributeDefinitions()).map(def => def.name);
@@ -530,6 +564,9 @@ describe("RPC e2e tests", () => {
             await expect(apiCaller.reorderAttributeDefinitions({ names: ["statusText"] })).rejects.toThrow(
                 "names must list every attribute exactly once"
             );
+            await expect(
+                apiCaller.reorderAttributeDefinitions({ names: [...names.slice(0, -1), names[0]] })
+            ).rejects.toThrow("names must list every attribute exactly once");
 
             const reversed = [...names].reverse();
             await apiCaller.reorderAttributeDefinitions({ names: reversed });
