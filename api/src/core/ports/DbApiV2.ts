@@ -249,10 +249,17 @@ export interface AttributeDefinitionRepository {
         patch: Partial<
             Omit<
                 AttributeDefinition,
-                "name" | "kind" | "createdAt" | "displayOrder" | "description" | "detailsSubsection"
+                | "name"
+                | "kind"
+                | "createdAt"
+                | "displayOrder"
+                | "description"
+                | "detailsSubsection"
+                | "displayInCardIcon"
             > & {
                 description: LocalizedString | null;
                 detailsSubsection: LocalizedString | null;
+                displayInCardIcon: AttributeDefinition["displayInCardIcon"] | null;
             }
         >
     ) => Promise<void>;

@@ -71,7 +71,7 @@ export type Props = {
         attributeName: SoftwareCatalogState.AttributeName;
         attributeLabel: LocalizedString;
         option?: ApiTypes.AttributeOption;
-        subsection?: LocalizedString;
+        subsection?: { key: string; title: LocalizedString };
         softwareCount: number;
     }[];
     attributeNames: SoftwareCatalogState.AttributeName[];
@@ -339,17 +339,17 @@ export function SoftwareCatalogSearch(props: Props) {
                                     const label = resolveLocalizedString(attributeLabel);
                                     const isFirstOfSubsection =
                                         subsection !== undefined &&
-                                        JSON.stringify(subsection) !==
-                                            JSON.stringify(
-                                                attributeOptions[index - 1]?.subsection
-                                            );
+                                        subsection.key !==
+                                            attributeOptions[index - 1]?.subsection?.key;
                                     return [
                                         ...(isFirstOfSubsection
                                             ? [
                                                   <ListSubheader
                                                       key={`subsection-${attributeName}`}
                                                   >
-                                                      {resolveLocalizedString(subsection)}
+                                                      {resolveLocalizedString(
+                                                          subsection.title
+                                                      )}
                                                   </ListSubheader>
                                               ]
                                             : []),

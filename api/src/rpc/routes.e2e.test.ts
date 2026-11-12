@@ -548,13 +548,22 @@ describe("RPC e2e tests", () => {
             );
         });
 
-        it("clears an attribute description", async () => {
+        it("clears an attribute description and card icon", async () => {
             await createStatusAttributes();
-            await apiCaller.updateAttributeDefinition({ name: "statusEnum", description: { en: "x", fr: "x" } });
-            await apiCaller.updateAttributeDefinition({ name: "statusEnum", description: null });
+            await apiCaller.updateAttributeDefinition({
+                name: "statusEnum",
+                description: { en: "x", fr: "x" },
+                displayInCardIcon: "star"
+            });
+            await apiCaller.updateAttributeDefinition({
+                name: "statusEnum",
+                description: null,
+                displayInCardIcon: null
+            });
 
             const statusEnum = (await apiCaller.getAttributeDefinitions()).find(def => def.name === "statusEnum");
             expect(statusEnum?.description).toBeUndefined();
+            expect(statusEnum?.displayInCardIcon).toBeUndefined();
         });
 
         it("places attributes in a dedicated subsection outside of the summary", async () => {
@@ -568,7 +577,7 @@ describe("RPC e2e tests", () => {
                 apiCaller.updateAttributeDefinition({ name: "statusEnum", detailsSection: "usages" })
             ).rejects.toThrow("a subsection title is required outside of the summary section");
             await expect(
-                apiCaller.updateAttributeDefinition({ name: "statusEnum", detailsSubsection: { en: " ", fr: "" } })
+                apiCaller.updateAttributeDefinition({ name: "statusEnum", detailsSubsection: { en: " ", fr: "Avis" } })
             ).rejects.toThrow("subsection title must not be empty");
 
             await apiCaller.updateAttributeDefinition({

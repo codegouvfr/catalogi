@@ -43,7 +43,7 @@ export const DetailSection = (props: DetailSectionProps) => {
                     {description}
                 </p>
             )}
-            {children}
+            <div>{children}</div>
         </section>
     );
 };
@@ -113,8 +113,8 @@ const useStyles = tss.withName({ DetailSection }).create({
     },
     subsection: {
         scrollMarginTop: sectionNavStickyTop,
-        // `~` rather than `+`: modals may sit between subsections
-        "& ~ &": {
+        // Spaced from any content before it; modals render nothing in place
+        "*:not(dialog) ~ &": {
             marginTop: fr.spacing("12v")
         }
     },

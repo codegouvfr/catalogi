@@ -786,9 +786,8 @@ const zDisplayInCardIcon = z.enum(["computer", "france", "question", "thumbs-up"
 const zLocalizedString = z.record(z.string(), z.string());
 
 const zAttributeDetailsSection = z.enum(attributeDetailsSections);
-const zDetailsSubsection = zLocalizedString.refine(title => Object.values(title).some(value => value.trim() !== ""), {
-    "message": "subsection title must not be empty"
-});
+const zSubsectionTitle = z.string().trim().min(1, "subsection title must not be empty");
+const zDetailsSubsection = z.object({ "fr": zSubsectionTitle, "en": zSubsectionTitle });
 
 const assertDetailsPlacement = (section: AttributeDetailsSection, subsection: LocalizedString | undefined) => {
     if (section !== "summary" && subsection === undefined) {
@@ -846,7 +845,7 @@ const zAttributeDefinitionUpdate = z.object({
     "displayInDetails": z.boolean().optional(),
     "detailsSection": zAttributeDetailsSection.optional(),
     "detailsSubsection": zDetailsSubsection.nullable().optional(),
-    "displayInCardIcon": zDisplayInCardIcon.optional(),
+    "displayInCardIcon": zDisplayInCardIcon.nullable().optional(),
     "enableFiltering": z.boolean().optional(),
     "required": z.boolean().optional()
 });
