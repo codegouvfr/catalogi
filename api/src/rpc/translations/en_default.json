@@ -585,7 +585,7 @@
             "descriptionFr": "Description (FR)",
             "descriptionEn": "Description (EN)",
             "detailsPlacement": "Location on the software page",
-            "newSubsection": "New subsection…",
+            "newSubsection": "+ New subsection…",
             "detailsSubsectionFr": "Subsection title (FR)",
             "detailsSubsectionEn": "Subsection title (EN)",
             "displayInForm": "Show in software form",
@@ -600,6 +600,7 @@
             "optionValue": "Identifier",
             "optionLegend": "Value {{index}}",
             "optionSeverity": "Badge color",
+            "optionPreview": "Preview:",
             "severityNone": "Neutral",
             "severities": {
                 "success": "Green",

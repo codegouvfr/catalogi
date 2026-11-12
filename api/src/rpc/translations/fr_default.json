@@ -592,7 +592,7 @@
             "descriptionFr": "Description (FR)",
             "descriptionEn": "Description (EN)",
             "detailsPlacement": "Emplacement sur la fiche",
-            "newSubsection": "Nouvelle sous-partie…",
+            "newSubsection": "+ Nouvelle sous-partie…",
             "detailsSubsectionFr": "Titre de la sous-partie (FR)",
             "detailsSubsectionEn": "Titre de la sous-partie (EN)",
             "displayInForm": "Afficher dans le formulaire logiciel",
@@ -607,6 +607,7 @@
             "optionValue": "Identifiant",
             "optionLegend": "Valeur {{index}}",
             "optionSeverity": "Couleur du badge",
+            "optionPreview": "Aperçu :",
             "severityNone": "Neutre",
             "severities": {
                 "success": "Vert",
