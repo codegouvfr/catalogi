@@ -2406,6 +2406,9 @@
                         "optionSeverity": {
                             "type": "string"
                         },
+                        "optionPreview": {
+                            "type": "string"
+                        },
                         "severityNone": {
                             "type": "string"
                         },
@@ -2511,6 +2514,7 @@
                         "optionValue",
                         "optionLegend",
                         "optionSeverity",
+                        "optionPreview",
                         "severityNone",
                         "severities",
                         "addOption",

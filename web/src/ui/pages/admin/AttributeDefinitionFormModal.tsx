@@ -463,41 +463,28 @@ export function AttributeDefinitionFormModal() {
                                             updateOption(index, "labelEn", e.target.value)
                                     }}
                                 />
-                                <div>
-                                    <Select
-                                        label={t("admin.form.optionSeverity")}
-                                        nativeSelectProps={{
-                                            value: option.severity,
-                                            onChange: e =>
-                                                updateOption(
-                                                    index,
-                                                    "severity",
-                                                    e.target
-                                                        .value as OptionFormState["severity"]
-                                                )
-                                        }}
-                                    >
-                                        <option value="">
-                                            {t("admin.form.severityNone")}
+                                <Select
+                                    label={t("admin.form.optionSeverity")}
+                                    nativeSelectProps={{
+                                        value: option.severity,
+                                        onChange: e =>
+                                            updateOption(
+                                                index,
+                                                "severity",
+                                                e.target
+                                                    .value as OptionFormState["severity"]
+                                            )
+                                    }}
+                                >
+                                    <option value="">
+                                        {t("admin.form.severityNone")}
+                                    </option>
+                                    {SEVERITY_VALUES.map(severity => (
+                                        <option key={severity} value={severity}>
+                                            {t(`admin.form.severities.${severity}`)}
                                         </option>
-                                        {SEVERITY_VALUES.map(severity => (
-                                            <option key={severity} value={severity}>
-                                                {t(`admin.form.severities.${severity}`)}
-                                            </option>
-                                        ))}
-                                    </Select>
-                                    {previewLabel(option).trim() !== "" && (
-                                        <Badge
-                                            severity={option.severity || undefined}
-                                            noIcon
-                                            small
-                                            as="span"
-                                            className={classes.severityPreview}
-                                        >
-                                            {previewLabel(option)}
-                                        </Badge>
-                                    )}
-                                </div>
+                                    ))}
+                                </Select>
                                 <Button
                                     type="button"
                                     className={classes.removeOption}
@@ -518,6 +505,24 @@ export function AttributeDefinitionFormModal() {
                                         }));
                                     }}
                                 />
+                                {previewLabel(option).trim() !== "" && (
+                                    <p
+                                        className={cx(
+                                            fr.cx("fr-text--sm"),
+                                            classes.optionPreview
+                                        )}
+                                    >
+                                        {t("admin.form.optionPreview")}
+                                        <Badge
+                                            severity={option.severity || undefined}
+                                            noIcon
+                                            small
+                                            as="span"
+                                        >
+                                            {previewLabel(option)}
+                                        </Badge>
+                                    </p>
+                                )}
                             </fieldset>
                         );
                     })}
@@ -579,28 +584,37 @@ export function AttributeDefinitionFormModal() {
                     onChange: e => update("detailsPlacement", e.target.value)
                 }}
             >
-                {attributeDetailsSections.map(section => (
-                    <optgroup key={section} label={t(sectionLabelKeys[section])}>
-                        {section === "summary" && (
-                            <option value="presentation">
-                                {`${t(sectionLabelKeys.summary)} › ${t("previewTab.presentation")}`}
-                            </option>
-                        )}
-                        {subsections
-                            .filter(subsection => subsection.section === section)
-                            .map(subsection => (
-                                <option
-                                    key={subsectionKey(subsection)}
-                                    value={subsectionKey(subsection)}
-                                >
-                                    {`${t(sectionLabelKeys[section])} › ${subsectionLabel(subsection)}`}
-                                </option>
-                            ))}
-                        <option value={`new:${section}`}>
-                            {`${t(sectionLabelKeys[section])} › ${t("admin.form.newSubsection")}`}
+                {attributeDetailsSections.map(section => {
+                    // Only the selected option, shown in the closed select, repeats the section
+                    const placementOption = (value: string, label: string) => (
+                        <option key={value} value={value}>
+                            {value === form.detailsPlacement
+                                ? `${t(sectionLabelKeys[section])} › ${label}`
+                                : label}
                         </option>
-                    </optgroup>
-                ))}
+                    );
+                    return (
+                        <optgroup key={section} label={t(sectionLabelKeys[section])}>
+                            {section === "summary" &&
+                                placementOption(
+                                    "presentation",
+                                    t("previewTab.presentation")
+                                )}
+                            {subsections
+                                .filter(subsection => subsection.section === section)
+                                .map(subsection =>
+                                    placementOption(
+                                        subsectionKey(subsection),
+                                        subsectionLabel(subsection)
+                                    )
+                                )}
+                            {placementOption(
+                                `new:${section}`,
+                                t("admin.form.newSubsection")
+                            )}
+                        </optgroup>
+                    );
+                })}
             </Select>
             {form.detailsPlacement.startsWith("new:") && (
                 <>
@@ -735,8 +749,12 @@ const useStyles = tss.withName({ AttributeDefinitionFormModal }).create(() => ({
     removeOption: {
         marginTop: fr.spacing("8v")
     },
-    severityPreview: {
-        marginTop: `-${fr.spacing("4v")}`
+    optionPreview: {
+        gridColumn: "1 / -1",
+        display: "flex",
+        alignItems: "center",
+        gap: fr.spacing("2v"),
+        marginTop: `-${fr.spacing("2v")}`
     },
     iconRow: {
         display: "flex",
