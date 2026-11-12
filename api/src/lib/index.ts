@@ -19,6 +19,7 @@ export type { ApiTypes };
 
 export type { Os, RuntimePlatform } from "../core/types";
 export { osValues } from "../core/types";
+export { attributeDetailsSections } from "../core/usecases/readWriteSillData/attributeTypes";
 export { maxSourceSettingMs } from "../core/usecases/sourceConfiguration";
 export { uiConfigSchema } from "../core/uiConfigSchema";
 export { isHttpUrl } from "../tools/isHttpUrl";

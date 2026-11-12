@@ -50,7 +50,8 @@ export type {
     AttributeKind,
     AttributeOption,
     AttributeOptionSeverity,
-    AttributeDefinition
+    AttributeDefinition,
+    AttributeDetailsSection
 } from "../core/usecases/readWriteSillData/attributeTypes";
 
 export type { UiConfig, ConfigurableUseCaseName } from "../core/uiConfigSchema";

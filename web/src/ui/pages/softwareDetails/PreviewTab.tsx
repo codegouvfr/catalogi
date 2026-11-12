@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import { Fragment, type ReactNode } from "react";
 import { id } from "tsafe/id";
 import { useLang } from "ui/i18n";
 import { useTranslation } from "react-i18next";
@@ -20,7 +19,7 @@ import {
     CustomAttributeValue,
     getDisplayedCustomAttributes
 } from "./CustomAttributeDetails";
-import { DetailSubsection } from "./DetailSection";
+import { DetailList, DetailSubsection, type DetailRow } from "./DetailSection";
 
 //TODO: Do not use optional props (?) use ( | undefined ) instead
 // so we are sure that we don't forget to provide some props
@@ -71,7 +70,7 @@ export const PreviewTab = (props: Props) => {
         repoMetadata: repoMetadataConfig
     } = uiConfig.softwareDetails;
 
-    const rows: Row[] = [];
+    const rows: DetailRow[] = [];
 
     if (
         metadata.enabled &&
@@ -229,7 +228,12 @@ export const PreviewTab = (props: Props) => {
                     }
                 ]
             }),
-            ...getDisplayedCustomAttributes({ customAttributes, attributeDefinitions })
+            ...getDisplayedCustomAttributes({
+                customAttributes,
+                attributeDefinitions: attributeDefinitions.filter(
+                    ({ detailsSubsection }) => detailsSubsection === undefined
+                )
+            })
         ];
 
         displayedCustomAttributes.forEach(displayedCustomAttribute =>
@@ -279,21 +283,7 @@ export const PreviewTab = (props: Props) => {
         <>
             {rows.length > 0 && (
                 <DetailSubsection title={t("previewTab.presentation")}>
-                    <dl className={classes.list}>
-                        {rows.map(({ key, label, value, isWide }) => (
-                            <Fragment key={key}>
-                                <dt className={classes.label}>{label}</dt>
-                                <dd
-                                    className={cx(
-                                        classes.value,
-                                        isWide && classes.wideValue
-                                    )}
-                                >
-                                    {value}
-                                </dd>
-                            </Fragment>
-                        ))}
-                    </dl>
+                    <DetailList rows={rows} />
                 </DetailSubsection>
             )}
             <CnllServiceProviderModal
@@ -308,40 +298,7 @@ export const PreviewTab = (props: Props) => {
     );
 };
 
-type Row = {
-    key: string;
-    label: ReactNode;
-    value: ReactNode;
-    isWide?: boolean;
-};
-
 const useStyles = tss.withName({ PreviewTab }).create({
-    list: {
-        display: "grid",
-        gridTemplateColumns: "minmax(0, 3fr) minmax(0, 5fr)",
-        columnGap: fr.spacing("6v"),
-        rowGap: fr.spacing("4v"),
-        alignItems: "baseline",
-        margin: 0,
-        [fr.breakpoints.down("md")]: {
-            gridTemplateColumns: "minmax(0, 1fr)",
-            rowGap: fr.spacing("1v")
-        }
-    },
-    label: {
-        margin: 0,
-        color: fr.colors.decisions.text.mention.grey.default
-    },
-    value: {
-        margin: 0,
-        [fr.breakpoints.down("md")]: {
-            marginBottom: fr.spacing("3v")
-        }
-    },
-    wideValue: {
-        gridColumn: "1 / -1",
-        paddingInlineStart: 0
-    },
     tags: {
         // Cancels the bottom margin DSFR puts on each tag row
         marginBottom: `-${fr.spacing("2v")}`

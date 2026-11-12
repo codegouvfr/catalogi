@@ -2,7 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { tss } from "tss-react";
 import { cx } from "@codegouvfr/react-dsfr/tools/cx";
@@ -67,6 +67,32 @@ export const DetailSubsection = (props: DetailSubsectionProps) => {
     );
 };
 
+export type DetailRow = {
+    key: string;
+    label: ReactNode;
+    value: ReactNode;
+    /** Spans the whole width, under its label */
+    isWide?: boolean;
+};
+
+export const DetailList = (props: { rows: DetailRow[] }) => {
+    const { rows } = props;
+    const { classes } = useStyles();
+
+    return (
+        <dl className={classes.list}>
+            {rows.map(({ key, label, value, isWide }) => (
+                <Fragment key={key}>
+                    <dt className={classes.label}>{label}</dt>
+                    <dd className={cx(classes.value, isWide && classes.wideValue)}>
+                        {value}
+                    </dd>
+                </Fragment>
+            ))}
+        </dl>
+    );
+};
+
 const useStyles = tss.withName({ DetailSection }).create({
     section: {
         // Lands the title level with the stuck side menu
@@ -87,11 +113,38 @@ const useStyles = tss.withName({ DetailSection }).create({
     },
     subsection: {
         scrollMarginTop: sectionNavStickyTop,
-        "& + &": {
+        // `~` rather than `+`: modals may sit between subsections
+        "& ~ &": {
             marginTop: fr.spacing("12v")
         }
     },
     subsectionTitle: {
         marginBottom: fr.spacing("6v")
+    },
+    list: {
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 3fr) minmax(0, 5fr)",
+        columnGap: fr.spacing("6v"),
+        rowGap: fr.spacing("4v"),
+        alignItems: "baseline",
+        margin: 0,
+        [fr.breakpoints.down("md")]: {
+            gridTemplateColumns: "minmax(0, 1fr)",
+            rowGap: fr.spacing("1v")
+        }
+    },
+    label: {
+        margin: 0,
+        color: fr.colors.decisions.text.mention.grey.default
+    },
+    value: {
+        margin: 0,
+        [fr.breakpoints.down("md")]: {
+            marginBottom: fr.spacing("3v")
+        }
+    },
+    wideValue: {
+        gridColumn: "1 / -1",
+        paddingInlineStart: 0
     }
 });

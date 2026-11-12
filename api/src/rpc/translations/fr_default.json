@@ -591,6 +591,10 @@
             "labelEn": "Libellé (EN)",
             "descriptionFr": "Description (FR)",
             "descriptionEn": "Description (EN)",
+            "detailsPlacement": "Emplacement sur la fiche",
+            "newSubsection": "Nouvelle sous-partie…",
+            "detailsSubsectionFr": "Titre de la sous-partie (FR)",
+            "detailsSubsectionEn": "Titre de la sous-partie (EN)",
             "displayInForm": "Afficher dans le formulaire logiciel",
             "editableByAdminOnly": "Modifiable uniquement par les administrateurs",
             "displayInDetails": "Afficher sur la fiche détail",
@@ -618,6 +622,7 @@
             "errors": {
                 "invalidName": "L'identifiant doit commencer par une lettre et ne contenir que des lettres et chiffres.",
                 "labelRequired": "Les libellés FR et EN sont obligatoires.",
+                "subsectionRequired": "Le titre de la sous-partie est obligatoire en français et en anglais.",
                 "kindRequired": "Choisissez un type.",
                 "invalidOptionValue": "Lettres, chiffres et tirets uniquement, en commençant par une lettre.",
                 "duplicateOptionValue": "Cet identifiant est déjà utilisé par une autre valeur."

@@ -14,6 +14,10 @@ export type AttributeOption = {
     severity?: AttributeOptionSeverity;
 };
 
+export const attributeDetailsSections = ["summary", "usages", "deployment", "similar-software", "sources"] as const;
+
+export type AttributeDetailsSection = (typeof attributeDetailsSections)[number];
+
 export type AttributeDefinition = {
     name: string;
     kind: AttributeKind;
@@ -23,6 +27,9 @@ export type AttributeDefinition = {
     displayInForm: boolean;
     editableByAdminOnly: boolean;
     displayInDetails: boolean;
+    /** Section of the details page; outside the summary presentation, a subsection title is required */
+    detailsSection: AttributeDetailsSection;
+    detailsSubsection?: LocalizedString;
     displayInCardIcon: "computer" | "france" | "question" | "thumbs-up" | "chat" | "star" | undefined;
     enableFiltering: boolean;
     required: boolean;

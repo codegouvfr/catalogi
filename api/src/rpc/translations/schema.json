@@ -2358,6 +2358,18 @@
                         "descriptionEn": {
                             "type": "string"
                         },
+                        "detailsPlacement": {
+                            "type": "string"
+                        },
+                        "newSubsection": {
+                            "type": "string"
+                        },
+                        "detailsSubsectionFr": {
+                            "type": "string"
+                        },
+                        "detailsSubsectionEn": {
+                            "type": "string"
+                        },
                         "displayInForm": {
                             "type": "string"
                         },
@@ -2441,6 +2453,10 @@
                                     "type": "string",
                                     "description": "Label for a form field or button"
                                 },
+                                "subsectionRequired": {
+                                    "type": "string",
+                                    "description": "Label for a form field or button"
+                                },
                                 "kindRequired": {
                                     "type": "string"
                                 },
@@ -2455,6 +2471,7 @@
                             "required": [
                                 "invalidName",
                                 "labelRequired",
+                                "subsectionRequired",
                                 "kindRequired",
                                 "invalidOptionValue",
                                 "duplicateOptionValue"
@@ -2478,6 +2495,10 @@
                         "labelEn",
                         "descriptionFr",
                         "descriptionEn",
+                        "detailsPlacement",
+                        "newSubsection",
+                        "detailsSubsectionFr",
+                        "detailsSubsectionEn",
                         "displayInForm",
                         "editableByAdminOnly",
                         "displayInDetails",

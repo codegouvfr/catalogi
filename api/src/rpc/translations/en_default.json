@@ -584,6 +584,10 @@
             "labelEn": "Label (EN)",
             "descriptionFr": "Description (FR)",
             "descriptionEn": "Description (EN)",
+            "detailsPlacement": "Location on the software page",
+            "newSubsection": "New subsection…",
+            "detailsSubsectionFr": "Subsection title (FR)",
+            "detailsSubsectionEn": "Subsection title (EN)",
             "displayInForm": "Show in software form",
             "editableByAdminOnly": "Editable by administrators only",
             "displayInDetails": "Show in software detail page",
@@ -611,6 +615,7 @@
             "errors": {
                 "invalidName": "Identifier must start with a letter and contain only letters and digits.",
                 "labelRequired": "FR and EN labels are required.",
+                "subsectionRequired": "The subsection title is required in French and English.",
                 "kindRequired": "Choose a type.",
                 "invalidOptionValue": "Letters, digits and hyphens only, starting with a letter.",
                 "duplicateOptionValue": "This identifier is already used by another value."

@@ -539,6 +539,7 @@ const attributeNameFilterOptions = createSelector(
         attributeName: State.AttributeName;
         attributeLabel: LocalizedString;
         option?: ApiTypes.AttributeOption;
+        subsection?: LocalizedString;
         softwareCount: number;
     }[] => {
         const definitions = ui?.attributeDefinitions ?? [];
@@ -646,19 +647,34 @@ const attributeNameFilterOptions = createSelector(
             }
         });
 
+        const subsectionKeys = definitions.map(({ detailsSubsection }) =>
+            detailsSubsection === undefined
+                ? undefined
+                : JSON.stringify(detailsSubsection)
+        );
+
         const describeFilterKey = (filterKey: string) => {
             const [attributeName, value] = filterKey.split(":");
             const rank = definitions.findIndex(({ name }) => name === attributeName);
             const definition = definitions[rank];
             if (definition === undefined || definition.kind === "text") return undefined;
+            // Attributes without subsection first, then subsections in order of their first attribute
+            const subsectionRank =
+                subsectionKeys[rank] === undefined
+                    ? -1
+                    : subsectionKeys.indexOf(subsectionKeys[rank]);
+            const described = {
+                attributeLabel: definition.label,
+                subsection: definition.detailsSubsection
+            };
             if (definition.kind !== "enum") {
-                return { rank: [rank, 0], attributeLabel: definition.label };
+                return { rank: [subsectionRank, rank, 0], ...described };
             }
             const optionRank =
                 definition.options?.findIndex(option => option.value === value) ?? -1;
             const option = definition.options?.[optionRank];
             if (option === undefined) return undefined;
-            return { rank: [rank, optionRank], attributeLabel: definition.label, option };
+            return { rank: [subsectionRank, rank, optionRank], ...described, option };
         };
 
         return Array.from(softwareCountInCurrentFilterByAttributeName.entries())
@@ -668,7 +684,12 @@ const attributeNameFilterOptions = createSelector(
                     ? []
                     : [{ attributeName, ...description, softwareCount }];
             })
-            .sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1])
+            .sort(
+                (a, b) =>
+                    a.rank[0] - b.rank[0] ||
+                    a.rank[1] - b.rank[1] ||
+                    a.rank[2] - b.rank[2]
+            )
             .map(({ rank: _rank, ...filterOption }) => filterOption);
     }
 );

@@ -10,7 +10,11 @@ import { assert } from "tsafe/assert";
 import { z } from "zod";
 import { isHttpUrl } from "../tools/isHttpUrl";
 import type { DbApiV2 } from "../core/ports/DbApiV2";
-import { Language } from "../core/ports/GetSoftwareExternalData";
+import { Language, type LocalizedString } from "../core/ports/GetSoftwareExternalData";
+import {
+    attributeDetailsSections,
+    type AttributeDetailsSection
+} from "../core/usecases/readWriteSillData/attributeTypes";
 import { UiConfig, uiConfigSchema } from "../core/uiConfigSchema";
 import type { UseCases } from "../core/usecases";
 import {
@@ -555,6 +559,8 @@ export function createRouter(params: {
                 });
             }
 
+            assertDetailsPlacement(input.detailsSection, input.detailsSubsection);
+
             const all = await dbApi.attributeDefinition.getAll();
             const now = new Date();
             await dbApi.attributeDefinition.add({
@@ -566,6 +572,8 @@ export function createRouter(params: {
                 displayInForm: input.displayInForm,
                 editableByAdminOnly: input.editableByAdminOnly,
                 displayInDetails: input.displayInDetails,
+                detailsSection: input.detailsSection,
+                detailsSubsection: input.detailsSubsection,
                 displayInCardIcon: input.displayInCardIcon,
                 enableFiltering: input.enableFiltering,
                 required: input.required,
@@ -584,6 +592,12 @@ export function createRouter(params: {
                     "message": `No attribute with name "${name}".`
                 });
             }
+            assertDetailsPlacement(
+                patch.detailsSection ?? existing.detailsSection,
+                patch.detailsSubsection === undefined
+                    ? existing.detailsSubsection
+                    : (patch.detailsSubsection ?? undefined)
+            );
             if (patch.options !== undefined) {
                 if (existing.kind !== "enum") {
                     throw new TRPCError({
@@ -771,6 +785,20 @@ const zAttributeKind = z.enum(["boolean", "string", "number", "date", "url", "en
 const zDisplayInCardIcon = z.enum(["computer", "france", "question", "thumbs-up", "chat", "star"]);
 const zLocalizedString = z.record(z.string(), z.string());
 
+const zAttributeDetailsSection = z.enum(attributeDetailsSections);
+const zDetailsSubsection = zLocalizedString.refine(title => Object.values(title).some(value => value.trim() !== ""), {
+    "message": "subsection title must not be empty"
+});
+
+const assertDetailsPlacement = (section: AttributeDetailsSection, subsection: LocalizedString | undefined) => {
+    if (section !== "summary" && subsection === undefined) {
+        throw new TRPCError({
+            "code": "BAD_REQUEST",
+            "message": "a subsection title is required outside of the summary section"
+        });
+    }
+};
+
 const zAttributeOptions = z
     .array(
         z.object({
@@ -801,6 +829,8 @@ const zAttributeDefinitionCreate = z.object({
     "displayInForm": z.boolean(),
     "editableByAdminOnly": z.boolean().default(false),
     "displayInDetails": z.boolean(),
+    "detailsSection": zAttributeDetailsSection.default("summary"),
+    "detailsSubsection": zDetailsSubsection.optional(),
     "displayInCardIcon": zDisplayInCardIcon.optional(),
     "enableFiltering": z.boolean(),
     "required": z.boolean()
@@ -809,11 +839,13 @@ const zAttributeDefinitionCreate = z.object({
 const zAttributeDefinitionUpdate = z.object({
     "name": z.string().min(1),
     "label": zLocalizedString.optional(),
-    "description": zLocalizedString.optional(),
+    "description": zLocalizedString.nullable().optional(),
     "options": zAttributeOptions.optional(),
     "displayInForm": z.boolean().optional(),
     "editableByAdminOnly": z.boolean().optional(),
     "displayInDetails": z.boolean().optional(),
+    "detailsSection": zAttributeDetailsSection.optional(),
+    "detailsSubsection": zDetailsSubsection.nullable().optional(),
     "displayInCardIcon": zDisplayInCardIcon.optional(),
     "enableFiltering": z.boolean().optional(),
     "required": z.boolean().optional()

@@ -26,6 +26,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { SelectNext } from "ui/shared/SelectNext";
 import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
+import ListSubheader from "@mui/material/ListSubheader";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { useEffectOnValueChange } from "powerhooks/useEffectOnValueChange";
 import { useCoreState } from "../../../core";
@@ -70,6 +71,7 @@ export type Props = {
         attributeName: SoftwareCatalogState.AttributeName;
         attributeLabel: LocalizedString;
         option?: ApiTypes.AttributeOption;
+        subsection?: LocalizedString;
         softwareCount: number;
     }[];
     attributeNames: SoftwareCatalogState.AttributeName[];
@@ -323,15 +325,34 @@ export function SoftwareCatalogSearch(props: Props) {
                             }
                             placeholder="Placeholder"
                         >
-                            {attributeOptions.map(
-                                ({
-                                    attributeName,
-                                    attributeLabel,
-                                    option,
-                                    softwareCount
-                                }) => {
+                            {attributeOptions.flatMap(
+                                (
+                                    {
+                                        attributeName,
+                                        attributeLabel,
+                                        option,
+                                        subsection,
+                                        softwareCount
+                                    },
+                                    index
+                                ) => {
                                     const label = resolveLocalizedString(attributeLabel);
-                                    return (
+                                    const isFirstOfSubsection =
+                                        subsection !== undefined &&
+                                        JSON.stringify(subsection) !==
+                                            JSON.stringify(
+                                                attributeOptions[index - 1]?.subsection
+                                            );
+                                    return [
+                                        ...(isFirstOfSubsection
+                                            ? [
+                                                  <ListSubheader
+                                                      key={`subsection-${attributeName}`}
+                                                  >
+                                                      {resolveLocalizedString(subsection)}
+                                                  </ListSubheader>
+                                              ]
+                                            : []),
                                         <MenuItem
                                             key={attributeName}
                                             value={attributeName}
@@ -367,7 +388,7 @@ export function SoftwareCatalogSearch(props: Props) {
                                                 }
                                             />
                                         </MenuItem>
-                                    );
+                                    ];
                                 }
                             )}
                         </SelectMui>
