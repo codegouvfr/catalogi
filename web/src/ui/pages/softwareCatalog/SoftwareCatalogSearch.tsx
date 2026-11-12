@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import type { ApiTypes } from "api";
 import { useState, useId } from "react";
 import { tss } from "tss-react";
 import { SearchBar } from "@codegouvfr/react-dsfr/SearchBar";
@@ -13,6 +14,7 @@ import {
     useLang,
     softwareCategoriesFrBySoftwareCategoryEn,
     useGetOrganizationFullName,
+    useResolveLocalizedString,
     LocalizedString
 } from "ui/i18n";
 import { useTranslation } from "react-i18next";
@@ -24,6 +26,7 @@ import Tooltip from "@mui/material/Tooltip";
 import { SelectNext } from "ui/shared/SelectNext";
 import Checkbox from "@mui/material/Checkbox";
 import ListItemText from "@mui/material/ListItemText";
+import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { useEffectOnValueChange } from "powerhooks/useEffectOnValueChange";
 import { useCoreState } from "../../../core";
 
@@ -66,6 +69,7 @@ export type Props = {
     attributeOptions: {
         attributeName: SoftwareCatalogState.AttributeName;
         attributeLabel: LocalizedString;
+        option?: ApiTypes.AttributeOption;
         softwareCount: number;
     }[];
     attributeNames: SoftwareCatalogState.AttributeName[];
@@ -114,6 +118,7 @@ export function SoftwareCatalogSearch(props: Props) {
         useState<HTMLDivElement | null>(null);
 
     const { lang } = useLang();
+    const { resolveLocalizedString } = useResolveLocalizedString();
 
     const [areFiltersOpen, setAreFiltersOpen] = useState(
         () =>
@@ -319,11 +324,13 @@ export function SoftwareCatalogSearch(props: Props) {
                             placeholder="Placeholder"
                         >
                             {attributeOptions.map(
-                                ({ attributeName, attributeLabel, softwareCount }) => {
-                                    const label =
-                                        typeof attributeLabel === "string"
-                                            ? attributeLabel
-                                            : attributeLabel[lang];
+                                ({
+                                    attributeName,
+                                    attributeLabel,
+                                    option,
+                                    softwareCount
+                                }) => {
+                                    const label = resolveLocalizedString(attributeLabel);
                                     return (
                                         <MenuItem
                                             key={attributeName}
@@ -338,7 +345,26 @@ export function SoftwareCatalogSearch(props: Props) {
                                                 }
                                             />
                                             <ListItemText
-                                                primary={`${label} (${softwareCount})`}
+                                                primary={
+                                                    option === undefined ? (
+                                                        `${label} (${softwareCount})`
+                                                    ) : (
+                                                        <>
+                                                            {label} :{" "}
+                                                            <Badge
+                                                                severity={option.severity}
+                                                                noIcon
+                                                                small
+                                                                as="span"
+                                                            >
+                                                                {resolveLocalizedString(
+                                                                    option.label
+                                                                )}
+                                                            </Badge>{" "}
+                                                            ({softwareCount})
+                                                        </>
+                                                    )
+                                                }
                                             />
                                         </MenuItem>
                                     );

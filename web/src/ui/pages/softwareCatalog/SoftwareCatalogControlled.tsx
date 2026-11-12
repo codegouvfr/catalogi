@@ -2,6 +2,7 @@
 // SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
+import type { ApiTypes } from "api";
 import { useRef, useLayoutEffect, useMemo } from "react";
 import { tss } from "tss-react";
 import type { State as SoftwareCatalogState } from "core/usecases/softwareCatalog";
@@ -66,6 +67,7 @@ export type Props = {
     attributeOptions: {
         attributeName: SoftwareCatalogState.AttributeName;
         attributeLabel: LocalizedString;
+        option?: ApiTypes.AttributeOption;
         softwareCount: number;
     }[];
     attributeNames: SoftwareCatalogState.AttributeName[];
