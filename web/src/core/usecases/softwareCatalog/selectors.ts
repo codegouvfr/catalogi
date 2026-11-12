@@ -538,19 +538,30 @@ const attributeNameFilterOptions = createSelector(
     ): {
         attributeName: State.AttributeName;
         attributeLabel: LocalizedString;
+        option?: ApiTypes.AttributeOption;
         softwareCount: number;
     }[] => {
+        const definitions = ui?.attributeDefinitions ?? [];
+        const enumNames = new Set(
+            definitions.filter(({ kind }) => kind === "enum").map(({ name }) => name)
+        );
+        const getFilterKeys = (customAttributes: Software["customAttributes"]) =>
+            objectKeys(customAttributes ?? {})
+                .filter(attributeName => customAttributes?.[attributeName])
+                .map(attributeName =>
+                    enumNames.has(attributeName)
+                        ? `${attributeName}:${customAttributes?.[attributeName]}`
+                        : attributeName
+                );
+
         const softwareCountInCurrentFilterByAttributeName = new Map(
             [
                 ...Array.from(
                     new Set(
                         internalSoftwares
-                            .map(({ customAttributes }) => {
-                                if (!customAttributes) return [];
-                                return objectKeys(customAttributes).filter(
-                                    attributeName => customAttributes[attributeName]
-                                );
-                            })
+                            .map(({ customAttributes }) =>
+                                getFilterKeys(customAttributes)
+                            )
                             .reduce((prev, curr) => [...prev, ...curr], [])
                     )
                 ),
@@ -604,21 +615,17 @@ const attributeNameFilterOptions = createSelector(
 
         tmpSoftwares.forEach(({ customAttributes, operatingSystems }) => {
             if (customAttributes) {
-                objectKeys(customAttributes)
-                    .filter(attributeName => customAttributes[attributeName])
-                    .forEach(attributeName => {
-                        const currentCount =
-                            softwareCountInCurrentFilterByAttributeName.get(
-                                attributeName
-                            );
+                getFilterKeys(customAttributes).forEach(attributeName => {
+                    const currentCount =
+                        softwareCountInCurrentFilterByAttributeName.get(attributeName);
 
-                        if (currentCount !== undefined) {
-                            softwareCountInCurrentFilterByAttributeName.set(
-                                attributeName,
-                                currentCount + 1
-                            );
-                        }
-                    });
+                    if (currentCount !== undefined) {
+                        softwareCountInCurrentFilterByAttributeName.set(
+                            attributeName,
+                            currentCount + 1
+                        );
+                    }
+                });
             }
 
             if (
@@ -639,20 +646,30 @@ const attributeNameFilterOptions = createSelector(
             }
         });
 
-        const getLabel = (attributeName: string) =>
-            ui?.attributeDefinitions.find(
-                ({ name, kind }) =>
-                    attributeName === name && kind !== "enum" && kind !== "text"
-            )?.label;
+        const getLabels = (filterKey: string) => {
+            const [attributeName, value] = filterKey.split(":");
+            const rank = definitions.findIndex(({ name }) => name === attributeName);
+            const definition = definitions[rank];
+            if (definition === undefined || definition.kind === "text") return undefined;
+            if (definition.kind !== "enum") {
+                return { rank: [rank, 0], attributeLabel: definition.label };
+            }
+            const optionRank =
+                definition.options?.findIndex(option => option.value === value) ?? -1;
+            const option = definition.options?.[optionRank];
+            if (option === undefined) return undefined;
+            return { rank: [rank, optionRank], attributeLabel: definition.label, option };
+        };
 
-        /** prettier-ignore */
         return Array.from(softwareCountInCurrentFilterByAttributeName.entries())
-            .filter(([attributeName]) => getLabel(attributeName) !== undefined)
-            .map(([attributeName, softwareCount]) => ({
-                attributeName,
-                attributeLabel: getLabel(attributeName)!,
-                softwareCount
-            }));
+            .flatMap(([attributeName, softwareCount]) => {
+                const labels = getLabels(attributeName);
+                return labels === undefined
+                    ? []
+                    : [{ attributeName, ...labels, softwareCount }];
+            })
+            .sort((a, b) => a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1])
+            .map(({ rank: _rank, ...option }) => option);
     }
 );
 
@@ -862,6 +879,9 @@ function filterByAttributeName(params: {
             );
         }
 
-        return (software.customAttributes as any)?.[attributeName];
+        const [name, value] = attributeName.split(":");
+        const attributeValue = (software.customAttributes as any)?.[name];
+
+        return value === undefined ? attributeValue : attributeValue === value;
     });
 }
