@@ -264,21 +264,19 @@ export function AttributeDefinitionFormModal() {
         const newSubsectionSection = attributeDetailsSections.find(
             section => form.detailsPlacement === `new:${section}`
         );
+        const newSubsectionTitle = {
+            fr: form.subsectionFr.trim(),
+            en: form.subsectionEn.trim()
+        };
         const subsection: Subsection | undefined =
             newSubsectionSection !== undefined
-                ? {
-                      section: newSubsectionSection,
-                      title: {
-                          fr: form.subsectionFr.trim(),
-                          en: form.subsectionEn.trim()
-                      }
-                  }
+                ? { section: newSubsectionSection, title: newSubsectionTitle }
                 : subsections.find(
                       subsection => subsectionKey(subsection) === form.detailsPlacement
                   );
         if (
             newSubsectionSection !== undefined &&
-            (!form.subsectionFr.trim() || !form.subsectionEn.trim())
+            (!newSubsectionTitle.fr || !newSubsectionTitle.en)
         ) {
             newErrors.subsection = t("admin.form.errors.subsectionRequired");
         }
@@ -340,7 +338,8 @@ export function AttributeDefinitionFormModal() {
                     name: form.name,
                     ...shared,
                     description: description ?? null,
-                    detailsSubsection: detailsSubsection ?? null
+                    detailsSubsection: detailsSubsection ?? null,
+                    displayInCardIcon: shared.displayInCardIcon ?? null
                 });
             } else {
                 await adminAttributes.create({

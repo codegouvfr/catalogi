@@ -146,12 +146,10 @@ const softwares = createSelector(
             });
         }
 
-        for (const attributeName of filteredAttributeNames) {
-            tmpSoftwares = filterByAttributeName({
-                softwares: tmpSoftwares,
-                attributeName
-            });
-        }
+        tmpSoftwares = filterByAttributeNames({
+            softwares: tmpSoftwares,
+            attributeNames: filteredAttributeNames
+        });
 
         if (sort !== "best_match") {
             tmpSoftwares = [...tmpSoftwares].sort(
@@ -292,12 +290,10 @@ const organizationOptions = createSelector(
             });
         }
 
-        for (const attributeName of filteredAttributeNames) {
-            tmpSoftwares = filterByAttributeName({
-                softwares: tmpSoftwares,
-                attributeName
-            });
-        }
+        tmpSoftwares = filterByAttributeNames({
+            softwares: tmpSoftwares,
+            attributeNames: filteredAttributeNames
+        });
 
         tmpSoftwares.forEach(software =>
             getComputeds(software).organizations.forEach(
@@ -377,12 +373,10 @@ const categoryOptions = createSelector(
             });
         }
 
-        for (const attributeName of filteredAttributeNames) {
-            tmpSoftwares = filterByAttributeName({
-                softwares: tmpSoftwares,
-                attributeName
-            });
-        }
+        tmpSoftwares = filterByAttributeNames({
+            softwares: tmpSoftwares,
+            attributeNames: filteredAttributeNames
+        });
 
         tmpSoftwares.forEach(({ applicationCategories }) =>
             applicationCategories.forEach(
@@ -476,12 +470,10 @@ const environmentOptions = createSelector(
             });
         }
 
-        for (const attributeName of filteredAttributeNames) {
-            tmpSoftwares = filterByAttributeName({
-                softwares: tmpSoftwares,
-                attributeName
-            });
-        }
+        tmpSoftwares = filterByAttributeNames({
+            softwares: tmpSoftwares,
+            attributeNames: filteredAttributeNames
+        });
 
         tmpSoftwares.forEach(({ runtimePlatforms, operatingSystems }) => {
             if (runtimePlatforms.includes("cloud")) {
@@ -539,7 +531,7 @@ const attributeNameFilterOptions = createSelector(
         attributeName: State.AttributeName;
         attributeLabel: LocalizedString;
         option?: ApiTypes.AttributeOption;
-        subsection?: LocalizedString;
+        subsection?: { key: string; title: LocalizedString };
         softwareCount: number;
     }[] => {
         const definitions = ui?.attributeDefinitions ?? [];
@@ -607,16 +599,21 @@ const attributeNameFilterOptions = createSelector(
             });
         }
 
-        for (const attributeName of filteredAttributeNames) {
-            tmpSoftwares = filterByAttributeName({
-                softwares: tmpSoftwares,
-                attributeName
-            });
-        }
+        // An attribute's own filter is left out of its counts, so other values stay selectable
+        const attributeFilters = groupAttributeFilters(filteredAttributeNames);
 
-        tmpSoftwares.forEach(({ customAttributes, operatingSystems }) => {
+        tmpSoftwares.forEach(software => {
+            const { customAttributes, operatingSystems } = software;
+            const matchesOtherAttributes = (attributeName: State.AttributeName) =>
+                matchesAttributeFilters({
+                    software,
+                    attributeFilters,
+                    ignoredAttribute: getFilteredAttribute(attributeName)
+                });
+
             if (customAttributes) {
                 getFilterKeys(customAttributes).forEach(attributeName => {
+                    if (!matchesOtherAttributes(attributeName)) return;
                     const currentCount =
                         softwareCountInCurrentFilterByAttributeName.get(attributeName);
 
@@ -630,9 +627,10 @@ const attributeNameFilterOptions = createSelector(
             }
 
             if (
-                operatingSystems.windows ||
-                operatingSystems.linux ||
-                operatingSystems.mac
+                (operatingSystems.windows ||
+                    operatingSystems.linux ||
+                    operatingSystems.mac) &&
+                matchesOtherAttributes("isInstallableOnUserComputer")
             ) {
                 const currentCount = softwareCountInCurrentFilterByAttributeName.get(
                     "isInstallableOnUserComputer"
@@ -647,10 +645,10 @@ const attributeNameFilterOptions = createSelector(
             }
         });
 
-        const subsectionKeys = definitions.map(({ detailsSubsection }) =>
+        const subsectionKeys = definitions.map(({ detailsSection, detailsSubsection }) =>
             detailsSubsection === undefined
                 ? undefined
-                : JSON.stringify(detailsSubsection)
+                : JSON.stringify([detailsSection, detailsSubsection])
         );
 
         const describeFilterKey = (filterKey: string) => {
@@ -663,9 +661,13 @@ const attributeNameFilterOptions = createSelector(
                 subsectionKeys[rank] === undefined
                     ? -1
                     : subsectionKeys.indexOf(subsectionKeys[rank]);
+            const subsectionKey = subsectionKeys[rank];
             const described = {
                 attributeLabel: definition.label,
-                subsection: definition.detailsSubsection
+                subsection:
+                    subsectionKey === undefined
+                        ? undefined
+                        : { key: subsectionKey, title: definition.detailsSubsection! }
             };
             if (definition.kind !== "enum") {
                 return { rank: [subsectionRank, rank, 0], ...described };
@@ -749,12 +751,10 @@ const programmingLanguageOptions = createSelector(
             });
         }
 
-        for (const attributeName of filteredAttributeNames) {
-            tmpSoftwares = filterByAttributeName({
-                softwares: tmpSoftwares,
-                attributeName
-            });
-        }
+        tmpSoftwares = filterByAttributeNames({
+            softwares: tmpSoftwares,
+            attributeNames: filteredAttributeNames
+        });
 
         tmpSoftwares.forEach(({ programmingLanguages }) =>
             programmingLanguages.forEach(
@@ -885,24 +885,62 @@ function filterByEnvironnement(params: {
     });
 }
 
-function filterByAttributeName(params: {
-    softwares: Software[];
-    attributeName: State.AttributeName;
-}) {
-    const { softwares, attributeName } = params;
+/** Filter keys are `name:value` for an enum value, the bare attribute name otherwise */
+const getFilteredAttribute = (attributeName: State.AttributeName) =>
+    attributeName.split(":")[0];
 
-    return softwares.filter(software => {
-        if (attributeName === "isInstallableOnUserComputer") {
-            return (
-                software.operatingSystems.windows ||
-                software.operatingSystems.linux ||
-                software.operatingSystems.mac
-            );
-        }
-
-        const [name, value] = attributeName.split(":");
-        const attributeValue = (software.customAttributes as any)?.[name];
-
-        return value === undefined ? attributeValue : attributeValue === value;
+const groupAttributeFilters = (attributeNames: State.AttributeName[]) => {
+    const attributeFilters = new Map<string, State.AttributeName[]>();
+    attributeNames.forEach(attributeName => {
+        const attribute = getFilteredAttribute(attributeName);
+        attributeFilters.set(attribute, [
+            ...(attributeFilters.get(attribute) ?? []),
+            attributeName
+        ]);
     });
+    return attributeFilters;
+};
+
+const matchesAttributeName = (software: Software, attributeName: State.AttributeName) => {
+    if (attributeName === "isInstallableOnUserComputer") {
+        return (
+            software.operatingSystems.windows ||
+            software.operatingSystems.linux ||
+            software.operatingSystems.mac
+        );
+    }
+
+    const [name, value] = attributeName.split(":");
+    const attributeValue = (software.customAttributes as any)?.[name];
+
+    return value === undefined ? Boolean(attributeValue) : attributeValue === value;
+};
+
+/** Values of one attribute are alternatives, every filtered attribute must match */
+function matchesAttributeFilters(params: {
+    software: Software;
+    attributeFilters: Map<string, State.AttributeName[]>;
+    ignoredAttribute?: string;
+}) {
+    const { software, attributeFilters, ignoredAttribute } = params;
+
+    return [...attributeFilters].every(
+        ([attribute, attributeNames]) =>
+            attribute === ignoredAttribute ||
+            attributeNames.some(attributeName =>
+                matchesAttributeName(software, attributeName)
+            )
+    );
+}
+
+function filterByAttributeNames(params: {
+    softwares: Software[];
+    attributeNames: State.AttributeName[];
+}) {
+    const { softwares, attributeNames } = params;
+    const attributeFilters = groupAttributeFilters(attributeNames);
+
+    return softwares.filter(software =>
+        matchesAttributeFilters({ software, attributeFilters })
+    );
 }
