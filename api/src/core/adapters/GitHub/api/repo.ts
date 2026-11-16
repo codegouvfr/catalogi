@@ -105,7 +105,7 @@ export const gitHubEndpointMaker = (params?: { auth?: string; userAgent?: string
                         },
                         direction: "desc"
                     });
-                    return data[0];
+                    return data;
                 },
                 getLastCommit: async (params: { repoUrl: string | URL }): Promise<GitHubAPI.Commit | undefined> => {
                     const { owner, repo } = parseURL(params.repoUrl);
