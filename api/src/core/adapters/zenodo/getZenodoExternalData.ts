@@ -20,12 +20,12 @@ export const getZenodoExternalData: GetSoftwareExternal = memoize(
 
         const zenodoApi = makeZenodoApi(source);
 
-        const cleanId = externalId.includes("10.5281") ? externalId.split(".")[1] : externalId;
+        const cleanId = externalId.includes("10.5281") ? externalId.split("/")[1].split(".")[1] : externalId;
 
         try {
             const record = await zenodoApi.records.get(Number(cleanId));
 
-            const communities = await zenodoApi.records.getCommunities(Number(externalId));
+            const communities = await zenodoApi.records.getCommunities(Number(cleanId));
             const communitiesRows = communities?.hits?.hits ?? [];
 
             if (!record) return undefined;
