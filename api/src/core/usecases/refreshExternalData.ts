@@ -159,8 +159,8 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
                               if (!currentlyLinkedSoftware || !discoveredSoftware) return false;
 
                               return (
-                                  isActiveInCatalog(currentlyLinkedSoftware.status) &&
-                                  !isActiveInCatalog(discoveredSoftware.status)
+                                  !isActiveInCatalog(currentlyLinkedSoftware.status) &&
+                                  isActiveInCatalog(discoveredSoftware.status)
                               );
                           })();
 
