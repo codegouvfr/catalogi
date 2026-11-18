@@ -406,7 +406,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                 const extData = externalDataRecord[softwareRow.id];
                 const resolvedLatestVersion = extData?.latestVersion;
                 const externalIdentitySource = identitySourceBySoftwareId[softwareRow.id];
-                const { changedByUserId, ...casted } = softwareRow.status.changed;
 
                 return {
                     id: softwareRow.id,
@@ -423,7 +422,6 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         : undefined,
                     addedTime: softwareRow.addedTime,
                     updateTime: softwareRow.updateTime,
-                    deferencing: casted ?? undefined,
                     applicationCategories: extData?.applicationCategories ?? [],
                     customAttributes: softwareRow.customAttributes ?? undefined,
                     protections: toProtectionsData(softwareRow.protections),
@@ -433,6 +431,8 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     codeRepositoryUrl: extData?.codeRepositoryUrl ?? undefined,
                     softwareHelp: extData?.softwareHelp ?? undefined,
                     license: extData?.license ?? "",
+                    status: softwareRow.status,
+                    statusHistory: softwareRow.statusHistory ?? [],
                     externalId: externalIdentitySource?.externalId,
                     sourceSlug: externalIdentitySource?.sourceSlug,
                     operatingSystems: (extData?.operatingSystems ?? {}) as Partial<Record<Os, boolean>>,

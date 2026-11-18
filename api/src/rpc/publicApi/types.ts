@@ -26,19 +26,13 @@ export type JsonObject<
 // These historical values exist in the public export but are not represented by the internal types.
 type LegacyKeyword = { id: string; "numeric-id": number; "entity-type": "item" };
 type LegacyAuthor = { id: string; name: string; url?: string };
-type Dereferenced =
-    | {
-          reason?: string | undefined;
-          time: string;
-          lastRecommendedVersion?: string | undefined;
-      }
-    | undefined;
-export type Dereferencing = NonNullable<Dereferenced>;
+export type Dereferencing = Omit<Software["status"]["changed"], "changedByUserId">;
 
 export type SoftwareV2 = Json<
     Omit<Software, "keywords" | "authors" | "status" | "statusHistory"> & {
         keywords: Array<Software["keywords"][number] | LegacyKeyword>;
         authors: Array<Software["authors"][number] | LegacyAuthor>;
+        deferencing?: Dereferencing | undefined;
     }
 >;
 
