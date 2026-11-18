@@ -21,7 +21,7 @@ export namespace CompiledData {
             description: string;
             referencedSinceTime: number;
             updateTime: number;
-            deferencing: Dereferencing;
+            deferencing: Dereferencing | undefined;
             isStillInObservation: boolean;
             license: string;
             operatingSystems: Partial<Record<Os, boolean>>;

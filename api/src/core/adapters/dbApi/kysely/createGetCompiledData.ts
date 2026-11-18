@@ -6,7 +6,7 @@ import { Kysely } from "kysely";
 import { CompiledData } from "../../../ports/CompileData";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import type { Os, RuntimePlatform } from "../../../types";
-import { Database } from "./kysely.database";
+import { Database, DROPPED_STATUS } from "./kysely.database";
 import { isNotNull, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 
@@ -132,7 +132,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData ?? undefined,
                         latestVersion: version,
-                        deferencing: deferencing,
+                        deferencing: DROPPED_STATUS.includes(status.name) ? deferencing : undefined,
                         serviceProviders: softwareExternalData?.providers ?? [],
                         similarExternalSoftwares: (similarExternalSoftwares ?? [])
                             .filter(isNotNull)
