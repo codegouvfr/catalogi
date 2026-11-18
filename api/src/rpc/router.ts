@@ -519,19 +519,23 @@ export function createRouter(params: {
             .input(
                 z.object({
                     "softwareId": z.number(),
-                    "reason": z.string(),
-                    "recommendedVersion": z.string().optional()
+                    "reason": z.string()
                 })
             )
             .mutation(async ({ ctx: { currentUser }, input }) => {
-                const { softwareId, reason, recommendedVersion } = input;
+                const { softwareId, reason } = input;
 
                 try {
+                    const software = await dbApi.software.getDetails(softwareId);
+
                     const result = await useCases.changingCatalogueStatusSoftware({
                         statusName: "archived",
                         softwareId,
                         reason,
-                        recommendedVersion,
+                        recommendedVersion:
+                            software?.customAttributes?.recommendedVersion?.toString() ??
+                            software?.latestVersion?.version ??
+                            undefined,
                         userId: currentUser.id,
                         isAdmin: currentUser.role === "admin"
                     });
