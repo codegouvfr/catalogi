@@ -106,6 +106,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             : undefined;
 
                     const description = softwareExternalData?.description;
+                    const { changedByUserId, ...deferencing } = status.changed;
 
                     return {
                         id,
@@ -131,7 +132,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData ?? undefined,
                         latestVersion: version,
-                        status: status,
+                        deferencing: deferencing,
                         serviceProviders: softwareExternalData?.providers ?? [],
                         similarExternalSoftwares: (similarExternalSoftwares ?? [])
                             .filter(isNotNull)

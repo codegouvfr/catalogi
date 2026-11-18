@@ -3,10 +3,11 @@
 // SPDX-License-Identifier: MIT
 
 import { SimilarSoftwareExternalData } from "./GetSoftwareExternalData";
-import { SchemaOrganization, Status } from "../adapters/dbApi/kysely/kysely.database";
+import { SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 import type { DatabaseDataType } from "./DbApiV2";
 import type { Os, RuntimePlatform } from "../types";
 import { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
+import { Dereferencing } from "../../rpc/publicApi/types";
 
 export type CompiledData<T extends "private" | "public"> = CompiledData.Software<T>[];
 
@@ -20,7 +21,7 @@ export namespace CompiledData {
             description: string;
             referencedSinceTime: number;
             updateTime: number;
-            status: Status;
+            deferencing: Dereferencing;
             isStillInObservation: boolean;
             license: string;
             operatingSystems: Partial<Record<Os, boolean>>;
@@ -81,7 +82,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             users,
             instances,
             categories,
-            status,
+            deferencing,
             description,
             customAttributes,
             id,
@@ -103,7 +104,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
         return {
             serviceProviders,
             categories,
-            status,
+            deferencing,
             description,
             customAttributes,
             id,
