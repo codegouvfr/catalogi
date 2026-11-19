@@ -83,9 +83,6 @@ const homeSchema = strictObject({
         cards: z.array(softwareSelectionCardSchema).optional()
     }),
     theSillInAFewWordsParagraphLinks: z.array(z.string().url()),
-    searchBar: strictObject({
-        enabled: z.boolean()
-    }),
     statistics: strictObject({
         categories: z.array(statsSchema)
     }),

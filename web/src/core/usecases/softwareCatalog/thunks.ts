@@ -72,6 +72,19 @@ export const thunks = {
                 );
             }
         },
+    getSearchResults:
+        (params: { search: string }) =>
+        async (...args): Promise<State.Software[]> => {
+            const [, getState] = args;
+
+            const { softwares } = getState()[name];
+
+            const searchResults = await filterBySearchMemoized(softwares, params.search);
+
+            return searchResults
+                .map(({ name }) => softwares.find(software => software.name === name))
+                .filter(exclude(undefined));
+        },
     getDefaultSort:
         () =>
         (...args) => {

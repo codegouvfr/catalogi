@@ -33,7 +33,6 @@ export const testUiConfig = uiConfigSchema.parse({
             "https://code.gouv.fr/sill/readme",
             "https://code.gouv.fr/fr/doc/licences-libres-dinum"
         ],
-        searchBar: { enabled: false },
         statistics: {
             categories: ["softwareCount", "registeredUserCount", "agentReferentCount", "organizationCount"]
         },

@@ -35,8 +35,15 @@
         "close": "Close"
     },
     "home": {
-        "title": "Recommended free software",
-        "subTitle": "for French public agencies.",
+        "heroWelcome": "Welcome to",
+        "heroTitle": "The Interministerial Free Software Catalog",
+        "heroDescription": "Reference catalog of free software recommended for public agents and administrations.",
+        "searchPlaceholder": "Search for free software",
+        "searchHint": "Type at least 3 characters to see suggestions",
+        "quickLinks": "Quick links",
+        "noSearchResult": "No software found",
+        "seeAllResults": "See all results ({{count}})",
+        "seeAllSoftwares": "See all software",
         "softwareSelection": "Software selections",
         "lastAdded": "Recently added",
         "mostUsed": "Most popular",

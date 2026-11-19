@@ -37,8 +37,15 @@
         "close": "Fermer"
     },
     "home": {
-        "title": "Catalogue de référence de logiciels libres",
-        "subTitle": "recommandés pour l'ensemble de l'administration.",
+        "heroWelcome": "Bienvenue sur",
+        "heroTitle": "Le Socle Interministériel des Logiciels Libres",
+        "heroDescription": "Catalogue de référence de logiciels libres recommandés pour les agents et les administrations publiques.",
+        "searchPlaceholder": "Rechercher un logiciel libre",
+        "searchHint": "Saisir au moins 3 caractères pour voir des suggestions",
+        "quickLinks": "Liens rapides",
+        "noSearchResult": "Aucun logiciel trouvé",
+        "seeAllResults": "Voir tous les résultats ({{count}})",
+        "seeAllSoftwares": "Voir tous les logiciels",
         "softwareSelection": "Sélections de logiciels",
         "lastAdded": "Ajouts récents",
         "mostUsed": "Les plus populaires",
