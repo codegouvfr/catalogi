@@ -156,11 +156,31 @@
         "home": {
             "type": "object",
             "properties": {
-                "title": {
-                    "type": "string",
-                    "description": "Title text"
+                "heroWelcome": {
+                    "type": "string"
                 },
-                "subTitle": {
+                "heroTitle": {
+                    "type": "string"
+                },
+                "heroDescription": {
+                    "type": "string"
+                },
+                "searchPlaceholder": {
+                    "type": "string"
+                },
+                "searchHint": {
+                    "type": "string"
+                },
+                "quickLinks": {
+                    "type": "string"
+                },
+                "noSearchResult": {
+                    "type": "string"
+                },
+                "seeAllResults": {
+                    "type": "string"
+                },
+                "seeAllSoftwares": {
                     "type": "string"
                 },
                 "softwareSelection": {
@@ -250,8 +270,15 @@
             },
             "additionalProperties": false,
             "required": [
-                "title",
-                "subTitle",
+                "heroWelcome",
+                "heroTitle",
+                "heroDescription",
+                "searchPlaceholder",
+                "searchHint",
+                "quickLinks",
+                "noSearchResult",
+                "seeAllResults",
+                "seeAllSoftwares",
                 "softwareSelection",
                 "lastAdded",
                 "mostUsed",

@@ -9,7 +9,6 @@ import Card from "@codegouvfr/react-dsfr/Card";
 import codingSvgUrl from "@codegouvfr/react-dsfr/dsfr/artwork/pictograms/digital/coding.svg";
 import documentSvgUrl from "@codegouvfr/react-dsfr/dsfr/artwork/pictograms/document/document.svg";
 import humanCooperationSvgUrl from "@codegouvfr/react-dsfr/dsfr/artwork/pictograms/environment/human-cooperation.svg";
-import { SearchBar } from "@codegouvfr/react-dsfr/SearchBar";
 import Tile from "@codegouvfr/react-dsfr/Tile";
 import { Grid } from "@mui/material";
 import { useCoreState } from "core";
@@ -21,12 +20,11 @@ import { Waypoint } from "react-waypoint";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
 import { keyframes, tss } from "tss-react";
-import HomepageWaveSvg from "ui/assets/homepage_wave.svg?react";
-import illustration_sill from "ui/assets/illustration_sill.svg";
 import { routes } from "ui/routes";
 import { useMetricCountUpAnimation } from "ui/tools/useMetricCountUpAnimation";
 import type { PageRoute } from "./route";
 import type { ApiTypes } from "api";
+import { SoftwareQuickSearch } from "./SoftwareQuickSearch";
 
 type Props = {
     className?: string;
@@ -44,15 +42,6 @@ export default function Home(props: Props) {
     const { resolveLocalizedString } = useResolveLocalizedString();
 
     const stats = useCoreState("generalStats", "main");
-
-    const [search, setSearch] = useState<string>("");
-    const [linkSearch, setLinkSearch] = useState<string>("");
-
-    const updateSearchLink = (searchEvent: React.ChangeEvent<HTMLInputElement>) => {
-        const value = searchEvent.target.value;
-        setSearch(value);
-        setLinkSearch(`/list?search=${value}&sort=best_match`);
-    };
 
     const statsCases = uiConfig.home.statistics.categories;
 
@@ -112,26 +101,7 @@ export default function Home(props: Props) {
 
     return (
         <div className={className}>
-            <HeroSection className={fr.cx("fr-container")} />
-
-            <div
-                style={{
-                    position: "relative",
-                    top: 7
-                }}
-            >
-                <HomepageWaveSvg
-                    preserveAspectRatio="none"
-                    className={css({
-                        display: "block",
-                        width: "100%",
-                        height: 90,
-                        "& path": {
-                            fill: fr.colors.decisions.background.alt.blueFrance.default
-                        }
-                    })}
-                />
-            </div>
+            <HeroSection className={fr.cx("fr-container", "fr-py-4w", "fr-py-md-8w")} />
 
             {uiConfig?.home?.softwareSelection?.enabled && (
                 <section
@@ -178,62 +148,6 @@ export default function Home(props: Props) {
             <WhatIsTheSillSection
                 className={cx(fr.cx("fr-container"), classes.section)}
             />
-
-            {uiConfig?.home?.searchBar?.enabled && (
-                <section className={cx(fr.cx("fr-container"), classes.section)}>
-                    <Grid
-                        container
-                        direction="row"
-                        columnSpacing={1}
-                        sx={{
-                            justifyContent: "center",
-                            alignItems: "center",
-                            alignContent: "stretch"
-                        }}
-                    >
-                        <Grid item xs={8}>
-                            <SearchBar
-                                className={classes.searchBar}
-                                label={t("softwareCatalogSearch.placeholder")}
-                                renderInput={({ className, id, placeholder, type }) => {
-                                    const [inputElement, setInputElement] =
-                                        useState<HTMLInputElement | null>(null);
-
-                                    return (
-                                        <input
-                                            ref={setInputElement}
-                                            className={className}
-                                            id={id}
-                                            placeholder={placeholder}
-                                            type={type}
-                                            value={search}
-                                            onChange={updateSearchLink}
-                                            onKeyDown={event => {
-                                                if (event.key === "Escape") {
-                                                    assert(inputElement !== null);
-                                                    inputElement.blur();
-                                                }
-                                                if (event.key === "Enter") {
-                                                    window.location.href = linkSearch;
-                                                }
-                                            }}
-                                        />
-                                    );
-                                }}
-                            />
-                        </Grid>
-                        <Grid item>
-                            <Button
-                                linkProps={{
-                                    href: linkSearch
-                                }}
-                            >
-                                {t("app.search")}
-                            </Button>
-                        </Grid>
-                    </Grid>
-                </section>
-            )}
 
             <section className={cx(classes.sillNumbersBackground, classes.section)}>
                 <div className={cx(fr.cx("fr-container"), classes.sillNumbersContainer)}>
@@ -461,9 +375,6 @@ const useStyles = tss.withName({ Home }).create({
     },
     helpUsBackground: {
         backgroundColor: fr.colors.decisions.background.default.grey.hover
-    },
-    searchBar: {
-        flex: 1
     }
 });
 
@@ -475,63 +386,38 @@ const { HeroSection } = (() => {
     function HeroSection(props: Props) {
         const { className } = props;
 
-        const { cx, classes } = useStyles();
-
         const { t } = useTranslation();
 
         return (
-            <section className={cx(classes.root, className)}>
-                <div className={classes.titleWrapper}>
-                    <h2 className={classes.title}>
-                        <span
-                            style={{
-                                color: fr.colors.decisions.text.title.blueFrance.default
-                            }}
-                        >
-                            {t("home.title")}
-                        </span>{" "}
-                        {t("home.subTitle")}
-                    </h2>
+            <section className={className}>
+                <p className={fr.cx("fr-hint-text", "fr-mb-4w")}>
+                    {t("home.heroWelcome")}
+                </p>
+                <div className={fr.cx("fr-grid-row")}>
+                    <div className={fr.cx("fr-col-12", "fr-col-md-8")}>
+                        <h1>{t("home.heroTitle")}</h1>
+                        <p className={fr.cx("fr-text--lead", "fr-mb-5w")}>
+                            {t("home.heroDescription")}
+                        </p>
+                    </div>
                 </div>
-                <img
-                    src={illustration_sill}
-                    alt="Illustration du SILL"
-                    className={classes.illustration}
-                />
+                <div className={fr.cx("fr-grid-row", "fr-grid-row--gutters")}>
+                    <div className={fr.cx("fr-col-12", "fr-col-md-7")}>
+                        <SoftwareQuickSearch />
+                    </div>
+                    <div className={fr.cx("fr-col-12", "fr-col-md")}>
+                        <Button
+                            size="large"
+                            priority="secondary"
+                            linkProps={routes.softwareCatalog().link}
+                        >
+                            {t("home.seeAllSoftwares")}
+                        </Button>
+                    </div>
+                </div>
             </section>
         );
     }
-
-    const useStyles = tss.withName({ HeroSection }).create({
-        root: {
-            display: "flex",
-            [fr.breakpoints.down("md")]: {
-                flexDirection: "column"
-            },
-            marginTop: fr.spacing("6v"),
-            marginBottom: fr.spacing("2v")
-        },
-        titleWrapper: {
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            paddingRight: fr.spacing("10v"),
-            [fr.breakpoints.down("md")]: {
-                marginBottom: fr.spacing("15v"),
-                paddingRight: "unset"
-            }
-        },
-        title: {
-            marginBottom: 0,
-            maxWidth: 700
-        },
-        illustration: {
-            [fr.breakpoints.down("md")]: {
-                width: "50%",
-                margin: "0 auto"
-            }
-        }
-    });
 
     return { HeroSection };
 })();
