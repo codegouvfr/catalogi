@@ -28,6 +28,7 @@ import { createPublicApiRouter } from "./publicApi/routes";
 import { createOpenApiDocument } from "./publicApi/openapi";
 import type { OidcParams } from "../core/usecases/auth/oidcClient";
 import { softwareDetailsToCodeMeta } from "../tools/codemeta";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 const makeGetCatalogiJson = (redirectUrl: string | undefined, dbApi: DbApiV2): Handler => {
     const getMemoizedCompiledData = memoize(() => dbApi.getCompiledDataPrivate(), {
@@ -82,9 +83,19 @@ export async function startRpcService(params: {
     databaseUrl: string;
     appUrl: string;
     initialAdminEmail?: string;
+    sourceCredentialsKey?: SourceCredentialsKey;
 }) {
-    const { redirectUrl, oidcParams, port, isDevEnvironnement, databaseUrl, appUrl, initialAdminEmail, ...rest } =
-        params;
+    const {
+        redirectUrl,
+        oidcParams,
+        port,
+        isDevEnvironnement,
+        databaseUrl,
+        appUrl,
+        initialAdminEmail,
+        sourceCredentialsKey,
+        ...rest
+    } = params;
 
     assert<Equals<typeof rest, {}>>();
 
@@ -99,7 +110,8 @@ export async function startRpcService(params: {
         },
         oidcKind: "http",
         oidcParams,
-        initialAdminEmail
+        initialAdminEmail,
+        sourceCredentialsKey
     });
 
     if (initialAdminEmail === undefined && !(await dbApi.user.hasAdmin())) {

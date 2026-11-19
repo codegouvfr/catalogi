@@ -57,7 +57,7 @@ describe("Create software, than updates it adding a similar software", () => {
         db = new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
         await resetDB(db);
 
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { sourceCredentialsKey: undefined });
 
         userId = await dbApi.user.add({
             email: "myuser@example.com",

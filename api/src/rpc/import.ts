@@ -8,6 +8,7 @@ import { assert } from "tsafe/assert";
 import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { importTool } from "../core/importTool";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 export async function startImportService(params: {
     env: {
@@ -16,13 +17,22 @@ export async function startImportService(params: {
         botUserEmail?: string;
         importDataSourceOrigin: string;
         listToImport?: string[];
+        sourceCredentialsKey?: SourceCredentialsKey;
     };
     args: {
         sourceSlug?: string;
         externalIdsToImport?: string[];
     };
 }) {
-    const { isDevEnvironnement, databaseUrl, botUserEmail, listToImport, importDataSourceOrigin, ...rest } = params.env;
+    const {
+        isDevEnvironnement,
+        databaseUrl,
+        botUserEmail,
+        listToImport,
+        importDataSourceOrigin,
+        sourceCredentialsKey,
+        ...rest
+    } = params.env;
     const { sourceSlug: argSourceSlug, externalIdsToImport: argExternalIdsToImport } = params.args;
 
     assert<Equals<typeof rest, {}>>();
@@ -43,7 +53,8 @@ export async function startImportService(params: {
         },
         "botUserEmail": botUserEmail,
         "sourceSlug": argSourceSlug ?? importDataSourceOrigin,
-        "listToImport": parsedList ?? argExternalIdsToImport ?? listToImport ?? []
+        "listToImport": parsedList ?? argExternalIdsToImport ?? listToImport ?? [],
+        sourceCredentialsKey
     });
 
     success ? console.info("[RPC:Import] ✅ Importation successful ✅") : console.error("[RPC:Import] ❌ Error ❌");

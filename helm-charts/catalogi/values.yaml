@@ -70,6 +70,9 @@ api:
     OIDC_CLIENT_ID: sill
     # Optional one-time bootstrap. Must match the email returned by OIDC.
     # CATALOGI_INITIAL_ADMIN_EMAIL: admin@example.com
+    # Optional, also given to the update job: encrypts the source credentials stored in the
+    # database. Generate it with: openssl rand -base64 32
+    # SOURCE_CREDENTIALS_KEY: ""
 
 # -- Configuration for the 'update' background job
 update:

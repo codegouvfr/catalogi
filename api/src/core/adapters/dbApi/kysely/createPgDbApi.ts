@@ -18,10 +18,14 @@ import {
     createPgSoftwareUserRepository
 } from "./createPgUserAndReferentRepository";
 import { Database } from "./kysely.database";
+import type { SourceCredentialsKey } from "../../../../tools/sourceCredentialCipher";
 
-export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
+export const createKyselyPgDbApi = (
+    db: Kysely<Database>,
+    { sourceCredentialsKey }: { sourceCredentialsKey: SourceCredentialsKey | undefined }
+): DbApiV2 => {
     return {
-        source: createPgSourceRepository(db),
+        source: createPgSourceRepository(db, { sourceCredentialsKey }),
         software: createPgSoftwareRepository(db),
         softwareExternalData: createPgSoftwareExternalDataRepository(db),
         instance: createPgInstanceRepository(db),
@@ -37,10 +41,13 @@ export const createKyselyPgDbApi = (db: Kysely<Database>): DbApiV2 => {
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
-export const getDbApiAndInitializeCache = (dbConfig: PgDbConfig): { dbApi: DbApiV2 } => {
+export const getDbApiAndInitializeCache = (
+    dbConfig: PgDbConfig,
+    sourceCredentialsKey: SourceCredentialsKey | undefined
+): { dbApi: DbApiV2 } => {
     if (dbConfig.dbKind === "kysely") {
         return {
-            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb)
+            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb, { sourceCredentialsKey })
         };
     }
 

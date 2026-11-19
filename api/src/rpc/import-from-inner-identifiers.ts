@@ -9,6 +9,7 @@ import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { getDbApiAndInitializeCache } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { makeImportFromInnerIdentifiers } from "../core/usecases/importFromInnerIdentifiers";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 export async function startImportFromInnerIdentifersService(params: {
     isDevEnvironnement: boolean;
@@ -16,18 +17,30 @@ export async function startImportFromInnerIdentifersService(params: {
     botUserEmail?: string;
     importDataSourceOrigin: string;
     listToImport?: string[];
+    sourceCredentialsKey?: SourceCredentialsKey;
 }) {
-    const { isDevEnvironnement, databaseUrl, botUserEmail, listToImport, importDataSourceOrigin, ...rest } = params;
+    const {
+        isDevEnvironnement,
+        databaseUrl,
+        botUserEmail,
+        listToImport,
+        importDataSourceOrigin,
+        sourceCredentialsKey,
+        ...rest
+    } = params;
 
     assert<Equals<typeof rest, {}>>();
 
     console.log({ isDevEnvironnement });
 
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
-    const { dbApi } = getDbApiAndInitializeCache({
-        "dbKind": "kysely",
-        "kyselyDb": kyselyDb
-    });
+    const { dbApi } = getDbApiAndInitializeCache(
+        {
+            "dbKind": "kysely",
+            "kyselyDb": kyselyDb
+        },
+        sourceCredentialsKey
+    );
 
     const innerImport = makeImportFromInnerIdentifiers({ dbApi });
 

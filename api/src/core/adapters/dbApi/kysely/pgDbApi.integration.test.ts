@@ -161,7 +161,7 @@ describe("pgDbApi", () => {
     let dbApi: DbApiV2;
 
     beforeEach(async () => {
-        dbApi = createKyselyPgDbApi(db);
+        dbApi = createKyselyPgDbApi(db, { sourceCredentialsKey: undefined });
         await resetDB(db);
     });
 

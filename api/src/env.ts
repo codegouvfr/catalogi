@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import { z } from "zod";
+import { parseSourceCredentialsKey } from "./tools/sourceCredentialCipher";
 
 const zEnvConfiguration = z.object({
     "oidcParams": z.object({
@@ -32,7 +33,11 @@ const zEnvConfiguration = z.object({
     "githubPersonalAccessTokenForApiRateLimit": z.string().optional(),
     // Completely disable this instance and redirect to another url
     "redirectUrl": z.string().optional(),
-    "sentryDsnApi": z.string().optional()
+    "sentryDsnApi": z.string().optional(),
+    "sourceCredentialsKey": z
+        .string()
+        .optional()
+        .transform(key => (key === undefined ? undefined : parseSourceCredentialsKey(key)))
 });
 
 const envConfiguration = zEnvConfiguration.parse({
@@ -57,7 +62,8 @@ const envConfiguration = zEnvConfiguration.parse({
         ? process.env.UPDATE_SOFTWARE_IDS.split(",").map(value => parseInt(value.trim(), 10))
         : undefined,
     "githubPersonalAccessTokenForApiRateLimit": process.env?.GITHUB_TOKEN,
-    "sentryDsnApi": process.env.SENTRY_DSN_API
+    "sentryDsnApi": process.env.SENTRY_DSN_API,
+    "sourceCredentialsKey": process.env.SOURCE_CREDENTIALS_KEY
 });
 
 export const env = {

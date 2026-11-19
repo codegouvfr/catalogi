@@ -11,11 +11,13 @@ import { testPgUrl } from "../tools/test.helpers";
 import { createRouter } from "./router";
 import { UserWithId } from "../lib/ApiTypes";
 import { UiConfig } from "../core/uiConfigSchema";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 type TestCallerConfig = {
     currentUser: UserWithId | undefined;
     db?: Kysely<Database>;
     overrideUiConfig?: (uiConfig: UiConfig) => UiConfig;
+    sourceCredentialsKey?: SourceCredentialsKey;
 };
 
 export const defaultUser: UserWithId = {
@@ -32,7 +34,7 @@ export const defaultUser: UserWithId = {
 export type ApiCaller = Awaited<ReturnType<typeof createTestCaller>>["apiCaller"];
 
 export const createTestCaller = async (
-    { currentUser, db, overrideUiConfig }: TestCallerConfig = { currentUser: defaultUser }
+    { currentUser, db, overrideUiConfig, sourceCredentialsKey }: TestCallerConfig = { currentUser: defaultUser }
 ) => {
     const kyselyDb = db ?? new Kysely<Database>({ dialect: createPgDialect(testPgUrl) });
 
@@ -44,7 +46,8 @@ export const createTestCaller = async (
             clientId: "fake-client-id",
             clientSecret: "fake-client-secret",
             appUrl: "http://localhost:3000"
-        }
+        },
+        sourceCredentialsKey
     });
 
     // Apply test-specific changes after bootstrap initialized the singleton row.

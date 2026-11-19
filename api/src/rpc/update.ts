@@ -10,15 +10,19 @@ import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalData } from "../core/usecases/refreshExternalData";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
 import { DbApiV2 } from "../core/ports/DbApiV2";
+import type { SourceCredentialsKey } from "../tools/sourceCredentialCipher";
 
 type PgDbConfig = { dbKind: "kysely"; kyselyDb: Kysely<Database> };
 
 type DbConfig = PgDbConfig;
 
-const getDbApiAndInitializeCache = (dbConfig: DbConfig): { dbApi: DbApiV2 } => {
+const getDbApiAndInitializeCache = (
+    dbConfig: DbConfig,
+    sourceCredentialsKey: SourceCredentialsKey | undefined
+): { dbApi: DbApiV2 } => {
     if (dbConfig.dbKind === "kysely") {
         return {
-            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb)
+            dbApi: createKyselyPgDbApi(dbConfig.kyselyDb, { sourceCredentialsKey })
         };
     }
 
@@ -33,6 +37,7 @@ export async function startUpdateService(params: {
         updateSkipTimingInMinutes?: number;
         updateSoftwareIds?: number[];
         sources?: string[];
+        sourceCredentialsKey?: SourceCredentialsKey;
     };
     args: {
         sourceSlugs?: string[];
@@ -49,6 +54,7 @@ export async function startUpdateService(params: {
         updateSkipTimingInMinutes: timeUpEnv,
         updateSoftwareIds,
         sources: sourceEnv,
+        sourceCredentialsKey,
         ...rest
     } = params.env;
     const {
@@ -64,10 +70,13 @@ export async function startUpdateService(params: {
 
     const kyselyDb = new Kysely<Database>({ dialect: createPgDialect(databaseUrl) });
 
-    const { dbApi } = getDbApiAndInitializeCache({
-        "dbKind": "kysely",
-        "kyselyDb": kyselyDb
-    });
+    const { dbApi } = getDbApiAndInitializeCache(
+        {
+            "dbKind": "kysely",
+            "kyselyDb": kyselyDb
+        },
+        sourceCredentialsKey
+    );
 
     const refreshExternalData = makeRefreshExternalData({
         dbApi
