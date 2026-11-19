@@ -444,7 +444,7 @@ export const makeRefreshExternalData = (deps: ParamsOfrefreshExternalDataUseCase
         externalIdsToRefresh?: string[];
         catalogStatus?: SoftwareCatalogueStatusNames[];
     }) => {
-        const { sourceSlugs, minuteSkipSince, softwareIdsToRefresh, externalIdsToRefresh } = params;
+        const { sourceSlugs, minuteSkipSince, softwareIdsToRefresh, externalIdsToRefresh, catalogStatus } = params;
 
         await discoverNewSoftwareLinks(dbApi);
 
@@ -480,9 +480,9 @@ export const makeRefreshExternalData = (deps: ParamsOfrefreshExternalDataUseCase
                     "You set externalIdsToRefresh but  with more than one source, won't be using this arg"
                 );
             }
-            return refreshAllExternalDataBySource({ dbApi, sourceSlugs, minuteSkipSince });
+            return refreshAllExternalDataBySource({ dbApi, sourceSlugs, minuteSkipSince, catalogStatus });
         }
 
-        return refreshAllExternalData({ dbApi, minuteSkipSince });
+        return refreshAllExternalData({ dbApi, minuteSkipSince, catalogStatus });
     };
 };
