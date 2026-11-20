@@ -230,8 +230,8 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
             });
 
             console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
-        } catch {
-            console.error(`[UC.refreshExternalData] 💥 Update for ${externalId} on ${sourceSlug} : Failed 💥`);
+        } catch (error) {
+            console.error(`[UC.refreshExternalData] 💥 Update for ${externalId} on ${sourceSlug} : Failed 💥 ${error}`);
             console.timeEnd(`[UC.refreshExternalData] 💾 Update for ${externalId} on ${sourceSlug} : Done 💾`);
         }
     };
