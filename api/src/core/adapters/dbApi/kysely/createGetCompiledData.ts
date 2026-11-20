@@ -1,12 +1,12 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { Kysely } from "kysely";
 import { CompiledData } from "../../../ports/CompileData";
 import { PopulatedExternalData } from "../../../ports/DbApiV2";
 import type { Os, RuntimePlatform } from "../../../types";
-import { Database } from "./kysely.database";
+import { Database, DROPPED_STATUS } from "./kysely.database";
 import { isNotNull, transformNullToUndefined } from "./kysely.utils";
 import { mergeExternalData } from "./mergeExternalData";
 
@@ -63,7 +63,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .select([
             "s.id",
             "s.addedByUserId",
-            "s.dereferencing",
+            "s.status",
             "s.customAttributes",
             "s.isStillInObservation",
             "s.name",
@@ -83,7 +83,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                     id,
                     addedByUserId,
                     similarExternalSoftwares,
-                    dereferencing,
+                    status,
                     customAttributes,
                     users,
                     referents,
@@ -106,6 +106,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                             : undefined;
 
                     const description = softwareExternalData?.description;
+                    const { changedByUserId, ...deferencing } = status.changed;
 
                     return {
                         id,
@@ -131,7 +132,7 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
                         addedByUserEmail: agentById[addedByUserId].email,
                         softwareExternalData: softwareExternalData ?? undefined,
                         latestVersion: version,
-                        dereferencing: dereferencing ?? undefined,
+                        deferencing: DROPPED_STATUS.includes(status.name) ? deferencing : undefined,
                         serviceProviders: softwareExternalData?.providers ?? [],
                         similarExternalSoftwares: (similarExternalSoftwares ?? [])
                             .filter(isNotNull)

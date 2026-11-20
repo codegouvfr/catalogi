@@ -5,7 +5,11 @@
 import { Kysely } from "kysely";
 import type { Equals } from "tsafe";
 import { assert } from "tsafe/assert";
-import { Database } from "../core/adapters/dbApi/kysely/kysely.database";
+import {
+    Database,
+    softwareCatalogueStatusNames,
+    SoftwareCatalogueStatusNames
+} from "../core/adapters/dbApi/kysely/kysely.database";
 import { createPgDialect } from "../core/adapters/dbApi/kysely/kysely.dialect";
 import { makeRefreshExternalData } from "../core/usecases/refreshExternalData";
 import { createKyselyPgDbApi } from "../core/adapters/dbApi/kysely/createPgDbApi";
@@ -39,6 +43,7 @@ export async function startUpdateService(params: {
         updateSkipTimingInMinutes?: number;
         updateSoftwareIds?: number[];
         externalIdsToRefresh?: string[];
+        catalogStatus?: string[];
     };
 }) {
     console.log("[RPC:Update] Starting fetching of external data on remote sources");
@@ -55,10 +60,18 @@ export async function startUpdateService(params: {
         sourceSlugs: argSourceSlugs,
         updateSkipTimingInMinutes: argTimeUp,
         updateSoftwareIds: argUpdateSoftwareIds,
-        externalIdsToRefresh: argExternalIdsToRefresh
+        externalIdsToRefresh: argExternalIdsToRefresh,
+        catalogStatus
     } = params.args;
 
     assert<Equals<typeof rest, {}>>();
+
+    if (
+        catalogStatus &&
+        !catalogStatus.every(value => (softwareCatalogueStatusNames as readonly string[]).includes(value))
+    )
+        throw new RangeError(`${catalogStatus} is not a recognize software catalogue status`);
+    const catalogStatusValid = catalogStatus as SoftwareCatalogueStatusNames[] | undefined;
 
     console.log({ isDevEnvironnement });
 
@@ -82,7 +95,8 @@ export async function startUpdateService(params: {
         minuteSkipSince: updateSkipTimingInMinutes,
         sourceSlugs: sources,
         softwareIdsToRefresh,
-        externalIdsToRefresh
+        externalIdsToRefresh,
+        catalogStatus: catalogStatusValid
     });
 
     console.timeEnd("[RPC:Update] Fetching of external data on remote sources: Done");

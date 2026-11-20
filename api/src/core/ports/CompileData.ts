@@ -1,5 +1,5 @@
-// SPDX-FileCopyrightText: 2021-2025 DINUM <floss@numerique.gouv.fr>
-// SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
+// SPDX-FileCopyrightText: 2021-2026 DINUM <floss@numerique.gouv.fr>
+// SPDX-FileCopyrightText: 2024-2026 Université Grenoble Alpes
 // SPDX-License-Identifier: MIT
 
 import { SimilarSoftwareExternalData } from "./GetSoftwareExternalData";
@@ -7,6 +7,7 @@ import { SchemaOrganization } from "../adapters/dbApi/kysely/kysely.database";
 import type { DatabaseDataType } from "./DbApiV2";
 import type { Os, RuntimePlatform } from "../types";
 import { CustomAttributes } from "../usecases/readWriteSillData/attributeTypes";
+import { Dereferencing } from "../../rpc/publicApi/types";
 
 export type CompiledData<T extends "private" | "public"> = CompiledData.Software<T>[];
 
@@ -20,14 +21,7 @@ export namespace CompiledData {
             description: string;
             referencedSinceTime: number;
             updateTime: number;
-            dereferencing:
-                | {
-                      reason?: string;
-                      time: string;
-                      lastRecommendedVersion?: string;
-                      dereferencedByUserId: number;
-                  }
-                | undefined;
+            deferencing: Dereferencing | undefined;
             isStillInObservation: boolean;
             license: string;
             operatingSystems: Partial<Record<Os, boolean>>;
@@ -88,7 +82,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             users,
             instances,
             categories,
-            dereferencing,
+            deferencing,
             description,
             customAttributes,
             id,
@@ -110,7 +104,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
         return {
             serviceProviders,
             categories,
-            dereferencing,
+            deferencing,
             description,
             customAttributes,
             id,

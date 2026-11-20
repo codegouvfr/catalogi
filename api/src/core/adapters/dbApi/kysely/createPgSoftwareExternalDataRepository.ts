@@ -109,12 +109,18 @@ export const createPgSoftwareExternalDataRepository = (db: Kysely<Database>): So
             .executeTakeFirst();
         return row !== undefined;
     },
-    getIds: async ({ minuteSkipSince, sourceSlug }) => {
+    getIds: async ({ minuteSkipSince, sourceSlug, catalogStatus }) => {
         // Skip the `UserInput` pseudo-source: it has no gateway to refresh.
         let request = db
             .selectFrom("software_external_datas")
             .select(["externalId", "sourceSlug"])
             .where("sourceSlug", "!=", USER_INPUT_SOURCE_SLUG);
+
+        if (catalogStatus && catalogStatus.length > 0) {
+            request = request
+                .leftJoin("softwares", "softwares.id", "software_external_datas.softwareId")
+                .where(sql`softwares.status ->> 'name'`, "in", catalogStatus);
+        }
 
         if (minuteSkipSince) {
             const thresholdDate = new Date(Date.now() - minuteSkipSince * 1000 * 60);

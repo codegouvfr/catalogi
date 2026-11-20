@@ -10,7 +10,8 @@ const optionDefinitions = [
     { name: "source", alias: "s", type: String, multiple: true, defaultOption: true },
     { name: "updateSkipTimingInMinutes", alias: "t", type: Number },
     { name: "softwareIdsToRefresh", alias: "w", type: Number, multiple: true },
-    { name: "externalIdsToRefresh", alias: "e", type: String, multiple: true }
+    { name: "externalIdsToRefresh", alias: "e", type: String, multiple: true },
+    { name: "catalogStatus", alias: "c", type: String, multiple: true }
 ];
 
 const options = commandLineArgs(optionDefinitions);
@@ -21,6 +22,7 @@ startUpdateService({
         sourceSlugs: options.source,
         updateSkipTimingInMinutes: options.updateSkipTimingInMinutes,
         updateSoftwareIds: options.softwareIdsToRefresh,
-        externalIdsToRefresh: options.externalIdsToRefresh
+        externalIdsToRefresh: options.externalIdsToRefresh,
+        catalogStatus: options.catalogStatus
     }
 }).then(() => process.exit(0));
