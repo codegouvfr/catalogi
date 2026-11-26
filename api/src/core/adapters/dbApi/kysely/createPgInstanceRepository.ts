@@ -71,12 +71,10 @@ export const createPgInstanceRepository = (db: Kysely<Database>): InstanceReposi
             ])
             .execute()
             .then(instances =>
-                instances.map(
-                    (instance): Instance => ({
-                        ...instance,
-                        instanceUrl: instance.instanceUrl ?? undefined,
-                        isPublic: instance.isPublic
-                    })
-                )
+                instances.map((instance): Instance => ({
+                    ...instance,
+                    instanceUrl: instance.instanceUrl ?? undefined,
+                    isPublic: instance.isPublic
+                }))
             )
 });

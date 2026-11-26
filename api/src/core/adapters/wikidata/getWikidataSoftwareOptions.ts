@@ -53,8 +53,7 @@ const memoizedFetchOptions = memoize(
             return [];
         }
         const results = (await response.json().catch(() => undefined)) as
-            | { search: { id: string; display: { description?: { value?: string } }; label?: string }[] }
-            | undefined;
+            { search: { id: string; display: { description?: { value?: string } }; label?: string }[] } | undefined;
         if (!results?.search) return [];
 
         const arr = results.search.map(entry => ({

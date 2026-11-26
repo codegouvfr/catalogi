@@ -100,8 +100,7 @@ export function SoftwareFormStep2(props: Step2Props) {
         image: string;
         keywordsInputValue: string;
         wikidataEntry:
-            | ReturnType<typeof getLibreSoftwareWikidataOptions>[number]
-            | undefined;
+            ReturnType<typeof getLibreSoftwareWikidataOptions>[number] | undefined;
     }>({
         defaultValues: (() => {
             if (initialFormData === undefined) {

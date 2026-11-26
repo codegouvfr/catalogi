@@ -32,9 +32,7 @@ export function openSourceFormModal(params: Params) {
 }
 
 type CredentialDraft =
-    | { action: "keep" }
-    | { action: "replace"; value: string }
-    | { action: "clear" };
+    { action: "keep" } | { action: "replace"; value: string } | { action: "clear" };
 
 type FormState = {
     url: string;

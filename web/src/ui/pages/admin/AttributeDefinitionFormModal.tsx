@@ -35,8 +35,7 @@ const modal = createModal({
 });
 
 type Mode =
-    | { mode: "create" }
-    | { mode: "edit"; definition: ApiTypes.AttributeDefinition };
+    { mode: "create" } | { mode: "edit"; definition: ApiTypes.AttributeDefinition };
 
 const evtParams = Evt.create<Mode | undefined>(undefined);
 
@@ -289,19 +288,16 @@ export function AttributeDefinitionFormModal() {
             newErrors.subsection = t("admin.form.errors.subsectionRequired");
         }
         if (isEnum) {
-            const optionErrors = form.options.map(
-                (option, index): OptionErrors => ({
-                    value: !OPTION_VALUE_REGEX.test(option.value)
-                        ? t("admin.form.errors.invalidOptionValue")
-                        : form.options.findIndex(
-                                ({ value }) => value === option.value
-                            ) !== index
-                          ? t("admin.form.errors.duplicateOptionValue")
-                          : undefined,
-                    labelFr: !option.labelFr.trim(),
-                    labelEn: !option.labelEn.trim()
-                })
-            );
+            const optionErrors = form.options.map((option, index): OptionErrors => ({
+                value: !OPTION_VALUE_REGEX.test(option.value)
+                    ? t("admin.form.errors.invalidOptionValue")
+                    : form.options.findIndex(({ value }) => value === option.value) !==
+                        index
+                      ? t("admin.form.errors.duplicateOptionValue")
+                      : undefined,
+                labelFr: !option.labelFr.trim(),
+                labelEn: !option.labelEn.trim()
+            }));
             if (optionErrors.some(e => e.value || e.labelFr || e.labelEn)) {
                 newErrors.options = optionErrors;
             }

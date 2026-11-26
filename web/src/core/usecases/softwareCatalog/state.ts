@@ -64,13 +64,7 @@ export namespace State {
         | "my_software";
 
     export type Environment =
-        | "linux"
-        | "windows"
-        | "mac"
-        | "browser"
-        | "stack"
-        | "android"
-        | "ios";
+        "linux" | "windows" | "mac" | "browser" | "stack" | "android" | "ios";
 
     export type AttributeName = string;
 
