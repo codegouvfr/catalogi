@@ -289,6 +289,43 @@ describe("fetches software extra data (from different providers)", () => {
         expectToEqual(updatedSoftwareExternalDatas, softwareExternalDatas);
     });
 
+    it("keeps the data of an inactive source without fetching it, until it is reactivated", async () => {
+        // The lookup source can't be inactive: wikidata stops being it for this test.
+        await db
+            .updateTable("sources")
+            .set({ isLookupSource: false, isActive: false })
+            .where("slug", "=", "wikidata")
+            .execute();
+        const before = await db
+            .selectFrom("software_external_datas")
+            .selectAll()
+            .where("softwareId", "=", craSoftwareId)
+            .where("sourceSlug", "=", "wikidata")
+            .executeTakeFirstOrThrow();
+
+        await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: craSoftwareId });
+
+        const after = await db
+            .selectFrom("software_external_datas")
+            .selectAll()
+            .where("softwareId", "=", craSoftwareId)
+            .where("sourceSlug", "=", "wikidata")
+            .executeTakeFirstOrThrow();
+        expectToEqual(after, before);
+        expect(after.lastDataFetchAt).toBeNull();
+
+        // Control: the same refresh fetches the source once active again.
+        await db.updateTable("sources").set({ isActive: true }).where("slug", "=", "wikidata").execute();
+        await fetchAndSaveSoftwareExtraDataBySoftwareId({ softwareId: craSoftwareId });
+        const refetched = await db
+            .selectFrom("software_external_datas")
+            .select("lastDataFetchAt")
+            .where("softwareId", "=", craSoftwareId)
+            .where("sourceSlug", "=", "wikidata")
+            .executeTakeFirstOrThrow();
+        expect(refetched.lastDataFetchAt).not.toBeNull();
+    }, 20_000);
+
     it(
         "gets software external data and saves it, and does not save other extra data if there is nothing relevant",
         async () => {

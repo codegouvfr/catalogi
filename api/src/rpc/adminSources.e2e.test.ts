@@ -159,6 +159,23 @@ describe("Admin sources RPC", () => {
         expect((await dbApi.source.getLookupSource()).slug).toBe("hal");
     });
 
+    it("deactivates and reactivates a source, never the user input nor the lookup source", async () => {
+        await apiCaller.setSourceActive({ slug: "hal", isActive: false });
+        expect((await findSource("hal"))?.isActive).toBe(false);
+        await expect(apiCaller.setLookupSource({ slug: "hal" })).rejects.toThrow("inactive source");
+
+        await apiCaller.setSourceActive({ slug: "hal", isActive: true });
+        expect((await findSource("hal"))?.isActive).toBe(true);
+
+        await expect(apiCaller.setSourceActive({ slug: "wikidata", isActive: false })).rejects.toThrow(
+            "lookup source cannot be deactivated"
+        );
+        await expect(apiCaller.setSourceActive({ slug: "UserInput", isActive: false })).rejects.toThrow(
+            "cannot be toggled"
+        );
+        expect((await findSource("wikidata"))?.isActive).toBe(true);
+    });
+
     it("rewrites the whole category order in one go, user input first", async () => {
         const [userInput, ...rest] = initialCategoryOrder;
         const reversed = [userInput, ...[...rest].reverse()];
@@ -189,6 +206,9 @@ describe("Admin sources RPC", () => {
             "FORBIDDEN"
         );
         await expect(regularUserCaller.setLookupSource({ slug: "wikidata" })).rejects.toThrow("FORBIDDEN");
+        await expect(regularUserCaller.setSourceActive({ slug: "wikidata", isActive: true })).rejects.toThrow(
+            "FORBIDDEN"
+        );
         await expect(regularUserCaller.reorderSourceCategories({ categories: initialCategoryOrder })).rejects.toThrow(
             "FORBIDDEN"
         );

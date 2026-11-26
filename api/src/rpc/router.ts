@@ -655,6 +655,9 @@ export function createRouter(params: {
         "setLookupSource": adminProcedure
             .input(z.object({ "slug": z.string() }))
             .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.setLookupSource(input))),
+        "setSourceActive": adminProcedure
+            .input(z.object({ "slug": z.string(), "isActive": z.boolean() }))
+            .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.setActive(input))),
         "reorderSourceCategories": adminProcedure
             .input(z.object({ "categories": z.array(zSourceCategory) }))
             .mutation(({ input }) => withSourceErrors(() => useCases.adminSources.reorderCategories(input))),

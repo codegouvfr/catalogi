@@ -22,7 +22,8 @@ const makeSource = (slug: string, kind: Source["kind"], category: Source["catego
     description: undefined,
     configuration: undefined,
     lastImport: undefined,
-    isLookupSource: false
+    isLookupSource: false,
+    isActive: true
 });
 
 const wikidata = makeSource("wikidata", "wikidata", "wikidata");
@@ -84,6 +85,23 @@ describe("discoverSourcesByRepository", () => {
         const discovered = await discover({ repoUrls: [repoUrl], sources: [wikidata, otherWikidata] });
 
         expect(discovered.map(({ sourceSlug }) => sourceSlug)).toEqual(["wikidata"]);
+    });
+
+    it("does not query an inactive source", async () => {
+        const queried: string[] = [];
+        const discover = makeDiscoverSourcesByRepository({
+            dbApi,
+            getFinder:
+                () =>
+                async ({ source }) => {
+                    queried.push(source.slug);
+                    return undefined;
+                }
+        });
+
+        await discover({ repoUrls: [repoUrl], sources: [wikidata, { ...hal, isActive: false }] });
+
+        expect(queried).toEqual(["wikidata"]);
     });
 
     it("skips sources failing or answering too slowly", async () => {

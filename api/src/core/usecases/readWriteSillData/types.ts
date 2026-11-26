@@ -92,7 +92,11 @@ export type Software = SoftwareData & {
  */
 export type SoftwareSourceData = Partial<SoftwareData> & {
     sourceSlug: string;
+    // Priority of the source category. The actual precedence is the order of `dataBySource`,
+    // where inactive sources come last whatever their category.
     priority: number;
+    // Data of an inactive source is no longer refreshed and ranks after the active sources.
+    isSourceActive: boolean;
     kind: ExternalDataOriginKind;
     sourceUrl: string;
     externalId: string | undefined;
@@ -100,7 +104,7 @@ export type SoftwareSourceData = Partial<SoftwareData> & {
 };
 
 export type SoftwareDetail = Software & {
-    /** Ordered by precedence (highest first). Only sources that actually contribute a row appear. */
+    /** Ordered by precedence (highest first, inactive sources last). Only sources that actually contribute a row appear. */
     dataBySource: SoftwareSourceData[];
 };
 

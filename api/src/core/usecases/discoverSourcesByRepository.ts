@@ -38,7 +38,8 @@ const rejectOnAbort = (signal: AbortSignal) =>
     new Promise<never>((_, reject) => signal.addEventListener("abort", () => reject(signal.reason), { once: true }));
 
 // Looks for the repository in every configured source able to search by repository url,
-// so an instance only queries the sources it uses. A slow or failing source is skipped.
+// so an instance only queries the sources it uses. A slow or failing source is skipped,
+// an inactive one is not queried.
 export const makeDiscoverSourcesByRepository =
     (deps: {
         dbApi: DbApiV2;
@@ -52,22 +53,24 @@ export const makeDiscoverSourcesByRepository =
         if (variants.length === 0) return [];
 
         const matches = await Promise.all(
-            sources.map(async source => {
-                const find = getFinder(source);
-                if (!find) return undefined;
+            sources
+                .filter(source => source.isActive)
+                .map(async source => {
+                    const find = getFinder(source);
+                    if (!find) return undefined;
 
-                const signal = AbortSignal.timeout(timeoutMs);
-                try {
-                    const match = await Promise.race([
-                        find({ repoUrls: variants, source, signal }),
-                        rejectOnAbort(signal)
-                    ]);
-                    return match && { source, match };
-                } catch (error) {
-                    console.info(`[UC.discoverSourcesByRepository] ${source.slug} skipped: ${String(error)}`);
-                    return undefined;
-                }
-            })
+                    const signal = AbortSignal.timeout(timeoutMs);
+                    try {
+                        const match = await Promise.race([
+                            find({ repoUrls: variants, source, signal }),
+                            rejectOnAbort(signal)
+                        ]);
+                        return match && { source, match };
+                    } catch (error) {
+                        console.info(`[UC.discoverSourcesByRepository] ${source.slug} skipped: ${String(error)}`);
+                        return undefined;
+                    }
+                })
         );
 
         // A software has at most one external data per source category.
@@ -126,6 +129,7 @@ const toSoftwareSourceData = (params: {
     return {
         sourceSlug: source.slug,
         priority,
+        isSourceActive: source.isActive,
         kind: source.kind,
         sourceUrl: source.url,
         externalId: external.externalId,

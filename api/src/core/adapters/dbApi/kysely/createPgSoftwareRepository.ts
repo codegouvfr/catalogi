@@ -249,9 +249,17 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         .selectAll("ext")
                         .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
                         .innerJoin("source_categories as sc", "sc.category", "s.category")
-                        .select(["s.kind", "sc.priority", "s.url as sourceUrl", "s.slug"])
+                        .select([
+                            "s.kind",
+                            "sc.priority",
+                            "s.url as sourceUrl",
+                            "s.slug",
+                            "s.isActive as isSourceActive"
+                        ])
                         .where("ext.softwareId", "is not", null)
                         .orderBy("ext.softwareId", "asc")
+                        // Data of an inactive source is kept but no longer refreshed: it ranks last.
+                        .orderBy("s.isActive", "desc")
                         .orderBy("sc.priority", "asc")
                         .execute()
                 ]);
@@ -365,9 +373,17 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                         .selectAll("ext")
                         .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
                         .innerJoin("source_categories as sc", "sc.category", "s.category")
-                        .select(["s.kind", "sc.priority", "s.url as sourceUrl", "s.slug"])
+                        .select([
+                            "s.kind",
+                            "sc.priority",
+                            "s.url as sourceUrl",
+                            "s.slug",
+                            "s.isActive as isSourceActive"
+                        ])
                         .where("ext.softwareId", "is not", null)
                         .orderBy("ext.softwareId", "asc")
+                        // Data of an inactive source is kept but no longer refreshed: it ranks last.
+                        .orderBy("s.isActive", "desc")
                         .orderBy("sc.priority", "asc")
                         .execute()
                 ]);
@@ -458,8 +474,10 @@ export const createPgSoftwareRepository = (db: Kysely<Database>): SoftwareReposi
                     .selectAll("ext")
                     .innerJoin("sources as s", "s.slug", "ext.sourceSlug")
                     .innerJoin("source_categories as sc", "sc.category", "s.category")
-                    .select(["s.kind", "sc.priority", "s.url as sourceUrl", "s.slug"])
+                    .select(["s.kind", "sc.priority", "s.url as sourceUrl", "s.slug", "s.isActive as isSourceActive"])
                     .where("ext.softwareId", "=", softwareId)
+                    // Data of an inactive source is kept but no longer refreshed: it ranks last.
+                    .orderBy("s.isActive", "desc")
                     .orderBy("sc.priority", "asc")
                     .execute(),
 

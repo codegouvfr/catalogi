@@ -84,10 +84,10 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .orderBy("slug", "asc")
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row)),
-    createIfMissing: async ({ slug, kind, url }) => {
+    createIfMissing: async ({ slug, kind, url, isActive }) => {
         await db
             .insertInto("sources")
-            .values({ slug, kind, category: categoryByKind[kind], url, description: null })
+            .values({ slug, kind, category: categoryByKind[kind], url, description: null, isActive })
             .onConflict(oc => oc.column("slug").doNothing())
             .execute();
 
@@ -98,10 +98,11 @@ export const createPgSourceRepository = (db: Kysely<Database>): SourceRepository
             .executeTakeFirstOrThrow()
             .then(row => stripNullOrUndefinedValues(row));
     },
-    update: async ({ slug, url, configuration }) => {
+    update: async ({ slug, url, configuration, isActive }) => {
         const changes = {
             ...(url !== undefined && { url }),
-            ...(configuration !== undefined && { configuration: JSON.stringify(configuration) })
+            ...(configuration !== undefined && { configuration: JSON.stringify(configuration) }),
+            ...(isActive !== undefined && { isActive })
         };
         if (Object.keys(changes).length === 0) return;
 

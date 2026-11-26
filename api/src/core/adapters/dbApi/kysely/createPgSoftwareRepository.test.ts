@@ -403,6 +403,48 @@ describe("createPgSoftwareRepository", () => {
             expect(details?.externalId).toBe("ext_high"); // High priority external ID
         });
 
+        it("keeps the data of an inactive source but ranks it after the active ones", async () => {
+            const softwareId = await insertSoftware(db);
+            await db
+                .insertInto("software_external_datas")
+                .values([
+                    {
+                        softwareId,
+                        sourceSlug: "high_prio",
+                        externalId: "ext_high",
+                        latestVersion: JSON.stringify({ version: "2.0.0" }),
+                        softwareHelp: "https://high.example.org/help",
+                        authors: JSON.stringify([])
+                    },
+                    {
+                        softwareId,
+                        sourceSlug: "low_prio",
+                        externalId: "ext_low",
+                        latestVersion: JSON.stringify({ version: "1.0.0" }),
+                        authors: JSON.stringify([])
+                    }
+                ])
+                .execute();
+            await db.updateTable("sources").set({ isActive: false }).where("slug", "=", "high_prio").execute();
+
+            const details = await repository.getDetails(softwareId);
+
+            expect(details?.externalId).toBe("ext_low");
+            expect(details?.latestVersion?.version).toBe("1.0.0");
+            // A field only the inactive source knows still comes from it.
+            expect(details?.softwareHelp).toBe("https://high.example.org/help");
+            expect(
+                details?.dataBySource.map(({ sourceSlug, isSourceActive }) => ({ sourceSlug, isSourceActive }))
+            ).toEqual([
+                { sourceSlug: "UserInput", isSourceActive: true },
+                { sourceSlug: "low_prio", isSourceActive: true },
+                { sourceSlug: "high_prio", isSourceActive: false }
+            ]);
+
+            const listed = (await repository.getFullList()).find(software => software.id === softwareId);
+            expect(listed?.latestVersion?.version).toBe("1.0.0");
+        });
+
         it("allows at most one external data per source category for a software", async () => {
             const softwareId = await insertSoftware(db);
             await db
