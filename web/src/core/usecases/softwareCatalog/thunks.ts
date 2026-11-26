@@ -177,7 +177,7 @@ export const protectedThunks = {
                     (action.usecaseName === "softwareDetails" &&
                         action.actionName === "unreferencingCompleted") ||
                     (action.usecaseName === "adminSources" &&
-                        action.actionName === "categoriesReordered"),
+                        action.actionName === "mergeOrderChanged"),
                 () => initialize()
             );
         }

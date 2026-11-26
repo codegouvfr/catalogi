@@ -57,7 +57,10 @@ function LookupSourceSection(props: { categories: ApiTypes.AdminSourceCategory[]
 
     const sources = categories.flatMap(({ sources }) => sources);
     const lookupSource = sources.find(source => source.isLookupSource);
-    const candidates = sources.filter(source => source.canBeLookupSource);
+    // An inactive source is no longer fetched: it can't be searched.
+    const candidates = sources.filter(
+        source => source.canBeLookupSource && source.isActive
+    );
 
     const [selectedSlug, setSelectedSlug] = useState(lookupSource?.slug ?? "");
 
@@ -186,8 +189,11 @@ function CategoryOrderSection(props: { categories: ApiTypes.AdminSourceCategory[
             <p className={fr.cx("fr-text--sm", "fr-mb-1v")}>
                 {t("admin.sources.orderDescription")}
             </p>
-            <p className={fr.cx("fr-text--sm")}>
+            <p className={fr.cx("fr-text--sm", "fr-mb-1v")}>
                 {t("admin.sources.orderAppliesImmediately")}
+            </p>
+            <p className={fr.cx("fr-text--sm")}>
+                {t("admin.sources.inactiveDescription")}
             </p>
 
             {isDirty && (

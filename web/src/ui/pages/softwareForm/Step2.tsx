@@ -147,6 +147,7 @@ export function SoftwareFormStep2(props: Step2Props) {
         return {
             sourceSlug: "wikidata",
             priority: 1,
+            isSourceActive: true,
             kind: "wikidata",
             sourceUrl: `https://www.wikidata.org/wiki/${initialFormData.externalId}`,
             externalId: initialFormData.externalId,
@@ -173,6 +174,7 @@ export function SoftwareFormStep2(props: Step2Props) {
         return {
             sourceSlug: new URL(repoResolution.codeRepositoryUrl).host,
             priority: 1,
+            isSourceActive: true,
             kind: repoResolution.forgeKind,
             sourceUrl: repoResolution.codeRepositoryUrl,
             externalId: repoResolution.externalId,

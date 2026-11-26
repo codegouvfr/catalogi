@@ -1265,6 +1265,9 @@
                 },
                 "sourceLabel_GitHub": {
                     "type": "string"
+                },
+                "inactiveSource": {
+                    "type": "string"
                 }
             },
             "additionalProperties": false,
@@ -1285,7 +1288,8 @@
                 "sourceLabel_CNLL",
                 "sourceLabel_Zenodo",
                 "sourceLabel_GitLab",
-                "sourceLabel_GitHub"
+                "sourceLabel_GitHub",
+                "inactiveSource"
             ]
         },
         "previewTab": {
@@ -1949,6 +1953,18 @@
                         },
                         "edit": {
                             "type": "string"
+                        },
+                        "inactiveDescription": {
+                            "type": "string"
+                        },
+                        "columnActive": {
+                            "type": "string"
+                        },
+                        "activeLabel": {
+                            "type": "string"
+                        },
+                        "alwaysActive": {
+                            "type": "string"
                         }
                     },
                     "additionalProperties": false,
@@ -1988,7 +2004,11 @@
                         "showLess",
                         "noMatch",
                         "columnActions",
-                        "edit"
+                        "edit",
+                        "inactiveDescription",
+                        "columnActive",
+                        "activeLabel",
+                        "alwaysActive"
                     ]
                 },
                 "sourceForm": {

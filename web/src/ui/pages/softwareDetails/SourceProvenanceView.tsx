@@ -4,6 +4,7 @@
 
 import { memo, useMemo } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
+import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
 import { useLang, useResolveLocalizedString, type LocalizedString } from "ui/i18n";
@@ -12,7 +13,13 @@ import { USER_INPUT_SOURCE_SLUG, type ApiTypes } from "api";
 
 export type SourceFieldKey = keyof Omit<
     ApiTypes.SoftwareSourceData,
-    "sourceSlug" | "priority" | "kind" | "sourceUrl" | "externalId" | "lastDataFetchAt"
+    | "sourceSlug"
+    | "priority"
+    | "isSourceActive"
+    | "kind"
+    | "sourceUrl"
+    | "externalId"
+    | "lastDataFetchAt"
 >;
 
 export type Props = {
@@ -208,6 +215,11 @@ export const SourceProvenanceView = memo((props: Props) => {
                                         className={classes.headCell}
                                     >
                                         {getSourceLabel(source)}
+                                        {!source.isSourceActive && (
+                                            <Badge small className={fr.cx("fr-ml-1w")}>
+                                                {t("sourceProvenance.inactiveSource")}
+                                            </Badge>
+                                        )}
                                         {fetchInfo && (
                                             <div
                                                 className={classes.timestamp}
