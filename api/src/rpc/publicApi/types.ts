@@ -32,7 +32,7 @@ export type SoftwareV2 = Json<
     Omit<Software, "keywords" | "authors" | "status" | "statusHistory"> & {
         keywords: Array<Software["keywords"][number] | LegacyKeyword>;
         authors: Array<Software["authors"][number] | LegacyAuthor>;
-        deferencing?: Dereferencing | undefined;
+        dereferencing?: Dereferencing | undefined;
     }
 >;
 
