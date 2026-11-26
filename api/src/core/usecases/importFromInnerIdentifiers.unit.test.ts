@@ -29,8 +29,7 @@ const makeDbApi = (externalDataRows: Partial<DatabaseDataType.SoftwareExternalDa
             getAll: async () => externalDataRows as DatabaseDataType.SoftwareExternalDataRow[],
             get: async ({ sourceSlug, externalId }: { sourceSlug: string; externalId: string }) =>
                 externalDataRows.find(row => row.sourceSlug === sourceSlug && row.externalId === externalId) as
-                    | DatabaseDataType.SoftwareExternalDataRow
-                    | undefined,
+                    DatabaseDataType.SoftwareExternalDataRow | undefined,
             saveMany: async (params: SavedIds[]) => {
                 saved.push(...params);
             }

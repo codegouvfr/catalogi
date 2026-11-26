@@ -188,16 +188,7 @@ type InstancesTable = {
 
 type ExternalId = string;
 export type ExternalDataOriginKind =
-    | "wikidata"
-    | "HAL"
-    | "ComptoirDuLibre"
-    | "CNLL"
-    | "Zenodo"
-    | "GitHub"
-    | "GitLab"
-    | "RNSR"
-    | "ROR"
-    | "UserInput";
+    "wikidata" | "HAL" | "ComptoirDuLibre" | "CNLL" | "Zenodo" | "GitHub" | "GitLab" | "RNSR" | "ROR" | "UserInput";
 
 /**
  * Slug AND kind of the pseudo-source that tracks form-entered content. Used as both
@@ -207,15 +198,7 @@ export type ExternalDataOriginKind =
 export const USER_INPUT_SOURCE_SLUG = "UserInput" as const;
 
 export type SourceCategory =
-    | "UserInput"
-    | "repository"
-    | "wikidata"
-    | "HAL"
-    | "Zenodo"
-    | "ComptoirDuLibre"
-    | "CNLL"
-    | "ROR"
-    | "RNSR";
+    "UserInput" | "repository" | "wikidata" | "HAL" | "Zenodo" | "ComptoirDuLibre" | "CNLL" | "ROR" | "RNSR";
 
 /**
  * Priority is carried by source categories, not by sources: several sources (e.g. one per
