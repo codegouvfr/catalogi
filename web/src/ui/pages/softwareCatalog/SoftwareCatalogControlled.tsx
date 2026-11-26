@@ -269,7 +269,8 @@ function RowVirtualizerDynamicWindow(
                         left: 0,
                         width: "100%",
                         transform: `translateY(${
-                            items[0].start - virtualizer.options.scrollMargin
+                            (items[0]?.start ?? virtualizer.options.scrollMargin) -
+                            virtualizer.options.scrollMargin
                         }px)`
                     }}
                 >

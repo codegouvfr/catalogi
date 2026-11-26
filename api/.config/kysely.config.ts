@@ -15,6 +15,6 @@ const dialect = new PostgresDialect({
 export default defineConfig({
     dialect,
     migrations: {
-        migrationFolder: "src/core/adapters/dbApi/kysely/migrations"
+        migrationFolder: "../src/core/adapters/dbApi/kysely/migrations"
     }
 });

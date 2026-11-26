@@ -164,7 +164,7 @@ const main = async () => {
 
     const pgPromise = new PostgreSqlContainer("postgres:16-alpine").start();
 
-    const kcPromise = new GenericContainer("quay.io/keycloak/keycloak:26.4.7")
+    const kcPromise = new GenericContainer("quay.io/keycloak/keycloak:26.8.2")
         .withExposedPorts(8080)
         .withEnvironment({ KEYCLOAK_ADMIN: "admin", KEYCLOAK_ADMIN_PASSWORD: "admin" })
         .withCopyContentToContainer([
