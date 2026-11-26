@@ -36,7 +36,7 @@ export const softwareV2Schema = z
             .optional(),
         addedTime: timestamp.describe("Date de référencement, au format ISO 8601."),
         updateTime: timestamp.describe("Date de mise à jour de la fiche, au format ISO 8601."),
-        deferencing: z
+        dereferencing: z
             .object({
                 reason: z.string().optional(),
                 time: timestamp,

@@ -21,7 +21,7 @@ export namespace CompiledData {
             description: string;
             referencedSinceTime: number;
             updateTime: number;
-            deferencing: Dereferencing | undefined;
+            dereferencing: Dereferencing | undefined;
             isStillInObservation: boolean;
             license: string;
             operatingSystems: Partial<Record<Os, boolean>>;
@@ -82,7 +82,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
             users,
             instances,
             categories,
-            deferencing,
+            dereferencing,
             description,
             customAttributes,
             id,
@@ -104,7 +104,7 @@ export function compiledDataPrivateToPublic(compiledData: CompiledData<"private"
         return {
             serviceProviders,
             categories,
-            deferencing,
+            dereferencing,
             description,
             customAttributes,
             id,
