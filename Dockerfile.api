@@ -2,7 +2,7 @@
 # SPDX-FileCopyrightText: 2024-2025 Université Grenoble Alpes
 # SPDX-License-Identifier: MIT
 
-FROM node:24.22.1-alpine as build
+FROM node:24.22.3-alpine as build
 RUN apk add --no-cache \
       git \
       openssh-client \
