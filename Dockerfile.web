@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: MIT
 
 # build step
-FROM node:24.22.1-alpine as build
+FROM node:24.22.3-alpine as build
 RUN corepack enable && corepack prepare pnpm@10.34.9 --activate
 WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
