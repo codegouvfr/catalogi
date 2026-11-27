@@ -9,7 +9,7 @@ import type { GetSoftwareExternal } from "../../ports/GetSoftwareExternal";
 import type { SoftwareExternal } from "../../types/SoftwareTypes";
 import { Source } from "../../usecases/readWriteSillData";
 import { identifersUtils } from "../../../tools/identifiersTools";
-import { resolveExternalReferenceToProject } from "./api/utils";
+import { getGitLabErrorStatus, resolveExternalReferenceToProject } from "./api/utils";
 import { convertSourceConfigToBaseRequestOptions } from "../../../tools/sourceConfig";
 
 export const getGitLabSoftwareExternalData: GetSoftwareExternal = memoize(
@@ -24,7 +24,12 @@ export const getGitLabSoftwareExternalData: GetSoftwareExternal = memoize(
         const releases = await api.ProjectReleases.all(project.id, { sort: "desc" });
         const lastRelease = releases[0];
 
-        const members = await api.ProjectMembers.all(project.id);
+        const members = await api.ProjectMembers.all(project.id).catch(error => {
+            const status = getGitLabErrorStatus(error);
+            if (source.configuration?.auth || (status !== 401 && status !== 403)) throw error;
+            console.warn(`[GitLab] ${source.slug}: members of project ${project.id} need a token, authors left empty`);
+            return [];
+        });
 
         const publicationIso = lastRelease?.released_at ? new Date(lastRelease.released_at).toISOString() : undefined;
         const nowIso = new Date().toISOString();

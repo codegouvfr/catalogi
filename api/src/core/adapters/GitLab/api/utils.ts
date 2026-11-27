@@ -1,4 +1,5 @@
 import type { Gitlab, ProjectSchema } from "@gitbeaker/core";
+import { GitbeakerRequestError } from "@gitbeaker/requester-utils";
 
 const withTimeout = async <T>(params: { timeoutMs: number; promiseFactory: () => Promise<T> }): Promise<T> => {
     const { timeoutMs, promiseFactory } = params;
@@ -51,47 +52,45 @@ export const repoUrlToAPIUrl = (projectUrl: string | URL): string => {
     return `${base}/api/v4/projects/${projectPath}`;
 };
 
+export const getGitLabErrorStatus = (error: unknown): number | undefined =>
+    error instanceof GitbeakerRequestError ? error.cause?.response?.status : undefined;
+
+const toProjectPaths = (externalId: string, apiUrl: string): string[] => {
+    const externalIdUrl = URL.parse(externalId);
+    const instancePath = externalIdUrl?.origin === URL.parse(apiUrl)?.origin ? externalIdUrl?.pathname : undefined;
+    const path = (instancePath ?? externalId)
+        .split("/-/")[0]
+        .replace(/^\/+|\/+$/g, "")
+        .replace(/\.git$/, "");
+    if (path === "") return [];
+
+    const segments = path.split("/");
+    return segments.length > 2 ? [path, segments.slice(0, 2).join("/")] : [path];
+};
+
+const showFirstExistingProject = async (
+    gitLabApi: Gitlab<false>,
+    [path, ...nextPaths]: string[]
+): Promise<ProjectSchema | undefined> => {
+    if (path === undefined) return undefined;
+
+    try {
+        const project = await withTimeout({
+            timeoutMs: 15_000,
+            promiseFactory: () => gitLabApi.Projects.show(path)
+        });
+        if (typeof project === "string") throw new Error(`API Issue on ${gitLabApi.url}`);
+        return project;
+    } catch (error) {
+        if (getGitLabErrorStatus(error) !== 404 || nextPaths.length === 0) throw error;
+        return showFirstExistingProject(gitLabApi, nextPaths);
+    }
+};
+
 export const resolveExternalReferenceToProject = async (params: {
     externalId: string;
     gitLabApi: Gitlab<false>;
 }): Promise<ProjectSchema | undefined> => {
     const { externalId, gitLabApi } = params;
-    const baseUrl = gitLabApi.url;
-
-    if (Number.isNaN(externalId)) {
-        return withTimeout({
-            timeoutMs: 15_000,
-            promiseFactory: () => gitLabApi.Projects.show(externalId)
-        });
-    }
-
-    const externalIdUrl = URL.parse(externalId);
-    let pathname = externalId;
-    if (externalIdUrl && baseUrl === externalIdUrl.origin) {
-        pathname = externalIdUrl.pathname;
-    }
-    if (pathname.endsWith("/")) {
-        pathname = pathname.slice(0, -1);
-    }
-    const splited = pathname.split("/");
-    if (splited.length > 2) {
-        pathname = splited[0] + "/" + splited[1];
-    }
-
-    try {
-        const project = await withTimeout({
-            timeoutMs: 15_000,
-            promiseFactory: () => gitLabApi.Projects.show(pathname)
-        });
-        if (project) {
-            if (typeof project === "string") {
-                throw new Error(`API Issue on ${baseUrl}`);
-            }
-            return project;
-        }
-        return undefined;
-    } catch (error) {
-        console.error(`Error fetching project ${externalId}:`, error);
-        throw error;
-    }
+    return showFirstExistingProject(gitLabApi, toProjectPaths(externalId, gitLabApi.url));
 };

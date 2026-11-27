@@ -90,7 +90,10 @@ export const repoUrlToIdentifer = async (params: {
             const externalId = parsedUrl.pathname?.substring(1);
             if (!externalId || externalId === "") return;
 
-            const project = await resolveExternalReferenceToProject({ externalId, gitLabApi });
+            const project = await resolveExternalReferenceToProject({ externalId, gitLabApi }).catch(error => {
+                console.warn(`[repoUrlToIdentifer] no GitLab project for ${repoUrl}: ${error}`);
+                return undefined;
+            });
             if (!project) return;
 
             return identifersUtils.makeRepoGitLabIdentifer({
