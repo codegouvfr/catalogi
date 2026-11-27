@@ -261,6 +261,8 @@ type SourcesTable = {
     lastImport: Date | null;
     // Exactly one source is queried by name to identify a software (enforced in DB: at most one).
     isLookupSource: Generated<boolean>;
+    // An inactive source is no longer fetched; its data is kept but ranks after the active ones.
+    isActive: Generated<boolean>;
 };
 
 type SoftwareAttributeDefinitionsTable = {

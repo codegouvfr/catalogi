@@ -9,7 +9,12 @@ export type ForgeKind = Extract<Source["kind"], "GitHub" | "GitLab">;
 
 export const isForgeKind = (kind: string | undefined): kind is ForgeKind => kind === "GitHub" || kind === "GitLab";
 
-export type EnsureForgeSource = (params: { kind: ForgeKind; url: string | URL }) => Promise<Source | undefined>;
+export type EnsureForgeSource = (params: {
+    kind: ForgeKind;
+    url: string | URL;
+    // Only for a source created by this call: an existing source keeps its state.
+    isActiveOnCreation: boolean;
+}) => Promise<Source | undefined>;
 
 const logTitle = "[UC.ensureForgeSource]";
 
@@ -18,10 +23,11 @@ const gitHubSourceUrl = "https://github.com/";
 
 // One source per forge instance, created the first time one of its repositories shows up.
 // `url` is any url on the forge, only its origin is kept. Created sources have no
-// configuration: an admin adds auth afterwards if the instance requires it.
+// configuration: an admin adds auth afterwards if the instance requires it, and activates
+// the ones created inactive.
 export const makeEnsureForgeSource =
     (deps: { dbApi: DbApiV2 }): EnsureForgeSource =>
-    async ({ kind, url }) => {
+    async ({ kind, url, isActiveOnCreation }) => {
         const { dbApi } = deps;
 
         const origin = URL.parse(url)?.origin;
@@ -38,7 +44,8 @@ export const makeEnsureForgeSource =
         const source = await dbApi.source.createIfMissing({
             slug,
             kind,
-            url: kind === "GitHub" ? gitHubSourceUrl : origin
+            url: kind === "GitHub" ? gitHubSourceUrl : origin,
+            isActive: isActiveOnCreation
         });
 
         if (source.kind !== kind || URL.parse(source.url)?.origin !== origin) {

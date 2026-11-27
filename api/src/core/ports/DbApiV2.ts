@@ -113,6 +113,7 @@ export type PopulatedExternalData = DatabaseDataType.SoftwareExternalDataRow & {
     kind: DatabaseDataType.SourceRow["kind"];
     slug: string;
     priority: number;
+    isSourceActive: boolean;
 };
 
 export interface SoftwareExternalDataRepository {
@@ -220,10 +221,10 @@ export interface SourceRepository {
     // `categories` must be a permutation of all the categories, the first one getting priority 0.
     reorderCategories: (params: { categories: DatabaseDataType.SourceRow["category"][] }) => Promise<void>;
     countSoftwaresBySlug: () => Promise<Partial<Record<string, number>>>;
-    update: (params: { slug: string; url?: string; configuration?: SourceConfig }) => Promise<void>;
+    update: (params: { slug: string; url?: string; configuration?: SourceConfig; isActive?: boolean }) => Promise<void>;
     // Returns the existing source when the slug is already taken, whatever its kind or url.
     createIfMissing: (
-        params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url">
+        params: Pick<DatabaseDataType.SourceRow, "slug" | "kind" | "url" | "isActive">
     ) => Promise<DatabaseDataType.SourceRow>;
     updateLastImport: (params: { name: string; date: Date }) => Promise<boolean>;
 }

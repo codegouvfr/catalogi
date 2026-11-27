@@ -177,7 +177,8 @@ export const testSource = {
     kind: "wikidata",
     configuration: undefined,
     lastImport: undefined,
-    isLookupSource: true
+    isLookupSource: true,
+    isActive: true
 } satisfies Source;
 
 export const resetDB = async (db: Kysely<Database>) => {

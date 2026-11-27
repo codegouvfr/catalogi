@@ -35,20 +35,21 @@ const seed = async () => {
 
     // Forge sources use the slug `ensureForgeSource` derives from the host, so the update job
     // reuses them instead of creating duplicates.
-    const sources: Array<Omit<Source, "configuration" | "lastImport" | "description" | "isLookupSource">> = [
-        { slug: "UserInput", url: "", kind: "UserInput", category: "UserInput" },
-        { slug: "github-com", url: "https://github.com/", kind: "GitHub", category: "repository" },
-        { slug: "gitlab-com", url: "https://gitlab.com", kind: "GitLab", category: "repository" },
-        { slug: "gitlab-gnome-org", url: "https://gitlab.gnome.org", kind: "GitLab", category: "repository" },
-        { slug: "code-videolan-org", url: "https://code.videolan.org", kind: "GitLab", category: "repository" },
-        { slug: "wikidata", url: "https://www.wikidata.org/", kind: "wikidata", category: "wikidata" },
-        {
-            slug: "comptoir-du-libre",
-            url: "https://comptoir-du-libre.org/",
-            kind: "ComptoirDuLibre",
-            category: "ComptoirDuLibre"
-        }
-    ];
+    const sources: Array<Omit<Source, "configuration" | "lastImport" | "description" | "isLookupSource" | "isActive">> =
+        [
+            { slug: "UserInput", url: "", kind: "UserInput", category: "UserInput" },
+            { slug: "github-com", url: "https://github.com/", kind: "GitHub", category: "repository" },
+            { slug: "gitlab-com", url: "https://gitlab.com", kind: "GitLab", category: "repository" },
+            { slug: "gitlab-gnome-org", url: "https://gitlab.gnome.org", kind: "GitLab", category: "repository" },
+            { slug: "code-videolan-org", url: "https://code.videolan.org", kind: "GitLab", category: "repository" },
+            { slug: "wikidata", url: "https://www.wikidata.org/", kind: "wikidata", category: "wikidata" },
+            {
+                slug: "comptoir-du-libre",
+                url: "https://comptoir-du-libre.org/",
+                kind: "ComptoirDuLibre",
+                category: "ComptoirDuLibre"
+            }
+        ];
 
     // Within one transaction so a failure can't lose the configurations. The rest of the seed
     // can't join it: dbApi opens its own transactions, which Kysely doesn't allow nesting.

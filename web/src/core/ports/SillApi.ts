@@ -150,6 +150,9 @@ export type SillApi = {
     setLookupSource: (
         params: TrpcRouterInput["setLookupSource"]
     ) => Promise<TrpcRouterOutput["setLookupSource"]>;
+    setSourceActive: (
+        params: TrpcRouterInput["setSourceActive"]
+    ) => Promise<TrpcRouterOutput["setSourceActive"]>;
     reorderSourceCategories: (
         params: TrpcRouterInput["reorderSourceCategories"]
     ) => Promise<TrpcRouterOutput["reorderSourceCategories"]>;

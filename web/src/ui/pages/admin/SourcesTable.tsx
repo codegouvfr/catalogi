@@ -6,10 +6,12 @@ import { useState } from "react";
 import { fr } from "@codegouvfr/react-dsfr";
 import { Badge } from "@codegouvfr/react-dsfr/Badge";
 import { Button } from "@codegouvfr/react-dsfr/Button";
+import { Checkbox } from "@codegouvfr/react-dsfr/Checkbox";
 import { Input } from "@codegouvfr/react-dsfr/Input";
 import { tss } from "tss-react";
 import { useTranslation } from "react-i18next";
 import type { ApiTypes } from "api";
+import { useCore, useCoreState } from "core";
 import { useLang } from "ui/i18n";
 import { getFormattedDate } from "ui/datetimeUtils";
 import { openSourceFormModal } from "./SourceFormModal";
@@ -41,6 +43,7 @@ export function SourcesTable(props: { label: string; sources: ApiTypes.AdminSour
     const sources = matching.slice(0, shownCount);
 
     const headers = [
+        t("admin.sources.columnActive"),
         t("admin.sources.columnSlug"),
         t("admin.sources.columnKind"),
         t("admin.sources.columnUrl"),
@@ -90,6 +93,9 @@ export function SourcesTable(props: { label: string; sources: ApiTypes.AdminSour
                                 <tbody>
                                     {sources.map(source => (
                                         <tr key={source.slug}>
+                                            <td>
+                                                <SourceActiveCheckbox source={source} />
+                                            </td>
                                             <td>
                                                 <code>{source.slug}</code>
                                                 {source.isLookupSource && (
@@ -197,6 +203,51 @@ export function SourcesTable(props: { label: string; sources: ApiTypes.AdminSour
                 </div>
             )}
         </>
+    );
+}
+
+function SourceActiveCheckbox(props: { source: ApiTypes.AdminSource }) {
+    const { source } = props;
+    const { t } = useTranslation();
+    const { adminSources } = useCore().functions;
+    const { isSaving } = useCoreState("adminSources", "main");
+
+    // The software form searches the lookup source: it must stay fetched.
+    if (!source.isEditable || source.isLookupSource)
+        return (
+            <span className={fr.cx("fr-text--sm", "fr-mb-0")}>
+                {t("admin.sources.alwaysActive")}
+            </span>
+        );
+
+    return (
+        <Checkbox
+            small
+            className={fr.cx("fr-mb-0")}
+            options={[
+                {
+                    label: (
+                        <span className="fr-sr-only">
+                            {t("admin.sources.activeLabel", { slug: source.slug })}
+                        </span>
+                    ),
+                    nativeInputProps: {
+                        checked: source.isActive,
+                        disabled: isSaving,
+                        onChange: async e => {
+                            try {
+                                await adminSources.setActive({
+                                    slug: source.slug,
+                                    isActive: e.target.checked
+                                });
+                            } catch {
+                                /* sillApi.errorHandler already alerted the user */
+                            }
+                        }
+                    }
+                }
+            ]}
+        />
     );
 }
 

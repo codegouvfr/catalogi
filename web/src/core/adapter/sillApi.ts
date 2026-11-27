@@ -253,6 +253,12 @@ export function createSillApi(params: { url: string }): SillApi {
             sillApi.getLookupSource.clear();
             sillApi.getExternalSoftwareDataOrigin.clear();
         },
+        setSourceActive: async params => {
+            await trpcClient.setSourceActive.mutate(params).catch(errorHandler);
+
+            // The data of an inactive source ranks last in the merge.
+            sillApi.getSoftwareList.clear();
+        },
         reorderSourceCategories: async params => {
             await trpcClient.reorderSourceCategories.mutate(params).catch(errorHandler);
 

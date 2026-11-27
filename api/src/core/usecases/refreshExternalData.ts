@@ -108,7 +108,10 @@ const discoverNewSoftwareLinks = async (dbApi: DbApiV2): Promise<void> => {
         return activeSoftwareId ?? link.softwareId;
     };
 
-    const filteredSources = filterSourceByFeature(sources, "softwareExtra");
+    const filteredSources = filterSourceByFeature(
+        sources.filter(source => source.isActive),
+        "softwareExtra"
+    );
 
     for (const source of filteredSources) {
         // UserInput is a pseudo-source with no gateway; nothing to discover.
@@ -211,7 +214,13 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
         return acc;
     }, {});
 
-    console.log(useCaseLogTitle, `${ids.length} software external data sheet to update`);
+    // Every refresh goes through here: an inactive source keeps its data but is no longer fetched.
+    const activeIds = ids.filter(({ sourceSlug }) => sourceBySlug[sourceSlug]?.isActive !== false);
+    if (activeIds.length < ids.length) {
+        console.log(useCaseLogTitle, `${ids.length - activeIds.length} external data of inactive sources skipped`);
+    }
+
+    console.log(useCaseLogTitle, `${activeIds.length} software external data sheet to update`);
 
     const updateExternalData = async (params: { sourceSlug: string; externalId: string }) => {
         const { sourceSlug, externalId } = params;
@@ -246,7 +255,7 @@ const refreshExternalDataByExternalIdAndSlug = async (args: {
         }
     };
 
-    const result = ids.reduce(
+    const result = activeIds.reduce(
         (acc, { externalId, sourceSlug }) => {
             const existing = acc.find(item => item.sourceSlug === sourceSlug);
             if (existing) {

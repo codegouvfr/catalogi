@@ -17,7 +17,8 @@ describe("HAL", () => {
         description: undefined,
         configuration: undefined,
         lastImport: undefined,
-        isLookupSource: false
+        isLookupSource: false,
+        isActive: true
     };
     describe("getHalSoftwareExternal", () => {
         it("gets data from Hal and converts it to ExternalSoftware", async () => {

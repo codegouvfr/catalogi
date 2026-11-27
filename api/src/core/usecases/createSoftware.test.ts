@@ -558,6 +558,55 @@ describe("Create software - Trying all the cases", () => {
             ]);
         });
 
+        it("binds inactive sources too, to fetch them once activated", async () => {
+            await db
+                .insertInto("sources")
+                .values([
+                    { slug: "github-com", kind: "GitHub", category: "repository", url: "https://github.com/" },
+                    { slug: "hal", kind: "HAL", category: "HAL", url: "https://hal.science" }
+                ])
+                .execute();
+            const repositoryCheckCache = makeRepositoryCheckCache();
+            repositoryCheckCache.set([craRepository.url], {
+                repository: craRepository,
+                discoveredSources: [
+                    {
+                        sourceSlug: "hal",
+                        sourceKind: "HAL",
+                        externalId: "hal-1",
+                        name: "Create React App",
+                        url: "https://hal.science/hal-1",
+                        existingSoftwareId: undefined
+                    }
+                ]
+            });
+            await db
+                .updateTable("sources")
+                .set({ isActive: false })
+                .where("slug", "in", ["github-com", "hal"])
+                .execute();
+            const createWithRepo = makeCreateSofware({
+                dbApi,
+                withUserInput: true,
+                resolveRepository,
+                repositoryCheckCache
+            });
+
+            const softwareId = await createWithRepo({ formData: repoFormData, userId });
+
+            const externalData = await db
+                .selectFrom("software_external_datas")
+                .select(["sourceSlug", "lastDataFetchAt"])
+                .where("softwareId", "=", softwareId)
+                .where("sourceSlug", "!=", "UserInput")
+                .orderBy("sourceSlug")
+                .execute();
+            expectToEqual(externalData, [
+                { sourceSlug: "github-com", lastDataFetchAt: null },
+                { sourceSlug: "hal", lastDataFetchAt: null }
+            ]);
+        });
+
         it("rejects a software whose repository url is already given by a software, whatever the spelling", async () => {
             const createWithRepo = makeCreateSofware({
                 dbApi,

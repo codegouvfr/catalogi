@@ -34,9 +34,14 @@ describe("ensureForgeSource", () => {
     it("creates one repository source per forge instance, keyed by origin", async () => {
         const created = await ensureForgeSource({
             kind: "GitLab",
-            url: "https://gitlab.huma-num.fr/team/project"
+            url: "https://gitlab.huma-num.fr/team/project",
+            isActiveOnCreation: true
         });
-        const reused = await ensureForgeSource({ kind: "GitLab", url: "https://gitlab.huma-num.fr/" });
+        const reused = await ensureForgeSource({
+            kind: "GitLab",
+            url: "https://gitlab.huma-num.fr/",
+            isActiveOnCreation: true
+        });
 
         expect(created).toMatchObject({
             slug: "gitlab-huma-num-fr",
@@ -56,25 +61,51 @@ describe("ensureForgeSource", () => {
             .values({ slug: "GitHub", kind: "GitHub", category: "repository", url: "https://github.com/" })
             .execute();
 
-        const source = await ensureForgeSource({ kind: "GitHub", url: "https://github.com/owner/repo" });
+        const source = await ensureForgeSource({
+            kind: "GitHub",
+            url: "https://github.com/owner/repo",
+            isActiveOnCreation: true
+        });
 
         expect(source?.slug).toBe("GitHub");
     });
 
+    it("creates the source in the requested state, then leaves its state alone", async () => {
+        const created = await ensureForgeSource({
+            kind: "GitLab",
+            url: "https://gitlab.huma-num.fr/team/project",
+            isActiveOnCreation: false
+        });
+        const reused = await ensureForgeSource({
+            kind: "GitLab",
+            url: "https://gitlab.huma-num.fr/team/other",
+            isActiveOnCreation: true
+        });
+
+        expect(created?.isActive).toBe(false);
+        expect(reused?.isActive).toBe(false);
+    });
+
     it("creates the GitHub source with the url its adapters expect", async () => {
-        const source = await ensureForgeSource({ kind: "GitHub", url: "https://github.com/owner/repo" });
+        const source = await ensureForgeSource({
+            kind: "GitHub",
+            url: "https://github.com/owner/repo",
+            isActiveOnCreation: true
+        });
 
         expect(source).toMatchObject({ slug: "github-com", url: "https://github.com/" });
     });
 
     it("never makes a forge the lookup source", async () => {
-        await ensureForgeSource({ kind: "GitHub", url: "https://github.com/owner/repo" });
+        await ensureForgeSource({ kind: "GitHub", url: "https://github.com/owner/repo", isActiveOnCreation: true });
 
         expect((await dbApi.source.getLookupSource()).category).not.toBe("repository");
     });
 
     it("refuses a GitHub kind outside github.com", async () => {
-        expect(await ensureForgeSource({ kind: "GitHub", url: "https://gitlab.com/owner/repo" })).toBeUndefined();
+        expect(
+            await ensureForgeSource({ kind: "GitHub", url: "https://gitlab.com/owner/repo", isActiveOnCreation: true })
+        ).toBeUndefined();
     });
 
     it("does not hijack a source already using the derived slug", async () => {
@@ -83,7 +114,9 @@ describe("ensureForgeSource", () => {
             .values({ slug: "gitlab-com", kind: "HAL", category: "HAL", url: "https://hal.science" })
             .execute();
 
-        expect(await ensureForgeSource({ kind: "GitLab", url: "https://gitlab.com/a/b" })).toBeUndefined();
+        expect(
+            await ensureForgeSource({ kind: "GitLab", url: "https://gitlab.com/a/b", isActiveOnCreation: true })
+        ).toBeUndefined();
     });
 });
 
@@ -146,6 +179,8 @@ describe("importFromInnerIdentifiers with forge repositories", () => {
         expect(rows).toEqual([
             { softwareId: 1, sourceSlug: "gitlab-huma-num-fr", sourceCategory: "repository", externalId: "42" }
         ]);
+        // Nobody checked that the instance answers without authentication: an admin activates it.
+        expect((await dbApi.source.getByName({ name: "gitlab-huma-num-fr" }))?.isActive).toBe(false);
     });
 
     it("does not bind a second repository to a software", async () => {

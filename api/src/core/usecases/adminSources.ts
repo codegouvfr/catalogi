@@ -28,7 +28,7 @@ import {
 } from "./sourceErrors";
 
 // What the admin tab shows of a source: its credential is reduced to "set or not".
-export type AdminSource = Pick<Source, "slug" | "kind" | "category" | "url" | "lastImport"> & {
+export type AdminSource = Pick<Source, "slug" | "kind" | "category" | "url" | "lastImport" | "isActive"> & {
     isLookupSource: boolean;
     canBeLookupSource: boolean;
     isEditable: boolean;
@@ -72,6 +72,7 @@ const toAdminSource = (source: Source, softwareCount: number): AdminSource => {
         category: source.category,
         url: source.url,
         lastImport: source.lastImport,
+        isActive: source.isActive,
         isLookupSource: source.isLookupSource,
         canBeLookupSource: isLookupSourceKind(source.kind),
         isEditable,
@@ -146,7 +147,23 @@ export const makeSetLookupSource =
         const { dbApi } = deps;
         const source = await getSourceOrThrow(dbApi, slug);
         if (!isLookupSourceKind(source.kind)) throw new NotALookupSourceCandidateError(slug);
+        if (!source.isActive) throw new SourceNotEditableError("An inactive source cannot be the lookup source");
         await dbApi.source.setLookupSource({ slug });
+    };
+
+// An inactive source is no longer fetched: its data is kept but ranks after the active sources.
+export const makeSetSourceActive =
+    (deps: { dbApi: DbApiV2 }) =>
+    async ({ slug, isActive }: { slug: string; isActive: boolean }): Promise<void> => {
+        const { dbApi } = deps;
+        const source = await getSourceOrThrow(dbApi, slug);
+
+        if (source.kind === USER_INPUT_SOURCE_SLUG)
+            throw new SourceNotEditableError("The user input source cannot be toggled");
+        if (!isActive && source.isLookupSource)
+            throw new SourceNotEditableError("The lookup source cannot be deactivated");
+
+        await dbApi.source.update({ slug, isActive });
     };
 
 export const makeReorderSourceCategories =
@@ -184,6 +201,7 @@ export type AdminSourcesUseCases = {
     getAll: ReturnType<typeof makeGetAdminSources>;
     update: ReturnType<typeof makeUpdateSource>;
     setLookupSource: ReturnType<typeof makeSetLookupSource>;
+    setActive: ReturnType<typeof makeSetSourceActive>;
     reorderCategories: ReturnType<typeof makeReorderSourceCategories>;
     checkConnection: ReturnType<typeof makeCheckSourceConnection>;
 };
@@ -192,6 +210,7 @@ export const makeAdminSources = (deps: { dbApi: DbApiV2 }): AdminSourcesUseCases
     getAll: makeGetAdminSources(deps),
     update: makeUpdateSource(deps),
     setLookupSource: makeSetLookupSource(deps),
+    setActive: makeSetSourceActive(deps),
     reorderCategories: makeReorderSourceCategories(deps),
     checkConnection: makeCheckSourceConnection(deps)
 });

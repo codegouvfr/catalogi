@@ -81,7 +81,9 @@ export const makeImportFromInnerIdentifiers = (
             const kind = identifier.subjectOf.additionalType;
             if (identifier.additionalType !== "Repo" || !isForgeKind(kind)) return undefined;
 
-            const source = await ensureForgeSource({ kind, url });
+            // Nobody checked yet that the instance answers without authentication: an admin
+            // activates it. Its repositories are bound meanwhile, fetched once it is active.
+            const source = await ensureForgeSource({ kind, url, isActiveOnCreation: false });
             if (!source) return undefined;
 
             slugByOrigin[origin] = source.slug;

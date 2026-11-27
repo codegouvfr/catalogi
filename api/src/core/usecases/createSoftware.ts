@@ -288,7 +288,13 @@ export const makeCreateSofware: (params: {
         // The software exists at this point: a failing binding is left to the next refresh.
         try {
             if (repository) {
-                const forgeSource = await ensureForgeSource({ kind: repository.forgeKind, url: repository.url });
+                // The forge has just answered for this repository: a new instance starts active.
+                const forgeSource = await ensureForgeSource({
+                    kind: repository.forgeKind,
+                    url: repository.url,
+                    isActiveOnCreation: true
+                });
+                // Bound even when inactive: its data is fetched once an admin activates it.
                 if (forgeSource) {
                     await bindExternalData({
                         softwareId,

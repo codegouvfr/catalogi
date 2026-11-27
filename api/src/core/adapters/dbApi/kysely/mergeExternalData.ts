@@ -30,9 +30,10 @@ const stringKey = (v: unknown): string => {
  * Merge rows from different sources describing the same software.
  *
  * Convention: **lower priority number = higher precedence** (repository=1 wins over wikidata=2).
- * Priority belongs to the source category (`source_categories.priority`).
- * **Input must be sorted priority-ascending** (highest precedence first); callers get
- * that ordering from their SQL `ORDER BY sc.priority ASC` clause.
+ * Priority belongs to the source category (`source_categories.priority`), and an inactive
+ * source (no longer refreshed) ranks after every active one.
+ * **Input must be sorted by precedence** (highest first); callers get that ordering from
+ * their SQL `ORDER BY s."isActive" DESC, sc.priority ASC` clause.
  *
  * - Scalar fields pick the value from the highest-precedence row that has a non-null value.
  * - Array fields take the UNION across all sources with field-specific dedupe.

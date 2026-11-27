@@ -28,9 +28,11 @@ export const createGetCompiledData = (db: Kysely<Database>) => async (): Promise
         .selectAll("ext")
         .innerJoin("sources as src", "src.slug", "ext.sourceSlug")
         .innerJoin("source_categories as sc", "sc.category", "src.category")
-        .select(["src.kind", "sc.priority", "src.url as sourceUrl", "src.slug"])
+        .select(["src.kind", "sc.priority", "src.url as sourceUrl", "src.slug", "src.isActive as isSourceActive"])
         .where("ext.softwareId", "is not", null)
         .orderBy("ext.softwareId", "asc")
+        // Data of an inactive source is kept but no longer refreshed: it ranks last.
+        .orderBy("src.isActive", "desc")
         .orderBy("sc.priority", "asc")
         .execute();
 

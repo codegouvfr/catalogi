@@ -48,8 +48,9 @@ export const { reducer, actions } = createUsecaseActions({
         saveSettled: state => {
             state.isSaving = false;
         },
-        // The software catalog reloads on it.
-        categoriesReordered: () => {}
+        // The merge of external data changed (category order, source deactivated):
+        // the software catalog reloads on it.
+        mergeOrderChanged: () => {}
     }
 });
 
@@ -103,11 +104,17 @@ export const thunks = {
                     dispatch(externalDataOriginProtectedThunks.initialize())
                 ]);
             }),
+    setActive:
+        (params: TrpcRouterInput["setSourceActive"]) =>
+        async (dispatch, _, { sillApi }) => {
+            await save(dispatch, sillApi, () => sillApi.setSourceActive(params));
+            dispatch(actions.mergeOrderChanged());
+        },
     reorderCategories:
         (params: TrpcRouterInput["reorderSourceCategories"]) =>
         async (dispatch, _, { sillApi }) => {
             await save(dispatch, sillApi, () => sillApi.reorderSourceCategories(params));
-            dispatch(actions.categoriesReordered());
+            dispatch(actions.mergeOrderChanged());
         },
     checkConnection:
         (params: TrpcRouterInput["checkSourceConnection"]) =>
