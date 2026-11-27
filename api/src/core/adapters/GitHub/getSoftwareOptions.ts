@@ -29,8 +29,10 @@ export const getGitHubSoftwareOptions: GetSoftwareExternalDataOptions = async ({
     if (source.url !== "https://github.com/")
         throw new Error("This source doesn't allow custom url, please set it properly.");
 
-    const configApi = source?.configuration?.auth ? { auth: source?.configuration?.auth } : {};
-    const gitHubApi = gitHubEndpointMaker(configApi);
+    const gitHubApi = gitHubEndpointMaker({
+        auth: source?.configuration?.auth,
+        userAgent: source?.configuration?.agent?.["User-Agent"]
+    });
     const result = await gitHubApi.search.repo.searchByName(queryString);
 
     if (!result) return [];

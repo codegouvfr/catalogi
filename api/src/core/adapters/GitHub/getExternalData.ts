@@ -17,8 +17,10 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         if (source.url !== "https://github.com/")
             throw new Error("This source doesn't allow custom url, please set it properly.");
 
-        const configApi = source?.configuration?.auth ? { auth: source?.configuration?.auth } : {};
-        const gitHubApi = gitHubEndpointMaker(configApi);
+        const gitHubApi = gitHubEndpointMaker({
+            auth: source?.configuration?.auth,
+            userAgent: source?.configuration?.agent?.["User-Agent"]
+        });
         if (!gitHubApi) throw new Error("This GitHub url provided doesn't work.");
 
         const repoUrl = externalId.includes("https://github.com") ? externalId : `https://github.com/${externalId}`;
@@ -49,7 +51,7 @@ export const getGitHubSoftwareExternalData: GetSoftwareExternal = memoize(
         const versionCommitSha = repoTags?.[0]?.commit?.sha;
         const lastVersionCommit = versionCommitSha
             ? await gitHubApi.repo.commits.getBySha({
-                  repoUrl: externalId,
+                  repoUrl,
                   commit_sha: versionCommitSha
               })
             : undefined;

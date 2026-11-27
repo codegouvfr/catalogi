@@ -3,6 +3,7 @@
 // SPDX-License-Identifier: MIT
 
 import memoize from "memoizee";
+import { USER_ARGENT } from "../../../../tools/sourceConfig";
 
 type WbgetentitiesResponse = {
     entities?: Record<
@@ -55,7 +56,7 @@ const fetchLicensesUncached = async (params: {
     const headers = {
         ...((requestInit?.headers as Record<string, string> | undefined) ?? {}),
         Accept: "application/json",
-        "User-Agent": "catalogi-sill (https://code.gouv.fr/sill)"
+        "User-Agent": USER_ARGENT
     };
     const response = await fetch(url, { ...requestInit, headers }).catch(() => undefined);
     if (!response?.ok) {
